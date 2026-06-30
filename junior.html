@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>國中數學練習系統</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <h1>國中數學練習系統</h1>
+  <p>七上・七下・八上・八下・九上・九下 ｜ 基礎 &amp; 中等難度</p>
+</header>
+
+<div class="container">
+
+  <!-- 導航列 -->
+  <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+    <a href="index.html" style="font-size:.9rem;color:var(--primary);font-weight:600;text-decoration:none;">
+      ◀ 返回國小數學練習系統
+    </a>
+    <a href="senior.html" style="font-size:.9rem;color:var(--primary);font-weight:600;text-decoration:none;">
+      ▶ 前往高中數學練習系統
+    </a>
+  </div>
+
+  <!-- 學期分頁 -->
+  <div class="sem-tabs">
+    <button class="sem-tab active" data-sem="7a">七上</button>
+    <button class="sem-tab" data-sem="7b">七下</button>
+    <button class="sem-tab" data-sem="8a">八上</button>
+    <button class="sem-tab" data-sem="8b">八下</button>
+    <button class="sem-tab" data-sem="9a">九上</button>
+    <button class="sem-tab" data-sem="9b">九下</button>
+  </div>
+
+  <!-- ── 七上 ─────────────────────────────────────────────────── -->
+  <div class="sem-panel active" id="panel-7a">
+
+    <div class="card">
+      <div class="card-title">選擇題型（可多選）</div>
+
+      <div class="cat-header">整數</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="7a-int-sign"> 正負號概念</label>
+        <label class="topic-label"><input type="checkbox" value="7a-int-add">  整數加法</label>
+        <label class="topic-label"><input type="checkbox" value="7a-int-sub">  整數減法</label>
+        <label class="topic-label"><input type="checkbox" value="7a-int-mul">  整數乘法</label>
+        <label class="topic-label"><input type="checkbox" value="7a-int-div">  整數除法</label>
+        <label class="topic-label"><input type="checkbox" value="7a-int-mix">  整數四則運算</label>
+        <label class="topic-label"><input type="checkbox" value="7a-int-abs">  含絕對值四則</label>
+      </div>
+
+      <div class="cat-header">分數與有理數</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="7a-frac-sign"> 正負號概念</label>
+        <label class="topic-label"><input type="checkbox" value="7a-frac-add">  有理數加法</label>
+        <label class="topic-label"><input type="checkbox" value="7a-frac-sub">  有理數減法</label>
+        <label class="topic-label"><input type="checkbox" value="7a-frac-mul">  有理數乘法</label>
+        <label class="topic-label"><input type="checkbox" value="7a-frac-div">  有理數除法</label>
+        <label class="topic-label"><input type="checkbox" value="7a-frac-mix">  有理數四則運算</label>
+        <label class="topic-label"><input type="checkbox" value="7a-frac-abs">  含絕對值四則</label>
+        <label class="topic-label"><input type="checkbox" value="7a-gcd-lcm">   最大公因數與最小公倍數</label>
+        <label class="topic-label"><input type="checkbox" value="7a-prime">     質數與因數</label>
+      </div>
+
+      <div class="cat-header">指數律與科學記號</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="7a-exp"> 指數律</label>
+        <label class="topic-label"><input type="checkbox" value="7a-sci"> 科學記號</label>
+      </div>
+
+      <div class="cat-header">一元一次多項式</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="7a-poly"> 化簡・展開・代入</label>
+      </div>
+
+      <div class="cat-header">一元一次方程式</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="7a-eqn"> 解一元一次方程式</label>
+      </div>
+
+      <div class="topic-note">
+        ※ 可跨類別多選，題目自動平均分配<br>
+        ※ 有理數含負分數與帶分數<br>
+        ※ 指數律：求指數 x、四則運算求值（如 2³+3²）、求底數 a（如 a²=25）；科學記號：正負指數互換<br>
+        ※ 多項式答案填整數；方程式答案可為分數（如 <code>5/3</code>）<br>
+        ※ 困難包含帶分數多步混合、三數因倍、科學記號乘除、雙括號展開
+      </div>
+    </div>
+
+    <!-- 選難度 -->
+    <div class="card">
+      <div class="card-title">選擇難度</div>
+      <div class="level-group">
+        <label class="level-label selected" data-level="basic">
+          <input type="radio" name="level-7a" value="basic" checked> 基礎
+        </label>
+        <label class="level-label" data-level="medium">
+          <input type="radio" name="level-7a" value="medium"> 中等
+        </label>
+        <label class="level-label" data-level="mixed">
+          <input type="radio" name="level-7a" value="mixed"> 基礎＋中等混合
+        </label>
+        <label class="level-label" data-level="hard">
+          <input type="radio" name="level-7a" value="hard"> 困難
+        </label>
+        <label class="level-label" data-level="hard-mix">
+          <input type="radio" name="level-7a" value="hard-mix"> 中等＋困難混合
+        </label>
+      </div>
+      <div class="level-desc">
+        <strong>基礎：</strong>兩數運算、同號異號加減、整數乘除、真分數四則。<br>
+        <strong>中等：</strong>三數運算、帶分數、括號優先、混合四則。<br>
+        <strong>困難：</strong>四項運算、雙重括號、帶分數多步混合、連乘連除鏈、雙積相減。<br>
+        <strong>基礎＋中等 / 中等＋困難：</strong>各出一半，適合階段複習。
+      </div>
+    </div>
+
+    <!-- 出題按鈕 -->
+    <button class="btn-primary" id="btn-start-7a" disabled>
+      ▶ 開始出題（20 題）
+    </button>
+    <div id="error-7a" style="color:#C62828;font-size:.9rem;text-align:center;margin-top:8px;display:none;">
+      請至少勾選一個題型！
+    </div>
+
+  </div><!-- /panel-7a -->
+
+  <!-- ── 七下 ─────────────────────────────────────────────────── -->
+  <div class="sem-panel" id="panel-7b">
+
+    <div class="card">
+      <div class="card-title">選擇題型（可多選）</div>
+
+      <div class="cat-header">平面座標</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="7b-coord"> 象限・讀座標</label>
+      </div>
+
+      <div class="cat-header">二元一次多項式</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="7b-poly"> 化簡求係數</label>
+      </div>
+
+      <div class="cat-header">二元一次方程式</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="7b-subst"> 代入消去法</label>
+        <label class="topic-label"><input type="checkbox" value="7b-elim">  加減消去法</label>
+        <label class="topic-label"><input type="checkbox" value="7b-linepic"> 圖形與解方程式</label>
+        <label class="topic-label"><input type="checkbox" value="7b-chain"> 二元一次式連等</label>
+      </div>
+
+      <div class="cat-header">比例</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="7b-ratio">   比例式</label>
+        <label class="topic-label"><input type="checkbox" value="7b-dirprop"> 正比</label>
+        <label class="topic-label"><input type="checkbox" value="7b-invprop"> 反比</label>
+      </div>
+
+      <div class="cat-header">不等式</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="7b-ineq"> 一元一次不等式</label>
+      </div>
+
+      <div class="cat-header">統計</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="7b-stat"> 算術平均數・中位數・眾數</label>
+      </div>
+
+      <div class="topic-note">
+        ※ 方程式：x, y 各填一個答案（整數或分數，如 <code>3</code> 或 <code>5/3</code>）<br>
+        ※ 多項式：x, y 的係數分別填整數<br>
+        ※ 平面座標：填象限號碼（1~4）或填完整座標如 <code>3</code> 與 <code>-2</code><br>
+        ※ 圖形與解方程式：代入求值填整數；交點座標填兩個整數<br>
+        ※ 連等：A = B = C，選任兩組相等建立聯立，填 x、y 各一個整數<br>
+        ※ 代入基礎：給出其中一數值，或某變數係數為 1<br>
+        ※ 代入中等：需代入的方程式係數不為 1；困難：兩式係數均不為 1<br>
+        ※ 加減基礎：一項係數直接相同（或相反）可直接消去<br>
+        ※ 加減中等：需倍乘，或三元對稱聯立；困難：大係數或 |f|+(g)²=0 特殊型<br>
+        ※ 比例式：基礎為整數比，中等含括號一次式，困難含兩邊括號；答案填分數如 <code>5/3</code><br>
+        ※ 正比／反比：基礎整數，中等分數比例常數，困難含分數 x 或求比例常數 k<br>
+        ※ 不等式：答案格式 x &gt; 數值（或 &lt;、≥、≤），填分數如 <code>5/3</code><br>
+        ※ 統計：填整數或分數（中位數偶數組時為分數）
+      </div>
+    </div>
+
+    <!-- 選難度 -->
+    <div class="card">
+      <div class="card-title">選擇難度</div>
+      <div class="level-group">
+        <label class="level-label selected" data-level="basic">
+          <input type="radio" name="level-7b" value="basic" checked> 基礎
+        </label>
+        <label class="level-label" data-level="medium">
+          <input type="radio" name="level-7b" value="medium"> 中等
+        </label>
+        <label class="level-label" data-level="mixed">
+          <input type="radio" name="level-7b" value="mixed"> 基礎＋中等混合
+        </label>
+        <label class="level-label" data-level="hard">
+          <input type="radio" name="level-7b" value="hard"> 困難
+        </label>
+        <label class="level-label" data-level="hard-mix">
+          <input type="radio" name="level-7b" value="hard-mix"> 中等＋困難混合
+        </label>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-start-7b" disabled>
+      ▶ 開始出題（20 題）
+    </button>
+    <div id="error-7b" style="color:#C62828;font-size:.9rem;text-align:center;margin-top:8px;display:none;">
+      請至少勾選一個題型！
+    </div>
+
+  </div><!-- /panel-7b -->
+
+  <!-- ── 八上 ─────────────────────────────────────────────────── -->
+  <div class="sem-panel" id="panel-8a">
+
+    <div class="card">
+      <div class="card-title">選擇題型（可多選）</div>
+
+      <div class="cat-header">乘法公式</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="8a-mulform"> 乘法公式（平方差・完全平方）</label>
+      </div>
+
+      <div class="cat-header">多項式運算</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="8a-poly-add"> 多項式加法與減法</label>
+        <label class="topic-label"><input type="checkbox" value="8a-poly-mul"> 多項式乘法與除法</label>
+        <label class="topic-label"><input type="checkbox" value="8a-poly-mix"> 多項式四則運算</label>
+      </div>
+
+      <div class="cat-header">平方根</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="8a-sqrt-basic"> 平方根的意義</label>
+        <label class="topic-label"><input type="checkbox" value="8a-sqrt-add"> 根號加法與減法</label>
+        <label class="topic-label"><input type="checkbox" value="8a-sqrt-mul"> 根號乘法與除法</label>
+        <label class="topic-label"><input type="checkbox" value="8a-sqrt-mix"> 根號四則運算</label>
+      </div>
+
+      <div class="cat-header">幾何</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="8a-pyth"> 畢氏定理</label>
+      </div>
+
+      <div class="cat-header">因式分解</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="8a-factor1"> 提公因式與乘法公式</label>
+        <label class="topic-label"><input type="checkbox" value="8a-factor2"> 十字交乘法</label>
+      </div>
+
+      <div class="cat-header">一元二次方程式</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="8a-quad1"> 因式分解法</label>
+        <label class="topic-label"><input type="checkbox" value="8a-quad2"> 配方法與公式解</label>
+      </div>
+
+      <div class="cat-header">統計</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="8a-stat"> 統計資料處理</label>
+      </div>
+
+      <div class="topic-note">
+        ※ 乘法公式展開：依序填 x² 係數、x 係數、常數項<br>
+        ※ 多項式加減：依序填各項係數（整數，可為負數）<br>
+        ※ 多項式乘除、四則：依序填 x² 係數、x 係數、常數項<br>
+        ※ 平方根：填整數（√n 的值、係數、或根號內最簡值）<br>
+        ※ 根號加減、乘除、四則：填係數整數或有理數部分<br>
+        ※ 畢氏定理：填邊長或邊長的平方（整數）<br>
+        ※ 因式分解：填因式中的係數或常數（整數）<br>
+        ※ 因式分解法解方程式：兩根填入同一格，用逗號分隔（如 <code>-3, 2</code>）<br>
+        ※ 配方法基礎：填配方後 \((x+p)^2=q\) 中的 p 和 q；中等、困難：公式解兩根（可為分數）<br>
+        ※ 統計：平均數、中位數、眾數、全距、四分位距；可能為分數（填如 <code>7/2</code>）
+      </div>
+    </div>
+
+    <!-- 選難度 -->
+    <div class="card">
+      <div class="card-title">選擇難度</div>
+      <div class="level-group">
+        <label class="level-label selected" data-level="basic">
+          <input type="radio" name="level-8a" value="basic" checked> 基礎
+        </label>
+        <label class="level-label" data-level="medium">
+          <input type="radio" name="level-8a" value="medium"> 中等
+        </label>
+        <label class="level-label" data-level="mixed">
+          <input type="radio" name="level-8a" value="mixed"> 基礎＋中等混合
+        </label>
+        <label class="level-label" data-level="hard">
+          <input type="radio" name="level-8a" value="hard"> 困難
+        </label>
+        <label class="level-label" data-level="hard-mix">
+          <input type="radio" name="level-8a" value="hard-mix"> 中等＋困難混合
+        </label>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-start-8a" disabled>
+      ▶ 開始出題（20 題）
+    </button>
+    <div id="error-8a" style="color:#C62828;font-size:.9rem;text-align:center;margin-top:8px;display:none;">
+      請至少勾選一個題型！
+    </div>
+
+  </div><!-- /panel-8a -->
+
+  <!-- ── 八下 ─────────────────────────────────────────────────── -->
+  <div class="sem-panel" id="panel-8b">
+
+    <div class="card">
+      <div class="card-title">選擇題型（可多選）</div>
+
+      <div class="cat-header">數列與級數</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="8b-arith-seq">    等差數列</label>
+        <label class="topic-label"><input type="checkbox" value="8b-arith-series"> 等差級數</label>
+        <label class="topic-label"><input type="checkbox" value="8b-geo-seq">      等比數列</label>
+      </div>
+
+      <div class="cat-header">線型函數</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="8b-linear-func"> 線型函數與其圖形</label>
+      </div>
+
+      <div class="cat-header">三角形的基本性質</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="8b-tri-angle">      內角與外角</label>
+        <label class="topic-label"><input type="checkbox" value="8b-tri-congruence"> 三角形全等</label>
+        <label class="topic-label"><input type="checkbox" value="8b-tri-bisector">   中垂線與角平分線</label>
+        <label class="topic-label"><input type="checkbox" value="8b-tri-side-angle"> 三角形邊角關係</label>
+      </div>
+
+      <div class="cat-header">平行線與四邊形</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="8b-parallel">      平行線與截角</label>
+        <label class="topic-label"><input type="checkbox" value="8b-parallelogram"> 平行四邊形</label>
+        <label class="topic-label"><input type="checkbox" value="8b-special-quad">  特殊四邊形（菱形・矩形・正方形・梯形・箏形）</label>
+      </div>
+
+      <div class="topic-note">
+        ※ 等差數列：求第 n 項或公差（整數；困難可為分數，填如 <code>5/3</code>）<br>
+        ※ 等差級數：求前 n 項和（整數；困難可為分數）<br>
+        ※ 等比數列：求第 n 項或公比（整數；中等、困難可為分數）<br>
+        ※ 線型函數：求 y 值、x 值或截距（整數）<br>
+        ※ 三角形角度：填度數（整數）<br>
+        ※ 三角形全等：填邊長、角度或 x 值（整數）<br>
+        ※ 中垂線與角平分線：填長度或 x 值（整數）<br>
+        ※ 三角形邊角關係：整數；大邊對大角填 A、B 或 C<br>
+        ※ 平行線與截角：填度數或 x 值（整數）<br>
+        ※ 平行四邊形：填邊長、角度或 x 值（整數）<br>
+        ※ 特殊四邊形：填面積、邊長或對角線長（整數）
+      </div>
+    </div>
+
+    <!-- 選難度 -->
+    <div class="card">
+      <div class="card-title">選擇難度</div>
+      <div class="level-group">
+        <label class="level-label selected" data-level="basic">
+          <input type="radio" name="level-8b" value="basic" checked> 基礎
+        </label>
+        <label class="level-label" data-level="medium">
+          <input type="radio" name="level-8b" value="medium"> 中等
+        </label>
+        <label class="level-label" data-level="mixed">
+          <input type="radio" name="level-8b" value="mixed"> 基礎＋中等混合
+        </label>
+        <label class="level-label" data-level="hard">
+          <input type="radio" name="level-8b" value="hard"> 困難
+        </label>
+        <label class="level-label" data-level="hard-mix">
+          <input type="radio" name="level-8b" value="hard-mix"> 中等＋困難混合
+        </label>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-start-8b" disabled>
+      ▶ 開始出題（20 題）
+    </button>
+    <div id="error-8b" style="color:#C62828;font-size:.9rem;text-align:center;margin-top:8px;display:none;">
+      請至少勾選一個題型！
+    </div>
+
+  </div><!-- /panel-8b -->
+
+  <!-- ── 九上 ─────────────────────────────────────────────────── -->
+  <div class="sem-panel" id="panel-9a">
+
+    <div class="card">
+      <div class="card-title">選擇題型（可多選）</div>
+
+      <div class="cat-header">相似形與三角比</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="9a-ratio-chain">  連比</label>
+        <label class="topic-label"><input type="checkbox" value="9a-prop-seg">     比例線段</label>
+        <label class="topic-label"><input type="checkbox" value="9a-similar-poly"> 相似多邊形</label>
+        <label class="topic-label"><input type="checkbox" value="9a-trig">         三角比</label>
+      </div>
+
+      <div class="cat-header">圓形</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="9a-circle-line">  點、線、圓</label>
+        <label class="topic-label"><input type="checkbox" value="9a-circle-angle"> 圓心角與圓周角</label>
+      </div>
+
+      <div class="cat-header">三角形的心</div>
+      <div class="topic-grid">
+        <label class="topic-label"><input type="checkbox" value="9a-tri-center">   三角形的心</label>
+      </div>
+
+      <div class="topic-note">
+        ※ 連比：填整數<br>
+        ※ 比例線段：填整數<br>
+        ※ 相似多邊形：填整數（相似比以「p:q」格式填寫，如 <code>2:3</code>）<br>
+        ※ 三角比：填分數（如 <code>3/5</code>）或整數<br>
+        ※ 點、線、圓：填整數<br>
+        ※ 圓心角與圓周角：填度數（整數）<br>
+        ※ 三角形的心：填整數或度數
+      </div>
+    </div>
+
+    <!-- 選難度 -->
+    <div class="card">
+      <div class="card-title">選擇難度</div>
+      <div class="level-group">
+        <label class="level-label selected" data-level="basic">
+          <input type="radio" name="level-9a" value="basic" checked> 基礎
+        </label>
+        <label class="level-label" data-level="medium">
+          <input type="radio" name="level-9a" value="medium"> 中等
+        </label>
+        <label class="level-label" data-level="mixed">
+          <input type="radio" name="level-9a" value="mixed"> 基礎＋中等混合
+        </label>
+        <label class="level-label" data-level="hard">
+          <input type="radio" name="level-9a" value="hard"> 困難
+        </label>
+        <label class="level-label" data-level="hard-mix">
+          <input type="radio" name="level-9a" value="hard-mix"> 中等＋困難混合
+        </label>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-start-9a" disabled>
+      ▶ 開始出題（20 題）
+    </button>
+    <div id="error-9a" style="color:#C62828;font-size:.9rem;text-align:center;margin-top:8px;display:none;">
+      請至少勾選一個題型！
+    </div>
+
+  </div><!-- /panel-9a -->
+
+  <!-- ── 九下 ─────────────────────────────────────────────────── -->
+  <div class="sem-panel" id="panel-9b">
+    <div class="card">
+      <div class="coming-soon"><strong>即將推出</strong>九下內容正在製作中，敬請期待！</div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+  // ── 學期分頁切換 ──────────────────────────────────────────────
+  const semTabs   = document.querySelectorAll('.sem-tab');
+  const semPanels = document.querySelectorAll('.sem-panel');
+
+  semTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      semTabs.forEach(t => t.classList.remove('active'));
+      semPanels.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.sem).classList.add('active');
+    });
+  });
+
+  // ── 七上：難度選取高亮 ────────────────────────────────────────
+  document.querySelectorAll('#panel-7a .level-label[data-level]').forEach(label => {
+    label.addEventListener('click', () => {
+      document.querySelectorAll('#panel-7a .level-label').forEach(l => l.classList.remove('selected'));
+      label.classList.add('selected');
+    });
+  });
+
+  // ── 七上：題型勾選高亮 ────────────────────────────────────────
+  const checkboxes7a = document.querySelectorAll('#panel-7a .topic-label input[type=checkbox]');
+  const startBtn7a   = document.getElementById('btn-start-7a');
+  const errorMsg7a   = document.getElementById('error-7a');
+
+  document.querySelectorAll('#panel-7a .topic-label').forEach(label => {
+    const cb = label.querySelector('input[type=checkbox]');
+    label.addEventListener('change', () => {
+      label.classList.toggle('checked', cb.checked);
+      const any = [...checkboxes7a].some(c => c.checked);
+      startBtn7a.disabled = !any;
+      if (any) errorMsg7a.style.display = 'none';
+    });
+  });
+
+  // ── 七上：出題 ────────────────────────────────────────────────
+  startBtn7a.addEventListener('click', () => {
+    const selected = [...checkboxes7a].filter(cb => cb.checked).map(cb => cb.value);
+    if (!selected.length) { errorMsg7a.style.display = 'block'; return; }
+    const level = document.querySelector('#panel-7a input[name=level-7a]:checked')?.value || 'basic';
+    window.location.href = `quiz.html?topics=${selected.join(',')}&level=${level}&count=20&from=junior`;
+  });
+
+  // ── 七下：難度 ────────────────────────────────────────────────
+  document.querySelectorAll('#panel-7b .level-label[data-level]').forEach(label => {
+    label.addEventListener('click', () => {
+      document.querySelectorAll('#panel-7b .level-label').forEach(l => l.classList.remove('selected'));
+      label.classList.add('selected');
+    });
+  });
+
+  // ── 七下：勾選 ────────────────────────────────────────────────
+  const checkboxes7b = document.querySelectorAll('#panel-7b .topic-label input[type=checkbox]');
+  const startBtn7b   = document.getElementById('btn-start-7b');
+  const errorMsg7b   = document.getElementById('error-7b');
+
+  document.querySelectorAll('#panel-7b .topic-label').forEach(label => {
+    const cb = label.querySelector('input[type=checkbox]');
+    label.addEventListener('change', () => {
+      label.classList.toggle('checked', cb.checked);
+      const any = [...checkboxes7b].some(c => c.checked);
+      startBtn7b.disabled = !any;
+      if (any) errorMsg7b.style.display = 'none';
+    });
+  });
+
+  // ── 七下：出題 ────────────────────────────────────────────────
+  startBtn7b.addEventListener('click', () => {
+    const selected = [...checkboxes7b].filter(cb => cb.checked).map(cb => cb.value);
+    if (!selected.length) { errorMsg7b.style.display = 'block'; return; }
+    const level = document.querySelector('#panel-7b input[name=level-7b]:checked')?.value || 'basic';
+    window.location.href = `quiz.html?topics=${selected.join(',')}&level=${level}&count=20&from=junior`;
+  });
+
+  // ── 八上：難度 ────────────────────────────────────────────────
+  document.querySelectorAll('#panel-8a .level-label[data-level]').forEach(label => {
+    label.addEventListener('click', () => {
+      document.querySelectorAll('#panel-8a .level-label').forEach(l => l.classList.remove('selected'));
+      label.classList.add('selected');
+    });
+  });
+
+  // ── 八上：勾選 ────────────────────────────────────────────────
+  const checkboxes8a = document.querySelectorAll('#panel-8a .topic-label input[type=checkbox]');
+  const startBtn8a   = document.getElementById('btn-start-8a');
+  const errorMsg8a   = document.getElementById('error-8a');
+
+  document.querySelectorAll('#panel-8a .topic-label').forEach(label => {
+    const cb = label.querySelector('input[type=checkbox]');
+    label.addEventListener('change', () => {
+      label.classList.toggle('checked', cb.checked);
+      const any = [...checkboxes8a].some(c => c.checked);
+      startBtn8a.disabled = !any;
+      if (any) errorMsg8a.style.display = 'none';
+    });
+  });
+
+  // ── 八上：出題 ────────────────────────────────────────────────
+  startBtn8a.addEventListener('click', () => {
+    const selected = [...checkboxes8a].filter(cb => cb.checked).map(cb => cb.value);
+    if (!selected.length) { errorMsg8a.style.display = 'block'; return; }
+    const level = document.querySelector('#panel-8a input[name=level-8a]:checked')?.value || 'basic';
+    window.location.href = `quiz.html?topics=${selected.join(',')}&level=${level}&count=20&from=junior`;
+  });
+
+  // ── 八下：難度 ────────────────────────────────────────────────
+  document.querySelectorAll('#panel-8b .level-label[data-level]').forEach(label => {
+    label.addEventListener('click', () => {
+      document.querySelectorAll('#panel-8b .level-label').forEach(l => l.classList.remove('selected'));
+      label.classList.add('selected');
+    });
+  });
+
+  // ── 八下：勾選 ────────────────────────────────────────────────
+  const checkboxes8b = document.querySelectorAll('#panel-8b .topic-label input[type=checkbox]');
+  const startBtn8b   = document.getElementById('btn-start-8b');
+  const errorMsg8b   = document.getElementById('error-8b');
+
+  document.querySelectorAll('#panel-8b .topic-label').forEach(label => {
+    const cb = label.querySelector('input[type=checkbox]');
+    label.addEventListener('change', () => {
+      label.classList.toggle('checked', cb.checked);
+      const any = [...checkboxes8b].some(c => c.checked);
+      startBtn8b.disabled = !any;
+      if (any) errorMsg8b.style.display = 'none';
+    });
+  });
+
+  // ── 八下：出題 ────────────────────────────────────────────────
+  startBtn8b.addEventListener('click', () => {
+    const selected = [...checkboxes8b].filter(cb => cb.checked).map(cb => cb.value);
+    if (!selected.length) { errorMsg8b.style.display = 'block'; return; }
+    const level = document.querySelector('#panel-8b input[name=level-8b]:checked')?.value || 'basic';
+    window.location.href = `quiz.html?topics=${selected.join(',')}&level=${level}&count=20&from=junior`;
+  });
+
+  // ── 九上：難度 ────────────────────────────────────────────────
+  document.querySelectorAll('#panel-9a .level-label[data-level]').forEach(label => {
+    label.addEventListener('click', () => {
+      document.querySelectorAll('#panel-9a .level-label').forEach(l => l.classList.remove('selected'));
+      label.classList.add('selected');
+    });
+  });
+
+  // ── 九上：勾選 ────────────────────────────────────────────────
+  const checkboxes9a = document.querySelectorAll('#panel-9a .topic-label input[type=checkbox]');
+  const startBtn9a   = document.getElementById('btn-start-9a');
+  const errorMsg9a   = document.getElementById('error-9a');
+
+  document.querySelectorAll('#panel-9a .topic-label').forEach(label => {
+    const cb = label.querySelector('input[type=checkbox]');
+    label.addEventListener('change', () => {
+      label.classList.toggle('checked', cb.checked);
+      const any = [...checkboxes9a].some(c => c.checked);
+      startBtn9a.disabled = !any;
+      if (any) errorMsg9a.style.display = 'none';
+    });
+  });
+
+  // ── 九上：出題 ────────────────────────────────────────────────
+  startBtn9a.addEventListener('click', () => {
+    const selected = [...checkboxes9a].filter(cb => cb.checked).map(cb => cb.value);
+    if (!selected.length) { errorMsg9a.style.display = 'block'; return; }
+    const level = document.querySelector('#panel-9a input[name=level-9a]:checked')?.value || 'basic';
+    window.location.href = `quiz.html?topics=${selected.join(',')}&level=${level}&count=20&from=junior`;
+  });
+
+  // ── 返回時恢復學期分頁 ──────────────────────────────────────────
+  const _retTab = new URLSearchParams(window.location.search).get('tab');
+  if (_retTab) {
+    const _tTab   = document.querySelector(`.sem-tab[data-sem="${_retTab}"]`);
+    const _tPanel = document.getElementById(`panel-${_retTab}`);
+    if (_tTab && _tPanel) {
+      semTabs.forEach(t => t.classList.remove('active'));
+      semPanels.forEach(p => p.classList.remove('active'));
+      _tTab.classList.add('active');
+      _tPanel.classList.add('active');
+    }
+  }
+
+</script>
+
+</body>
+</html>

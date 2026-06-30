@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>國小數學練習系統</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <h1>國小數學練習系統</h1>
+  <p>整數・分數・小數・幾何・比率 ｜ 基礎 &amp; 中等難度</p>
+</header>
+
+<div class="container">
+
+  <!-- 導航列 -->
+  <div style="display:flex;justify-content:flex-end;gap:20px;margin-bottom:10px;">
+    <a href="junior.html" style="font-size:.9rem;color:var(--primary);font-weight:600;text-decoration:none;">
+      ▶ 前往國中數學練習系統
+    </a>
+    <a href="senior.html" style="font-size:.9rem;color:var(--primary);font-weight:600;text-decoration:none;">
+      ▶ 前往高中數學練習系統
+    </a>
+  </div>
+
+  <!-- 選擇題型 -->
+  <div class="card">
+    <div class="card-title">選擇題型（可多選）</div>
+
+    <!-- 整數與數論 -->
+    <div class="cat-header">整數與數論</div>
+    <div class="topic-grid">
+      <label class="topic-label"><input type="checkbox" value="int-arith"> 整數四則運算</label>
+      <label class="topic-label"><input type="checkbox" value="gcd-lcm">  公因數與公倍數</label>
+    </div>
+
+    <!-- 分數 -->
+    <div class="cat-header">分數四則運算</div>
+    <div class="topic-grid">
+      <label class="topic-label"><input type="checkbox" value="frac-add"> 分數加法</label>
+      <label class="topic-label"><input type="checkbox" value="frac-sub"> 分數減法</label>
+      <label class="topic-label"><input type="checkbox" value="frac-mul"> 分數乘法</label>
+      <label class="topic-label"><input type="checkbox" value="frac-div"> 分數除法</label>
+      <label class="topic-label"><input type="checkbox" value="frac-mix"> 分數四則混合</label>
+    </div>
+
+    <!-- 小數 -->
+    <div class="cat-header">小數四則運算</div>
+    <div class="topic-grid">
+      <label class="topic-label"><input type="checkbox" value="dec-add"> 小數加法</label>
+      <label class="topic-label"><input type="checkbox" value="dec-sub"> 小數減法</label>
+      <label class="topic-label"><input type="checkbox" value="dec-mul"> 小數乘法</label>
+      <label class="topic-label"><input type="checkbox" value="dec-div"> 小數除法</label>
+      <label class="topic-label"><input type="checkbox" value="dec-mix"> 小數四則混合</label>
+    </div>
+
+    <!-- 分數小數混合 -->
+    <div class="cat-header">分數小數混合</div>
+    <div class="topic-grid">
+      <label class="topic-label"><input type="checkbox" value="mix-fd"> 分數小數混合運算</label>
+    </div>
+
+    <!-- 比率與速率 -->
+    <div class="cat-header">比率與速率</div>
+    <div class="topic-grid">
+      <label class="topic-label"><input type="checkbox" value="ratio-val"> 比與比值</label>
+      <label class="topic-label"><input type="checkbox" value="rate">      速率</label>
+      <label class="topic-label"><input type="checkbox" value="unit">      單位換算</label>
+    </div>
+
+    <!-- 幾何 -->
+    <div class="cat-header">幾何測量</div>
+    <div class="topic-grid">
+      <label class="topic-label"><input type="checkbox" value="area">   面積</label>
+      <label class="topic-label"><input type="checkbox" value="volume"> 體積與表面積</label>
+    </div>
+
+    <div class="topic-note">
+      ※ 可跨類別多選，題目自動平均分配<br>
+      ※ 分數小數混合：同一道題同時出現兩者（如 ½ + 0.3）<br>
+      ※ 幾何與比率直接填數字；圓形圓周率取 3.14
+    </div>
+  </div>
+
+  <!-- 選難度 -->
+  <div class="card">
+    <div class="card-title">選擇難度</div>
+    <div class="level-group">
+      <label class="level-label selected" data-level="basic">
+        <input type="radio" name="level" value="basic" checked> 基礎
+      </label>
+      <label class="level-label" data-level="medium">
+        <input type="radio" name="level" value="medium"> 中等
+      </label>
+      <label class="level-label" data-level="mixed">
+        <input type="radio" name="level" value="mixed"> 基礎＋中等混合
+      </label>
+    </div>
+    <div class="level-desc">
+      <strong>基礎：</strong>同分母分數、簡單異分母、一位小數、整數四則等基本計算。<br>
+      <strong>中等：</strong>帶分數加減乘除、多位小數、含括號混合、幾何反求等。<br>
+      <strong>基礎＋中等：</strong>各出一半，適合綜合複習。
+    </div>
+  </div>
+
+  <!-- 出題按鈕 -->
+  <button class="btn-primary" id="btn-start" disabled>
+    ▶ 開始出題（20 題）
+  </button>
+
+  <div id="error-msg" style="color:#C62828;font-size:.9rem;text-align:center;margin-top:8px;display:none;">
+    請至少勾選一個題型！
+  </div>
+
+</div><!-- /container -->
+
+<script>
+  const checkboxes = document.querySelectorAll('.topic-label input[type=checkbox]');
+  const labels     = document.querySelectorAll('.topic-label');
+  const startBtn   = document.getElementById('btn-start');
+  const errorMsg   = document.getElementById('error-msg');
+
+  // 難度選取高亮
+  const levelLabels = document.querySelectorAll('.level-label[data-level]');
+  levelLabels.forEach(label => {
+    label.addEventListener('click', () => {
+      levelLabels.forEach(l => l.classList.remove('selected'));
+      label.classList.add('selected');
+    });
+  });
+
+  // 題型勾選高亮
+  labels.forEach(label => {
+    const cb = label.querySelector('input[type=checkbox]');
+    label.addEventListener('change', () => {
+      label.classList.toggle('checked', cb.checked);
+      const any = [...checkboxes].some(c => c.checked);
+      startBtn.disabled = !any;
+      if (any) errorMsg.style.display = 'none';
+    });
+  });
+
+  // 出題
+  startBtn.addEventListener('click', () => {
+    const selected = [...checkboxes].filter(cb => cb.checked).map(cb => cb.value);
+    if (!selected.length) { errorMsg.style.display = 'block'; return; }
+    const level = document.querySelector('input[name=level]:checked')?.value || 'basic';
+    window.location.href = `quiz.html?topics=${selected.join(',')}&level=${level}&count=20`;
+  });
+</script>
+
+</body>
+</html>

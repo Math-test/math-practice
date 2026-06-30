@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">數學練習題</title>
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- MathJax 設定 -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']],
+      },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] },
+      startup: {
+        ready() { MathJax.startup.defaultReady(); }
+      }
+    };
+  </script>
+  <script defer
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.min.js"
+    id="MathJax-script">
+  </script>
+</head>
+<body>
+
+<header class="site-header">
+  <h1 id="site-title">數學練習系統</h1>
+  <p id="header-sub">載入中…</p>
+</header>
+
+<div class="container">
+
+  <!-- 頂部操作列 -->
+  <div class="action-bar">
+    <button class="btn btn-back"      id="btn-back">← 返回選題</button>
+    <button class="btn btn-check"     id="btn-check" disabled>對答案</button>
+    <button class="btn btn-reset"     id="btn-reset">重新出題</button>
+    <button class="btn btn-print"     id="btn-print">列印題目</button>
+    <button class="btn btn-print-ans" id="btn-print-ans">列印含解答</button>
+  </div>
+
+  <!-- 分數列 -->
+  <div class="score-bar" id="score-bar" style="display:none;"></div>
+
+  <!-- 測驗卡片 -->
+  <div class="card">
+    <div class="quiz-header-info">
+      <h2 id="quiz-title">題目載入中…</h2>
+      <span class="quiz-date" id="quiz-date"></span>
+    </div>
+    <div class="format-hint" id="format-hint"></div>
+    <div id="question-list"></div>
+  </div>
+
+  <!-- 解答頁（列印含解答時才顯示，螢幕隱藏） -->
+  <div id="answer-sheet" class="answer-sheet"></div>
+
+  <!-- 底部操作列 -->
+  <div class="action-bar">
+    <button class="btn btn-back"      id="btn-back2">← 返回選題</button>
+    <button class="btn btn-check"     id="btn-check2">對答案</button>
+    <button class="btn btn-reset"     id="btn-reset2">重新出題</button>
+    <button class="btn btn-print-ans" id="btn-print-ans2">列印含解答</button>
+  </div>
+
+</div><!-- /container -->
+
+<script src="js/math-utils.js?v=2"></script>
+<script src="js/fraction-gen.js?v=2"></script>
+<script src="js/decimal-gen.js?v=2"></script>
+<script src="js/elementary-gen.js?v=2"></script>
+<script src="js/junior-gen.js?v=107"></script>
+<script src="js/senior-gen.js?v=2"></script>
+<script src="js/quiz.js?v=31"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = getParams();
+
+    // 依題目前綴決定標題
+    const firstTopic = params.topics[0] || '';
+    const titleEl = document.getElementById('site-title');
+    if      (/^7[ab]-/.test(firstTopic))  { titleEl.textContent = '七年級數學練習系統'; document.title = '七年級數學練習'; }
+    else if (/^8[ab]-/.test(firstTopic))  { titleEl.textContent = '八年級數學練習系統'; document.title = '八年級數學練習'; }
+    else if (/^9[ab]-/.test(firstTopic))  { titleEl.textContent = '九年級數學練習系統'; document.title = '九年級數學練習'; }
+    else if (/^b1-/.test(firstTopic))     { titleEl.textContent = '高一上數學練習系統'; document.title = '高一上數學練習'; }
+    else if (/^b2-/.test(firstTopic))     { titleEl.textContent = '高一下數學練習系統'; document.title = '高一下數學練習'; }
+    else if (/^b3[ab]-/.test(firstTopic)) { titleEl.textContent = '高二上數學練習系統'; document.title = '高二上數學練習'; }
+    else if (/^b4[ab]-/.test(firstTopic)) { titleEl.textContent = '高二下數學練習系統'; document.title = '高二下數學練習'; }
+    else if (/^el[ab]-/.test(firstTopic)) { titleEl.textContent = '選修數學甲練習系統'; document.title = '選修數學甲練習'; }
+    else if (/^el[cd]-/.test(firstTopic)) { titleEl.textContent = '選修數學乙練習系統'; document.title = '選修數學乙練習'; }
+    else if (params.topics.length > 0)    { titleEl.textContent = '先修數學練習系統';   document.title = '先修數學練習'; }
+
+    const topicLabel = params.topics
+      .map(t => ({
+        'frac-add':'分數加法','frac-sub':'分數減法',
+        'frac-mul':'分數乘法','frac-div':'分數除法','frac-mix':'分數四則混合',
+        'dec-add':'小數加法','dec-sub':'小數減法',
+        'dec-mul':'小數乘法','dec-div':'小數除法','dec-mix':'小數四則混合',
+        'mix-fd':'分數小數混合',
+        'int-arith':'整數四則運算','gcd-lcm':'公因數公倍數',
+        'ratio-val':'比與比值','rate':'速率',
+        'unit':'單位換算','area':'面積','volume':'體積表面積',
+        '7b-poly':'二元一次多項式',
+        '7b-coord':'平面座標',
+        '7b-linepic':'二元一次方程式圖形',
+        '7b-chain':'二元一次式連等',
+        '7b-ratio':'比例式',
+        '7b-dirprop':'正比',
+        '7b-invprop':'反比',
+        '7b-ineq':'一元一次不等式',
+        '7b-stat':'統計',
+        '8a-mulform':'乘法公式',
+        '8a-poly-add':'多項式加法與減法',
+        '8a-poly-mul':'多項式乘法與除法',
+        '8a-poly-mix':'多項式四則運算',
+        '8a-sqrt-basic':'平方根的意義',
+        '8a-sqrt-add':'根號加法與減法',
+        '8a-sqrt-mul':'根號乘法與除法',
+        '8a-sqrt-mix':'根號四則運算',
+        '8a-pyth':'畢氏定理',
+        '8a-factor1':'提公因式與乘法公式因式分解',
+        '8a-factor2':'十字交乘法因式分解',
+        '8a-quad1':'因式分解法解一元二次方程式',
+        '8a-quad2':'配方法與公式解',
+        '8a-stat':'統計資料處理',
+        '8b-arith-seq':'等差數列',
+        '8b-arith-series':'等差級數',
+        '8b-geo-seq':'等比數列',
+        '8b-linear-func':'線型函數',
+        '8b-tri-angle':'三角形內角外角',
+        '8b-tri-congruence':'三角形全等',
+        '8b-tri-bisector':'中垂線與角平分線',
+        '8b-tri-side-angle':'三角形邊角關係',
+        '8b-parallel':'平行線與截角',
+        '8b-parallelogram':'平行四邊形',
+        '8b-special-quad':'特殊四邊形',
+        '9a-ratio-chain':'連比',
+        '9a-prop-seg':'比例線段',
+        '9a-similar-poly':'相似多邊形',
+        '9a-trig':'三角比',
+        '9a-circle-line':'點、線、圓',
+        '9a-circle-angle':'圓心角與圓周角',
+        '9a-tri-center':'三角形的心',
+      }[t] || t))
+      .join('、');
+    const levelLabel = {'basic':'基礎','medium':'中等','mixed':'基礎＋中等'}[params.level] || '';
+    document.getElementById('header-sub').textContent = `${topicLabel}　${levelLabel}`;
+
+    document.getElementById('btn-back2').addEventListener('click',      goBack);
+    document.getElementById('btn-check2').addEventListener('click',     checkAnswers);
+    document.getElementById('btn-reset2').addEventListener('click',     resetQuiz);
+    document.getElementById('btn-print-ans').addEventListener('click',  printWithAnswers);
+    document.getElementById('btn-print-ans2').addEventListener('click', printWithAnswers);
+  });
+</script>
+
+</body>
+</html>
