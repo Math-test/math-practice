@@ -43,17 +43,41 @@ const _TERM_FRACS = [
   [1,25,'0.04'],[2,25,'0.08'],[3,25,'0.12'],[4,25,'0.16'],[6,25,'0.24'],
   [1,50,'0.02'],[3,50,'0.06'],[7,50,'0.14'],[9,50,'0.18'],[11,50,'0.22'],
 ];
-// 常見循環小數分數（分母含3、7、9等因子）
-const _RECUR_FRACS = [
-  [1,3,'0.\\dot{3}','1/3'],[2,3,'0.\\dot{6}','2/3'],
-  [1,6,'0.1\\dot{6}','1/6'],[5,6,'0.8\\dot{3}','5/6'],
-  [1,7,'0.\\dot{1}4285\\dot{7}','1/7'],[2,7,'0.\\dot{2}8571\\dot{4}','2/7'],
-  [1,9,'0.\\dot{1}','1/9'],[2,9,'0.\\dot{2}','2/9'],
-  [4,9,'0.\\dot{4}','4/9'],[5,9,'0.\\dot{5}','5/9'],
-  [7,9,'0.\\dot{7}','7/9'],[8,9,'0.\\dot{8}','8/9'],
-  [1,11,'0.\\dot{0}\\dot{9}','1/11'],[2,11,'0.\\dot{1}\\dot{8}','2/11'],
-  [1,12,'0.08\\dot{3}','1/12'],[5,12,'0.41\\dot{6}','5/12'],
+
+// 循環小數資料：[分子, 分母, LaTeX顯示(overline), 分數字串, 非循環部分, 循環節]
+const _RECUR_DATA = [
+  [1,3,'0.\\overline{3}','1/3','','3'],
+  [2,3,'0.\\overline{6}','2/3','','6'],
+  [1,6,'0.1\\overline{6}','1/6','1','6'],
+  [5,6,'0.8\\overline{3}','5/6','8','3'],
+  [1,7,'0.\\overline{142857}','1/7','','142857'],
+  [2,7,'0.\\overline{285714}','2/7','','285714'],
+  [3,7,'0.\\overline{428571}','3/7','','428571'],
+  [1,9,'0.\\overline{1}','1/9','','1'],
+  [2,9,'0.\\overline{2}','2/9','','2'],
+  [4,9,'0.\\overline{4}','4/9','','4'],
+  [5,9,'0.\\overline{5}','5/9','','5'],
+  [7,9,'0.\\overline{7}','7/9','','7'],
+  [8,9,'0.\\overline{8}','8/9','','8'],
+  [1,11,'0.\\overline{09}','1/11','','09'],
+  [2,11,'0.\\overline{18}','2/11','','18'],
+  [1,12,'0.08\\overline{3}','1/12','08','3'],
+  [5,12,'0.41\\overline{6}','5/12','41','6'],
 ];
+
+// 求循環小數第 N 位小數的數字
+function _nthDecDigit(nonRep, rep, N) {
+  if (N <= nonRep.length) return parseInt(nonRep[N - 1]);
+  return parseInt(rep[(N - nonRep.length - 1) % rep.length]);
+}
+
+// 判斷分母是否為有限小數（只含2和5的因子）
+function _isTermDen(d) {
+  let n = d;
+  while (n % 2 === 0) n /= 2;
+  while (n % 5 === 0) n /= 5;
+  return n === 1;
+}
 
 function genB1DecimalTerm(level) {
   for (let i = 0; i < 30; i++) {
@@ -62,6 +86,7 @@ function genB1DecimalTerm(level) {
   }
   return _b1DecimalTerm('basic');
 }
+
 function _b1DecimalTerm(level) {
   if (level === 'basic') {
     const t = srRandInt(0, 2);
@@ -74,44 +99,64 @@ function _b1DecimalTerm(level) {
       const [n, d, dec] = _TERM_FRACS[srRandInt(0, _TERM_FRACS.length - 1)];
       return { question: `\\(${dec}\\) 化為最簡分數 ＝ ？（格式：p/q）`, answer: `${n}/${d}`, type: 'text', answerPrefix: '' };
     } else {
-      // 判斷有限 or 循環：考分母
-      const choices = [
-        { d: srRandInt(2, 5) * 2, ans: '有限小數' },
-        { d: 3, ans: '循環小數' },
-        { d: 6, ans: '循環小數' },
-        { d: 7, ans: '循環小數' },
-        { d: 9, ans: '循環小數' },
-        { d: 8, ans: '有限小數' },
-        { d: 10, ans: '有限小數' },
-        { d: 12, ans: '循環小數' },
-      ];
-      const { d, ans } = choices[srRandInt(0, choices.length - 1)];
+      // 判斷有限 or 循環
+      const termDens = [2,4,5,8,10,16,20,25,40,50];
+      const recurDens = [3,6,7,9,11,12,14,15,18,21];
+      const useTerm = Math.random() < 0.5;
+      const pool = useTerm ? termDens : recurDens;
+      const d = pool[srRandInt(0, pool.length - 1)];
       const n = srRandInt(1, d - 1);
       const g = srGcd(n, d);
       const sn = n / g, sd = d / g;
+      if (sn >= sd) return null;
+      const ans = _isTermDen(sd) ? '有限小數' : '循環小數';
       return { question: `\\(\\dfrac{${sn}}{${sd}}\\) 是有限小數還是循環小數？`, answer: ans, type: 'text', answerPrefix: '' };
     }
   } else if (level === 'medium') {
-    const t = srRandInt(0, 1);
+    const t = srRandInt(0, 2);
     if (t === 0) {
-      // 循環小數→分數
-      const [n, d, dot, frac] = _RECUR_FRACS[srRandInt(0, _RECUR_FRACS.length - 1)];
+      // 循環小數→分數（用上方橫線記號）
+      const [n, d, dot, frac] = _RECUR_DATA[srRandInt(0, _RECUR_DATA.length - 1)];
       return { question: `循環小數 \\(${dot}\\) 化為最簡分數 ＝ ？（格式：p/q）`, answer: frac, type: 'text', answerPrefix: '' };
+    } else if (t === 1) {
+      // 判斷有限/循環（需先化簡）
+      const rawDens = [12,14,15,18,21,24,28,30,35,36,45,48,60,63,70,72,75,84,90];
+      const d = rawDens[srRandInt(0, rawDens.length - 1)];
+      const n = srRandInt(2, d - 1);
+      const g = srGcd(n, d);
+      const sn = n / g, sd = d / g;
+      if (sn >= sd || sd <= 5) return null;
+      const ans = _isTermDen(sd) ? '有限小數' : '循環小數';
+      return { question: `\\(\\dfrac{${n}}{${d}}\\) 是有限小數還是循環小數？（先化簡）`, answer: ans, type: 'text', answerPrefix: '' };
     } else {
-      // 分數→循環小數（填點記號）
-      const [n, d, dot] = _RECUR_FRACS[srRandInt(0, _RECUR_FRACS.length - 1)];
-      return { question: `\\(\\dfrac{${n}}{${d}}\\) 用點記號表示循環小數 ＝ ？`, answer: dot, type: 'text', answerPrefix: '' };
+      // 第 N 位小數（簡單循環：循環節1~2位）
+      const simple = _RECUR_DATA.filter(r => r[5].length <= 2);
+      const [,, dot,, nonRep, rep] = simple[srRandInt(0, simple.length - 1)];
+      const N = nonRep.length + srRandInt(2, 20);
+      const digit = _nthDecDigit(nonRep, rep, N);
+      return { question: `循環小數 \\(${dot}\\) 的小數第 \\(${N}\\) 位是哪個數字？`, answer: digit, type: 'number', answerPrefix: '' };
     }
   } else {
-    // hard：混合判斷 + 數線排序
-    const fracs = [
-      ..._TERM_FRACS.slice(0, 8).map(([n, d]) => ({ val: n / d, str: `\\frac{${n}}{${d}}` })),
-      ..._RECUR_FRACS.slice(0, 6).map(([n, d]) => ({ val: n / d, str: `\\frac{${n}}{${d}}` })),
-    ];
-    const picked = fracs.sort(() => Math.random() - 0.5).slice(0, 3);
-    const sorted = [...picked].sort((a, b) => a.val - b.val);
-    const ans = sorted.map(f => f.str).join(' < ');
-    return { question: `將 \\(${picked.map(f => f.str).join(',\\;')}\\) 由小到大排列（格式：a < b < c，用分數寫）`, answer: ans, type: 'text', answerPrefix: '' };
+    // hard
+    const t = srRandInt(0, 1);
+    if (t === 0) {
+      // 第 N 位小數（複雜循環：1/7家族，循環節6位）
+      const complex = _RECUR_DATA.filter(r => r[5].length >= 4);
+      const [n, d, dot,, nonRep, rep] = complex[srRandInt(0, complex.length - 1)];
+      const N = srRandInt(15, 80);
+      const digit = _nthDecDigit(nonRep, rep, N);
+      return { question: `\\(\\dfrac{${n}}{${d}} = ${dot}\\)，小數第 \\(${N}\\) 位是哪個數字？`, answer: digit, type: 'number', answerPrefix: '' };
+    } else {
+      // 由小到大排列
+      const candidates = [
+        ..._TERM_FRACS.slice(0, 8).map(([n, d]) => ({ val: n / d, str: `\\frac{${n}}{${d}}` })),
+        ..._RECUR_DATA.slice(0, 6).map(([n, d]) => ({ val: n / d, str: `\\frac{${n}}{${d}}` })),
+      ];
+      const picked = candidates.sort(() => Math.random() - 0.5).slice(0, 3);
+      const sorted = [...picked].sort((a, b) => a.val - b.val);
+      const ans = sorted.map(f => f.str).join(' < ');
+      return { question: `將 \\(${picked.map(f => f.str).join(',\\;')}\\) 由小到大排列（格式：a < b < c，用分數寫）`, answer: ans, type: 'text', answerPrefix: '' };
+    }
   }
 }
 
@@ -128,46 +173,36 @@ function _b1AbsCalc(level) {
   if (level === 'basic') {
     const t = srRandInt(0, 2);
     if (t === 0) {
-      // |a|，a 為整數或簡單分數
       const a = srRnz(-15, 15);
       return { question: `\\(\\left|${a}\\right|\\) ＝ ？`, answer: Math.abs(a), type: 'number', answerPrefix: '' };
     } else if (t === 1) {
-      // |a| + |b|
       const a = srRnz(-12, 12), b = srRnz(-12, 12);
       return { question: `\\(\\left|${a}\\right| + \\left|${b}\\right|\\) ＝ ？`, answer: Math.abs(a) + Math.abs(b), type: 'number' };
     } else {
-      // |a| - |b|（結果可負）
       const a = srRnz(-12, 12), b = srRnz(-12, 12);
       return { question: `\\(\\left|${a}\\right| - \\left|${b}\\right|\\) ＝ ？`, answer: Math.abs(a) - Math.abs(b), type: 'number' };
     }
   } else if (level === 'medium') {
     const t = srRandInt(0, 2);
     if (t === 0) {
-      // |a - b|
       const a = srRnz(-15, 15), b = srRnz(-15, 15);
       return { question: `\\(\\left|${a} - (${b})\\right|\\) ＝ ？`, answer: Math.abs(a - b), type: 'number' };
     } else if (t === 1) {
-      // |a| × |b|
       const a = srRnz(-8, 8), b = srRnz(-8, 8);
       return { question: `\\(\\left|${a}\\right| \\times \\left|${b}\\right|\\) ＝ ？`, answer: Math.abs(a) * Math.abs(b), type: 'number' };
     } else {
-      // |a| + |b| - |c|
       const a = srRnz(-10, 10), b = srRnz(-10, 10), c = srRnz(-10, 10);
       return { question: `\\(\\left|${a}\\right| + \\left|${b}\\right| - \\left|${c}\\right|\\) ＝ ？`, answer: Math.abs(a) + Math.abs(b) - Math.abs(c), type: 'number' };
     }
   } else {
-    // hard：含絕對值的方程式 |x+a|=b
     const t = srRandInt(0, 1);
     if (t === 0) {
       const a = srRnz(-8, 8), b = srRandInt(1, 12);
-      // |x+a|=b → x=b-a 或 x=-b-a
       const x1 = b - a, x2 = -b - a;
       const ans = x1 < x2 ? `${x1} 或 ${x2}` : `${x2} 或 ${x1}`;
       return { question: `解方程式 \\(\\left|x ${a >= 0 ? '+' + a : a}\\right| = ${b}\\)`, answer: ans, type: 'text', answerPrefix: 'x' };
     } else {
-      // |ax+b|=c
       const a = srRnz(-4, 4), b = srRandInt(-6, 6), c = srRandInt(1, 10);
-      // x = (c-b)/a 或 x = (-c-b)/a，需整除
       const n1 = c - b, n2 = -c - b;
       if (n1 % a !== 0 || n2 % a !== 0) return null;
       const x1 = n1 / a, x2 = n2 / a;
@@ -189,7 +224,6 @@ function genB1AbsIneq(level) {
 }
 function _b1AbsIneq(level) {
   if (level === 'basic') {
-    // |x| < a 或 |x| > a，直接求解範圍
     const t = srRandInt(0, 1);
     const a = srRandInt(1, 10);
     if (t === 0) {
@@ -198,24 +232,19 @@ function _b1AbsIneq(level) {
       return { question: `不等式 \\(\\left|x\\right| > ${a}\\) 的解 ＝ ？（格式：x < -a 或 x > a）`, answer: `x < -${a} 或 x > ${a}`, type: 'text', answerPrefix: '' };
     }
   } else if (level === 'medium') {
-    // |x+a| < b 或 |x+a| > b
     const t = srRandInt(0, 1);
     const a = srRnz(-6, 6), b = srRandInt(1, 8);
     const lo = -b - a, hi = b - a;
     if (t === 0) {
-      // |x+a| < b → -b-a < x < b-a
       return { question: `不等式 \\(\\left|x${a >= 0 ? '+' + a : a}\\right| < ${b}\\) 的解 ＝ ？（格式：c < x < d）`,
                answer: `${lo} < x < ${hi}`, type: 'text', answerPrefix: '' };
     } else {
-      // |x+a| > b → x < -b-a 或 x > b-a
       return { question: `不等式 \\(\\left|x${a >= 0 ? '+' + a : a}\\right| > ${b}\\) 的解 ＝ ？（格式：x < c 或 x > d）`,
                answer: `x < ${lo} 或 x > ${hi}`, type: 'text', answerPrefix: '' };
     }
   } else {
-    // hard：|ax+b| ≤ c 或 |ax+b| ≥ c（整數解）
     const t = srRandInt(0, 1);
     const a = srRnz(-3, 3), b = srRnz(-6, 6), c = srRandInt(1, 10);
-    // |ax+b| ≤ c → -c ≤ ax+b ≤ c → (-c-b)/a ≤ x ≤ (c-b)/a (if a>0)
     const n1 = -c - b, n2 = c - b;
     if (n1 % a !== 0 || n2 % a !== 0) return null;
     const lo = a > 0 ? n1 / a : n2 / a;
@@ -232,24 +261,7 @@ function _b1AbsIneq(level) {
   }
 }
 
-// ── b1-numline：數線與實數（保留原版）──────────────────────────
-
-function genB1Numline(level) {
-  if (level === 'basic') {
-    const a = srRandInt(1, 20);
-    const t = srRandInt(0, 1);
-    if (t === 0) return { question: `\\(|${-a}|\\) ＝`, answer: a, type: 'number' };
-    return { question: `${a} 的相反數是`, answer: -a, type: 'number' };
-  }
-  if (level === 'medium') {
-    const a = srRnz(-15, 15), b = srRnz(-15, 15);
-    return { question: `\\(|${a}| + |${b}|\\) ＝`, answer: Math.abs(a) + Math.abs(b), type: 'number' };
-  }
-  const a = srRnz(-12, 12), b = srRnz(-12, 12);
-  return { question: `\\(|${a} - ${b}|\\) ＝`, answer: Math.abs(a - b), type: 'number' };
-}
-
-// ── b1-expr：式的運算（保留原版）───────────────────────────────
+// ── b1-expr：式的運算 ───────────────────────────────────────────
 
 function genB1Expr(level) {
   if (level === 'basic') {
@@ -282,6 +294,5 @@ const SR_GENERATORS = {
   'b1-decimal-term': genB1DecimalTerm,
   'b1-abs-calc':     genB1AbsCalc,
   'b1-abs-ineq':     genB1AbsIneq,
-  'b1-numline':      genB1Numline,
   'b1-expr':         genB1Expr,
 };
