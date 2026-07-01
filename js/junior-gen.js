@@ -2668,7 +2668,8 @@ function _8aMulForm(level) {
       }
     }
   } else if (level==='medium') {
-    if (randInt(0,1)===0) {
+    const _mt=randInt(0,2);
+    if (_mt===0) {
       // 代數展開：(ax+b)(ax-b) 或 (ax±b)²，a∈2..4，b∈1..5
       const a=randInt(2,4), b=randInt(1,5);
       if (randInt(0,1)===0) {
@@ -2680,7 +2681,7 @@ function _8aMulForm(level) {
         const s=neg?`(${a}x-${b})^2`:`(${a}x+${b})^2`;
         return poly(`展開 \\(${s}\\)`, a*a, neg?-2*a*b:2*a*b, b*b);
       }
-    } else {
+    } else if (_mt===1) {
       // 數字計算：整十/整百數±小數（顯示乘法公式形式，加減起來為10或100的倍數）
       const base=pick([20,30,40,50,60,70,80,90,100,200,300,400,500,600,700,800,900]);
       const d=randInt(1,8);
@@ -2692,31 +2693,44 @@ function _8aMulForm(level) {
       } else if (t3===2) {
         return { question:`利用差的平方公式計算 \\((${base}-${d})^2\\)`, answer:(base-d)*(base-d), type:'number' };
       } else {
-        // 不直接顯示整數基準，需自行湊整：(a+d)^2，其中 a+d 為整十/整百數
         const a=base-d;
         return { question:`利用乘法公式計算 \\((${a}+${d})^2\\)`, answer:(a+d)*(a+d), type:'number' };
       }
+    } else {
+      // 公式求值：利用 (x+y)²=x²+2xy+y² 的關係
+      const v=randInt(0,1);
+      if (v===0) {
+        // 已知 x+y=s, xy=p，求 x²+y²＝s²−2p
+        const s=randInt(3,10);
+        const maxP=Math.floor((s*s-1)/4);
+        if (maxP<1) return null;
+        const p=randInt(1,maxP);
+        return { question:`若 \\(x+y=${s}\\)，\\(xy=${p}\\)，求 \\(x^2+y^2\\) 的值`, answer:s*s-2*p, type:'number' };
+      } else {
+        // 已知 x−y=d, xy=p，求 x²+y²＝d²+2p
+        const d=randInt(1,7), p=randInt(1,8);
+        return { question:`若 \\(x-y=${d}\\)，\\(xy=${p}\\)，求 \\(x^2+y^2\\) 的值`, answer:d*d+2*p, type:'number' };
+      }
     }
   } else {
-    // 困難：分數係數 或 大三位數（500–1000）
-    if (randInt(0,1)===0) {
+    // 困難：分數係數 / 大三位數 / 進階公式求值
+    const _ht=randInt(0,2);
+    if (_ht===0) {
       // 分數係數：(x ± p/q)² 或 (x+p/q)(x-p/q)
       const q=pick([2,3,4,5]);
       const p=randInt(1,q-1);
       if (_gcd(p,q)!==1) return null;
       if (randInt(0,1)===0) {
-        // 平方差：x² - (p/q)²
         return poly(`展開 \\(\\left(x+\\dfrac{${p}}{${q}}\\right)\\left(x-\\dfrac{${p}}{${q}}\\right)\\)`,
           1, 0, -(p*p)/(q*q));
       } else {
-        // 完全平方：(x ± p/q)²
         const neg=randInt(0,1)===0;
         const signStr=neg?'-':'+';
         return poly(`展開 \\(\\left(x${signStr}\\dfrac{${p}}{${q}}\\right)^2\\)`,
           1, (neg?-2*p:2*p)/q, (p*p)/(q*q));
       }
-    } else {
-      // 千位數的倍數±小數（顯示乘法公式形式，加減起來為1000的倍數）
+    } else if (_ht===1) {
+      // 千位數的倍數±小數
       const base=pick([1000,2000,3000,4000,5000,6000,7000,8000,9000]);
       const d=randInt(1,20);
       const t3=randInt(0,3);
@@ -2727,11 +2741,33 @@ function _8aMulForm(level) {
       } else if (t3===2) {
         return { question:`利用差的平方公式計算 \\((${base}-${d})^2\\)`, answer:(base-d)*(base-d), type:'number' };
       } else {
-        // 不給括號提示，直接列出兩數相乘，需自行判斷可用平方差公式快速計算
         const p=base-d, q=base+d;
         const flip=randInt(0,1)===0;
         const lhs=flip?`${q} \\times ${p}`:`${p} \\times ${q}`;
         return { question:`計算 \\(${lhs}\\) 的值`, answer:p*q, type:'number' };
+      }
+    } else {
+      // 進階公式求值（含x²+y²已知、求(x±y)²）
+      const tv=randInt(0,2);
+      if (tv===0) {
+        // 已知 x+y=s, xy=p，求 (x-y)²＝s²−4p
+        const s=randInt(3,10);
+        const maxP=Math.floor((s*s-1)/4);
+        if (maxP<1) return null;
+        const p=randInt(1,maxP);
+        const ans=s*s-4*p;
+        if (ans<=0) return null;
+        return { question:`若 \\(x+y=${s}\\)，\\(xy=${p}\\)，求 \\((x-y)^2\\) 的值`, answer:ans, type:'number' };
+      } else if (tv===1) {
+        // 已知 x²+y²=A, xy=p，求 (x+y)²＝A+2p
+        const p=randInt(1,8);
+        const A=randInt(2*p+2, 2*p+30);
+        return { question:`若 \\(x^2+y^2=${A}\\)，\\(xy=${p}\\)，求 \\((x+y)^2\\) 的值`, answer:A+2*p, type:'number' };
+      } else {
+        // 已知 x²+y²=A, xy=p，求 (x-y)²＝A−2p
+        const p=randInt(1,8);
+        const A=randInt(2*p+3, 2*p+30);
+        return { question:`若 \\(x^2+y^2=${A}\\)，\\(xy=${p}\\)，求 \\((x-y)^2\\) 的值`, answer:A-2*p, type:'number' };
       }
     }
   }

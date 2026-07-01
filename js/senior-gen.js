@@ -2,8 +2,6 @@
 
 // ═══════════════════════════════════════════════════════════════════
 //  高中數學題目生成器（114年 翰林版 108課綱）
-//  每個 gen 函式回傳：{ question, answer, type }
-//  type: 'number' | 'text'
 // ═══════════════════════════════════════════════════════════════════
 
 // ─── 工具函式 ────────────────────────────────────────────────────
@@ -28,13 +26,20 @@ function makeStub(name) {
   };
 }
 
+// 分數字串格式化（如 -3/2, 5, 0）
+function _srFracStr(num, den) {
+  if (num === 0) return '0';
+  if (num % den === 0) return `${num / den}`;
+  const g = srGcd(Math.abs(num), den);
+  return `${num / g}/${den / g}`;
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  第一冊 ▸ 第一章　數與式
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // ── b1-decimal-term：有限小數與循環小數 ──────────────────────────
 
-// 常見有限小數分數（分母只含2和5的因子）
 const _TERM_FRACS = [
   [1,2,'0.5'],[1,4,'0.25'],[3,4,'0.75'],[1,5,'0.2'],[2,5,'0.4'],
   [3,5,'0.6'],[4,5,'0.8'],[1,8,'0.125'],[3,8,'0.375'],[5,8,'0.625'],
@@ -44,7 +49,7 @@ const _TERM_FRACS = [
   [1,50,'0.02'],[3,50,'0.06'],[7,50,'0.14'],[9,50,'0.18'],[11,50,'0.22'],
 ];
 
-// 循環小數資料：[分子, 分母, LaTeX顯示(overline), 分數字串, 非循環部分, 循環節]
+// [分子, 分母, LaTeX顯示(overline), 分數字串, 非循環部分, 循環節]
 const _RECUR_DATA = [
   [1,3,'0.\\overline{3}','1/3','','3'],
   [2,3,'0.\\overline{6}','2/3','','6'],
@@ -65,13 +70,11 @@ const _RECUR_DATA = [
   [5,12,'0.41\\overline{6}','5/12','41','6'],
 ];
 
-// 求循環小數第 N 位小數的數字
 function _nthDecDigit(nonRep, rep, N) {
   if (N <= nonRep.length) return parseInt(nonRep[N - 1]);
   return parseInt(rep[(N - nonRep.length - 1) % rep.length]);
 }
 
-// 判斷分母是否為有限小數（只含2和5的因子）
 function _isTermDen(d) {
   let n = d;
   while (n % 2 === 0) n /= 2;
@@ -91,15 +94,12 @@ function _b1DecimalTerm(level) {
   if (level === 'basic') {
     const t = srRandInt(0, 2);
     if (t === 0) {
-      // 分數→有限小數
       const [n, d, dec] = _TERM_FRACS[srRandInt(0, _TERM_FRACS.length - 1)];
       return { question: `\\(\\dfrac{${n}}{${d}}\\) 化為小數 ＝ ？`, answer: dec, type: 'text', answerPrefix: '' };
     } else if (t === 1) {
-      // 有限小數→分數
       const [n, d, dec] = _TERM_FRACS[srRandInt(0, _TERM_FRACS.length - 1)];
       return { question: `\\(${dec}\\) 化為最簡分數 ＝ ？（格式：p/q）`, answer: `${n}/${d}`, type: 'text', answerPrefix: '' };
     } else {
-      // 判斷有限 or 循環
       const termDens = [2,4,5,8,10,16,20,25,40,50];
       const recurDens = [3,6,7,9,11,12,14,15,18,21];
       const useTerm = Math.random() < 0.5;
@@ -115,11 +115,9 @@ function _b1DecimalTerm(level) {
   } else if (level === 'medium') {
     const t = srRandInt(0, 2);
     if (t === 0) {
-      // 循環小數→分數（用上方橫線記號）
       const [n, d, dot, frac] = _RECUR_DATA[srRandInt(0, _RECUR_DATA.length - 1)];
       return { question: `循環小數 \\(${dot}\\) 化為最簡分數 ＝ ？（格式：p/q）`, answer: frac, type: 'text', answerPrefix: '' };
     } else if (t === 1) {
-      // 判斷有限/循環（需先化簡）
       const rawDens = [12,14,15,18,21,24,28,30,35,36,45,48,60,63,70,72,75,84,90];
       const d = rawDens[srRandInt(0, rawDens.length - 1)];
       const n = srRandInt(2, d - 1);
@@ -129,7 +127,6 @@ function _b1DecimalTerm(level) {
       const ans = _isTermDen(sd) ? '有限小數' : '循環小數';
       return { question: `\\(\\dfrac{${n}}{${d}}\\) 是有限小數還是循環小數？（先化簡）`, answer: ans, type: 'text', answerPrefix: '' };
     } else {
-      // 第 N 位小數（簡單循環：循環節1~2位）
       const simple = _RECUR_DATA.filter(r => r[5].length <= 2);
       const [,, dot,, nonRep, rep] = simple[srRandInt(0, simple.length - 1)];
       const N = nonRep.length + srRandInt(2, 20);
@@ -137,17 +134,14 @@ function _b1DecimalTerm(level) {
       return { question: `循環小數 \\(${dot}\\) 的小數第 \\(${N}\\) 位是哪個數字？`, answer: digit, type: 'number', answerPrefix: '' };
     }
   } else {
-    // hard
     const t = srRandInt(0, 1);
     if (t === 0) {
-      // 第 N 位小數（複雜循環：1/7家族，循環節6位）
       const complex = _RECUR_DATA.filter(r => r[5].length >= 4);
       const [n, d,,,  nonRep, rep] = complex[srRandInt(0, complex.length - 1)];
       const N = srRandInt(15, 80);
       const digit = _nthDecDigit(nonRep, rep, N);
       return { question: `\\(\\dfrac{${n}}{${d}}\\) 的小數第 \\(${N}\\) 位是哪個數字？`, answer: digit, type: 'number', answerPrefix: '' };
     } else {
-      // 由小到大排列
       const candidates = [
         ..._TERM_FRACS.slice(0, 8).map(([n, d]) => ({ val: n / d, str: `\\frac{${n}}{${d}}` })),
         ..._RECUR_DATA.slice(0, 6).map(([n, d]) => ({ val: n / d, str: `\\frac{${n}}{${d}}` })),
@@ -160,7 +154,7 @@ function _b1DecimalTerm(level) {
   }
 }
 
-// ── b1-abs-calc：絕對值方程式（1~2個絕對值）───────────────────
+// ── b1-abs-calc：絕對值方程式（1~2個絕對值，含分數）──────────
 
 function genB1AbsCalc(level) {
   for (let i = 0; i < 30; i++) {
@@ -171,23 +165,32 @@ function genB1AbsCalc(level) {
 }
 function _b1AbsCalc(level) {
   if (level === 'basic') {
-    // 基礎：1個絕對值，係數為1
-    const t = srRandInt(0, 1);
+    // 基礎：1個絕對值，係數為1（含分數變體）
+    const t = srRandInt(0, 2);
     if (t === 0) {
       // |x| = a
       const a = srRandInt(1, 12);
       return { question: `解方程式 \\(\\left|x\\right| = ${a}\\)`, answer: `${-a} 或 ${a}`, type: 'text', answerPrefix: 'x =' };
-    } else {
-      // |x + a| = b
+    } else if (t === 1) {
+      // |x + a| = b（整數）
       const a = srRnz(-8, 8), b = srRandInt(1, 10);
       const x1 = b - a, x2 = -b - a;
       const ans = x1 < x2 ? `${x1} 或 ${x2}` : `${x2} 或 ${x1}`;
       const aStr = a > 0 ? `+${a}` : `${a}`;
       return { question: `解方程式 \\(\\left|x${aStr}\\right| = ${b}\\)`, answer: ans, type: 'text', answerPrefix: 'x =' };
+    } else {
+      // |x + p/2| = b（分數在絕對值內，p為奇數）
+      const oddPool = [1, 3, 5, -1, -3, -5];
+      const p = oddPool[srRandInt(0, oddPool.length - 1)];
+      const b = srRandInt(2, 7);
+      // x1=(2b-p)/2, x2=-(2b+p)/2；x1>x2 恆成立（x1-x2=2b>0）
+      const ans = `${_srFracStr(-(2*b+p), 2)} 或 ${_srFracStr(2*b-p, 2)}`;
+      const pDisp = p > 0 ? `+\\dfrac{${p}}{2}` : `-\\dfrac{${Math.abs(p)}}{2}`;
+      return { question: `解方程式 \\(\\left|x${pDisp}\\right| = ${b}\\)（格式：a/b 或 c/d）`, answer: ans, type: 'text', answerPrefix: 'x =' };
     }
   } else if (level === 'medium') {
-    // 中等：1個絕對值，需化簡或有係數
-    const t = srRandInt(0, 2);
+    // 中等：1個絕對值，需化簡或含分數
+    const t = srRandInt(0, 3);
     if (t === 0) {
       // |ax + b| = c（a ∈ {2,3,4}）
       const a = [2, 3, 4][srRandInt(0, 2)];
@@ -207,20 +210,29 @@ function _b1AbsCalc(level) {
       const ans = x1 < x2 ? `${x1} 或 ${x2}` : `${x2} 或 ${x1}`;
       const aStr = a > 0 ? `+${a}` : `${a}`;
       return { question: `解方程式 \\(${k}\\left|x${aStr}\\right| = ${c}\\)`, answer: ans, type: 'text', answerPrefix: 'x =' };
-    } else {
-      // |x + a| + k = rhs → |x+a| = rhs - k
+    } else if (t === 2) {
+      // |x + a| + k = rhs → |x+a| = rhs−k
       const a = srRnz(-6, 6), k = srRandInt(1, 5), rhs = srRandInt(k + 2, k + 9);
       const b = rhs - k;
       const x1 = b - a, x2 = -b - a;
       const ans = x1 < x2 ? `${x1} 或 ${x2}` : `${x2} 或 ${x1}`;
       const aStr = a > 0 ? `+${a}` : `${a}`;
       return { question: `解方程式 \\(\\left|x${aStr}\\right| + ${k} = ${rhs}\\)`, answer: ans, type: 'text', answerPrefix: 'x =' };
+    } else {
+      // |x + a| = p/2（分數在右側，p為奇數正整數）
+      const oddPos = [1, 3, 5, 7, 9];
+      const p = oddPos[srRandInt(0, oddPos.length - 1)];
+      const a = srRnz(-5, 5);
+      // x1=(p-2a)/2, x2=-(p+2a)/2；x1>x2 恆成立（x1-x2=p>0）
+      const ans = `${_srFracStr(-(p+2*a), 2)} 或 ${_srFracStr(p-2*a, 2)}`;
+      const aStr = a === 0 ? '' : a > 0 ? `+${a}` : `${a}`;
+      return { question: `解方程式 \\(\\left|x${aStr}\\right| = \\dfrac{${p}}{2}\\)（格式：a/b 或 c/d）`, answer: ans, type: 'text', answerPrefix: 'x =' };
     }
   } else {
     // 困難：2個絕對值
     const t = srRandInt(0, 1);
     if (t === 0) {
-      // |x+a| = |x+b| → x = -(a+b)/2，一個解
+      // |x+a| = |x+b| → x = −(a+b)/2，一個解
       let a, b;
       do {
         a = srRandInt(-6, 6);
@@ -231,7 +243,7 @@ function _b1AbsCalc(level) {
       const bStr = b === 0 ? '' : b > 0 ? `+${b}` : `${b}`;
       return { question: `解方程式 \\(\\left|x${aStr}\\right| = \\left|x${bStr}\\right|\\)`, answer: x, type: 'number', answerPrefix: 'x =' };
     } else {
-      // |x-p| + |x-q| = c（p < q），兩個整數解
+      // |x−p| + |x−q| = c（p<q），兩個整數解
       const p = srRandInt(-5, 0), q = srRandInt(1, 5);
       const minC = q - p + 1;
       const parity = ((p + q) % 2 + 2) % 2;
@@ -249,10 +261,10 @@ function _b1AbsCalc(level) {
   }
 }
 
-// ── b1-abs-ineq：絕對值不等式 ──────────────────────────────────
+// ── b1-abs-ineq：絕對值不等式（1~2個絕對值，比照方程式模式）──
 
 function genB1AbsIneq(level) {
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 30; i++) {
     const q = _b1AbsIneq(level);
     if (q) return q;
   }
@@ -260,39 +272,77 @@ function genB1AbsIneq(level) {
 }
 function _b1AbsIneq(level) {
   if (level === 'basic') {
-    const t = srRandInt(0, 1);
-    const a = srRandInt(1, 10);
-    if (t === 0) {
-      return { question: `不等式 \\(\\left|x\\right| < ${a}\\) 的解 ＝ ？（格式：-a < x < a）`, answer: `-${a} < x < ${a}`, type: 'text', answerPrefix: '' };
-    } else {
-      return { question: `不等式 \\(\\left|x\\right| > ${a}\\) 的解 ＝ ？（格式：x < -a 或 x > a）`, answer: `x < -${a} 或 x > ${a}`, type: 'text', answerPrefix: '' };
-    }
-  } else if (level === 'medium') {
-    const t = srRandInt(0, 1);
+    // 基礎：1個絕對值，四種符號
+    const t = srRandInt(0, 3);
     const a = srRnz(-6, 6), b = srRandInt(1, 8);
     const lo = -b - a, hi = b - a;
+    const aStr = a > 0 ? `+${a}` : `${a}`;
     if (t === 0) {
-      return { question: `不等式 \\(\\left|x${a >= 0 ? '+' + a : a}\\right| < ${b}\\) 的解 ＝ ？（格式：c < x < d）`,
-               answer: `${lo} < x < ${hi}`, type: 'text', answerPrefix: '' };
+      return { question: `解不等式 \\(\\left|x${aStr}\\right| < ${b}\\)（格式：c < x < d）`, answer: `${lo} < x < ${hi}`, type: 'text', answerPrefix: '' };
+    } else if (t === 1) {
+      return { question: `解不等式 \\(\\left|x${aStr}\\right| > ${b}\\)（格式：x < c 或 x > d）`, answer: `x < ${lo} 或 x > ${hi}`, type: 'text', answerPrefix: '' };
+    } else if (t === 2) {
+      return { question: `解不等式 \\(\\left|x${aStr}\\right| \\leq ${b}\\)（格式：c ≤ x ≤ d）`, answer: `${lo} ≤ x ≤ ${hi}`, type: 'text', answerPrefix: '' };
     } else {
-      return { question: `不等式 \\(\\left|x${a >= 0 ? '+' + a : a}\\right| > ${b}\\) 的解 ＝ ？（格式：x < c 或 x > d）`,
-               answer: `x < ${lo} 或 x > ${hi}`, type: 'text', answerPrefix: '' };
+      return { question: `解不等式 \\(\\left|x${aStr}\\right| \\geq ${b}\\)（格式：x ≤ c 或 x ≥ d）`, answer: `x ≤ ${lo} 或 x ≥ ${hi}`, type: 'text', answerPrefix: '' };
+    }
+  } else if (level === 'medium') {
+    // 中等：1個絕對值，需化簡或含分數
+    const t = srRandInt(0, 3);
+    if (t === 0) {
+      // |ax+b| ≤ c（整數）
+      const a = [2, 3, 4][srRandInt(0, 2)];
+      const b = srRandInt(-6, 6), c = srRandInt(1, 10);
+      const n1 = -c - b, n2 = c - b;
+      if (n1 % a !== 0 || n2 % a !== 0) return null;
+      const lo = a > 0 ? n1/a : n2/a, hi = a > 0 ? n2/a : n1/a;
+      const bStr = b === 0 ? '' : b > 0 ? `+${b}` : `${b}`;
+      return { question: `解不等式 \\(\\left|${a}x${bStr}\\right| \\leq ${c}\\)（格式：c ≤ x ≤ d）`, answer: `${lo} ≤ x ≤ ${hi}`, type: 'text', answerPrefix: '' };
+    } else if (t === 1) {
+      // |ax+b| ≥ c（整數）
+      const a = [2, 3, 4][srRandInt(0, 2)];
+      const b = srRandInt(-6, 6), c = srRandInt(1, 10);
+      const n1 = -c - b, n2 = c - b;
+      if (n1 % a !== 0 || n2 % a !== 0) return null;
+      const lo = a > 0 ? n1/a : n2/a, hi = a > 0 ? n2/a : n1/a;
+      const bStr = b === 0 ? '' : b > 0 ? `+${b}` : `${b}`;
+      return { question: `解不等式 \\(\\left|${a}x${bStr}\\right| \\geq ${c}\\)（格式：x ≤ c 或 x ≥ d）`, answer: `x ≤ ${lo} 或 x ≥ ${hi}`, type: 'text', answerPrefix: '' };
+    } else if (t === 2) {
+      // k|x+a| < c → |x+a| < c/k（整數）
+      const k = srRandInt(2, 3), m = srRandInt(1, 6);
+      const c = k * m;
+      const a = srRnz(-6, 6);
+      const lo = -m - a, hi = m - a;
+      const aStr = a > 0 ? `+${a}` : `${a}`;
+      return { question: `解不等式 \\(${k}\\left|x${aStr}\\right| < ${c}\\)（格式：c < x < d）`, answer: `${lo} < x < ${hi}`, type: 'text', answerPrefix: '' };
+    } else {
+      // |x+a| < p/2（分數在右側，p為奇數正整數）
+      const oddPos = [1, 3, 5, 7];
+      const p = oddPos[srRandInt(0, oddPos.length - 1)];
+      const a = srRnz(-4, 4);
+      // lo=-(p+2a)/2, hi=(p-2a)/2；hi-lo=p>0 恆成立
+      const loStr = _srFracStr(-(p + 2*a), 2), hiStr = _srFracStr(p - 2*a, 2);
+      const aStr = a === 0 ? '' : a > 0 ? `+${a}` : `${a}`;
+      return { question: `解不等式 \\(\\left|x${aStr}\\right| < \\dfrac{${p}}{2}\\)（格式：a/b < x < c/d）`, answer: `${loStr} < x < ${hiStr}`, type: 'text', answerPrefix: '' };
     }
   } else {
+    // 困難：2個絕對值
+    const p = srRandInt(-5, 0), q = srRandInt(1, 5);
+    const minC = q - p + 1;
+    const parity = ((p + q) % 2 + 2) % 2;
+    let c = minC + (minC % 2 !== parity ? 1 : 0);
+    c += srRandInt(0, 2) * 2;
+    const x1 = (p + q - c) / 2, x2 = (p + q + c) / 2;
+    if (!Number.isInteger(x1) || !Number.isInteger(x2)) return null;
+    const pStr = p === 0 ? '' : p > 0 ? `-${p}` : `+${Math.abs(p)}`;
+    const qStr = q === 0 ? '' : q > 0 ? `-${q}` : `+${Math.abs(q)}`;
     const t = srRandInt(0, 1);
-    const a = srRnz(-3, 3), b = srRnz(-6, 6), c = srRandInt(1, 10);
-    const n1 = -c - b, n2 = c - b;
-    if (n1 % a !== 0 || n2 % a !== 0) return null;
-    const lo = a > 0 ? n1 / a : n2 / a;
-    const hi = a > 0 ? n2 / a : n1 / a;
-    const bStr = b === 0 ? '' : (b > 0 ? `+${b}` : `${b}`);
-    const aStr = a === 1 ? '' : a === -1 ? '-' : `${a}`;
     if (t === 0) {
-      return { question: `不等式 \\(\\left|${aStr}x${bStr}\\right| \\leq ${c}\\) 的解 ＝ ？（格式：c ≤ x ≤ d）`,
-               answer: `${lo} ≤ x ≤ ${hi}`, type: 'text', answerPrefix: '' };
+      // |x−p|+|x−q| ≤ c → x1 ≤ x ≤ x2
+      return { question: `解不等式 \\(\\left|x${pStr}\\right| + \\left|x${qStr}\\right| \\leq ${c}\\)（格式：c ≤ x ≤ d）`, answer: `${x1} ≤ x ≤ ${x2}`, type: 'text', answerPrefix: '' };
     } else {
-      return { question: `不等式 \\(\\left|${aStr}x${bStr}\\right| \\geq ${c}\\) 的解 ＝ ？（格式：x ≤ c 或 x ≥ d）`,
-               answer: `x ≤ ${lo} 或 x ≥ ${hi}`, type: 'text', answerPrefix: '' };
+      // |x−p|+|x−q| ≥ c → x ≤ x1 或 x ≥ x2
+      return { question: `解不等式 \\(\\left|x${pStr}\\right| + \\left|x${qStr}\\right| \\geq ${c}\\)（格式：x ≤ c 或 x ≥ d）`, answer: `x ≤ ${x1} 或 x ≥ ${x2}`, type: 'text', answerPrefix: '' };
     }
   }
 }
@@ -322,11 +372,10 @@ function genB1Expr(level) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  輸出表（供 quiz.js 的 ALL_GENERATORS 使用）
+//  輸出表
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const SR_GENERATORS = {
-  // 第一冊 ▸ 第一章 數與式
   'b1-decimal-term': genB1DecimalTerm,
   'b1-abs-calc':     genB1AbsCalc,
   'b1-abs-ineq':     genB1AbsIneq,
