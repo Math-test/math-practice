@@ -142,10 +142,10 @@ function _b1DecimalTerm(level) {
     if (t === 0) {
       // 第 N 位小數（複雜循環：1/7家族，循環節6位）
       const complex = _RECUR_DATA.filter(r => r[5].length >= 4);
-      const [n, d, dot,, nonRep, rep] = complex[srRandInt(0, complex.length - 1)];
+      const [n, d,,,  nonRep, rep] = complex[srRandInt(0, complex.length - 1)];
       const N = srRandInt(15, 80);
       const digit = _nthDecDigit(nonRep, rep, N);
-      return { question: `\\(\\dfrac{${n}}{${d}} = ${dot}\\)，小數第 \\(${N}\\) 位是哪個數字？`, answer: digit, type: 'number', answerPrefix: '' };
+      return { question: `\\(\\dfrac{${n}}{${d}}\\) 的小數第 \\(${N}\\) 位是哪個數字？`, answer: digit, type: 'number', answerPrefix: '' };
     } else {
       // 由小到大排列
       const candidates = [
@@ -160,10 +160,10 @@ function _b1DecimalTerm(level) {
   }
 }
 
-// ── b1-abs-calc：絕對值運算 ─────────────────────────────────────
+// ── b1-abs-calc：絕對值方程式（1~2個絕對值）───────────────────
 
 function genB1AbsCalc(level) {
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 30; i++) {
     const q = _b1AbsCalc(level);
     if (q) return q;
   }
@@ -171,44 +171,80 @@ function genB1AbsCalc(level) {
 }
 function _b1AbsCalc(level) {
   if (level === 'basic') {
-    const t = srRandInt(0, 2);
-    if (t === 0) {
-      const a = srRnz(-15, 15);
-      return { question: `\\(\\left|${a}\\right|\\) ＝ ？`, answer: Math.abs(a), type: 'number', answerPrefix: '' };
-    } else if (t === 1) {
-      const a = srRnz(-12, 12), b = srRnz(-12, 12);
-      return { question: `\\(\\left|${a}\\right| + \\left|${b}\\right|\\) ＝ ？`, answer: Math.abs(a) + Math.abs(b), type: 'number' };
-    } else {
-      const a = srRnz(-12, 12), b = srRnz(-12, 12);
-      return { question: `\\(\\left|${a}\\right| - \\left|${b}\\right|\\) ＝ ？`, answer: Math.abs(a) - Math.abs(b), type: 'number' };
-    }
-  } else if (level === 'medium') {
-    const t = srRandInt(0, 2);
-    if (t === 0) {
-      const a = srRnz(-15, 15), b = srRnz(-15, 15);
-      return { question: `\\(\\left|${a} - (${b})\\right|\\) ＝ ？`, answer: Math.abs(a - b), type: 'number' };
-    } else if (t === 1) {
-      const a = srRnz(-8, 8), b = srRnz(-8, 8);
-      return { question: `\\(\\left|${a}\\right| \\times \\left|${b}\\right|\\) ＝ ？`, answer: Math.abs(a) * Math.abs(b), type: 'number' };
-    } else {
-      const a = srRnz(-10, 10), b = srRnz(-10, 10), c = srRnz(-10, 10);
-      return { question: `\\(\\left|${a}\\right| + \\left|${b}\\right| - \\left|${c}\\right|\\) ＝ ？`, answer: Math.abs(a) + Math.abs(b) - Math.abs(c), type: 'number' };
-    }
-  } else {
+    // 基礎：1個絕對值，係數為1
     const t = srRandInt(0, 1);
     if (t === 0) {
-      const a = srRnz(-8, 8), b = srRandInt(1, 12);
+      // |x| = a
+      const a = srRandInt(1, 12);
+      return { question: `解方程式 \\(\\left|x\\right| = ${a}\\)`, answer: `${-a} 或 ${a}`, type: 'text', answerPrefix: 'x =' };
+    } else {
+      // |x + a| = b
+      const a = srRnz(-8, 8), b = srRandInt(1, 10);
       const x1 = b - a, x2 = -b - a;
       const ans = x1 < x2 ? `${x1} 或 ${x2}` : `${x2} 或 ${x1}`;
-      return { question: `解方程式 \\(\\left|x ${a >= 0 ? '+' + a : a}\\right| = ${b}\\)`, answer: ans, type: 'text', answerPrefix: 'x' };
-    } else {
-      const a = srRnz(-4, 4), b = srRandInt(-6, 6), c = srRandInt(1, 10);
+      const aStr = a > 0 ? `+${a}` : `${a}`;
+      return { question: `解方程式 \\(\\left|x${aStr}\\right| = ${b}\\)`, answer: ans, type: 'text', answerPrefix: 'x =' };
+    }
+  } else if (level === 'medium') {
+    // 中等：1個絕對值，需化簡或有係數
+    const t = srRandInt(0, 2);
+    if (t === 0) {
+      // |ax + b| = c（a ∈ {2,3,4}）
+      const a = [2, 3, 4][srRandInt(0, 2)];
+      const b = srRandInt(-6, 6), c = srRandInt(1, 10);
       const n1 = c - b, n2 = -c - b;
       if (n1 % a !== 0 || n2 % a !== 0) return null;
       const x1 = n1 / a, x2 = n2 / a;
+      const bStr = b === 0 ? '' : b > 0 ? `+${b}` : `${b}`;
       const ans = x1 < x2 ? `${x1} 或 ${x2}` : `${x2} 或 ${x1}`;
-      const bStr = b === 0 ? '' : (b > 0 ? `+${b}` : `${b}`);
-      return { question: `解方程式 \\(\\left|${a === 1 ? '' : a === -1 ? '-' : a}x${bStr}\\right| = ${c}\\)`, answer: ans, type: 'text', answerPrefix: 'x' };
+      return { question: `解方程式 \\(\\left|${a}x${bStr}\\right| = ${c}\\)`, answer: ans, type: 'text', answerPrefix: 'x =' };
+    } else if (t === 1) {
+      // k|x + a| = c → |x+a| = c/k
+      const k = srRandInt(2, 4), m = srRandInt(1, 6);
+      const c = k * m;
+      const a = srRnz(-6, 6);
+      const x1 = m - a, x2 = -m - a;
+      const ans = x1 < x2 ? `${x1} 或 ${x2}` : `${x2} 或 ${x1}`;
+      const aStr = a > 0 ? `+${a}` : `${a}`;
+      return { question: `解方程式 \\(${k}\\left|x${aStr}\\right| = ${c}\\)`, answer: ans, type: 'text', answerPrefix: 'x =' };
+    } else {
+      // |x + a| + k = rhs → |x+a| = rhs - k
+      const a = srRnz(-6, 6), k = srRandInt(1, 5), rhs = srRandInt(k + 2, k + 9);
+      const b = rhs - k;
+      const x1 = b - a, x2 = -b - a;
+      const ans = x1 < x2 ? `${x1} 或 ${x2}` : `${x2} 或 ${x1}`;
+      const aStr = a > 0 ? `+${a}` : `${a}`;
+      return { question: `解方程式 \\(\\left|x${aStr}\\right| + ${k} = ${rhs}\\)`, answer: ans, type: 'text', answerPrefix: 'x =' };
+    }
+  } else {
+    // 困難：2個絕對值
+    const t = srRandInt(0, 1);
+    if (t === 0) {
+      // |x+a| = |x+b| → x = -(a+b)/2，一個解
+      let a, b;
+      do {
+        a = srRandInt(-6, 6);
+        b = srRandInt(-6, 6);
+      } while (a === b || (a + b) % 2 !== 0);
+      const x = -(a + b) / 2;
+      const aStr = a === 0 ? '' : a > 0 ? `+${a}` : `${a}`;
+      const bStr = b === 0 ? '' : b > 0 ? `+${b}` : `${b}`;
+      return { question: `解方程式 \\(\\left|x${aStr}\\right| = \\left|x${bStr}\\right|\\)`, answer: x, type: 'number', answerPrefix: 'x =' };
+    } else {
+      // |x-p| + |x-q| = c（p < q），兩個整數解
+      const p = srRandInt(-5, 0), q = srRandInt(1, 5);
+      const minC = q - p + 1;
+      const parity = ((p + q) % 2 + 2) % 2;
+      let c = minC + (minC % 2 !== parity ? 1 : 0);
+      c += srRandInt(0, 2) * 2;
+      const x1 = (p + q - c) / 2, x2 = (p + q + c) / 2;
+      if (!Number.isInteger(x1) || !Number.isInteger(x2)) return null;
+      const pStr = p === 0 ? '' : p > 0 ? `-${p}` : `+${Math.abs(p)}`;
+      const qStr = q === 0 ? '' : q > 0 ? `-${q}` : `+${Math.abs(q)}`;
+      return {
+        question: `解方程式 \\(\\left|x${pStr}\\right| + \\left|x${qStr}\\right| = ${c}\\)`,
+        answer: `${x1} 或 ${x2}`, type: 'text', answerPrefix: 'x ='
+      };
     }
   }
 }
