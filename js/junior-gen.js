@@ -791,15 +791,16 @@ function _7aIntAbs(level) {
       return { question:`\\(\\left|${a}\\right| \\times \\left|${b}\\right| + \\left|${c}\\right| \\times \\left|${d}\\right|\\) ＝ ？`,
                answer: Math.abs(a)*Math.abs(b) + Math.abs(c)*Math.abs(d), type:'number' };
     } else if (t === 1) {
-      // |a - b| ÷ |c|，確保整除
+      // |sa*a - b| ÷ |c|，確保整除
       const c = pick([2,3,4,5,6]);
-      const ans = rp(1, 8);
-      const diff = c * ans;
+      const diff = c * rp(1, 8);
       const a = rp(diff, diff + 30), b = a - diff;
       const sa = randInt(0,1)===0 ? 1 : -1;
       const sc = randInt(0,1)===0 ? 1 : -1;
+      const num = Math.abs(sa * a - b);
+      if (num % c !== 0) return null;
       return { question:`\\(\\left|${sa*a} - ${b}\\right| \\div \\left|${sc*c}\\right|\\) ＝ ？`,
-               answer: ans, type:'number' };
+               answer: num / c, type:'number' };
     } else {
       // |a| × |b| × |c|
       const a = rnzInt(-8,8), b = rnzInt(-8,8), c = rnzInt(-6,6);
@@ -875,7 +876,7 @@ function _7aFracAbs(level) {
     const ans = fsub(fmul(af1,af2), fmul(af3,af4));
     if (ans.den > 60) return null;
     return { question:`\\(\\left|${nfFirst(f1)}\\right| \\times \\left|${nfFirst(f2)}\\right| - \\left|${nfFirst(f3)}\\right| \\times \\left|${nfFirst(f4)}\\right|\\) ＝ ？`,
-             answer: frac(Math.abs(ans.num), ans.den), type:'fraction' };
+             answer: ans, type:'fraction' };
   } else {
     const d3 = pick([2,3,4,5,6]);
     const n3 = rp(1, d3-1);
