@@ -852,17 +852,21 @@ function _7aFracAbs(level) {
   if (level === 'basic') {
     const t = randInt(0, 2);
     if (t === 0) {
+      const ans = fadd(af1, af2);
+      if (ans.den === 1) return null; // 篩掉整數結果
       return { question:`\\(\\left|${nfFirst(f1)}\\right| + \\left|${nfFirst(f2)}\\right|\\) ＝ ？`,
-               answer: fadd(af1, af2), type:'fraction' };
+               answer: ans, type:'fraction' };
     } else if (t === 1) {
-      // 確保結果 ≥ 0
+      // 確保結果 ≥ 0 且非零
       const [big, sm] = af1.num * af2.den >= af2.num * af1.den ? [f1, f2] : [f2, f1];
       const abig = frac(Math.abs(big.num), big.den), asm = frac(Math.abs(sm.num), sm.den);
+      const ans = fsub(abig, asm);
+      if (ans.num === 0) return null; // 篩掉結果為 0
       return { question:`\\(\\left|${nfFirst(big)}\\right| - \\left|${nfFirst(sm)}\\right|\\) ＝ ？`,
-               answer: fsub(abig, asm), type:'fraction' };
+               answer: ans, type:'fraction' };
     } else {
       const ans = fmul(af1, af2);
-      if (ans.den > 60) return null;
+      if (ans.den > 60 || ans.den === 1) return null;
       return { question:`\\(\\left|${nfFirst(f1)}\\right| \\times \\left|${nfFirst(f2)}\\right|\\) ＝ ？`,
                answer: ans, type:'fraction' };
     }
@@ -874,7 +878,7 @@ function _7aFracAbs(level) {
     const f4=frac(randInt(0,1)===0 ? n4 : -n4, d4);
     const af3=frac(Math.abs(f3.num), f3.den), af4=frac(Math.abs(f4.num), f4.den);
     const ans = fsub(fmul(af1,af2), fmul(af3,af4));
-    if (ans.den > 60) return null;
+    if (ans.den > 60 || ans.den === 1) return null; // 篩掉整數（含0）
     return { question:`\\(\\left|${nfFirst(f1)}\\right| \\times \\left|${nfFirst(f2)}\\right| - \\left|${nfFirst(f3)}\\right| \\times \\left|${nfFirst(f4)}\\right|\\) ＝ ？`,
              answer: ans, type:'fraction' };
   } else {
@@ -886,13 +890,13 @@ function _7aFracAbs(level) {
     if (t === 0) {
       // |a/b| × |c/d| + |e/f|
       const ans = fadd(fmul(af1, af2), af3);
-      if (ans.den > 60) return null;
+      if (ans.den > 60 || ans.den === 1) return null;
       return { question:`\\(\\left|${nfFirst(f1)}\\right| \\times \\left|${nfFirst(f2)}\\right| + \\left|${nfFirst(f3)}\\right|\\) ＝ ？`,
                answer: ans, type:'fraction' };
     } else {
       // (|a/b| + |c/d|) × |e/f|
       const ans = fmul(fadd(af1, af2), af3);
-      if (ans.den > 60) return null;
+      if (ans.den > 60 || ans.den === 1) return null;
       return { question:`\\((\\left|${nfFirst(f1)}\\right| + \\left|${nfFirst(f2)}\\right|) \\times \\left|${nfFirst(f3)}\\right|\\) ＝ ？`,
                answer: ans, type:'fraction' };
     }
@@ -2813,6 +2817,15 @@ function _8aPolyMul(level) {
     if(!t.length) return '0';
     return t.map((e,i)=>(i===0?(e.s<0?'-':'')+e.v:(e.s<0?'-':'+')+e.v)).join('');
   };
+  const cb=(a3,a2,a1,a0)=>{
+    const t2=[];
+    if(a3!==0){const ab=Math.abs(a3);t2.push({s:a3>0?1:-1,v:ab===1?'x^3':`${ab}x^3`});}
+    if(a2!==0){const ab=Math.abs(a2);t2.push({s:a2>0?1:-1,v:ab===1?'x^2':`${ab}x^2`});}
+    if(a1!==0){const ab=Math.abs(a1);t2.push({s:a1>0?1:-1,v:ab===1?'x':`${ab}x`});}
+    if(a0!==0){t2.push({s:a0>0?1:-1,v:`${Math.abs(a0)}`});}
+    if(!t2.length) return '0';
+    return t2.map((e,i)=>(i===0?(e.s<0?'-':'')+e.v:(e.s<0?'-':'+')+e.v)).join('');
+  };
   const poly=(q,a2,a1,a0)=>({question:q,type:'poly',polyA2:a2,polyA1:a1,polyA0:a0});
 
   if(level==='basic'){
@@ -2825,7 +2838,7 @@ function _8aPolyMul(level) {
     return poly(`化簡 \\((${ps(0,a,b)}) \\div ${k}\\)`, 0, a/k, b/k);
   }
   if(level==='medium'){
-    const t=randInt(0,3);
+    const t=randInt(0,4);
     if(t===0){
       const k=rnzInt(-5,5),a=rnzInt(-6,6),b=rnzInt(-8,8);
       return poly(`展開 \\(${ni(k)}x\\cdot(${ps(0,a,b)})\\)`, k*a, k*b, 0);
@@ -2841,9 +2854,22 @@ function _8aPolyMul(level) {
       const A=rnzInt(-6,6),B=randInt(-6,6);
       return poly(`展開 \\(\\dfrac{${fr.p}}{${fr.q}}(${ps(0,fr.q*A,fr.q*B)})\\)`, 0, fr.p*A, fr.p*B);
     }
-    // 除法：(ax²+bx) ÷ cx
-    const c=rp(2,6), a=c*rnzInt(-5,5), b=c*randInt(-6,6);
-    return poly(`化簡 \\((${ps(a,b,0)}) \\div ${c}x\\)`, 0, a/c, b/c);
+    if(t===3){
+      // 除法：(ax²+bx) ÷ cx
+      const c=rp(2,6), a=c*rnzInt(-5,5), b=c*randInt(-6,6);
+      return poly(`化簡 \\((${ps(a,b,0)}) \\div ${c}x\\)`, 0, a/c, b/c);
+    }
+    // 長除法（中等）：首一三次 ÷ (x+k)，小係數
+    const k=rnzInt(-3,3), p=randInt(-4,4), q=randInt(-5,5), r=randInt(-6,6);
+    const b=p+k, c=q+k*p, d=k*q+r;
+    if(Math.abs(b)>8||Math.abs(c)>12||Math.abs(d)>16) return null;
+    return {
+      question:`計算 \\((${cb(1,b,c,d)}) \\div (${ps(0,1,k)})\\) 的商式與餘式`,
+      answerParts:[
+        {prefix:'商', type:'poly', answer:{a2:1, a1:p, a0:q}},
+        {prefix:'餘式', type:'number', answer:r}
+      ]
+    };
   }
   const t=randInt(0,4);
   if(t===0){
@@ -2871,26 +2897,15 @@ function _8aPolyMul(level) {
     const A=k*rnzInt(-5,5), B=k*randInt(-7,7), C=k*randInt(-9,9);
     return poly(`化簡 \\((${ps(A,B,C)}) \\div ${k}\\)`, A/k, B/k, C/k);
   }
-  // 長除法：三次多項式 ÷ (x+k)，求商式與餘式
-  const cb=(a3,a2,a1,a0)=>{
-    const t2=[];
-    if(a3!==0){const ab=Math.abs(a3);t2.push({s:a3>0?1:-1,v:ab===1?'x^3':`${ab}x^3`});}
-    if(a2!==0){const ab=Math.abs(a2);t2.push({s:a2>0?1:-1,v:ab===1?'x^2':`${ab}x^2`});}
-    if(a1!==0){const ab=Math.abs(a1);t2.push({s:a1>0?1:-1,v:ab===1?'x':`${ab}x`});}
-    if(a0!==0){t2.push({s:a0>0?1:-1,v:`${Math.abs(a0)}`});}
-    if(!t2.length) return '0';
-    return t2.map((e,i)=>(i===0?(e.s<0?'-':'')+e.v:(e.s<0?'-':'+')+e.v)).join('');
-  };
-  const k=rnzInt(-6,6);
-  const p=randInt(-6,6), q=randInt(-8,8), r=randInt(-10,10);
-  const b=p+k, c=q+k*p, d=k*q+r;
-  if(Math.abs(b)>12||Math.abs(c)>20||Math.abs(d)>30) return null;
-  const dividend=cb(1,b,c,d);
-  const divisor=ps(0,1,k);
+  // 長除法（困難）：非首一三次 ax³+... ÷ (x+k)，a∈{2,3}，商式首項係數不為1
+  const a=pick([2,3]);
+  const k=rnzInt(-5,5), p=randInt(-6,6), q=randInt(-8,8), r=randInt(-10,10);
+  const b=p+a*k, c=q+p*k, d=q*k+r;
+  if(Math.abs(b)>18||Math.abs(c)>25||Math.abs(d)>35) return null;
   return {
-    question:`計算 \\((${dividend}) \\div (${divisor})\\) 的商式與餘式`,
+    question:`計算 \\((${cb(a,b,c,d)}) \\div (${ps(0,1,k)})\\) 的商式與餘式`,
     answerParts:[
-      {prefix:'商', type:'poly', answer:{a2:1,a1:p,a0:q}},
+      {prefix:'商', type:'poly', answer:{a2:a, a1:p, a0:q}},
       {prefix:'餘式', type:'number', answer:r}
     ]
   };
