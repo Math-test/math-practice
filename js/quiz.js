@@ -944,7 +944,7 @@ async function downloadWord() {
     if (i > 0 && i % 10 === 0)
       qHtml += `<p style="page-break-before:always;margin:0;padding:0">&nbsp;</p>`;
     const qTxt = q2wordHtml(q.question);
-    qHtml += `<p style="margin:0 0 8px 0;text-align:left"><b style="color:#1565C0">${i+1}.&nbsp;</b>${qTxt}</p>`;
+    qHtml += `<p style="margin:0 0 4px 0;text-align:left"><b style="color:#1565C0">${i+1}.&nbsp;</b>${qTxt}</p>`;
   });
 
   // ── 解答頁（每 20 題一頁，雙欄）─────────────────────────────────
@@ -967,9 +967,17 @@ async function downloadWord() {
   const html = `<!DOCTYPE html>
 <html xmlns:o="urn:schemas-microsoft-com:office:office"
       xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
       xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta charset="UTF-8">
-<style>body,td,th{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:11pt;line-height:1.5;text-align:left}body{margin:20px}math{display:inline!important}</style>
+<!--[if gte mso 9]><xml>
+  <w:WordDocument xmlns:w="urn:schemas-microsoft-com:office:word"/>
+  <m:mathPr xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">
+    <m:mathFont m:val="Cambria Math"/>
+    <m:defJc m:val="left"/>
+  </m:mathPr>
+</xml><![endif]-->
+<style>body,td,th{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:11pt;line-height:1.5;text-align:left}body{margin:20px}</style>
 </head>
 <body>
 <div style="text-align:center;font-size:14pt;font-weight:bold;margin-bottom:4px">${title}</div>
