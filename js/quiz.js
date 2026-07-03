@@ -1,5 +1,13 @@
 'use strict';
 
+const _KATEX_OPTS = {
+  delimiters: [
+    { left: '\\(', right: '\\)', display: false },
+    { left: '\\[', right: '\\]', display: true  },
+  ],
+  throwOnError: false,
+};
+
 // ─── 題型設定 ──────────────────────────────────────────────────────
 
 const ALL_GENERATORS = Object.assign({}, FRAC_GENERATORS, DEC_GENERATORS, ELEM_GENERATORS, JR_GENERATORS, SR_GENERATORS);
@@ -597,10 +605,7 @@ function renderQuiz(questions, params) {
     });
   });
 
-  // MathJax 渲染
-  if (window.MathJax) {
-    MathJax.typesetPromise([list]);
-  }
+  renderMathInElement(list, _KATEX_OPTS);
 
   document.getElementById('score-bar').style.display = 'none';
   document.getElementById('btn-check').disabled = false;
@@ -680,7 +685,7 @@ function renderAnswerSheet(questions, topicLabel, levelLabel, dateStr) {
   }
   sheet.innerHTML = _pages;
 
-  if (window.MathJax) MathJax.typesetPromise([sheet]);
+  renderMathInElement(sheet, _KATEX_OPTS);
 }
 
 // ─── 對答案 ───────────────────────────────────────────────────────
@@ -826,13 +831,8 @@ function checkAnswers() {
     <span class="score-pct">${pct}%</span>
     <span class="score-label">${pct >= 80 ? '優秀！' : pct >= 60 ? '繼續加油！' : '再練習一次吧！'}</span>`;
 
-  // 重新渲染 MathJax（答案中有分數）
-  if (window.MathJax) {
-    MathJax.typesetPromise([
-      document.getElementById('question-list'),
-      document.getElementById('score-bar')
-    ]);
-  }
+  renderMathInElement(document.getElementById('question-list'), _KATEX_OPTS);
+  renderMathInElement(document.getElementById('score-bar'), _KATEX_OPTS);
 
   document.getElementById('btn-check').textContent = '重新對答';
 }
