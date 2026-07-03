@@ -944,10 +944,10 @@ async function downloadWord() {
     if (i > 0 && i % 10 === 0)
       qHtml += `<p style="page-break-before:always;margin:0;padding:0">&nbsp;</p>`;
     const qTxt = q2wordHtml(q.question);
-    qHtml += `<table width="100%" cellpadding="2" cellspacing="0" border="0" style="margin-bottom:6px">
+    qHtml += `<table width="100%" cellpadding="2" cellspacing="0" border="0" style="margin-bottom:6px;text-align:left">
   <tr>
-    <td width="28" valign="top" style="font-weight:bold;color:#1565C0;white-space:nowrap">${i+1}.</td>
-    <td valign="top">${qTxt}</td>
+    <td width="28" valign="top" style="font-weight:bold;color:#1565C0;white-space:nowrap;text-align:left">${i+1}.</td>
+    <td valign="top" style="text-align:left">${qTxt}</td>
   </tr>
 </table>`;
   });
@@ -963,8 +963,8 @@ async function downloadWord() {
     aHtml += `<div style="font-weight:bold;border-bottom:1px solid #333;margin-bottom:6px;padding-bottom:2px">解答</div>
 <table width="100%" cellpadding="3" cellspacing="0" border="0">
   <tr>
-    <td width="50%" valign="top">${left.map((q,i)=>`<div style="margin-bottom:4px"><b style="color:#1565C0">${off+i+1}.</b> ${ansStr(q)}</div>`).join('')}</td>
-    <td width="50%" valign="top">${right.map((q,i)=>`<div style="margin-bottom:4px"><b style="color:#1565C0">${off+10+i+1}.</b> ${ansStr(q)}</div>`).join('')}</td>
+    <td width="50%" valign="top" style="text-align:left">${left.map((q,i)=>`<div style="margin-bottom:4px;text-align:left"><b style="color:#1565C0">${off+i+1}.</b> ${ansStr(q)}</div>`).join('')}</td>
+    <td width="50%" valign="top" style="text-align:left">${right.map((q,i)=>`<div style="margin-bottom:4px;text-align:left"><b style="color:#1565C0">${off+10+i+1}.</b> ${ansStr(q)}</div>`).join('')}</td>
   </tr>
 </table>`;
   }
@@ -974,7 +974,7 @@ async function downloadWord() {
       xmlns:w="urn:schemas-microsoft-com:office:word"
       xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta charset="UTF-8">
-<style>body{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:11pt;margin:20px;line-height:1.5}</style>
+<style>body,td,th{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:11pt;line-height:1.5;text-align:left}body{margin:20px}math{display:inline!important}</style>
 </head>
 <body>
 <div style="text-align:center;font-size:14pt;font-weight:bold;margin-bottom:4px">${title}</div>
