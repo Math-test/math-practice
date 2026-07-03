@@ -867,16 +867,117 @@ async function downloadWord() {
   const sub   = document.getElementById('header-sub')?.textContent  || '';
   const date  = new Date().toLocaleDateString('zh-TW');
 
-  // 題目字串 → 保留 LaTeX 原始碼（去除 \( \) 外殼，保留數學內容）
+  // LaTeX → Word OMML（Office Math Markup Language）
+  function latexToOmml(s) {
+    function esc(t) { return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function brace(s, i) {
+      if (i >= s.length) return ['', i];
+      if (s[i] !== '{') return [s[i] ?? '', i + 1];
+      let d = 0;
+      for (let j = i; j < s.length; j++) {
+        if (s[j] === '\\') { j++; continue; }
+        if (s[j] === '{') d++;
+        else if (s[j] === '}' && --d === 0) return [s.slice(i+1, j), j+1];
+      }
+      return [s.slice(i+1), s.length];
+    }
+
+    function findRight(s, i) {
+      let d = 1;
+      while (i < s.length) {
+        if (s.slice(i,i+5) === '\\left') { d++; i += 5; }
+        else if (s.slice(i,i+6) === '\\right') { if (--d === 0) return i; i += 6; }
+        else i++;
+      }
+      return i;
+    }
+
+    function conv(s) {
+      const el = []; let i = 0, buf = '';
+      const flush = () => { if (buf) { el.push(`<m:r><m:t>${esc(buf)}</m:t></m:r>`); buf = ''; } };
+      const sym   = c  => { flush(); el.push(`<m:r><m:t>${esc(c)}</m:t></m:r>`); };
+
+      while (i < s.length) {
+        const c = s[i];
+        if (c === ' ' || c === '\n' || c === '\t') { i++; continue; }
+
+        if (/[\da-zA-Z.]/.test(c)) { buf += c; i++; }
+        else if (c === '\\') {
+          let j = i + 1;
+          if (j < s.length && /[a-zA-Z]/.test(s[j])) {
+            while (j < s.length && /[a-zA-Z]/.test(s[j])) j++;
+            const cmd = s.slice(i+1, j);
+            i = j; while (i < s.length && s[i] === ' ') i++;
+            flush();
+            if (cmd === 'dfrac' || cmd === 'frac') {
+              const [n,r1]=brace(s,i); i=r1; const [d,r2]=brace(s,i); i=r2;
+              el.push(`<m:f><m:num>${conv(n)}</m:num><m:den>${conv(d)}</m:den></m:f>`);
+            } else if (cmd === 'sqrt') {
+              let deg = null;
+              if (i < s.length && s[i]==='[') { const e=s.indexOf(']',i); deg=s.slice(i+1,e); i=e+1; }
+              const [a,r]=brace(s,i); i=r;
+              el.push(deg!==null
+                ? `<m:rad><m:deg>${conv(deg)}</m:deg><m:e>${conv(a)}</m:e></m:rad>`
+                : `<m:rad><m:radPr><m:degHide m:val="1"/></m:radPr><m:deg/><m:e>${conv(a)}</m:e></m:rad>`);
+            } else if (cmd === 'overline') {
+              const [a,r]=brace(s,i); i=r;
+              el.push(`<m:bar><m:barPr><m:pos m:val="top"/></m:barPr><m:e>${conv(a)}</m:e></m:bar>`);
+            } else if (cmd === 'left') {
+              let bChr='(', eChr=')';
+              if      (i<s.length&&s[i]==='(')               { bChr='('; eChr=')'; i++; }
+              else if (i<s.length&&s[i]==='[')               { bChr='['; eChr=']'; i++; }
+              else if (i<s.length&&s[i]==='|')               { bChr='|'; eChr='|'; i++; }
+              else if (i<s.length&&s[i]==='\\'&&s[i+1]==='{') { bChr='{'; eChr='}'; i+=2; }
+              else if (i<s.length&&s[i]==='\\'&&s[i+1]==='[') { bChr='['; eChr=']'; i+=2; }
+              else if (i<s.length) i++;
+              const rp=findRight(s,i); const inner=s.slice(i,rp); i=rp+6;
+              if (i<s.length) { if (s[i]==='|'||s[i]===')'||s[i]===']'||s[i]==='.') i++; else if (s[i]==='\\') i+=2; }
+              el.push(`<m:d><m:dPr><m:begChr m:val="${esc(bChr)}"/><m:endChr m:val="${esc(eChr)}"/></m:dPr><m:e>${conv(inner)}</m:e></m:d>`);
+            } else if (cmd === 'right') {
+              if (i<s.length&&s[i]!=='\\') i++; else if (i<s.length) i+=2;
+            } else {
+              const M={times:'×',div:'÷',pm:'±',cdot:'·',leq:'≤',geq:'≥',le:'≤',ge:'≥',neq:'≠'};
+              if (M[cmd]) el.push(`<m:r><m:t>${M[cmd]}</m:t></m:r>`);
+            }
+          } else { sym(s[i]); i++; }
+        }
+        else if (c==='^') {
+          flush(); i++;
+          const [exp,r]=brace(s,i); i=r;
+          const base=el.pop()||`<m:r><m:t/></m:r>`;
+          el.push(`<m:sSup><m:e>${base}</m:e><m:sup>${conv(exp)}</m:sup></m:sSup>`);
+        }
+        else if (c==='_') {
+          flush(); i++;
+          const [sub,r]=brace(s,i); i=r;
+          const base=el.pop()||`<m:r><m:t/></m:r>`;
+          el.push(`<m:sSub><m:e>${base}</m:e><m:sub>${conv(sub)}</m:sub></m:sSub>`);
+        }
+        else if (c==='{') { flush(); const [ct,r]=brace(s,i); i=r; el.push(conv(ct)); }
+        else { sym(c); i++; }
+      }
+      flush(); return el.join('');
+    }
+    return conv(s.trim());
+  }
+
   function q2wordHtml(s) {
+    const wrap = (t, disp) => {
+      const o = latexToOmml(t.trim());
+      return disp
+        ? `<m:oMathPara><m:oMathParaPr><m:jc m:val="left"/></m:oMathParaPr><m:oMath>${o}</m:oMath></m:oMathPara>`
+        : `<m:oMath>${o}</m:oMath>`;
+    };
     return (s || '')
-      .replace(/\\\(([^]*?)\\\)/g, '$1')
-      .replace(/\\\[([^]*?)\\\]/g, '$1')
+      .replace(/\\\[([^]*?)\\\]/g, (_,t) => wrap(t, true))
+      .replace(/\\\(([^]*?)\\\)/g, (_,t) => wrap(t, false))
       .replace(/[\s＝=]+[？?]\s*$/, '')
       .trim();
   }
-  // 裸 LaTeX → 直接輸出
-  function ml(tex) { return tex ? String(tex) : ''; }
+  function ml(tex) {
+    return tex ? `<m:oMath>${latexToOmml(String(tex))}</m:oMath>` : '';
+  }
 
   // 答案值 → HTML（含 MathML）
   function aVal(q) {
@@ -962,9 +1063,16 @@ async function downloadWord() {
   const html = `<!DOCTYPE html>
 <html xmlns:o="urn:schemas-microsoft-com:office:office"
       xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
       xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta charset="UTF-8">
-<style>body,td,th{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:14pt;line-height:1.8;text-align:left}body{margin:20px}sup,sub{font-size:0.75em}</style>
+<!--[if gte mso 9]><xml>
+  <m:mathPr xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">
+    <m:mathFont m:val="Cambria Math"/>
+    <m:defJc m:val="left"/>
+  </m:mathPr>
+</xml><![endif]-->
+<style>body,td,th{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:14pt;line-height:1.8;text-align:left}body{margin:20px}</style>
 </head>
 <body>
 <div style="text-align:center;font-size:14pt;font-weight:bold;margin-bottom:4px">${title}</div>
