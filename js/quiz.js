@@ -867,20 +867,25 @@ async function downloadWord() {
   const sub   = document.getElementById('header-sub')?.textContent  || '';
   const date  = new Date().toLocaleDateString('zh-TW');
 
+  // 去除 KaTeX MathML 裡的 <annotation>（Word 會把它當純文字顯示）
+  function stripAnnotation(mml) {
+    return mml.replace(/<annotation[^>]*>[\s\S]*?<\/annotation>/g, '');
+  }
+
   // 題目字串（含 \(...\) 分隔符）→ 帶 MathML 的 Word HTML
   function q2wordHtml(s) {
     return (s || '')
       .replace(/\\\[([^]*?)\\\]/g, (_, t) =>
-        katex.renderToString(t.trim(), {throwOnError:false, output:'mathml', displayMode:true}))
+        stripAnnotation(katex.renderToString(t.trim(), {throwOnError:false, output:'mathml', displayMode:true})))
       .replace(/\\\(([^]*?)\\\)/g, (_, t) =>
-        katex.renderToString(t.trim(), {throwOnError:false, output:'mathml', displayMode:false}))
+        stripAnnotation(katex.renderToString(t.trim(), {throwOnError:false, output:'mathml', displayMode:false})))
       .replace(/[\s＝=]+[？?]\s*$/, '')
       .trim();
   }
   // 裸 LaTeX 表達式 → inline MathML
   function ml(tex) {
     if (!tex) return '';
-    return katex.renderToString(String(tex), {throwOnError:false, output:'mathml', displayMode:false});
+    return stripAnnotation(katex.renderToString(String(tex), {throwOnError:false, output:'mathml', displayMode:false}));
   }
 
   // 答案值 → HTML（含 MathML）
