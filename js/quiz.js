@@ -867,51 +867,40 @@ async function downloadWord() {
   const sub   = document.getElementById('header-sub')?.textContent  || '';
   const date  = new Date().toLocaleDateString('zh-TW');
 
-  // LaTeX → Word 可用的 HTML（分數用 sup/sub，次方用 sup）
-  function tex2html(s) {
+  // 題目字串（含 \(...\) 分隔符）→ 帶 MathML 的 Word HTML
+  function q2wordHtml(s) {
     return (s || '')
-      .replace(/\\\(/g,'').replace(/\\\)/g,'')
-      .replace(/\\\[/g,'').replace(/\\\]/g,'')
-      // 先處理巢狀分數（兩層即可）
-      .replace(/\\d?frac\{([^{}]*)\}\{([^{}]*)\}/g,'<sup>$1</sup>⁄<sub>$2</sub>')
-      .replace(/\\d?frac\{([^{}]*)\}\{([^{}]*)\}/g,'<sup>$1</sup>⁄<sub>$2</sub>')
-      .replace(/\\sqrt\[([^\]]*)\]\{([^{}]*)\}/g,'<sup>$1</sup>√<span style="text-decoration:overline">$2</span>')
-      .replace(/\\sqrt\{([^{}]*)\}/g,'√<span style="text-decoration:overline">$1</span>')
-      .replace(/\\overline\{([^{}]*)\}/g,'<span style="text-decoration:overline">$1</span>')
-      .replace(/\^\{([^{}]+)\}/g,'<sup>$1</sup>')
-      .replace(/\^(\d)/g,'<sup>$1</sup>')
-      .replace(/\\times/g,'×').replace(/\\div/g,'÷').replace(/\\pm/g,'±')
-      .replace(/\\cdot/g,'·').replace(/\\leq/g,'≤').replace(/\\geq/g,'≥')
-      .replace(/\\le\b/g,'≤').replace(/\\ge\b/g,'≥').replace(/\\neq/g,'≠')
-      .replace(/\\left\s*\|/g,'|').replace(/\\right\s*\|/g,'|')
-      .replace(/\\left|\\right/g,'').replace(/\\{/g,'{').replace(/\\}/g,'}')
-      .replace(/[{}]/g,'')
-      .replace(/[\s＝=]+[？?]\s*$/,'')
+      .replace(/\\\[([^]*?)\\\]/g, (_, t) =>
+        katex.renderToString(t.trim(), {throwOnError:false, output:'mathml', displayMode:true}))
+      .replace(/\\\(([^]*?)\\\)/g, (_, t) =>
+        katex.renderToString(t.trim(), {throwOnError:false, output:'mathml', displayMode:false}))
+      .replace(/[\s＝=]+[？?]\s*$/, '')
       .trim();
   }
-  // 純文字版（供答案字串拼接用）
-  function tex2txt(s) {
-    return tex2html(s).replace(/<[^>]+>/g,'');
+  // 裸 LaTeX 表達式 → inline MathML
+  function ml(tex) {
+    if (!tex) return '';
+    return katex.renderToString(String(tex), {throwOnError:false, output:'mathml', displayMode:false});
   }
 
-  // 答案值轉 HTML
+  // 答案值 → HTML（含 MathML）
   function aVal(q) {
     if (q.type === 'fraction' && q.answer && 'num' in q.answer)
-      return tex2html(`\\(${fracToLatex(q.answer)}\\)`);
+      return ml(fracToLatex(q.answer));
     if (q.type === 'poly')
-      return tex2html(`\\(${polyToLatex(q.polyA2,q.polyA1,q.polyA0)}\\)`);
+      return ml(polyToLatex(q.polyA2,q.polyA1,q.polyA0));
     if (q.type === 'linear2')
-      return tex2html(`\\(${linear2ToLatex(q.linA,q.linB,q.linC)}\\)`);
+      return ml(linear2ToLatex(q.linA,q.linB,q.linC));
     if (q.type === 'radical-mix')
-      return tex2html(`\\(${radMixLatex(q.rational,q.radCoeff,q.radM)}\\)`);
+      return ml(radMixLatex(q.rational,q.radCoeff,q.radM));
     if (q.type === 'radical2')
-      return tex2html(`\\(${rad2Latex(q.coeffA,q.radA,q.coeffB,q.radB)}\\)`);
+      return ml(rad2Latex(q.coeffA,q.radA,q.coeffB,q.radB));
     if (q.type === 'factored-quad')
-      return tex2html(`\\(${factQuadLatex(q.factA,q.factB,q.factC,q.factD)}\\)`);
+      return ml(factQuadLatex(q.factA,q.factB,q.factC,q.factD));
     if (q.type === 'factored-form')
-      return tex2html(q.answerLatex || '');
+      return q2wordHtml(`\\(${q.answerLatex || ''}\\)`);
     if (q.type === 'quad-roots')
-      return `x = ${tex2html(String(q.root1))} 或 x = ${tex2html(String(q.root2))}`;
+      return `x = ${ml(String(q.root1))} 或 x = ${ml(String(q.root2))}`;
     if (typeof q.answer === 'number' || typeof q.answer === 'string')
       return String(q.answer);
     return '—';
@@ -920,25 +909,25 @@ async function downloadWord() {
   function ansStr(q) {
     if (q.answerParts) {
       if ('suffix' in q.answerParts[0]) {
-        let expr = '';
+        let parts = [];
         q.answerParts.forEach((p, i) => {
           const s = p.suffix || '';
           const isFrac = p.type === 'fraction';
-          const str    = isFrac ? tex2html(`\\(${fracToLatex(p.answer)}\\)`) : String(p.answer);
-          const absStr = isFrac ? tex2html(`\\(${fracToLatex(frac(Math.abs(p.answer.num),p.answer.den))}\\)`) : String(Math.abs(p.answer));
-          const isNeg  = isFrac ? p.answer.num < 0 : p.answer < 0;
-          if (i === 0) expr += `${str}${s}`;
-          else if (!isNeg) expr += ` + ${str}${s}`;
-          else expr += ` - ${absStr}${s}`;
+          const v    = isFrac ? ml(fracToLatex(p.answer)) : String(p.answer);
+          const absV = isFrac ? ml(fracToLatex(frac(Math.abs(p.answer.num),p.answer.den))) : String(Math.abs(p.answer));
+          const neg  = isFrac ? p.answer.num < 0 : p.answer < 0;
+          if (i === 0) parts.push(`${v}${s}`);
+          else if (!neg) parts.push(` + ${v}${s}`);
+          else parts.push(` − ${absV}${s}`);
         });
-        return expr;
+        return parts.join('');
       }
       if (q.coordAnswer)
         return `(${dStr(q.answerParts[0].answer)}, ${dStr(q.answerParts[1].answer)})`;
       return q.answerParts.map(p => {
         const v = p.type === 'fraction' && p.answer && 'num' in p.answer
-          ? tex2html(`\\(${fracToLatex(p.answer)}\\)`)
-          : p.type === 'poly' ? tex2html(`\\(${polyToLatex(p.answer.a2,p.answer.a1,p.answer.a0)}\\)`)
+          ? ml(fracToLatex(p.answer))
+          : p.type === 'poly' ? ml(polyToLatex(p.answer.a2,p.answer.a1,p.answer.a0))
           : dStr(p.answer ?? 0);
         return `${p.prefix} = ${v}`;
       }).join('，');
@@ -954,7 +943,7 @@ async function downloadWord() {
   currentQuestions.forEach((q, i) => {
     if (i > 0 && i % 10 === 0)
       qHtml += `<p style="page-break-before:always;margin:0;padding:0">&nbsp;</p>`;
-    const qTxt = tex2html(q.question);
+    const qTxt = q2wordHtml(q.question);
     qHtml += `<table width="100%" cellpadding="2" cellspacing="0" border="0" style="margin-bottom:6px">
   <tr>
     <td width="28" valign="top" style="font-weight:bold;color:#1565C0;white-space:nowrap">${i+1}.</td>
