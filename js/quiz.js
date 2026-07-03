@@ -944,12 +944,7 @@ async function downloadWord() {
     if (i > 0 && i % 10 === 0)
       qHtml += `<p style="page-break-before:always;margin:0;padding:0">&nbsp;</p>`;
     const qTxt = q2wordHtml(q.question);
-    qHtml += `<table width="100%" cellpadding="2" cellspacing="0" border="0" style="margin-bottom:6px;text-align:left">
-  <tr>
-    <td width="28" valign="top" style="font-weight:bold;color:#1565C0;white-space:nowrap;text-align:left">${i+1}.</td>
-    <td valign="top" style="text-align:left">${qTxt}</td>
-  </tr>
-</table>`;
+    qHtml += `<p style="margin:0 0 8px 0;text-align:left"><b style="color:#1565C0">${i+1}.&nbsp;</b>${qTxt}</p>`;
   });
 
   // ── 解答頁（每 20 題一頁，雙欄）─────────────────────────────────
