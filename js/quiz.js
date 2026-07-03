@@ -867,26 +867,31 @@ async function downloadWord() {
   const sub   = document.getElementById('header-sub')?.textContent  || '';
   const date  = new Date().toLocaleDateString('zh-TW');
 
-  // 去除 KaTeX MathML 裡的 <annotation>（Word 會把它當純文字顯示）
-  function stripAnnotation(mml) {
-    return mml.replace(/<annotation[^>]*>[\s\S]*?<\/annotation>/g, '');
-  }
-
-  // 題目字串（含 \(...\) 分隔符）→ 帶 MathML 的 Word HTML
-  function q2wordHtml(s) {
+  // LaTeX → Word 可用的 HTML（sup/sub 分數、Unicode 運算符）
+  function tex2html(s) {
     return (s || '')
-      .replace(/\\\[([^]*?)\\\]/g, (_, t) =>
-        stripAnnotation(katex.renderToString(t.trim(), {throwOnError:false, output:'mathml', displayMode:true})))
-      .replace(/\\\(([^]*?)\\\)/g, (_, t) =>
-        stripAnnotation(katex.renderToString(t.trim(), {throwOnError:false, output:'mathml', displayMode:false})))
-      .replace(/[\s＝=]+[？?]\s*$/, '')
+      .replace(/\\\(/g,'').replace(/\\\)/g,'')
+      .replace(/\\\[/g,'').replace(/\\\]/g,'')
+      .replace(/\\dfrac\{([^{}]*)\}\{([^{}]*)\}/g,'<sup>$1</sup>⁄<sub>$2</sub>')
+      .replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g,'<sup>$1</sup>⁄<sub>$2</sub>')
+      .replace(/\\sqrt\[([^\]]*)\]\{([^{}]*)\}/g,'$1√($2)')
+      .replace(/\\sqrt\{([^{}]*)\}/g,'√($1)')
+      .replace(/\\overline\{([^{}]*)\}/g,'<span style="text-decoration:overline">$1</span>')
+      .replace(/\^\{([^{}]+)\}/g,'<sup>$1</sup>')
+      .replace(/\^(\d)/g,'<sup>$1</sup>')
+      .replace(/\\times/g,'×').replace(/\\div/g,'÷').replace(/\\pm/g,'±')
+      .replace(/\\cdot/g,'·').replace(/\\leq/g,'≤').replace(/\\geq/g,'≥')
+      .replace(/\\le\b/g,'≤').replace(/\\ge\b/g,'≥').replace(/\\neq/g,'≠')
+      .replace(/\\left\s*\|/g,'|').replace(/\\right\s*\|/g,'|')
+      .replace(/\\left|\\right/g,'').replace(/\\{/g,'{').replace(/\\}/g,'}')
+      .replace(/[{}]/g,'')
+      .replace(/[\s＝=]+[？?]\s*$/,'')
       .trim();
   }
-  // 裸 LaTeX 表達式 → inline MathML
-  function ml(tex) {
-    if (!tex) return '';
-    return stripAnnotation(katex.renderToString(String(tex), {throwOnError:false, output:'mathml', displayMode:false}));
-  }
+  // 題目字串（含 \(...\) 分隔符）→ Word HTML
+  function q2wordHtml(s) { return tex2html(s || ''); }
+  // 裸 LaTeX → Word HTML
+  function ml(tex) { return tex2html(tex ? `\\(${tex}\\)` : ''); }
 
   // 答案值 → HTML（含 MathML）
   function aVal(q) {
@@ -972,17 +977,9 @@ async function downloadWord() {
   const html = `<!DOCTYPE html>
 <html xmlns:o="urn:schemas-microsoft-com:office:office"
       xmlns:w="urn:schemas-microsoft-com:office:word"
-      xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
       xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta charset="UTF-8">
-<!--[if gte mso 9]><xml>
-  <w:WordDocument xmlns:w="urn:schemas-microsoft-com:office:word"/>
-  <m:mathPr xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">
-    <m:mathFont m:val="Cambria Math"/>
-    <m:defJc m:val="left"/>
-  </m:mathPr>
-</xml><![endif]-->
-<style>body,td,th{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:14pt;line-height:1.8;text-align:left}body{margin:20px}</style>
+<style>body,td,th{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:14pt;line-height:1.8;text-align:left}body{margin:20px}sup,sub{font-size:0.75em}</style>
 </head>
 <body>
 <div style="text-align:center;font-size:14pt;font-weight:bold;margin-bottom:4px">${title}</div>
