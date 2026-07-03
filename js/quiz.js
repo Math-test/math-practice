@@ -867,8 +867,8 @@ async function downloadWord() {
   const sub   = document.getElementById('header-sub')?.textContent  || '';
   const date  = new Date().toLocaleDateString('zh-TW');
 
-  // LaTeX → MathML (inline, Word 2007+ 原生支援，無 OMML 問題)
-  function latexToMML(s) {
+  // LaTeX → 純 HTML（無 <math> 元素，避免 Word 插入 ° 符號）
+  function latexToHtml(s) {
     function esc(t) { return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
     function brace(s, i) {
@@ -894,36 +894,33 @@ async function downloadWord() {
     }
 
     function conv(s) {
-      const el = []; let i = 0, nb = '', lb = '';
-      const fn = () => { if (nb) { el.push(`<mn>${esc(nb)}</mn>`); nb = ''; } };
-      const fl = () => { if (lb) { for (const ch of lb) el.push(`<mi>${esc(ch)}</mi>`); lb = ''; } };
-      const fx = () => { fn(); fl(); };
+      let out = '', i = 0, buf = '';
+      const flush = () => { if (buf) { out += esc(buf); buf = ''; } };
 
       while (i < s.length) {
         const c = s[i];
         if (c === ' ' || c === '\n' || c === '\t') { i++; continue; }
-        if (/\d/.test(c) || (c === '.' && nb)) { fl(); nb += c; i++; }
-        else if (/[a-zA-Z]/.test(c)) { fn(); lb += c; i++; }
+        if (/[\da-zA-Z.]/.test(c)) { buf += c; i++; }
         else if (c === '\\') {
+          flush();
           let j = i + 1;
           if (j < s.length && /[a-zA-Z]/.test(s[j])) {
             while (j < s.length && /[a-zA-Z]/.test(s[j])) j++;
             const cmd = s.slice(i+1, j);
             i = j; while (i < s.length && s[i] === ' ') i++;
-            fx();
             if (cmd === 'dfrac' || cmd === 'frac') {
               const [n,r1]=brace(s,i); i=r1; const [d,r2]=brace(s,i); i=r2;
-              el.push(`<mfrac><mrow>${conv(n)}</mrow><mrow>${conv(d)}</mrow></mfrac>`);
+              out += `<span style="display:inline-block;vertical-align:middle;text-align:center;line-height:1.3"><span style="display:block;border-bottom:1px solid black;padding:0 4px">${conv(n)}</span><span style="display:block;padding:0 4px">${conv(d)}</span></span>`;
             } else if (cmd === 'sqrt') {
               let deg = null;
-              if (i < s.length && s[i]==='[') { const e=s.indexOf(']',i); deg=s.slice(i+1,e); i=e+1; }
+              if (i<s.length&&s[i]==='[') { const e=s.indexOf(']',i); deg=s.slice(i+1,e); i=e+1; }
               const [a,r]=brace(s,i); i=r;
-              el.push(deg!==null
-                ? `<mroot><mrow>${conv(a)}</mrow><mrow>${conv(deg)}</mrow></mroot>`
-                : `<msqrt><mrow>${conv(a)}</mrow></msqrt>`);
+              out += deg!==null
+                ? `<sup style="font-size:.75em">${conv(deg)}</sup>&#x221A;<span style="text-decoration:overline">${conv(a)}</span>`
+                : `&#x221A;<span style="text-decoration:overline">${conv(a)}</span>`;
             } else if (cmd === 'overline') {
               const [a,r]=brace(s,i); i=r;
-              el.push(`<mover accent="true"><mrow>${conv(a)}</mrow><mo stretchy="false">&#x203E;</mo></mover>`);
+              out += `<span style="text-decoration:overline">${conv(a)}</span>`;
             } else if (cmd === 'left') {
               let bC='(', eC=')';
               if      (i<s.length&&s[i]==='(')                { bC='('; eC=')'; i++; }
@@ -934,50 +931,39 @@ async function downloadWord() {
               else if (i<s.length) i++;
               const rp=findRight(s,i); const inner=s.slice(i,rp); i=rp+6;
               if (i<s.length) { if (s[i]==='|'||s[i]===')'||s[i]===']'||s[i]==='.') i++; else if (s[i]==='\\') i+=2; }
-              el.push(`<mrow><mo stretchy="true">${esc(bC)}</mo>${conv(inner)}<mo stretchy="true">${esc(eC)}</mo></mrow>`);
+              out += esc(bC) + conv(inner) + esc(eC);
             } else if (cmd === 'right') {
               if (i<s.length&&s[i]!=='\\') i++; else if (i<s.length) i+=2;
             } else {
-              const M={times:'&#xD7;',div:'&#xF7;',pm:'&#xB1;',cdot:'&#xB7;',
-                       leq:'&#x2264;',geq:'&#x2265;',le:'&#x2264;',ge:'&#x2265;',neq:'&#x2260;',
-                       infty:'&#x221E;',alpha:'&#x3B1;',beta:'&#x3B2;',pi:'&#x3C0;',
-                       theta:'&#x3B8;',phi:'&#x3C6;',lambda:'&#x3BB;',mu:'&#x3BC;'};
-              if (M[cmd]) el.push(`<mo>${M[cmd]}</mo>`);
+              const M={times:'&times;',div:'&divide;',pm:'&plusmn;',cdot:'&middot;',
+                       leq:'&le;',geq:'&ge;',le:'&le;',ge:'&ge;',neq:'&ne;',
+                       infty:'&infin;',alpha:'&alpha;',beta:'&beta;',pi:'&pi;',
+                       theta:'&theta;',phi:'&phi;',lambda:'&lambda;',mu:'&mu;'};
+              if (M[cmd]) out += M[cmd];
             }
-          } else { fx(); el.push(`<mo>${esc(s[i])}</mo>`); i++; }
+          } else { out += esc(s[i]); i++; }
         }
         else if (c === '^') {
-          fx(); i++;
+          flush(); i++;
           const [exp,r]=brace(s,i); i=r;
-          const base=el.pop()||'<mn></mn>';
-          el.push(`<msup>${base}<mrow>${conv(exp)}</mrow></msup>`);
+          out += `<sup>${conv(exp)}</sup>`;
         }
         else if (c === '_') {
-          fx(); i++;
+          flush(); i++;
           const [sb,r]=brace(s,i); i=r;
-          const base=el.pop()||'<mn></mn>';
-          el.push(`<msub>${base}<mrow>${conv(sb)}</mrow></msub>`);
+          out += `<sub>${conv(sb)}</sub>`;
         }
-        else if (c === '{') { fx(); const [ct,r]=brace(s,i); i=r; el.push(`<mrow>${conv(ct)}</mrow>`); }
-        else {
-          fx();
-          const opMap={
-            '+':'<mo>+</mo>', '-':'<mo>&#x2212;</mo>', '=':'<mo>=</mo>',
-            '(':'<mo>(</mo>', ')':'<mo>)</mo>', '[':'<mo>[</mo>', ']':'<mo>]</mo>',
-            '|':'<mo>|</mo>', ',':'<mo>,</mo>'
-          };
-          el.push(opMap[c] || `<mo>${esc(c)}</mo>`);
-          i++;
-        }
+        else if (c === '{') { flush(); const [ct,r]=brace(s,i); i=r; out += conv(ct); }
+        else { flush(); out += esc(c); i++; }
       }
-      fn(); fl();
-      return el.join('');
+      flush();
+      return out;
     }
-    return `<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow>${conv(s.trim())}</mrow></math>`;
+    return conv(s.trim());
   }
 
   function q2wordHtml(s) {
-    const wrap = (t) => latexToMML(t.trim());
+    const wrap = (t) => latexToHtml(t.trim());
     return (s || '')
       .replace(/\\\[([^]*?)\\\]/g, (_,t) => wrap(t))
       .replace(/\\\(([^]*?)\\\)/g, (_,t) => wrap(t))
@@ -985,7 +971,7 @@ async function downloadWord() {
       .trim();
   }
   function ml(tex) {
-    return tex ? latexToMML(String(tex)) : '';
+    return tex ? latexToHtml(String(tex)) : '';
   }
 
   // 答案值 → HTML（含 MathML）
@@ -1074,7 +1060,7 @@ async function downloadWord() {
       xmlns:w="urn:schemas-microsoft-com:office:word"
       xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta charset="UTF-8">
-<style>body,td,th{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:14pt;line-height:1.8;text-align:left}body{margin:20px}math{display:inline}</style>
+<style>body,td,th{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:14pt;line-height:2;text-align:left}body{margin:20px}</style>
 </head>
 <body>
 <div style="text-align:center;font-size:14pt;font-weight:bold;margin-bottom:4px">${title}</div>
