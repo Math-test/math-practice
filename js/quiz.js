@@ -867,31 +867,16 @@ async function downloadWord() {
   const sub   = document.getElementById('header-sub')?.textContent  || '';
   const date  = new Date().toLocaleDateString('zh-TW');
 
-  // LaTeX → Word 可用的 HTML（sup/sub 分數、Unicode 運算符）
-  function tex2html(s) {
+  // 題目字串 → 保留 LaTeX 原始碼（去除 \( \) 外殼，保留數學內容）
+  function q2wordHtml(s) {
     return (s || '')
-      .replace(/\\\(/g,'').replace(/\\\)/g,'')
-      .replace(/\\\[/g,'').replace(/\\\]/g,'')
-      .replace(/\\dfrac\{([^{}]*)\}\{([^{}]*)\}/g,'<sup>$1</sup>⁄<sub>$2</sub>')
-      .replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g,'<sup>$1</sup>⁄<sub>$2</sub>')
-      .replace(/\\sqrt\[([^\]]*)\]\{([^{}]*)\}/g,'$1√($2)')
-      .replace(/\\sqrt\{([^{}]*)\}/g,'√($1)')
-      .replace(/\\overline\{([^{}]*)\}/g,'<span style="text-decoration:overline">$1</span>')
-      .replace(/\^\{([^{}]+)\}/g,'<sup>$1</sup>')
-      .replace(/\^(\d)/g,'<sup>$1</sup>')
-      .replace(/\\times/g,'×').replace(/\\div/g,'÷').replace(/\\pm/g,'±')
-      .replace(/\\cdot/g,'·').replace(/\\leq/g,'≤').replace(/\\geq/g,'≥')
-      .replace(/\\le\b/g,'≤').replace(/\\ge\b/g,'≥').replace(/\\neq/g,'≠')
-      .replace(/\\left\s*\|/g,'|').replace(/\\right\s*\|/g,'|')
-      .replace(/\\left|\\right/g,'').replace(/\\{/g,'{').replace(/\\}/g,'}')
-      .replace(/[{}]/g,'')
-      .replace(/[\s＝=]+[？?]\s*$/,'')
+      .replace(/\\\(([^]*?)\\\)/g, '$1')
+      .replace(/\\\[([^]*?)\\\]/g, '$1')
+      .replace(/[\s＝=]+[？?]\s*$/, '')
       .trim();
   }
-  // 題目字串（含 \(...\) 分隔符）→ Word HTML
-  function q2wordHtml(s) { return tex2html(s || ''); }
-  // 裸 LaTeX → Word HTML
-  function ml(tex) { return tex2html(tex ? `\\(${tex}\\)` : ''); }
+  // 裸 LaTeX → 直接輸出
+  function ml(tex) { return tex ? String(tex) : ''; }
 
   // 答案值 → HTML（含 MathML）
   function aVal(q) {
