@@ -457,6 +457,9 @@ body {
 /* 列印含解答按鈕 */
 .btn-print-ans { background: #6A1B9A; color: #fff; }
 
+/* 下載 Word 按鈕 */
+.btn-word { background: #1B5E20; color: #fff; }
+
 /* printing class（JS 控制） */
 body.printing .site-header,
 body.printing .action-bar,

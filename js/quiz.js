@@ -511,11 +511,11 @@ function renderQuiz(questions, params) {
   list.appendChild(makePrintHeader(topicLabel, levelLabel, dateStr, 1));
 
   questions.forEach((q, idx) => {
-    // 列印用：第11題前插入分頁符 + 第二頁標題
-    if (idx === 10) {
+    // 列印用：每10題插入分頁符 + 下一頁標題
+    if (idx > 0 && idx % 10 === 0) {
       const pb = document.createElement('div');
       pb.className = 'print-page-break';
-      pb.appendChild(makePrintHeader(topicLabel, levelLabel, dateStr, 2));
+      pb.appendChild(makePrintHeader(topicLabel, levelLabel, dateStr, Math.floor(idx / 10) + 1));
       list.appendChild(pb);
     }
 
@@ -616,10 +616,6 @@ function renderAnswerSheet(questions, topicLabel, levelLabel, dateStr) {
   const sheet = document.getElementById('answer-sheet');
   if (!sheet) return;
 
-  // 分成左欄（1-10）和右欄（11-20）
-  const left  = questions.slice(0, 10);
-  const right  = questions.slice(10, 20);
-
   function ansHtml(q, idx) {
     let val;
     if (q.type === 'poly') {
@@ -665,15 +661,24 @@ function renderAnswerSheet(questions, topicLabel, levelLabel, dateStr) {
     return `<div class="ans-item"><span class="ans-num">${idx + 1}.</span><span class="ans-val">${val}</span></div>`;
   }
 
-  sheet.innerHTML = `
+  let _pages = '';
+  const _perPage = 20;
+  for (let _pg = 0; _pg < Math.ceil(questions.length / _perPage); _pg++) {
+    const _qs  = questions.slice(_pg * _perPage, (_pg + 1) * _perPage);
+    const _lft = _qs.slice(0, 10), _rgt = _qs.slice(10);
+    const _off = _pg * _perPage;
+    const _brk = _pg > 0 ? '<div style="page-break-before:always;break-before:page"></div>' : '';
+    _pages += `${_brk}
     <div class="print-page-header">
       <div class="pph-title">解答　${topicLabel}　${levelLabel}</div>
       <div class="pph-meta"><span>日期：${dateStr}</span></div>
     </div>
     <div class="ans-grid">
-      <div class="ans-col">${left.map((q, i) => ansHtml(q, i)).join('')}</div>
-      <div class="ans-col">${right.map((q, i) => ansHtml(q, i + 10)).join('')}</div>
+      <div class="ans-col">${_lft.map((q, i) => ansHtml(q, _off + i)).join('')}</div>
+      <div class="ans-col">${_rgt.map((q, i) => ansHtml(q, _off + 10 + i)).join('')}</div>
     </div>`;
+  }
+  sheet.innerHTML = _pages;
 
   if (window.MathJax) MathJax.typesetPromise([sheet]);
 }
@@ -853,6 +858,146 @@ function printWithAnswers() {
   document.body.classList.add('printing', 'printing-with-answers');
   window.print();
   document.body.classList.remove('printing', 'printing-with-answers');
+}
+
+async function downloadWord() {
+  if (!currentQuestions || !currentQuestions.length) { alert('請先出題再下載！'); return; }
+
+  const title = document.getElementById('site-title')?.textContent || '數學練習題';
+  const sub   = document.getElementById('header-sub')?.textContent  || '';
+  const date  = new Date().toLocaleDateString('zh-TW');
+
+  // LaTeX → 可讀 Unicode 文字
+  function tex2txt(s) {
+    return (s || '')
+      .replace(/\\\(/g,'').replace(/\\\)/g,'')
+      .replace(/\\\[/g,'').replace(/\\\]/g,'')
+      .replace(/\\dfrac\{([^{}]*)\}\{([^{}]*)\}/g,'($1)/($2)')
+      .replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g,'($1)/($2)')
+      .replace(/\\sqrt\[([^\]]*)\]\{([^{}]*)\}/g,'$1√($2)')
+      .replace(/\\sqrt\{([^{}]*)\}/g,'√($1)')
+      .replace(/\\overline\{([^{}]*)\}/g,'$1̄')
+      .replace(/\^\{2\}/g,'²').replace(/\^2(?!\d)/g,'²')
+      .replace(/\^\{3\}/g,'³').replace(/\^3(?!\d)/g,'³')
+      .replace(/\\times/g,'×').replace(/\\div/g,'÷').replace(/\\pm/g,'±')
+      .replace(/\\cdot/g,'·').replace(/\\leq/g,'≤').replace(/\\geq/g,'≥')
+      .replace(/\\le\b/g,'≤').replace(/\\ge\b/g,'≥').replace(/\\neq/g,'≠')
+      .replace(/\\left|\\right/g,'').replace(/\\{/g,'{').replace(/\\}/g,'}')
+      .replace(/[{}]/g,'')
+      .replace(/[\s＝=]+[？?]\s*$/,'')
+      .trim();
+  }
+
+  // 答案值轉文字
+  function aVal(q) {
+    if (q.type === 'fraction' && q.answer && 'num' in q.answer)
+      return tex2txt(`\\(${fracToLatex(q.answer)}\\)`);
+    if (q.type === 'poly')
+      return tex2txt(`\\(${polyToLatex(q.polyA2,q.polyA1,q.polyA0)}\\)`);
+    if (q.type === 'linear2')
+      return tex2txt(`\\(${linear2ToLatex(q.linA,q.linB,q.linC)}\\)`);
+    if (q.type === 'radical-mix')
+      return tex2txt(`\\(${radMixLatex(q.rational,q.radCoeff,q.radM)}\\)`);
+    if (q.type === 'radical2')
+      return tex2txt(`\\(${rad2Latex(q.coeffA,q.radA,q.coeffB,q.radB)}\\)`);
+    if (q.type === 'factored-quad')
+      return tex2txt(`\\(${factQuadLatex(q.factA,q.factB,q.factC,q.factD)}\\)`);
+    if (q.type === 'factored-form')
+      return tex2txt(q.answerLatex || '');
+    if (q.type === 'quad-roots')
+      return `x = ${tex2txt(String(q.root1))} 或 x = ${tex2txt(String(q.root2))}`;
+    if (typeof q.answer === 'number' || typeof q.answer === 'string')
+      return String(q.answer);
+    return '—';
+  }
+
+  function ansStr(q) {
+    if (q.answerParts) {
+      if ('suffix' in q.answerParts[0]) {
+        // e.g. radical-mix parts with suffix like √b
+        let expr = '';
+        q.answerParts.forEach((p, i) => {
+          const s = p.suffix || '';
+          const isFrac = p.type === 'fraction';
+          const str    = isFrac ? tex2txt(`\\(${fracToLatex(p.answer)}\\)`) : String(p.answer);
+          const absStr = isFrac ? tex2txt(`\\(${fracToLatex(frac(Math.abs(p.answer.num),p.answer.den))}\\)`) : String(Math.abs(p.answer));
+          const isNeg  = isFrac ? p.answer.num < 0 : p.answer < 0;
+          if (i === 0) expr += `${str}${s}`;
+          else if (!isNeg) expr += ` + ${str}${s}`;
+          else expr += ` - ${absStr}${s}`;
+        });
+        return expr;
+      }
+      if (q.coordAnswer)
+        return `(${dStr(q.answerParts[0].answer)}, ${dStr(q.answerParts[1].answer)})`;
+      return q.answerParts.map(p => {
+        const v = p.type === 'fraction' && p.answer && 'num' in p.answer
+          ? tex2txt(`\\(${fracToLatex(p.answer)}\\)`)
+          : p.type === 'poly' ? tex2txt(`\\(${polyToLatex(p.answer.a2,p.answer.a1,p.answer.a0)}\\)`)
+          : dStr(p.answer ?? 0);
+        return `${p.prefix} = ${v}`;
+      }).join('，');
+    }
+    const pfx = q.sym ? `x ${q.sym} `
+      : q.answerPrefix && /[<>≤≥]$/.test(q.answerPrefix) ? `${q.answerPrefix} `
+      : q.answerPrefix ? `${q.answerPrefix} = ` : '';
+    return pfx + aVal(q);
+  }
+
+  // ── 題目頁（每 10 題一頁）────────────────────────────────────────
+  let qHtml = '';
+  currentQuestions.forEach((q, i) => {
+    if (i > 0 && i % 10 === 0)
+      qHtml += `<p style="page-break-before:always;margin:0;padding:0">&nbsp;</p>`;
+    const qTxt = tex2txt(q.question);
+    qHtml += `<table width="100%" cellpadding="2" cellspacing="0" border="0" style="margin-bottom:6px">
+  <tr>
+    <td width="28" valign="top" style="font-weight:bold;color:#1565C0;white-space:nowrap">${i+1}.</td>
+    <td valign="top">${qTxt}</td>
+  </tr>
+</table>`;
+  });
+
+  // ── 解答頁（每 20 題一頁，雙欄）─────────────────────────────────
+  const ansPerPage = 20;
+  let aHtml = `<p style="page-break-before:always;margin:0;padding:0">&nbsp;</p>`;
+  for (let pg = 0; pg < Math.ceil(currentQuestions.length / ansPerPage); pg++) {
+    if (pg > 0) aHtml += `<p style="page-break-before:always;margin:0;padding:0">&nbsp;</p>`;
+    const pageQs = currentQuestions.slice(pg * ansPerPage, (pg + 1) * ansPerPage);
+    const left = pageQs.slice(0, 10), right = pageQs.slice(10);
+    const off  = pg * ansPerPage;
+    aHtml += `<div style="font-weight:bold;border-bottom:1px solid #333;margin-bottom:6px;padding-bottom:2px">解答</div>
+<table width="100%" cellpadding="3" cellspacing="0" border="0">
+  <tr>
+    <td width="50%" valign="top">${left.map((q,i)=>`<div style="margin-bottom:4px"><b style="color:#1565C0">${off+i+1}.</b> ${ansStr(q)}</div>`).join('')}</td>
+    <td width="50%" valign="top">${right.map((q,i)=>`<div style="margin-bottom:4px"><b style="color:#1565C0">${off+10+i+1}.</b> ${ansStr(q)}</div>`).join('')}</td>
+  </tr>
+</table>`;
+  }
+
+  const html = `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8">
+<style>body{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:11pt;margin:20px;line-height:1.5}</style>
+</head>
+<body>
+<div style="text-align:center;font-size:14pt;font-weight:bold;margin-bottom:4px">${title}</div>
+<div style="text-align:center;font-size:10pt;color:#555;margin-bottom:10px">${sub}　${date}</div>
+<hr style="border:0;border-top:1px solid #333;margin:0 0 10px 0">
+${qHtml}
+${aHtml}
+</body></html>`;
+
+  const blob = new Blob(['﻿' + html], { type: 'application/msword' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = '數學練習題.doc';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
 }
 
 // ─── 列印頁首（螢幕不顯示）────────────────────────────────────────

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="page-title">數學練習題</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=10">
 
   <!-- MathJax 設定 -->
   <script>
@@ -40,6 +40,7 @@
     <button class="btn btn-reset"     id="btn-reset">重新出題</button>
     <button class="btn btn-print"     id="btn-print">列印題目</button>
     <button class="btn btn-print-ans" id="btn-print-ans">列印含解答</button>
+    <button class="btn btn-word"      id="btn-word">↓ 下載 Word</button>
   </div>
 
   <!-- 分數列 -->
@@ -64,6 +65,7 @@
     <button class="btn btn-check"     id="btn-check2">對答案</button>
     <button class="btn btn-reset"     id="btn-reset2">重新出題</button>
     <button class="btn btn-print-ans" id="btn-print-ans2">列印含解答</button>
+    <button class="btn btn-word"      id="btn-word2">↓ 下載 Word</button>
   </div>
 
 </div><!-- /container -->
@@ -74,7 +76,7 @@
 <script src="js/elementary-gen.js?v=2"></script>
 <script src="js/junior-gen.js?v=111"></script>
 <script src="js/senior-gen.js?v=6"></script>
-<script src="js/quiz.js?v=32"></script>
+<script src="js/quiz.js?v=34"></script>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
@@ -155,6 +157,8 @@
     document.getElementById('btn-reset2').addEventListener('click',     resetQuiz);
     document.getElementById('btn-print-ans').addEventListener('click',  printWithAnswers);
     document.getElementById('btn-print-ans2').addEventListener('click', printWithAnswers);
+    document.getElementById('btn-word').addEventListener('click',  downloadWord);
+    document.getElementById('btn-word2').addEventListener('click', downloadWord);
   });
 </script>
 

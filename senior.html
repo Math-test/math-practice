@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>高中數學練習系統</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=10">
 </head>
 <body>
 
@@ -299,11 +299,32 @@ SEMS.forEach(sem => {
     });
   });
 
+  // 題數選擇（動態插入）
+  const cCard = document.createElement('div');
+  cCard.className = 'card';
+  cCard.style.marginBottom = '12px';
+  cCard.innerHTML = `
+    <div class="card-title">選擇題數</div>
+    <div class="level-group">
+      <label class="level-label selected"><input type="radio" name="count-${sem}" value="20" checked> 20 題</label>
+      <label class="level-label"><input type="radio" name="count-${sem}" value="40"> 40 題</label>
+      <label class="level-label"><input type="radio" name="count-${sem}" value="50"> 50 題</label>
+    </div>`;
+  startBtn.parentNode.insertBefore(cCard, startBtn);
+  cCard.querySelectorAll('.level-label').forEach(lbl => {
+    lbl.addEventListener('click', () => {
+      cCard.querySelectorAll('.level-label').forEach(l => l.classList.remove('selected'));
+      lbl.classList.add('selected');
+      startBtn.textContent = `▶ 開始出題（${lbl.querySelector('input').value} 題）`;
+    });
+  });
+
   startBtn.addEventListener('click', () => {
     const selected = [...checkboxes].filter(cb => cb.checked).map(cb => cb.value);
     if (!selected.length) { errorMsg.style.display = 'block'; return; }
     const level = panel.querySelector(`input[name="level-${sem}"]:checked`)?.value || 'basic';
-    window.location.href = `quiz.html?topics=${selected.join(',')}&level=${level}&count=20&from=senior`;
+    const count = panel.querySelector(`input[name="count-${sem}"]:checked`)?.value || '20';
+    window.location.href = `quiz.html?topics=${selected.join(',')}&level=${level}&count=${count}&from=senior`;
   });
 });
 
