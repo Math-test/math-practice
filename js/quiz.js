@@ -1083,13 +1083,50 @@ async function downloadWord() {
     return pfx + aVal(q);
   }
 
+  // SVG → PNG（Canvas 轉換，Word 支援 PNG data URI）
+  function svgToPng(svgStr) {
+    return new Promise(resolve => {
+      const m = svgStr.match(/width="(\d+)"[^>]*height="(\d+)"/);
+      const w = m ? +m[1] : 200, h = m ? +m[2] : 160;
+      const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = w * 2; canvas.height = h * 2;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(''); };
+      img.src = url;
+    });
+  }
+
+  // 預先把所有 SVG 圖形轉成 PNG
+  const pngMap = new Map();
+  await Promise.all(currentQuestions.map(async (q, idx) => {
+    if (q.graph) pngMap.set(idx, await svgToPng(q.graph));
+  }));
+
   // ── 題目頁（每 10 題一頁）────────────────────────────────────────
   let qHtml = '';
   currentQuestions.forEach((q, i) => {
     if (i > 0 && i % 10 === 0)
       qHtml += `<p style="page-break-before:always;margin:0;padding:0"></p>`;
     const qTxt = q2wordHtml(q.question);
-    qHtml += `<p style="margin:0 0 8px 0"><b style="color:#1565C0">${i+1}.</b> ${qTxt}</p>`;
+    const png = pngMap.get(i);
+    if (png) {
+      qHtml += `<table style="width:100%;border:0;border-collapse:collapse;margin:0 0 8px 0"><tr>
+        <td style="vertical-align:top;padding:0 8px 0 0"><b style="color:#1565C0">${i+1}.</b> ${qTxt}</td>
+        <td style="width:210px;vertical-align:top;text-align:right;padding:0"><img src="${png}" style="max-width:210px"></td>
+      </tr></table>`;
+    } else {
+      qHtml += `<p style="margin:0 0 8px 0"><b style="color:#1565C0">${i+1}.</b> ${qTxt}</p>`;
+    }
   });
 
   // ── 解答頁（每 20 題一頁，雙欄）─────────────────────────────────
