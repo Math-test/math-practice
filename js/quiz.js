@@ -907,6 +907,12 @@ async function downloadWord() {
                       : `<msqrt><mrow>${toMML(inn)}</mrow></msqrt>`);
           continue;
         }
+        if (s.slice(i).match(/^\\overline\b/)) {
+          i += 9; while (i < s.length && s[i] === ' ') i++;
+          const [inn, i2] = readBraces(s, i); i = i2;
+          out.push(`<mover><mrow>${toMML(inn)}</mrow><mo stretchy="false">¯</mo></mover>`);
+          continue;
+        }
         if (s.slice(i).match(/^\\left\b/)) {
           i += 5; while (i < s.length && s[i] === ' ') i++;
           let od;
@@ -934,7 +940,10 @@ async function downloadWord() {
         const opMap = {'times':'<mo>×</mo>','div':'<mo>÷</mo>','pm':'<mo>±</mo>','mp':'<mo>∓</mo>',
           'cdot':'<mo>·</mo>','le':'<mo>≤</mo>','leq':'<mo>≤</mo>','ge':'<mo>≥</mo>','geq':'<mo>≥</mo>',
           'ne':'<mo>≠</mo>','neq':'<mo>≠</mo>','infty':'<mi>∞</mi>','pi':'<mi>π</mi>',
-          'theta':'<mi>θ</mi>','alpha':'<mi>α</mi>','beta':'<mi>β</mi>','ldots':'<mo>…</mo>'};
+          'theta':'<mi>θ</mi>','alpha':'<mi>α</mi>','beta':'<mi>β</mi>','ldots':'<mo>…</mo>',
+          'circ':'<mo>°</mo>','angle':'<mo>∠</mo>','triangle':'<mo>△</mo>',
+          'cong':'<mo>≅</mo>','sim':'<mo>∼</mo>','perp':'<mo>⊥</mo>','parallel':'<mo>∥</mo>',
+          'therefore':'<mo>∴</mo>','because':'<mo>∵</mo>','approx':'<mo>≈</mo>'};
         let hit = false;
         for (const [k,v] of Object.entries(opMap)) {
           if (new RegExp(`^\\\\${k}(?![a-zA-Z])`).test(s.slice(i))) { out.push(v); i += k.length+1; hit=true; break; }
@@ -960,6 +969,11 @@ async function downloadWord() {
         i++;
         let e = '';
         if (s[i]==='{') { const [t,i2]=readBraces(s,i); e=toMML(t); i=i2; }
+        else if (s[i]==='\\') {
+          const cmdM=s.slice(i).match(/^\\[a-zA-Z]+/);
+          if (cmdM) { e=toMML(cmdM[0]); i+=cmdM[0].length; }
+          else { const ch=s[i++]; e=`<mi>${ch}</mi>`; }
+        }
         else { const ch=s[i++]; e=/[0-9]/.test(ch)?`<mn>${ch}</mn>`:`<mi>${ch}</mi>`; }
         const base = out.pop()||'<mi>&#x25A1;</mi>';
         out.push(`<msup>${base}<mrow>${e}</mrow></msup>`); continue;
@@ -1058,7 +1072,14 @@ async function downloadWord() {
     if (i > 0 && i % 10 === 0)
       qHtml += `<p style="page-break-before:always;margin:0;padding:0"></p>`;
     const qTxt = q2wordHtml(q.question);
-    qHtml += `<p style="margin:0 0 8px 0"><b style="color:#1565C0">${i+1}.</b> ${qTxt}</p>`;
+    if (q.graph) {
+      qHtml += `<table style="width:100%;border:0;border-collapse:collapse;margin:0 0 8px 0"><tr>
+        <td style="vertical-align:top;padding:0"><b style="color:#1565C0">${i+1}.</b> ${qTxt}</td>
+        <td style="width:200px;vertical-align:top;text-align:right;padding:0">${q.graph}</td>
+      </tr></table>`;
+    } else {
+      qHtml += `<p style="margin:0 0 8px 0"><b style="color:#1565C0">${i+1}.</b> ${qTxt}</p>`;
+    }
   });
 
   // ── 解答頁（每 20 題一頁，雙欄）─────────────────────────────────
