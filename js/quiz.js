@@ -1120,7 +1120,7 @@ async function downloadWord() {
     if (png) {
       qHtml += `<table style="width:100%;border:0;border-collapse:collapse;margin:0 0 8px 0"><tr>
         <td style="vertical-align:top;padding:0 8px 0 0"><b style="color:#1565C0">${i+1}.</b> ${qTxt}</td>
-        <td style="width:210px;vertical-align:top;text-align:right;padding:0"><img src="${png}" style="max-width:210px"></td>
+        <td style="width:210px;vertical-align:top;text-align:right;padding:0"><img src="cid:img${i}@math" width="200"></td>
       </tr></table>`;
     } else {
       qHtml += `<p style="margin:0 0 8px 0"><b style="color:#1565C0">${i+1}.</b> ${qTxt}</p>`;
@@ -1163,11 +1163,29 @@ ${qHtml}
 ${aHtml}
 </body></html>`;
 
-  const blob = new Blob(['﻿' + html], { type: 'application/msword' });
+  // 轉 UTF-8 bytes → base64，每 76 字元換行（MHTML 規格）
+  function toMimeBase64(str) {
+    const bytes = new Uint8Array(new TextEncoder().encode(str));
+    let bin = '';
+    for (const b of bytes) bin += String.fromCharCode(b);
+    return btoa(bin).match(/.{1,76}/g).join('\r\n');
+  }
+
+  const bnd = '----=_MathMHT_' + Math.random().toString(36).slice(2);
+  let mht = `MIME-Version: 1.0\r\nContent-Type: multipart/related; type="text/html"; boundary="${bnd}"\r\n\r\n`;
+  mht += `--${bnd}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n${toMimeBase64(html)}\r\n\r\n`;
+  for (const [idx, pngUri] of pngMap) {
+    if (!pngUri) continue;
+    const b64 = pngUri.slice(pngUri.indexOf(',') + 1).match(/.{1,76}/g).join('\r\n');
+    mht += `--${bnd}\r\nContent-Type: image/png\r\nContent-Transfer-Encoding: base64\r\nContent-ID: <img${idx}@math>\r\n\r\n${b64}\r\n\r\n`;
+  }
+  mht += `--${bnd}--`;
+
+  const blob = new Blob([mht], { type: 'message/rfc822' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href = url;
-  a.download = '數學練習題.doc';
+  a.download = '數學練習題.mht';
   document.body.appendChild(a);
   a.click();
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
