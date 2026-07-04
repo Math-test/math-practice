@@ -1163,29 +1163,36 @@ ${qHtml}
 ${aHtml}
 </body></html>`;
 
-  // 轉 UTF-8 bytes → base64，每 76 字元換行（MHTML 規格）
-  function toMimeBase64(str) {
-    const bytes = new Uint8Array(new TextEncoder().encode(str));
-    let bin = '';
-    for (const b of bytes) bin += String.fromCharCode(b);
-    return btoa(bin).match(/.{1,76}/g).join('\r\n');
+  let blob, filename;
+  if (pngMap.size > 0) {
+    // 有圖形：用 MHTML 格式（Word 可嵌入 PNG）
+    function toMimeBase64(str) {
+      const bytes = new Uint8Array(new TextEncoder().encode(str));
+      let bin = '';
+      for (const b of bytes) bin += String.fromCharCode(b);
+      return btoa(bin).match(/.{1,76}/g).join('\r\n');
+    }
+    const bnd = '----=_MathMHT_' + Math.random().toString(36).slice(2);
+    let mht = `MIME-Version: 1.0\r\nContent-Type: multipart/related; type="text/html"; boundary="${bnd}"\r\n\r\n`;
+    mht += `--${bnd}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n${toMimeBase64(html)}\r\n\r\n`;
+    for (const [idx, pngUri] of pngMap) {
+      if (!pngUri) continue;
+      const b64 = pngUri.slice(pngUri.indexOf(',') + 1).match(/.{1,76}/g).join('\r\n');
+      mht += `--${bnd}\r\nContent-Type: image/png\r\nContent-Transfer-Encoding: base64\r\nContent-ID: <img${idx}@math>\r\n\r\n${b64}\r\n\r\n`;
+    }
+    mht += `--${bnd}--`;
+    blob = new Blob([mht], { type: 'message/rfc822' });
+    filename = '數學練習題.mht';
+  } else {
+    // 無圖形：用原本 .doc HTML 格式
+    blob = new Blob(['﻿' + html], { type: 'application/msword' });
+    filename = '數學練習題.doc';
   }
 
-  const bnd = '----=_MathMHT_' + Math.random().toString(36).slice(2);
-  let mht = `MIME-Version: 1.0\r\nContent-Type: multipart/related; type="text/html"; boundary="${bnd}"\r\n\r\n`;
-  mht += `--${bnd}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n${toMimeBase64(html)}\r\n\r\n`;
-  for (const [idx, pngUri] of pngMap) {
-    if (!pngUri) continue;
-    const b64 = pngUri.slice(pngUri.indexOf(',') + 1).match(/.{1,76}/g).join('\r\n');
-    mht += `--${bnd}\r\nContent-Type: image/png\r\nContent-Transfer-Encoding: base64\r\nContent-ID: <img${idx}@math>\r\n\r\n${b64}\r\n\r\n`;
-  }
-  mht += `--${bnd}--`;
-
-  const blob = new Blob([mht], { type: 'message/rfc822' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href = url;
-  a.download = '數學練習題.mht';
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
