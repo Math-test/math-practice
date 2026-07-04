@@ -1004,9 +1004,27 @@ async function downloadWord() {
   }
 
   function q2wordHtml(s) {
+    const symPre = t => t
+      .replace(/\\overline\{([^}]+)\}/g, '$1')
+      .replace(/\\triangle\b/g, '△')
+      .replace(/\\angle\b/g, '∠')
+      .replace(/\\perp\b/g, '⊥')
+      .replace(/\\cong\b/g, '≅')
+      .replace(/\\sim\b/g, '∼')
+      .replace(/\\parallel\b/g, '∥')
+      .replace(/\\therefore\b/g, '∴')
+      .replace(/\\because\b/g, '∵')
+      .replace(/\^\\circ(?![a-zA-Z])/g, '°')
+      .replace(/\\circ(?![a-zA-Z])/g, '°');
+    const mlOrHtml = t => {
+      const p = symPre(t);
+      if (!/\\/.test(p))
+        return `<i>${p.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</i>`;
+      return ml(p);
+    };
     return (s || '')
-      .replace(/\\\[([^]*?)\\\]/g, (_, t) => ml(t))
-      .replace(/\\\(([^]*?)\\\)/g, (_, t) => ml(t))
+      .replace(/\\\[([^]*?)\\\]/g, (_, t) => mlOrHtml(t))
+      .replace(/\\\(([^]*?)\\\)/g, (_, t) => mlOrHtml(t))
       .replace(/[\s＝=]+[？?]\s*$/, '')
       .trim();
   }
@@ -1075,7 +1093,7 @@ async function downloadWord() {
     if (q.graph) {
       qHtml += `<table style="width:100%;border:0;border-collapse:collapse;margin:0 0 8px 0"><tr>
         <td style="vertical-align:top;padding:0"><b style="color:#1565C0">${i+1}.</b> ${qTxt}</td>
-        <td style="width:200px;vertical-align:top;text-align:right;padding:0">${q.graph}</td>
+        <td style="width:200px;vertical-align:top;text-align:right;padding:0"><img src="data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(q.graph)))}" width="200" alt="圖"></td>
       </tr></table>`;
     } else {
       qHtml += `<p style="margin:0 0 8px 0"><b style="color:#1565C0">${i+1}.</b> ${qTxt}</p>`;
