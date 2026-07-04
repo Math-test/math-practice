@@ -935,7 +935,7 @@ async function downloadWord() {
           'theta':'<mi>θ</mi>','alpha':'<mi>α</mi>','beta':'<mi>β</mi>','ldots':'<mo>…</mo>'};
         let hit = false;
         for (const [k,v] of Object.entries(opMap)) {
-          if (new RegExp(`^\\\\${k}\\b`).test(s.slice(i))) { out.push(v); i += k.length+1; hit=true; break; }
+          if (new RegExp(`^\\\\${k}(?![a-zA-Z])`).test(s.slice(i))) { out.push(v); i += k.length+1; hit=true; break; }
         }
         if (hit) continue;
         if (s.slice(i).match(/^\\(?:text|mathrm|mathbf|mbox)\b/)) {
