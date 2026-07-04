@@ -867,34 +867,132 @@ async function downloadWord() {
   const sub   = document.getElementById('header-sub')?.textContent  || '';
   const date  = new Date().toLocaleDateString('zh-TW');
 
-  // 從頁面已載入的 katex.min.css 取出結構性 CSS（移除 @font-face 字型宣告）
-  let katexCss = '';
-  for (const sheet of document.styleSheets) {
-    try {
-      if (!sheet.href || !sheet.href.includes('katex')) continue;
-      katexCss = [...sheet.cssRules]
-        .filter(r => r.type !== CSSRule.FONT_FACE_RULE)
-        .map(r => r.cssText).join('');
-      break;
-    } catch(e) {}
+  // ── LaTeX → MathML 轉換器 ─────────────────────────────────────────
+  function readBraces(s, pos) {
+    if (pos >= s.length || s[pos] !== '{') return ['', pos];
+    let depth = 0, i = pos;
+    while (i < s.length) {
+      if (s[i] === '{') depth++;
+      else if (s[i] === '}') { depth--; if (depth === 0) return [s.slice(pos+1, i), i+1]; }
+      i++;
+    }
+    return [s.slice(pos+1), s.length];
   }
 
-  // 用 KaTeX 渲染 LaTeX → HTML
-  function renderMath(latex) {
-    try {
-      return katex.renderToString(latex.trim(), { output: 'html', throwOnError: false, displayMode: false });
-    } catch(e) { return latex; }
+  function toMML(s) {
+    s = String(s || '').trim();
+    let out = [], i = 0;
+    while (i < s.length) {
+      const c = s[i];
+      if (/\s/.test(c)) { i++; continue; }
+
+      if (c === '\\') {
+        const fracM = s.slice(i).match(/^\\d?frac\b/);
+        if (fracM) {
+          i += fracM[0].length;
+          while (s[i] === ' ') i++;
+          const [nT, i2] = readBraces(s, i); i = i2;
+          while (s[i] === ' ') i++;
+          const [dT, i3] = readBraces(s, i); i = i3;
+          out.push(`<mfrac><mrow>${toMML(nT)}</mrow><mrow>${toMML(dT)}</mrow></mfrac>`);
+          continue;
+        }
+        if (s.slice(i).match(/^\\sqrt/)) {
+          i += 5; while (s[i] === ' ') i++;
+          let rN = '';
+          if (s[i] === '[') { const e = s.indexOf(']', i); rN = e>=0?s.slice(i+1,e):''; i = e>=0?e+1:i+1; }
+          while (s[i] === ' ') i++;
+          const [inn, i2] = readBraces(s, i); i = i2;
+          out.push(rN ? `<mroot><mrow>${toMML(inn)}</mrow><mn>${rN}</mn></mroot>`
+                      : `<msqrt><mrow>${toMML(inn)}</mrow></msqrt>`);
+          continue;
+        }
+        if (s.slice(i).match(/^\\left\b/)) {
+          i += 5; while (s[i] === ' ') i++;
+          const od = s[i]||'('; i++;
+          let depth = 1, j = i;
+          while (j < s.length && depth > 0) {
+            if (s.slice(j).match(/^\\left\b/))  { depth++; j += 5; }
+            else if (s.slice(j).match(/^\\right\b/)) { depth--; if (depth===0) break; else j+=6; }
+            else j++;
+          }
+          const innerTex = s.slice(i, j);
+          let cd = od==='('?')':od==='['?']':od;
+          const rm = s.slice(j).match(/^\\right\b\s*([\|\)\]\}.])/);
+          if (rm) { cd = rm[1]; i = j + rm[0].length; } else i = j;
+          const st = od==='|'?'false':'true';
+          out.push(`<mo stretchy="${st}">${od==='{'?'{':od}</mo>${toMML(innerTex)}<mo stretchy="${st}">${cd==='}'?'}':cd}</mo>`);
+          continue;
+        }
+        if (s.slice(i).match(/^\\right\b/)) {
+          i += 6;
+          while (i < s.length && s[i] !== ' ' && s[i] !== '\\' && !/[a-zA-Z0-9{]/.test(s[i])) i++;
+          continue;
+        }
+        const opMap = {'times':'<mo>×</mo>','div':'<mo>÷</mo>','pm':'<mo>±</mo>','mp':'<mo>∓</mo>',
+          'cdot':'<mo>·</mo>','le':'<mo>≤</mo>','leq':'<mo>≤</mo>','ge':'<mo>≥</mo>','geq':'<mo>≥</mo>',
+          'ne':'<mo>≠</mo>','neq':'<mo>≠</mo>','infty':'<mi>∞</mi>','pi':'<mi>π</mi>',
+          'theta':'<mi>θ</mi>','alpha':'<mi>α</mi>','beta':'<mi>β</mi>','ldots':'<mo>…</mo>'};
+        let hit = false;
+        for (const [k,v] of Object.entries(opMap)) {
+          if (new RegExp(`^\\\\${k}\\b`).test(s.slice(i))) { out.push(v); i += k.length+1; hit=true; break; }
+        }
+        if (hit) continue;
+        if (s.slice(i).match(/^\\(?:text|mathrm|mathbf|mbox)\b/)) {
+          const m = s.slice(i).match(/^\\[a-zA-Z]+/); i += m[0].length;
+          while (s[i]===' ') i++;
+          const [txt, i2] = readBraces(s, i); i = i2;
+          out.push(`<mtext>${txt}</mtext>`); continue;
+        }
+        const unk = s.slice(i).match(/^\\[a-zA-Z]+/);
+        i += unk ? unk[0].length : 1;
+        continue;
+      }
+
+      if (/[0-9]/.test(c) || (c==='.' && /[0-9]/.test(s[i+1]||''))) {
+        let n = '';
+        while (i < s.length && (/[0-9]/.test(s[i]) || s[i]==='.')) n += s[i++];
+        out.push(`<mn>${n}</mn>`); continue;
+      }
+      if (c === '^') {
+        i++;
+        let e = '';
+        if (s[i]==='{') { const [t,i2]=readBraces(s,i); e=toMML(t); i=i2; }
+        else { const ch=s[i++]; e=/[0-9]/.test(ch)?`<mn>${ch}</mn>`:`<mi>${ch}</mi>`; }
+        const base = out.pop()||'<mi>&#x25A1;</mi>';
+        out.push(`<msup>${base}<mrow>${e}</mrow></msup>`); continue;
+      }
+      if (c === '_') {
+        i++;
+        let e = '';
+        if (s[i]==='{') { const [t,i2]=readBraces(s,i); e=toMML(t); i=i2; }
+        else { const ch=s[i++]; e=/[0-9]/.test(ch)?`<mn>${ch}</mn>`:`<mi>${ch}</mi>`; }
+        const base = out.pop()||'<mi>&#x25A1;</mi>';
+        out.push(`<msub>${base}<mrow>${e}</mrow></msub>`); continue;
+      }
+      if (c==='{') { const [inn,i2]=readBraces(s,i); i=i2; out.push(`<mrow>${toMML(inn)}</mrow>`); continue; }
+      if (/[a-zA-Z]/.test(c)) { out.push(`<mi>${c}</mi>`); i++; continue; }
+      const opC = {'+':'<mo>+</mo>','-':'<mo>&#x2212;</mo>','×':'<mo>×</mo>','÷':'<mo>÷</mo>',
+        '=':'<mo>=</mo>','<':'<mo>&lt;</mo>','>':'<mo>&gt;</mo>',',':'<mo>,</mo>',':':'<mo>:</mo>',
+        '|':'<mo stretchy="false">|</mo>','(':'<mo>(</mo>',')':'<mo>)</mo>','[':'<mo>[</mo>',']':'<mo>]</mo>',
+        '−':'<mo>&#x2212;</mo>','±':'<mo>±</mo>','≤':'<mo>≤</mo>','≥':'<mo>≥</mo>','≠':'<mo>≠</mo>','%':'<mo>%</mo>'};
+      if (opC[c]) { out.push(opC[c]); i++; continue; }
+      out.push(`<mtext>${c}</mtext>`); i++;
+    }
+    return out.join('');
+  }
+
+  function ml(tex) {
+    if (!tex && tex !== 0) return '';
+    return `<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline">${toMML(String(tex))}</math>`;
   }
 
   function q2wordHtml(s) {
     return (s || '')
-      .replace(/\\\[([^]*?)\\\]/g, (_,t) => renderMath(t))
-      .replace(/\\\(([^]*?)\\\)/g, (_,t) => renderMath(t))
+      .replace(/\\\[([^]*?)\\\]/g, (_, t) => ml(t))
+      .replace(/\\\(([^]*?)\\\)/g, (_, t) => ml(t))
       .replace(/[\s＝=]+[？?]\s*$/, '')
       .trim();
-  }
-  function ml(tex) {
-    return tex ? renderMath(String(tex)) : '';
   }
 
   // 答案值 → HTML（含 MathML）
@@ -956,16 +1054,16 @@ async function downloadWord() {
   let qHtml = '';
   currentQuestions.forEach((q, i) => {
     if (i > 0 && i % 10 === 0)
-      qHtml += `<p style="page-break-before:always;margin:0;padding:0">&nbsp;</p>`;
+      qHtml += `<p style="page-break-before:always;margin:0;padding:0"></p>`;
     const qTxt = q2wordHtml(q.question);
     qHtml += `<p style="margin:0 0 8px 0"><b style="color:#1565C0">${i+1}.</b> ${qTxt}</p>`;
   });
 
   // ── 解答頁（每 20 題一頁，雙欄）─────────────────────────────────
   const ansPerPage = 20;
-  let aHtml = `<p style="page-break-before:always;margin:0;padding:0">&nbsp;</p>`;
+  let aHtml = `<p style="page-break-before:always;margin:0;padding:0"></p>`;
   for (let pg = 0; pg < Math.ceil(currentQuestions.length / ansPerPage); pg++) {
-    if (pg > 0) aHtml += `<p style="page-break-before:always;margin:0;padding:0">&nbsp;</p>`;
+    if (pg > 0) aHtml += `<p style="page-break-before:always;margin:0;padding:0"></p>`;
     const pageQs = currentQuestions.slice(pg * ansPerPage, (pg + 1) * ansPerPage);
     const left = pageQs.slice(0, 10), right = pageQs.slice(10);
     const off  = pg * ansPerPage;
@@ -986,8 +1084,7 @@ async function downloadWord() {
 <style>
 body,td,th{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:14pt;line-height:2;text-align:left}
 body{margin:20px}
-.katex{font-size:1em}
-${katexCss}
+math{font-family:"Cambria Math","STIX Two Math",serif}
 </style>
 </head>
 <body>
