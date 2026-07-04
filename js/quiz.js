@@ -1074,12 +1074,13 @@ async function downloadWord() {
           ? ml(fracToLatex(p.answer))
           : p.type === 'poly' ? ml(polyToLatex(p.answer.a2,p.answer.a1,p.answer.a0))
           : dStr(p.answer ?? 0);
-        return `${p.prefix} = ${v}`;
+        return `${q2wordHtml(p.prefix || '')} = ${v}`;
       }).join('，');
     }
+    const rawPfx = q.answerPrefix ? q2wordHtml(q.answerPrefix) : '';
     const pfx = q.sym ? `x ${q.sym} `
-      : q.answerPrefix && /[<>≤≥]$/.test(q.answerPrefix) ? `${q.answerPrefix} `
-      : q.answerPrefix ? `${q.answerPrefix} = ` : '';
+      : q.answerPrefix && /[<>≤≥]$/.test(q.answerPrefix) ? `${rawPfx} `
+      : q.answerPrefix ? `${rawPfx} = ` : '';
     return pfx + aVal(q);
   }
 
@@ -1088,8 +1089,6 @@ async function downloadWord() {
     return new Promise(resolve => {
       const m = svgStr.match(/width="(\d+)"[^>]*height="(\d+)"/);
       const w = m ? +m[1] : 200, h = m ? +m[2] : 160;
-      const blob = new Blob([svgStr], { type: 'image/svg+xml' });
-      const url = URL.createObjectURL(blob);
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
@@ -1098,11 +1097,10 @@ async function downloadWord() {
         ctx.fillStyle = '#fff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        URL.revokeObjectURL(url);
         resolve(canvas.toDataURL('image/png'));
       };
-      img.onerror = () => { URL.revokeObjectURL(url); resolve(''); };
-      img.src = url;
+      img.onerror = () => resolve('');
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
     });
   }
 
