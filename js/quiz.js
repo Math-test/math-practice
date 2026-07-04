@@ -1005,7 +1005,6 @@ async function downloadWord() {
 
   function q2wordHtml(s) {
     const symPre = t => t
-      .replace(/\\overline\{([^}]+)\}/g, '$1')
       .replace(/\\triangle\b/g, '△')
       .replace(/\\angle\b/g, '∠')
       .replace(/\\perp\b/g, '⊥')
@@ -1090,14 +1089,7 @@ async function downloadWord() {
     if (i > 0 && i % 10 === 0)
       qHtml += `<p style="page-break-before:always;margin:0;padding:0"></p>`;
     const qTxt = q2wordHtml(q.question);
-    if (q.graph) {
-      qHtml += `<table style="width:100%;border:0;border-collapse:collapse;margin:0 0 8px 0"><tr>
-        <td style="vertical-align:top;padding:0"><b style="color:#1565C0">${i+1}.</b> ${qTxt}</td>
-        <td style="width:200px;vertical-align:top;text-align:right;padding:0"><img src="data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(q.graph)))}" width="200" alt="圖"></td>
-      </tr></table>`;
-    } else {
-      qHtml += `<p style="margin:0 0 8px 0"><b style="color:#1565C0">${i+1}.</b> ${qTxt}</p>`;
-    }
+    qHtml += `<p style="margin:0 0 8px 0"><b style="color:#1565C0">${i+1}.</b> ${qTxt}</p>`;
   });
 
   // ── 解答頁（每 20 題一頁，雙欄）─────────────────────────────────
