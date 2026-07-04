@@ -867,111 +867,34 @@ async function downloadWord() {
   const sub   = document.getElementById('header-sub')?.textContent  || '';
   const date  = new Date().toLocaleDateString('zh-TW');
 
-  // LaTeX → 純 HTML（無 <math> 元素，避免 Word 插入 ° 符號）
-  function latexToHtml(s) {
-    function esc(t) { return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  // 從頁面已載入的 katex.min.css 取出結構性 CSS（移除 @font-face 字型宣告）
+  let katexCss = '';
+  for (const sheet of document.styleSheets) {
+    try {
+      if (!sheet.href || !sheet.href.includes('katex')) continue;
+      katexCss = [...sheet.cssRules]
+        .filter(r => r.type !== CSSRule.FONT_FACE_RULE)
+        .map(r => r.cssText).join('');
+      break;
+    } catch(e) {}
+  }
 
-    function brace(s, i) {
-      if (i >= s.length) return ['', i];
-      if (s[i] !== '{') return [s[i] ?? '', i + 1];
-      let d = 0;
-      for (let j = i; j < s.length; j++) {
-        if (s[j] === '\\') { j++; continue; }
-        if (s[j] === '{') d++;
-        else if (s[j] === '}' && --d === 0) return [s.slice(i+1, j), j+1];
-      }
-      return [s.slice(i+1), s.length];
-    }
-
-    function findRight(s, i) {
-      let d = 1;
-      while (i < s.length) {
-        if (s.slice(i,i+5) === '\\left') { d++; i += 5; }
-        else if (s.slice(i,i+6) === '\\right') { if (--d === 0) return i; i += 6; }
-        else i++;
-      }
-      return i;
-    }
-
-    function conv(s) {
-      let out = '', i = 0, buf = '';
-      const flush = () => { if (buf) { out += esc(buf); buf = ''; } };
-
-      while (i < s.length) {
-        const c = s[i];
-        if (c === ' ' || c === '\n' || c === '\t') { i++; continue; }
-        if (/[\da-zA-Z.]/.test(c)) { buf += c; i++; }
-        else if (c === '\\') {
-          flush();
-          let j = i + 1;
-          if (j < s.length && /[a-zA-Z]/.test(s[j])) {
-            while (j < s.length && /[a-zA-Z]/.test(s[j])) j++;
-            const cmd = s.slice(i+1, j);
-            i = j; while (i < s.length && s[i] === ' ') i++;
-            if (cmd === 'dfrac' || cmd === 'frac') {
-              const [n,r1]=brace(s,i); i=r1; const [d,r2]=brace(s,i); i=r2;
-              out += `<span style="display:inline-block;vertical-align:middle;text-align:center;line-height:1.3"><span style="display:block;border-bottom:1px solid black;padding:0 4px">${conv(n)}</span><span style="display:block;padding:0 4px">${conv(d)}</span></span>`;
-            } else if (cmd === 'sqrt') {
-              let deg = null;
-              if (i<s.length&&s[i]==='[') { const e=s.indexOf(']',i); deg=s.slice(i+1,e); i=e+1; }
-              const [a,r]=brace(s,i); i=r;
-              out += deg!==null
-                ? `<sup style="font-size:.75em">${conv(deg)}</sup>&#x221A;<span style="text-decoration:overline">${conv(a)}</span>`
-                : `&#x221A;<span style="text-decoration:overline">${conv(a)}</span>`;
-            } else if (cmd === 'overline') {
-              const [a,r]=brace(s,i); i=r;
-              out += `<span style="text-decoration:overline">${conv(a)}</span>`;
-            } else if (cmd === 'left') {
-              let bC='(', eC=')';
-              if      (i<s.length&&s[i]==='(')                { bC='('; eC=')'; i++; }
-              else if (i<s.length&&s[i]==='[')                { bC='['; eC=']'; i++; }
-              else if (i<s.length&&s[i]==='|')                { bC='|'; eC='|'; i++; }
-              else if (i<s.length&&s[i]==='\\'&&s[i+1]==='{') { bC='{'; eC='}'; i+=2; }
-              else if (i<s.length&&s[i]==='\\'&&s[i+1]==='[') { bC='['; eC=']'; i+=2; }
-              else if (i<s.length) i++;
-              const rp=findRight(s,i); const inner=s.slice(i,rp); i=rp+6;
-              if (i<s.length) { if (s[i]==='|'||s[i]===')'||s[i]===']'||s[i]==='.') i++; else if (s[i]==='\\') i+=2; }
-              out += esc(bC) + conv(inner) + esc(eC);
-            } else if (cmd === 'right') {
-              if (i<s.length&&s[i]!=='\\') i++; else if (i<s.length) i+=2;
-            } else {
-              const M={times:'&times;',div:'&divide;',pm:'&plusmn;',cdot:'&middot;',
-                       leq:'&le;',geq:'&ge;',le:'&le;',ge:'&ge;',neq:'&ne;',
-                       infty:'&infin;',alpha:'&alpha;',beta:'&beta;',pi:'&pi;',
-                       theta:'&theta;',phi:'&phi;',lambda:'&lambda;',mu:'&mu;'};
-              if (M[cmd]) out += M[cmd];
-            }
-          } else { out += esc(s[i]); i++; }
-        }
-        else if (c === '^') {
-          flush(); i++;
-          const [exp,r]=brace(s,i); i=r;
-          out += `<sup>${conv(exp)}</sup>`;
-        }
-        else if (c === '_') {
-          flush(); i++;
-          const [sb,r]=brace(s,i); i=r;
-          out += `<sub>${conv(sb)}</sub>`;
-        }
-        else if (c === '{') { flush(); const [ct,r]=brace(s,i); i=r; out += conv(ct); }
-        else { flush(); out += esc(c); i++; }
-      }
-      flush();
-      return out;
-    }
-    return conv(s.trim());
+  // 用 KaTeX 渲染 LaTeX → HTML
+  function renderMath(latex) {
+    try {
+      return katex.renderToString(latex.trim(), { output: 'html', throwOnError: false, displayMode: false });
+    } catch(e) { return latex; }
   }
 
   function q2wordHtml(s) {
-    const wrap = (t) => latexToHtml(t.trim());
     return (s || '')
-      .replace(/\\\[([^]*?)\\\]/g, (_,t) => wrap(t))
-      .replace(/\\\(([^]*?)\\\)/g, (_,t) => wrap(t))
+      .replace(/\\\[([^]*?)\\\]/g, (_,t) => renderMath(t))
+      .replace(/\\\(([^]*?)\\\)/g, (_,t) => renderMath(t))
       .replace(/[\s＝=]+[？?]\s*$/, '')
       .trim();
   }
   function ml(tex) {
-    return tex ? latexToHtml(String(tex)) : '';
+    return tex ? renderMath(String(tex)) : '';
   }
 
   // 答案值 → HTML（含 MathML）
@@ -1035,7 +958,7 @@ async function downloadWord() {
     if (i > 0 && i % 10 === 0)
       qHtml += `<p style="page-break-before:always;margin:0;padding:0">&nbsp;</p>`;
     const qTxt = q2wordHtml(q.question);
-    qHtml += `<p style="margin:0 0 6px 0;text-align:left"><b style="color:#1565C0">${i+1}.&nbsp;</b>${qTxt}</p>`;
+    qHtml += `<p style="margin:0 0 8px 0"><b style="color:#1565C0">${i+1}.</b> ${qTxt}</p>`;
   });
 
   // ── 解答頁（每 20 題一頁，雙欄）─────────────────────────────────
@@ -1060,7 +983,12 @@ async function downloadWord() {
       xmlns:w="urn:schemas-microsoft-com:office:word"
       xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta charset="UTF-8">
-<style>body,td,th{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:14pt;line-height:2;text-align:left}body{margin:20px}</style>
+<style>
+body,td,th{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:14pt;line-height:2;text-align:left}
+body{margin:20px}
+.katex{font-size:1em}
+${katexCss}
+</style>
 </head>
 <body>
 <div style="text-align:center;font-size:14pt;font-weight:bold;margin-bottom:4px">${title}</div>
