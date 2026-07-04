@@ -908,8 +908,10 @@ async function downloadWord() {
           continue;
         }
         if (s.slice(i).match(/^\\left\b/)) {
-          i += 5; while (s[i] === ' ') i++;
-          const od = s[i]||'('; i++;
+          i += 5; while (i < s.length && s[i] === ' ') i++;
+          let od;
+          if (s[i] === '\\') { i++; od = s[i]||'('; i++; }
+          else { od = s[i]||'('; i++; }
           let depth = 1, j = i;
           while (j < s.length && depth > 0) {
             if (s.slice(j).match(/^\\left\b/))  { depth++; j += 5; }
@@ -917,9 +919,9 @@ async function downloadWord() {
             else j++;
           }
           const innerTex = s.slice(i, j);
-          let cd = od==='('?')':od==='['?']':od;
-          const rm = s.slice(j).match(/^\\right\b\s*([\|\)\]\}.])/);
-          if (rm) { cd = rm[1]; i = j + rm[0].length; } else i = j;
+          let cd = od==='('?')':od==='['?']':od==='{'?'}':od;
+          const rm = s.slice(j).match(/^\\right\b\s*(?:\\(.)|(.))/);
+          if (rm) { cd = rm[1]||rm[2]; i = j + rm[0].length; } else i = j;
           const st = od==='|'?'false':'true';
           out.push(`<mo stretchy="${st}">${od==='{'?'{':od}</mo>${toMML(innerTex)}<mo stretchy="${st}">${cd==='}'?'}':cd}</mo>`);
           continue;
