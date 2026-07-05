@@ -1198,6 +1198,140 @@ ${aHtml}
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
 }
 
+// ─── PDF 下載（開新視窗 + KaTeX 渲染 + window.print）──────────────
+
+async function downloadPDF() {
+  if (!currentQuestions || !currentQuestions.length) { alert('請先出題再下載！'); return; }
+
+  const title = document.getElementById('site-title')?.textContent || '數學練習題';
+  const sub   = document.getElementById('header-sub')?.textContent  || '';
+  const date  = new Date().toLocaleDateString('zh-TW');
+  const base  = window.location.href.replace(/[^\/]+$/, '');
+
+  // 題目字串：去除尾部問號，保留原始 LaTeX（KaTeX 會在新視窗渲染）
+  const qPdf = s => (s || '').replace(/[\s＝=]+[？?]\s*$/, '').trim();
+
+  function dStr(n) { const r = Math.round(n * 1000) / 1000; return String(r); }
+
+  function ansPdf(q) {
+    if (q.answerParts) {
+      if ('suffix' in q.answerParts[0]) {
+        let parts = [];
+        q.answerParts.forEach((p, i) => {
+          const s = p.suffix || '';
+          const isFrac = p.type === 'fraction';
+          const v    = isFrac ? `\\(${fracToLatex(p.answer)}\\)` : String(p.answer);
+          const absV = isFrac ? `\\(${fracToLatex(frac(Math.abs(p.answer.num), p.answer.den))}\\)` : String(Math.abs(p.answer));
+          const neg  = isFrac ? p.answer.num < 0 : p.answer < 0;
+          if (i === 0) parts.push(`${v}${s}`);
+          else if (!neg) parts.push(` + ${v}${s}`);
+          else parts.push(` − ${absV}${s}`);
+        });
+        return parts.join('');
+      }
+      if (q.coordAnswer)
+        return `(${dStr(q.answerParts[0].answer)}, ${dStr(q.answerParts[1].answer)})`;
+      return q.answerParts.map(p => {
+        const v = p.type === 'fraction' && p.answer && 'num' in p.answer
+          ? `\\(${fracToLatex(p.answer)}\\)`
+          : p.type === 'poly' ? `\\(${polyToLatex(p.answer.a2, p.answer.a1, p.answer.a0)}\\)`
+          : dStr(p.answer ?? 0);
+        return `${p.prefix} = ${v}`;
+      }).join('，');
+    }
+    const pfx = q.sym ? `x ${q.sym} `
+      : q.answerPrefix && /[<>≤≥]$/.test(q.answerPrefix) ? `${q.answerPrefix} `
+      : q.answerPrefix ? `${q.answerPrefix} = ` : '';
+    let val;
+    try {
+      val = q.type === 'fraction' && q.answer && 'num' in q.answer
+        ? `\\(${fracToLatex(q.answer)}\\)`
+        : q.type === 'poly'          ? `\\(${polyToLatex(q.polyA2, q.polyA1, q.polyA0)}\\)`
+        : q.type === 'linear2'       ? `\\(${linear2ToLatex(q.linA, q.linB, q.linC)}\\)`
+        : q.type === 'radical-mix'   ? `\\(${radMixLatex(q.rational, q.radCoeff, q.radM)}\\)`
+        : q.type === 'radical2'      ? `\\(${rad2Latex(q.coeffA, q.radA, q.coeffB, q.radB)}\\)`
+        : q.type === 'factored-quad' ? `\\(${factQuadLatex(q.factA, q.factB, q.factC, q.factD)}\\)`
+        : q.type === 'factored-form' ? `\\(${q.answerLatex || ''}\\)`
+        : q.type === 'quad-roots'    ? `\\(x=${String(q.root1)}\\) 或 \\(x=${String(q.root2)}\\)`
+        : (typeof q.answer === 'number' || typeof q.answer === 'string') ? String(q.answer)
+        : '—';
+    } catch(e) { val = String(q.answer ?? '—'); }
+    return pfx + val;
+  }
+
+  // 題目頁（每 10 題一頁）
+  let qHtml = '';
+  currentQuestions.forEach((q, i) => {
+    if (i > 0 && i % 10 === 0) qHtml += '<div class="pb"></div>';
+    const qTxt = qPdf(q.question);
+    if (q.graph) {
+      qHtml += `<table class="qt"><tr>
+        <td class="qq"><b class="qn">${i+1}.</b> ${qTxt}</td>
+        <td class="qf">${q.graph}</td>
+      </tr></table>`;
+    } else {
+      qHtml += `<p class="qi"><b class="qn">${i+1}.</b> ${qTxt}</p>`;
+    }
+  });
+
+  // 解答頁（每 20 題一頁，雙欄）
+  const ansPerPage = 20;
+  let aHtml = '<div class="pb"></div>';
+  for (let pg = 0; pg < Math.ceil(currentQuestions.length / ansPerPage); pg++) {
+    if (pg > 0) aHtml += '<div class="pb"></div>';
+    const pageQs = currentQuestions.slice(pg * ansPerPage, (pg + 1) * ansPerPage);
+    const left = pageQs.slice(0, 10), right = pageQs.slice(10);
+    const off  = pg * ansPerPage;
+    aHtml += `<div class="ah">解答</div>
+<table width="100%" cellpadding="3" cellspacing="0" border="0"><tr>
+  <td width="50%" valign="top">${left.map((q,j) => `<div class="ai"><b class="qn">${off+j+1}.</b> ${ansPdf(q)}</div>`).join('')}</td>
+  <td width="50%" valign="top">${right.map((q,j) => `<div class="ai"><b class="qn">${off+10+j+1}.</b> ${ansPdf(q)}</div>`).join('')}</td>
+</tr></table>`;
+  }
+
+  const html = `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<base href="${base}">
+<link rel="stylesheet" href="css/katex.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:13pt;line-height:2;margin:0;padding:16px 24px}
+.pb{page-break-before:always;height:0;margin:0;padding:0}
+.qn{color:#1565C0}
+.qi{margin:0 0 10px 0}
+.qt{width:100%;border-collapse:collapse;margin-bottom:10px}
+.qq{vertical-align:top;padding-right:10px}
+.qf{width:210px;vertical-align:top;text-align:right}
+.ah{font-weight:bold;border-bottom:1px solid #333;margin-bottom:6px;padding-bottom:2px}
+.ai{margin-bottom:4px}
+@media print{body{padding:8mm 14mm;font-size:12pt}.pb{page-break-before:always}}
+</style>
+</head>
+<body>
+<div style="text-align:center;font-size:15pt;font-weight:bold;margin-bottom:2px">${title}</div>
+<div style="text-align:center;font-size:10pt;color:#666;margin-bottom:8px">${sub}　${date}</div>
+<hr style="border:0;border-top:1px solid #333;margin:0 0 10px 0">
+${qHtml}${aHtml}
+<script src="js/katex.min.js"></script>
+<script src="js/auto-render.min.js"></script>
+<script>
+renderMathInElement(document.body,{
+  delimiters:[{left:'\\\\[',right:'\\\\]',display:true},{left:'\\\\(',right:'\\\\)',display:false}],
+  throwOnError:false
+});
+setTimeout(function(){window.print();},800);
+</script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  if (!win) { alert('請先允許本頁彈出視窗，再重試'); return; }
+  win.document.write(html);
+  win.document.close();
+}
+
 // ─── 列印頁首（螢幕不顯示）────────────────────────────────────────
 
 function makePrintHeader(topicLabel, levelLabel, dateStr, page) {
