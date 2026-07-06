@@ -371,6 +371,122 @@ function genB1Expr(level) {
   };
 }
 
+// ── b1-exp：指數律（含負指數、零次方、分數底數） ─────────────────
+
+function genB1Exp(level) {
+  for (let i = 0; i < 30; i++) {
+    const q = _b1Exp(level);
+    if (q) return q;
+  }
+  return _b1Exp('basic');
+}
+
+function _b1Exp(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0, 3);
+    if (t === 0) {
+      // a^{-n} 求值 → 1/a^n
+      const a = [2,3,4,5][srRandInt(0,3)];
+      const n = srRandInt(1,3);
+      const den = Math.pow(a,n);
+      return { question:`\\(${a}^{-${n}}\\) ＝ ？（格式：1/8）`, answer:`1/${den}`, type:'text', answerPrefix:'' };
+    } else if (t === 1) {
+      // (a/b)^{-1} = b/a
+      const pairs = [[2,3],[3,4],[2,5],[3,5],[4,5]];
+      const [a,b] = pairs[srRandInt(0, pairs.length-1)];
+      return { question:`\\(\\left(\\dfrac{${a}}{${b}}\\right)^{-1}\\) ＝ ？（格式：p/q）`, answer:`${b}/${a}`, type:'text', answerPrefix:'' };
+    } else if (t === 2) {
+      // a^0 = 1
+      const a = srRandInt(2, 9);
+      return { question:`\\(${a}^{0}\\) ＝ ？`, answer:1, type:'number', answerPrefix:'' };
+    } else {
+      // 求 x：a^x = 1/a^n → x = -n
+      const a = [2,3,5][srRandInt(0,2)];
+      const n = srRandInt(1,3);
+      const den = Math.pow(a,n);
+      return { question:`\\(${a}^{x} = \\dfrac{1}{${den}}\\)，求 \\(x\\)`, answer:-n, type:'number', answerPrefix:'x' };
+    }
+  } else if (level === 'medium') {
+    const t = srRandInt(0, 3);
+    if (t === 0) {
+      // a^m × a^{-n}（m>n，整數結果）
+      const a = [2,3,4][srRandInt(0,2)];
+      const n = srRandInt(1,3), m = n + srRandInt(1,3);
+      const val = Math.pow(a, m-n);
+      if (val > 256) return null;
+      return { question:`\\(${a}^{${m}} \\times ${a}^{-${n}}\\) ＝ ？`, answer:val, type:'number', answerPrefix:'' };
+    } else if (t === 1) {
+      // (a^{-m})^{-n} = a^{mn}（整數結果）
+      const a = [2,3][srRandInt(0,1)];
+      const m = srRandInt(1,3), n = srRandInt(1,3);
+      if (Math.pow(a,m*n) > 512) return null;
+      return { question:`\\((${a}^{-${m}})^{-${n}}\\) ＝ ？`, answer:Math.pow(a,m*n), type:'number', answerPrefix:'' };
+    } else if (t === 2) {
+      // a^{-1} + b^{-1} = (a+b)/(ab)（分數結果）
+      const pairs = [[2,3],[2,4],[3,6],[2,6],[4,6],[3,4]];
+      const [a,b] = pairs[srRandInt(0, pairs.length-1)];
+      const g = srGcd(a+b, a*b);
+      const sn = (a+b)/g, sd = (a*b)/g;
+      return { question:`\\(${a}^{-1} + ${b}^{-1}\\) ＝ ？（格式：p/q）`, answer:`${sn}/${sd}`, type:'text', answerPrefix:'' };
+    } else {
+      // (a/b)^{-n} = (b/a)^n（整數或分數）
+      const pairs = [[2,3],[3,2],[2,5],[3,4]];
+      const [a,b] = pairs[srRandInt(0, pairs.length-1)];
+      const n = srRandInt(2,3);
+      const numAns = Math.pow(b,n), denAns = Math.pow(a,n);
+      const g = srGcd(numAns, denAns);
+      const sn = numAns/g, sd = denAns/g;
+      if (sd === 1) return { question:`\\(\\left(\\dfrac{${a}}{${b}}\\right)^{-${n}}\\) ＝ ？`, answer:sn, type:'number', answerPrefix:'' };
+      return { question:`\\(\\left(\\dfrac{${a}}{${b}}\\right)^{-${n}}\\) ＝ ？（格式：p/q）`, answer:`${sn}/${sd}`, type:'text', answerPrefix:'' };
+    }
+  } else {
+    // hard
+    const t = srRandInt(0, 3);
+    if (t === 0) {
+      // (a^m × a^{-n}) / (a^{-p} × a^q) = a^{m-n+p-q}
+      const a = [2,3][srRandInt(0,1)];
+      const m = srRandInt(2,4), n = srRandInt(1,3), p = srRandInt(1,3), q = srRandInt(1,3);
+      const exp = m - n + p - q;
+      if (exp === 0) return { question:`\\(\\dfrac{${a}^{${m}} \\times ${a}^{-${n}}}{${a}^{-${p}} \\times ${a}^{${q}}}\\) ＝ ？`, answer:1, type:'number', answerPrefix:'' };
+      if (exp > 0) {
+        const val = Math.pow(a, exp);
+        if (val > 512) return null;
+        return { question:`\\(\\dfrac{${a}^{${m}} \\times ${a}^{-${n}}}{${a}^{-${p}} \\times ${a}^{${q}}}\\) ＝ ？`, answer:val, type:'number', answerPrefix:'' };
+      }
+      const den = Math.pow(a, -exp);
+      return { question:`\\(\\dfrac{${a}^{${m}} \\times ${a}^{-${n}}}{${a}^{-${p}} \\times ${a}^{${q}}}\\) ＝ ？（格式：p/q）`, answer:`1/${den}`, type:'text', answerPrefix:'' };
+    } else if (t === 1) {
+      // (a^{-m} + b^{-n})^{-1} = (a^m × b^n) / (a^m + b^n)
+      const a = [2,3][srRandInt(0,1)], m = srRandInt(1,2);
+      const b = [2,3,4][srRandInt(0,2)], n = srRandInt(1,2);
+      const am = Math.pow(a,m), bn = Math.pow(b,n);
+      const g = srGcd(am*bn, am+bn);
+      const sn = (am*bn)/g, sd = (am+bn)/g;
+      if (sd > 50) return null;
+      if (sd === 1) return { question:`\\((${a}^{-${m}} + ${b}^{-${n}})^{-1}\\) ＝ ？`, answer:sn, type:'number', answerPrefix:'' };
+      return { question:`\\((${a}^{-${m}} + ${b}^{-${n}})^{-1}\\) ＝ ？（格式：p/q）`, answer:`${sn}/${sd}`, type:'text', answerPrefix:'' };
+    } else if (t === 2) {
+      // a^{-m} × b^n ÷ (a^p × b^{-q}) = b^{n+q} / a^{m+p}
+      const bases = [[2,3],[2,5],[3,5]];
+      const [a,b] = bases[srRandInt(0,2)];
+      const m = srRandInt(1,2), n = srRandInt(1,3), p = srRandInt(1,2), q = srRandInt(1,2);
+      const numAns = Math.pow(b, n+q), denAns = Math.pow(a, m+p);
+      const g = srGcd(numAns, denAns);
+      const sn = numAns/g, sd = denAns/g;
+      if (sn > 200 || sd > 200) return null;
+      if (sd === 1) return { question:`\\(${a}^{-${m}} \\times ${b}^{${n}} \\div (${a}^{${p}} \\times ${b}^{-${q}})\\) ＝ ？`, answer:sn, type:'number', answerPrefix:'' };
+      return { question:`\\(${a}^{-${m}} \\times ${b}^{${n}} \\div (${a}^{${p}} \\times ${b}^{-${q}})\\) ＝ ？（格式：p/q）`, answer:`${sn}/${sd}`, type:'text', answerPrefix:'' };
+    } else {
+      // a^{-m} × (a^k)^n ÷ (a^j)^{-p}（轉同底再合併）
+      const a = [2,3][srRandInt(0,1)];
+      const k = srRandInt(2,3), n = srRandInt(1,2), j = srRandInt(2,3), p = srRandInt(1,2), m = srRandInt(1,3);
+      const totalExp = -m + k*n + j*p;
+      if (totalExp <= 0 || Math.pow(a, totalExp) > 512) return null;
+      return { question:`\\(${a}^{-${m}} \\times (${a}^{${k}})^{${n}} \\div (${a}^{${j}})^{-${p}}\\) ＝ ？`, answer:Math.pow(a,totalExp), type:'number', answerPrefix:'' };
+    }
+  }
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  輸出表
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -380,4 +496,5 @@ const SR_GENERATORS = {
   'b1-abs-calc':     genB1AbsCalc,
   'b1-abs-ineq':     genB1AbsIneq,
   'b1-expr':         genB1Expr,
+  'b1-exp':          genB1Exp,
 };

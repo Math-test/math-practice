@@ -49,6 +49,7 @@ const TOPIC_NAMES = {
   '7a-gcd-lcm':   '七上·最大公因數與最小公倍數',
   '7a-prime':     '七上·質數與因數',
   '7a-exp':       '七上·指數律',
+  '7a-exp-arith': '七上·指數律四則運算',
   '7a-sci':       '七上·科學記號',
   // 七上 一元一次式
   '7a-poly':      '七上·一元一次多項式',
@@ -490,7 +491,7 @@ function renderQuiz(questions, params) {
   const ELEM_TOPICS = ['int-arith','gcd-lcm','ratio-val','rate','unit','area','volume'];
   const JR_INT_TOPICS  = ['7a-int-sign','7a-int-add','7a-int-sub','7a-int-mul','7a-int-div','7a-int-mix','7a-int-abs','7a-poly','7b-poly','7b-coord','8a-poly-add','8a-poly-mul','8a-poly-mix','8a-sqrt-basic','8a-sqrt-add','8a-sqrt-mul','8a-sqrt-mix','8a-pyth'];
   const JR_FRAC_TOPICS = ['7a-frac-sign','7a-frac-add','7a-frac-sub','7a-frac-mul','7a-frac-div','7a-frac-mix','7a-frac-abs','7a-eqn','7b-subst','7b-elim','7b-linepic','7b-chain','7b-ratio','7b-dirprop','7b-invprop','7b-ineq','7b-stat','8a-mulform'];
-  const JR_NUM_TOPICS  = ['7a-gcd-lcm','7a-prime','7a-exp','7a-sci'];
+  const JR_NUM_TOPICS  = ['7a-gcd-lcm','7a-prime','7a-exp','7a-exp-arith','7a-sci'];
   const hasFrac  = params.topics.some(t => t.startsWith('frac') || t === 'mix-fd' || JR_FRAC_TOPICS.includes(t));
   const hasDec   = params.topics.some(t => t.startsWith('dec'));
   const hasNum   = params.topics.some(t => ELEM_TOPICS.includes(t));
@@ -576,7 +577,7 @@ function renderQuiz(questions, params) {
       const _isRad = q.type==='radical-mix'||q.type==='radical2';
       const _isFQ = q.type==='factored-quad'||q.type==='factored-form'||q.type==='quad-roots';
       const _iCls = (_isRad||_isFQ||q.type==='poly'||q.type==='linear2') ? 'q-input q-input-rad' : 'q-input';
-      const _ph = q.type==='fraction'?'例：3/4':q.type==='radical-mix'?'如：4+3√2':q.type==='radical2'?'如：2√5+2√2':q.type==='factored-quad'?'如：(2x+3)(x+2)':q.type==='factored-form'?'如：(x+5)^2':q.type==='quad-roots'?'如：-3/2, 2':q.type==='poly'?'如：2x^2-3x+5':q.type==='linear2'?'如：2x-3y+1':q.type==='text'?(['全等','不全等'].includes(String(q.answer))?'全等 或 不全等':'如：SSS'):q.type==='number'?'填數字':'例：1.25';
+      const _ph = q.type==='fraction'?'例：3/4':q.type==='radical-mix'?'如：4+3√2':q.type==='radical2'?'如：2√5+2√2':q.type==='factored-quad'?'如：(2x+3)(x+2)':q.type==='factored-form'?'如：(x+5)^2':q.type==='quad-roots'?'如：-3/2, 2':q.type==='poly'?'如：2x^2-3x+5':q.type==='linear2'?'如：2x-3y+1':q.type==='sci'?'如：6.0×10^7':q.type==='text'?(['全等','不全等'].includes(String(q.answer))?'全等 或 不全等':'如：SSS'):q.type==='number'?'填數字':'例：1.25';
       row.innerHTML = `
         <div class="q-number">${idx + 1}</div>
         <div class="q-body">
@@ -790,6 +791,9 @@ function checkAnswers() {
     } else if (q.type === 'linear2') {
       const p = parseLinear2(userVal);
       isCorrect = p !== null && p.a === q.linA && p.b === q.linB && p.c === q.linC;
+    } else if (q.type === 'sci') {
+      const sciM = userVal.replace(/\s/g,'').match(/^([0-9.]+)[×xX*]10\^([+\-]?\d+)$/);
+      if (sciM) isCorrect = decEq(parseFloat(sciM[1]), q.sciCoef) && parseInt(sciM[2]) === q.sciExp;
     } else if (q.type === 'text') {
       const norm = s => s.trim().replace(/一定/g, '').toUpperCase();
       isCorrect = norm(userVal) === norm(String(q.answer));
@@ -816,6 +820,7 @@ function checkAnswers() {
       else if (q.type === 'quad-roots') correctStr = `x = ${rootMath(q.root1)} 或 x = ${rootMath(q.root2)}`;
       else if (q.type === 'poly') correctStr = `\\(${polyToLatex(q.polyA2,q.polyA1,q.polyA0)}\\)`;
       else if (q.type === 'linear2') correctStr = `\\(${linear2ToLatex(q.linA,q.linB,q.linC)}\\)`;
+      else if (q.type === 'sci') correctStr = `\\(${q.sciCoef} \\times 10^{${q.sciExp}}\\)`;
       else if (q.type === 'text') correctStr = String(q.answer);
       else correctStr = dStr(q.answer);
       fb.innerHTML = `<span class="fb-wrong">✗</span> <span class="fb-ans">正確：${_ip2}${correctStr}</span>`;
@@ -1046,6 +1051,8 @@ async function downloadWord() {
       return q2wordHtml(`\\(${q.answerLatex || ''}\\)`);
     if (q.type === 'quad-roots')
       return `x = ${ml(String(q.root1))} 或 x = ${ml(String(q.root2))}`;
+    if (q.type === 'sci')
+      return ml(`${q.sciCoef} \\times 10^{${q.sciExp}}`);
     if (typeof q.answer === 'number' || typeof q.answer === 'string')
       return String(q.answer);
     return '—';
@@ -1253,6 +1260,7 @@ async function downloadPDF() {
         : q.type === 'factored-quad' ? `\\(${factQuadLatex(q.factA, q.factB, q.factC, q.factD)}\\)`
         : q.type === 'factored-form' ? `\\(${q.answerLatex || ''}\\)`
         : q.type === 'quad-roots'    ? `\\(x=${String(q.root1)}\\) 或 \\(x=${String(q.root2)}\\)`
+        : q.type === 'sci'           ? `\\(${q.sciCoef} \\times 10^{${q.sciExp}}\\)`
         : (typeof q.answer === 'number' || typeof q.answer === 'string') ? String(q.answer)
         : '—';
     } catch(e) { val = String(q.answer ?? '—'); }
@@ -1297,22 +1305,30 @@ async function downloadPDF() {
 <link rel="stylesheet" href="css/katex.min.css">
 <style>
 *{box-sizing:border-box}
-body{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:13pt;line-height:2;margin:0;padding:16px 24px}
-.pb{page-break-before:always;height:0;margin:0;padding:0}
-.qn{color:#1565C0}
-.qi{margin:0 0 10px 0}
-.qt{width:100%;border-collapse:collapse;margin-bottom:10px}
+body{font-family:"微軟正黑體","Noto Sans TC",Arial,sans-serif;font-size:14pt;line-height:2;margin:0 auto;max-width:860px;padding:0 32px 32px;color:#222}
+.toolbar{position:sticky;top:0;background:#fff;border-bottom:1px solid #ddd;padding:10px 0;margin-bottom:16px;display:flex;align-items:center;gap:12px;z-index:99}
+.btn-pdf{background:#1565C0;color:#fff;border:none;border-radius:6px;padding:8px 20px;font-size:13pt;cursor:pointer;font-family:inherit}
+.btn-pdf:hover{background:#0d47a1}
+.hint{font-size:10pt;color:#888}
+.qn{color:#1565C0;font-weight:bold}
+.qi{margin:0 0 12px 0}
+.qt{width:100%;border-collapse:collapse;margin-bottom:12px}
 .qq{vertical-align:top;padding-right:10px}
 .qf{width:210px;vertical-align:top;text-align:right}
-.ah{font-weight:bold;border-bottom:1px solid #333;margin-bottom:6px;padding-bottom:2px}
-.ai{margin-bottom:4px}
-@media print{body{padding:8mm 14mm;font-size:12pt}.pb{page-break-before:always}}
+.pb{border:0;border-top:2px solid #1565C0;margin:24px 0}
+.ah{font-weight:bold;font-size:13pt;border-bottom:2px solid #1565C0;margin:0 0 8px 0;padding-bottom:4px;color:#1565C0}
+.ai{margin-bottom:6px;font-size:12pt}
+@media print{.toolbar{display:none}body{max-width:none;padding:8mm 14mm}.pb{page-break-before:always}}
 </style>
 </head>
 <body>
-<div style="text-align:center;font-size:15pt;font-weight:bold;margin-bottom:2px">${title}</div>
-<div style="text-align:center;font-size:10pt;color:#666;margin-bottom:8px">${sub}　${date}</div>
-<hr style="border:0;border-top:1px solid #333;margin:0 0 10px 0">
+<div class="toolbar">
+  <button class="btn-pdf" onclick="window.print()">存成 PDF（Ctrl+P）</button>
+  <span class="hint">在列印對話框中選擇「另存為PDF」</span>
+</div>
+<div style="text-align:center;font-size:16pt;font-weight:bold;color:#1565C0;margin-bottom:2px">${title}</div>
+<div style="text-align:center;font-size:10pt;color:#888;margin-bottom:10px">${sub}　${date}</div>
+<hr style="border:0;border-top:2px solid #1565C0;margin:0 0 16px 0">
 ${qHtml}${aHtml}
 <script src="js/katex.min.js"></script>
 <script src="js/auto-render.min.js"></script>
@@ -1321,7 +1337,6 @@ renderMathInElement(document.body,{
   delimiters:[{left:'\\\\[',right:'\\\\]',display:true},{left:'\\\\(',right:'\\\\)',display:false}],
   throwOnError:false
 });
-setTimeout(function(){window.print();},800);
 </script>
 </body>
 </html>`;

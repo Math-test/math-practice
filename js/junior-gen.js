@@ -177,31 +177,46 @@ function _7aIntSub(level) {
 // ═══════════════════════════════════════════════════════════════════
 
 function gen7aIntMul(level) {
-  const q = _7aIntMul(level);
-  return q || _7aIntMul('basic');
+  for (let i = 0; i < 30; i++) {
+    const q = _7aIntMul(level);
+    if (q) return q;
+  }
+  return _7aIntMul('basic');
 }
 
 function _7aIntMul(level) {
   if (level === 'basic') {
+    // 兩數相乘，數字在 ±50，答案 ≤ 500
     const signs = [[-1,1],[1,-1],[-1,-1]];
     const [sa, sb] = pick(signs);
-    const a = rp(1, 12) * sa, b = rp(1, 12) * sb;
-    return { question:`\\(${ni(a)} \\times ${ni(b)}\\) ＝ ？`, answer: a*b, type:'number' };
+    const a = rp(3, 50) * sa, b = rp(3, 50) * sb;
+    const ans = a * b;
+    if (Math.abs(ans) > 500) return null;
+    return { question:`\\(${ni(a)} \\times ${ni(b)}\\) ＝ ？`, answer:ans, type:'number' };
   } else if (level === 'hard') {
     if (randInt(0,1)===0) {
-      // 四數連乘
-      const a=rnzInt(-8,8),b=rnzInt(-8,8),c=rnzInt(-8,8),d=rnzInt(-8,8);
-      return { question:`\\(${ni(a)} \\times ${ni(b)} \\times ${ni(c)} \\times ${ni(d)}\\) ＝ ？`, answer:a*b*c*d, type:'number' };
+      // 四數連乘，數字在 ±15
+      const a=rnzInt(-15,15),b=rnzInt(-15,15),c=rnzInt(-12,12),d=rnzInt(-12,12);
+      if (a===0||b===0||c===0||d===0) return null;
+      const ans = a*b*c*d;
+      if (Math.abs(ans) > 600 || Math.abs(ans) < 12) return null;
+      return { question:`\\(${ni(a)} \\times ${ni(b)} \\times ${ni(c)} \\times ${ni(d)}\\) ＝ ？`, answer:ans, type:'number' };
     } else {
       // 含括號：{a × [b × (c × d)]}
-      const a=rnzInt(-6,6),b=rnzInt(-6,6),c=rnzInt(-5,5),d=rnzInt(-5,5);
+      const a=rnzInt(-15,15),b=rnzInt(-15,15),c=rnzInt(-12,12),d=rnzInt(-12,12);
+      if (a===0||b===0||c===0||d===0) return null;
+      const ans = a*b*c*d;
+      if (Math.abs(ans) > 600 || Math.abs(ans) < 12) return null;
       return { question:`\\(\\left\\{${ni(a)} \\times \\left[${ni(b)} \\times \\left(${ni(c)} \\times ${ni(d)}\\right)\\right]\\right\\}\\) ＝ ？`,
-        answer:a*b*c*d, type:'number' };
+        answer:ans, type:'number' };
     }
   } else {
-    // 三數連乘
-    const a = rnzInt(-10, 10), b = rnzInt(-10, 10), c = rnzInt(-10, 10);
-    return { question:`\\(${ni(a)} \\times ${ni(b)} \\times ${ni(c)}\\) ＝ ？`, answer: a*b*c, type:'number' };
+    // 三數連乘，數字在 ±25，答案 ≤ 600
+    const a=rnzInt(-25,25),b=rnzInt(-25,25),c=rnzInt(-25,25);
+    if (a===0||b===0||c===0) return null;
+    const ans = a*b*c;
+    if (Math.abs(ans) > 600 || Math.abs(ans) < 8) return null;
+    return { question:`\\(${ni(a)} \\times ${ni(b)} \\times ${ni(c)}\\) ＝ ？`, answer:ans, type:'number' };
   }
 }
 
@@ -219,70 +234,52 @@ function gen7aIntDiv(level) {
 
 function _7aIntDiv(level) {
   if (level === 'basic') {
+    // 被除數在 ±100，除數在 ±25，商在 ±15
     const signs = [[-1,1],[1,-1],[-1,-1]];
     const [sa, sb] = pick(signs);
-    const b = rp(2, 12) * sb;
-    const ans = rp(1, 10) * sa;
+    const b = rp(2, 25) * sb;
+    const maxAns = Math.floor(100 / Math.abs(b));
+    if (maxAns < 2) return null;
+    const ans = rp(2, Math.min(maxAns, 15)) * sa;
     const a = b * ans;
-    return { question:`\\(${ni(a)} \\div ${ni(b)}\\) ＝ ？`, answer: a/b, type:'number' };
+    if (Math.abs(a) < 10) return null;
+    return { question:`\\(${ni(a)} \\div ${ni(b)}\\) ＝ ？`, answer:ans, type:'number' };
   } else if (level === 'hard') {
     if (randInt(0,1)===0) {
-      // a × b ÷ c × d，確保整數結果
-      for (let i = 0; i < 10; i++) {
-        const b=pick([-5,-4,-3,-2,2,3,4,5]);
-        const c=pick([-4,-3,-2,2,3,4]);
-        const d=pick([-4,-3,-2,2,3,4]);
-        const r=rp(1,6), a=r*c;
-        const ans=a*b/c*d;
-        if (Number.isInteger(ans) && Math.abs(ans)<=200) {
-          return { question:`\\(${ni(a)} \\times ${ni(b)} \\div ${ni(c)} \\times ${ni(d)}\\) ＝ ？`,
-                   answer:ans, type:'number' };
-        }
-      }
-      return null;
+      // a × b ÷ c × d，令 a=r×c 確保整數結果，數字在 ±100
+      const b=pick([-12,-10,-8,-6,-5,-4,-3,-2,2,3,4,5,6,8,10,12]);
+      const c=pick([-10,-8,-6,-5,-4,-3,-2,2,3,4,5,6,8,10]);
+      const d=pick([-10,-8,-6,-5,-4,-3,-2,2,3,4,5,6,8,10]);
+      const r=rp(1,8), a=r*c;
+      if (Math.abs(a)>100) return null;
+      const ans=r*b*d;
+      if (Math.abs(ans)>500 || Math.abs(ans)<6) return null;
+      return { question:`\\(${ni(a)} \\times ${ni(b)} \\div ${ni(c)} \\times ${ni(d)}\\) ＝ ？`,
+               answer:ans, type:'number' };
     } else {
-      // 含括號：{sa×a × sb×b} ÷ [(-c) ÷ d]
-      // = (sa×sb×a×b) ÷ (−c/d) = −sa×sb×a×b×d/c
-      // 令 a=r×c，則 ans = −sa×sb×r×b×d
-      const c=pick([2,3,4,5]), d=pick([2,3,4]);
-      const r=rp(1,5), b=pick([2,3,4,5]);
+      // {sa×a × sb×b} ÷ [(-c) ÷ d] = -sa×sb×r×b×d，令 a=r×c
+      const c=pick([2,3,4,5,6,8]), d=pick([2,3,4,5,6]);
+      const r=rp(1,6), b=pick([2,3,4,5,6,8,10]);
       const sa=pick([-1,1]), sb=pick([-1,1]);
       const a=r*c;
+      if (Math.abs(a)>100) return null;
       const ans=-sa*sb*r*b*d;
-      if (Math.abs(ans)>200) return null;
+      if (Math.abs(ans)>500 || Math.abs(ans)<6) return null;
       return { question:`\\(\\left\\{${ni(sa*a)} \\times ${ni(sb*b)}\\right\\} \\div \\left[${ni(-c)} \\div ${ni(d)}\\right]\\) ＝ ？`,
         answer:ans, type:'number' };
     }
   } else {
-    // 乘除混合（兩步）
-    const a = rnzInt(-12,12);
-    const b = rnzInt(-8,8);
-    const ans1 = a * b;  // a × b
-    const c = rnzInt(-6,6);
-    const final = ans1 * c;
-    // Show: (a × b) ÷ c... no, let's do a × b ÷ c
-    // We need a*b divisible by c
-    // Instead: pick c first, then adjust
-    const c2 = pick([-4,-3,-2,2,3,4]);
-    const ans2 = rp(1,10);
-    const dividend = c2 * ans2;
-    const sa = rnzInt(-5,5);
-    // (sa × c2) ÷ c2 — let's do a×b÷c pattern
-    const mx = rp(1,8), my = pick([-3,-2,2,3]);
-    const mz = pick([-4,-3,-2,2,3,4]);
-    const mAns = mx * my;
-    const divi = mAns * mz;
-    const finalAns = mx * my * mz / mz;  // = mx*my
-    if (mAns % mz !== 0) return null;
-    // Actually simpler: a * b ÷ c where result is integer
-    const r = rp(1, 10);
-    const bv = pick([-4,-3,-2,2,3,4]);
-    const cv = pick([-4,-3,-2,2,3,4]);
-    if (cv === 0) return null;
-    const av = r * cv;  // so a*b/c = r*bv
+    // a × b ÷ c，令 a=r×c 確保整數，數字在 ±100
+    const r = rp(1, 15);
+    const bv = pick([-15,-12,-10,-8,-6,-5,-4,-3,-2,2,3,4,5,6,8,10,12,15]);
+    const cv = pick([-10,-8,-6,-5,-4,-3,-2,2,3,4,5,6,8,10]);
+    const av = r * cv;
+    if (Math.abs(av) > 100) return null;
+    const ans = r * bv;
+    if (Math.abs(ans) < 6 || Math.abs(ans) > 400) return null;
     return {
       question: `\\(${ni(av)} \\times ${ni(bv)} \\div ${ni(cv)}\\) ＝ ？`,
-      answer: av * bv / cv, type:'number'
+      answer: ans, type:'number'
     };
   }
 }
@@ -303,35 +300,46 @@ function _7aIntMix(level) {
   if (level === 'basic') {
     const t = randInt(0, 1);
     if (t === 0) {
-      // a × b + c
-      const a = rnzInt(-8,8), b = rnzInt(-8,8), c = rnzInt(-20,20);
-      return { question:`\\(${ni(a)} \\times ${ni(b)} + ${ni(c)}\\) ＝ ？`, answer: a*b+c, type:'number' };
+      // a × b + c，乘數在 ±20，加數在 ±60
+      const a=rnzInt(-20,20), b=rnzInt(-20,20), c=rnzInt(-60,60);
+      if (a===0||b===0) return null;
+      const ans=a*b+c;
+      if (Math.abs(a*b)<5 || Math.abs(ans)>400) return null;
+      return { question:`\\(${ni(a)} \\times ${ni(b)} + ${ni(c)}\\) ＝ ？`, answer:ans, type:'number' };
     } else {
       // a + b × c
-      const b = rnzInt(-8,8), c = rnzInt(-8,8), a = rnzInt(-20,20);
-      return { question:`\\(${ni(a)} + ${ni(b)} \\times ${ni(c)}\\) ＝ ？`, answer: a+b*c, type:'number' };
+      const b=rnzInt(-20,20), c=rnzInt(-20,20), a=rnzInt(-60,60);
+      if (b===0||c===0) return null;
+      const ans=a+b*c;
+      if (Math.abs(b*c)<5 || Math.abs(ans)>400) return null;
+      return { question:`\\(${ni(a)} + ${ni(b)} \\times ${ni(c)}\\) ＝ ？`, answer:ans, type:'number' };
     }
   } else if (level === 'hard') {
     const t = randInt(0, 2);
     if (t === 0) {
       // a × (b + c) - d × e
-      const a=rnzInt(-8,8),b=rnzInt(-10,10),c=rnzInt(-10,10);
-      const d=rnzInt(-8,8),e=rnzInt(-8,8);
+      const a=rnzInt(-15,15), b=rnzInt(-25,25), c=rnzInt(-25,25);
+      const d=rnzInt(-15,15), e=rnzInt(-15,15);
+      if (a===0||d===0) return null;
+      const ans=a*(b+c)-d*e;
+      if (Math.abs(ans)>500) return null;
       return { question:`\\(${ni(a)} \\times (${ni(b)} + ${ni(c)}) - ${ni(d)} \\times ${ni(e)}\\) ＝ ？`,
-        answer:a*(b+c)-d*e, type:'number' };
+        answer:ans, type:'number' };
     } else if (t === 1) {
       // (a + b) × c - (d + e) × f
-      const a=rnzInt(-10,10),b=rnzInt(-10,10),c=rnzInt(-6,6);
-      const d=rnzInt(-10,10),e=rnzInt(-10,10),f=rnzInt(-6,6);
+      const a=rnzInt(-25,25), b=rnzInt(-25,25), c=rnzInt(-15,15);
+      const d=rnzInt(-25,25), e=rnzInt(-25,25), f=rnzInt(-15,15);
       if (c===0||f===0) return null;
+      const ans=(a+b)*c-(d+e)*f;
+      if (Math.abs(ans)>500) return null;
       return { question:`\\((${ni(a)} + ${ni(b)}) \\times ${ni(c)} - (${ni(d)} + ${ni(e)}) \\times ${ni(f)}\\) ＝ ？`,
-        answer:(a+b)*c-(d+e)*f, type:'number' };
+        answer:ans, type:'number' };
     } else {
-      // 含括號：a × {b - [c + (d - e)]} = a*(b-c-d+e)
-      const a=rnzInt(-8,8),b=rnzInt(-10,10),c=rnzInt(-10,10),d=rnzInt(-10,10),e=rnzInt(-10,10);
+      // a × {b - [c + (d - e)]} = a*(b-c-d+e)
+      const a=rnzInt(-15,15), b=rnzInt(-25,25), c=rnzInt(-25,25), d=rnzInt(-25,25), e=rnzInt(-25,25);
       if (a===0) return null;
       const ans=a*(b-c-d+e);
-      if (Math.abs(ans)>300) return null;
+      if (Math.abs(ans)>500) return null;
       return { question:`\\(${ni(a)} \\times \\left\\{${ni(b)} - \\left[${ni(c)} + \\left(${ni(d)} - ${ni(e)}\\right)\\right]\\right\\}\\) ＝ ？`,
         answer:ans, type:'number' };
     }
@@ -339,14 +347,18 @@ function _7aIntMix(level) {
     const t = randInt(0, 1);
     if (t === 0) {
       // (a + b) × c
-      const a = rnzInt(-15,15), b = rnzInt(-15,15), c = rnzInt(-8,8);
-      return { question:`\\((${ni(a)} + ${ni(b)}) \\times ${ni(c)}\\) ＝ ？`,
-        answer: (a+b)*c, type:'number' };
+      const a=rnzInt(-40,40), b=rnzInt(-40,40), c=rnzInt(-20,20);
+      if (c===0) return null;
+      const ans=(a+b)*c;
+      if (Math.abs(ans)>400) return null;
+      return { question:`\\((${ni(a)} + ${ni(b)}) \\times ${ni(c)}\\) ＝ ？`, answer:ans, type:'number' };
     } else {
       // a × b - c × d
-      const a = rnzInt(-8,8), b = rnzInt(-8,8), c = rnzInt(-8,8), d = rnzInt(-8,8);
-      return { question:`\\(${ni(a)} \\times ${ni(b)} - ${ni(c)} \\times ${ni(d)}\\) ＝ ？`,
-        answer: a*b - c*d, type:'number' };
+      const a=rnzInt(-25,25), b=rnzInt(-25,25), c=rnzInt(-25,25), d=rnzInt(-25,25);
+      if (a===0||c===0) return null;
+      const ans=a*b-c*d;
+      if (Math.abs(ans)>400) return null;
+      return { question:`\\(${ni(a)} \\times ${ni(b)} - ${ni(c)} \\times ${ni(d)}\\) ＝ ？`, answer:ans, type:'number' };
     }
   }
 }
@@ -932,19 +944,85 @@ const _SCI_NEG = [
   ['0.015','1.5',2],['0.025','2.5',2],['0.036','3.6',2],['0.042','4.2',2],['0.080','8.0',2],
   ['0.0025','2.5',3],['0.0036','3.6',3],['0.0042','4.2',3],['0.0080','8.0',3],
 ];
-const _SCI_MULT = [
-  // [c1,e1, c2,e2, 結果係數,結果指數]
-  ['2.0',3,'3.0',4,'6.0',7],['1.5',2,'2.0',3,'3.0',5],
-  ['4.0',3,'2.0',2,'8.0',5],['3.0',4,'3.0',3,'9.0',7],
-  ['2.5',3,'2.0',4,'5.0',7],['3.5',2,'2.0',3,'7.0',5],
-  ['1.5',4,'4.0',3,'6.0',7],['1.2',3,'4.0',2,'4.8',5],
+// 完整科學記號答案（係數＋指數都要填，含小數互乘需移位練習）
+const _SCI_MULT_FULL = [
+  // ── 積 < 10，不需移位 ──
+  {c1:'2.0',e1:3,c2:'3.0',e2:4,rc:'6.0',re:7},
+  {c1:'1.5',e1:2,c2:'2.0',e2:3,rc:'3.0',re:5},
+  {c1:'4.0',e1:3,c2:'2.0',e2:2,rc:'8.0',re:5},
+  {c1:'2.5',e1:3,c2:'2.0',e2:4,rc:'5.0',re:7},
+  {c1:'3.5',e1:2,c2:'2.0',e2:3,rc:'7.0',re:5},
+  {c1:'1.5',e1:4,c2:'4.0',e2:3,rc:'6.0',re:7},
+  {c1:'1.2',e1:3,c2:'4.0',e2:2,rc:'4.8',re:5},
+  {c1:'3.0',e1:4,c2:'2.5',e2:2,rc:'7.5',re:6},
+  {c1:'1.8',e1:2,c2:'4.0',e2:3,rc:'7.2',re:5},
+  {c1:'2.4',e1:3,c2:'3.0',e2:2,rc:'7.2',re:5},
+  {c1:'3.6',e1:2,c2:'2.5',e2:3,rc:'9.0',re:5},
+  {c1:'4.5',e1:3,c2:'2.0',e2:2,rc:'9.0',re:5},
+  {c1:'1.5',e1:3,c2:'6.0',e2:2,rc:'9.0',re:5},
+  {c1:'1.6',e1:4,c2:'5.0',e2:3,rc:'8.0',re:7},
+  {c1:'2.4',e1:3,c2:'2.5',e2:4,rc:'6.0',re:7},
+  {c1:'3.2',e1:3,c2:'2.5',e2:2,rc:'8.0',re:5},
+  {c1:'1.8',e1:3,c2:'3.0',e2:2,rc:'5.4',re:5},
+  {c1:'2.4',e1:2,c2:'4.0',e2:3,rc:'9.6',re:5},
+  // ── 積 ≥ 10，需移位（進位指數）── 學生需調整係數與指數
+  {c1:'5.0',e1:3,c2:'3.0',e2:4,rc:'1.5',re:8},
+  {c1:'4.0',e1:3,c2:'4.0',e2:2,rc:'1.6',re:6},
+  {c1:'2.5',e1:2,c2:'4.0',e2:3,rc:'1.0',re:6},
+  {c1:'5.0',e1:2,c2:'3.0',e2:3,rc:'1.5',re:6},
+  {c1:'4.0',e1:4,c2:'3.0',e2:3,rc:'1.2',re:8},
+  {c1:'2.5',e1:3,c2:'4.0',e2:2,rc:'1.0',re:6},
+  {c1:'1.5',e1:2,c2:'8.0',e2:3,rc:'1.2',re:6},
+  {c1:'3.5',e1:3,c2:'4.0',e2:2,rc:'1.4',re:6},
+  {c1:'4.5',e1:2,c2:'4.0',e2:3,rc:'1.8',re:6},
+  {c1:'6.5',e1:3,c2:'2.0',e2:2,rc:'1.3',re:6},
+  {c1:'7.5',e1:3,c2:'4.0',e2:2,rc:'3.0',re:6},
+  {c1:'3.6',e1:2,c2:'5.0',e2:3,rc:'1.8',re:6},
+  {c1:'2.4',e1:3,c2:'5.0',e2:2,rc:'1.2',re:6},
+  {c1:'5.0',e1:2,c2:'5.0',e2:3,rc:'2.5',re:6},
+  {c1:'3.5',e1:4,c2:'6.0',e2:2,rc:'2.1',re:7},
+  {c1:'8.5',e1:3,c2:'2.0',e2:4,rc:'1.7',re:8},
+  {c1:'6.0',e1:3,c2:'4.0',e2:2,rc:'2.4',re:6},
+  {c1:'9.0',e1:2,c2:'3.0',e2:3,rc:'2.7',re:6},
+  {c1:'8.0',e1:3,c2:'3.0',e2:2,rc:'2.4',re:6},
+  {c1:'4.0',e1:4,c2:'4.0',e2:3,rc:'1.6',re:8},
+  {c1:'7.0',e1:2,c2:'3.0',e2:3,rc:'2.1',re:6},
+  {c1:'5.0',e1:3,c2:'7.0',e2:2,rc:'3.5',re:6},
+  {c1:'8.0',e1:4,c2:'4.0',e2:3,rc:'3.2',re:8},
+  {c1:'6.0',e1:3,c2:'5.0',e2:2,rc:'3.0',re:6},
+  {c1:'9.0',e1:4,c2:'2.0',e2:3,rc:'1.8',re:8},
 ];
-const _SCI_DIV = [
-  // [c1,e1, c2,e2, 結果係數,結果指數]
-  ['6.0',5,'2.0',2,'3.0',3],['8.0',4,'4.0',2,'2.0',2],
-  ['9.0',5,'3.0',3,'3.0',2],['7.5',4,'2.5',2,'3.0',2],
-  ['6.0',4,'1.5',2,'4.0',2],['8.0',5,'2.0',3,'4.0',2],
-  ['9.6',4,'3.0',2,'3.2',2],['4.8',5,'1.2',3,'4.0',2],
+const _SCI_DIV_FULL = [
+  // ── 商 ≥ 1，不需移位 ──
+  {c1:'6.0',e1:5,c2:'2.0',e2:2,rc:'3.0',re:3},
+  {c1:'8.0',e1:4,c2:'4.0',e2:2,rc:'2.0',re:2},
+  {c1:'9.0',e1:5,c2:'3.0',e2:3,rc:'3.0',re:2},
+  {c1:'7.5',e1:4,c2:'2.5',e2:2,rc:'3.0',re:2},
+  {c1:'6.0',e1:4,c2:'1.5',e2:2,rc:'4.0',re:2},
+  {c1:'8.0',e1:5,c2:'2.0',e2:3,rc:'4.0',re:2},
+  {c1:'9.6',e1:4,c2:'3.0',e2:2,rc:'3.2',re:2},
+  {c1:'4.8',e1:5,c2:'1.2',e2:3,rc:'4.0',re:2},
+  {c1:'7.2',e1:5,c2:'3.6',e2:3,rc:'2.0',re:2},
+  {c1:'9.0',e1:4,c2:'1.8',e2:2,rc:'5.0',re:2},
+  {c1:'4.5',e1:5,c2:'1.5',e2:3,rc:'3.0',re:2},
+  {c1:'3.6',e1:4,c2:'1.2',e2:2,rc:'3.0',re:2},
+  {c1:'7.5',e1:5,c2:'1.5',e2:3,rc:'5.0',re:2},
+  {c1:'8.4',e1:4,c2:'2.1',e2:2,rc:'4.0',re:2},
+  {c1:'6.4',e1:5,c2:'3.2',e2:3,rc:'2.0',re:2},
+  // ── 商 < 1，需移位（借位指數）── 學生需調整係數與指數
+  {c1:'3.0',e1:4,c2:'6.0',e2:2,rc:'5.0',re:1},
+  {c1:'2.0',e1:5,c2:'8.0',e2:3,rc:'2.5',re:1},
+  {c1:'1.5',e1:4,c2:'5.0',e2:2,rc:'3.0',re:1},
+  {c1:'2.4',e1:5,c2:'8.0',e2:2,rc:'3.0',re:2},
+  {c1:'1.8',e1:5,c2:'6.0',e2:3,rc:'3.0',re:1},
+  {c1:'2.0',e1:4,c2:'4.0',e2:2,rc:'5.0',re:1},
+  {c1:'4.5',e1:4,c2:'9.0',e2:2,rc:'5.0',re:1},
+  {c1:'3.6',e1:5,c2:'9.0',e2:3,rc:'4.0',re:1},
+  {c1:'1.5',e1:5,c2:'6.0',e2:3,rc:'2.5',re:1},
+  {c1:'2.1',e1:4,c2:'7.0',e2:2,rc:'3.0',re:1},
+  {c1:'2.4',e1:5,c2:'6.0',e2:3,rc:'4.0',re:1},
+  {c1:'3.2',e1:4,c2:'8.0',e2:2,rc:'4.0',re:1},
+  {c1:'2.8',e1:5,c2:'7.0',e2:3,rc:'4.0',re:1},
 ];
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1073,7 +1151,7 @@ function gen7aExp(level) {
 
 function _7aExp(level) {
   if (level === 'basic') {
-    const t = randInt(0, 4);
+    const t = randInt(0, 6);
     if (t === 0) {
       // 求值：a^n
       const base = pick([2,3,4,5,-2,-3]);
@@ -1096,16 +1174,27 @@ function _7aExp(level) {
       const a = pick([2,3,4,5]), m = rp(2,3);
       const b = pick([2,3,4,5]), n = rp(2,3);
       return { question:`\\(${a}^{${m}} + ${b}^{${n}}\\)`, answer: Math.pow(a,m)+Math.pow(b,n), type:'number' };
-    } else {
+    } else if (t === 4) {
       // 四則：a^m - b^n，求值（正）
       const a = pick([2,3,4,5]), m = rp(2,3);
       const b = pick([2,3,4,5]), n = rp(2,3);
       const am = Math.pow(a,m), bn = Math.pow(b,n);
       if (am <= bn) return null;
       return { question:`\\(${a}^{${m}} - ${b}^{${n}}\\)`, answer: am-bn, type:'number' };
+    } else if (t === 5) {
+      // 分數求值：a^m / a^n（化簡後求值）
+      const a = pick([2,3,4,5]);
+      const d = rp(1,3), num_e = d + rp(1,3);
+      if (Math.pow(a, num_e - d) > 256) return null;
+      return { question:`\\(\\dfrac{${a}^{${num_e}}}{${a}^{${d}}}\\)`, answer: Math.pow(a, num_e-d), type:'number' };
+    } else {
+      // 分數求指數：a^m / a^n = a^x
+      const a = pick([2,3,4,5]);
+      const n = rp(1,4), m = n + rp(1,5);
+      return { question:`\\(\\dfrac{${a}^{${m}}}{${a}^{${n}}} = ${a}^x\\)`, answer: m-n, type:'number', answerPrefix:'x' };
     }
   } else if (level === 'medium') {
-    const t = randInt(0, 4);
+    const t = randInt(0, 6);
     if (t === 0) {
       // 求指數：(a^m)^n = a^x
       const a = pick([2,3,4,5]);
@@ -1128,7 +1217,7 @@ function _7aExp(level) {
       const m = rp(2,3), n = rp(2,3);
       if (Math.pow(a,m*n) > 1000) return null;
       return { question:`\\((${a}^{${m}})^{${n}}\\)`, answer: Math.pow(a,m*n), type:'number' };
-    } else {
+    } else if (t === 4) {
       // 求底數：a^n = k，求 a
       const a = pick([2,3,4,5]);
       const n = pick([2,3]);
@@ -1137,10 +1226,22 @@ function _7aExp(level) {
         ? `正整數 \\(a\\) 滿足 \\(a^{2} = ${k}\\)`
         : `\\(a^{${n}} = ${k}\\)`;
       return { question:q, answer:a, type:'number', answerPrefix:'a' };
+    } else if (t === 5) {
+      // 分數形式求指數：(a^m)^n / a^p = a^x
+      const a = pick([2,3,5]);
+      const m = rp(2,3), n = rp(2,3), p = rp(1, m*n-1);
+      return { question:`\\(\\dfrac{(${a}^{${m}})^{${n}}}{${a}^{${p}}} = ${a}^x\\)`, answer: m*n-p, type:'number', answerPrefix:'x' };
+    } else {
+      // 分數求值：(a^m × a^n) / a^p
+      const a = pick([2,3,4]);
+      const m = rp(2,4), n = rp(1,3), p = rp(1, m+n-1);
+      const x = m+n-p;
+      if (Math.pow(a,x) > 512) return null;
+      return { question:`\\(\\dfrac{${a}^{${m}} \\times ${a}^{${n}}}{${a}^{${p}}}\\)`, answer: Math.pow(a,x), type:'number' };
     }
   } else {
     // hard
-    const t = randInt(0, 4);
+    const t = randInt(0, 7);
     if (t === 0) {
       // 求指數：a^m × a^n ÷ a^p = a^x
       const a = pick([2,3,5]);
@@ -1166,13 +1267,36 @@ function _7aExp(level) {
       const val = Math.pow(a,m)*Math.pow(b,n) - Math.pow(c,p);
       if (val <= 0 || val > 600) return null;
       return { question:`\\(${a}^{${m}} \\times ${b}^{${n}} - ${c}^{${p}}\\)`, answer: val, type:'number' };
-    } else {
+    } else if (t === 4) {
       // 求底數（帶係數）：k × a^n = val，求 a
       const a = pick([2,3,4]);
       const n = pick([2,3]);
       const k = pick([2,3,4,5]);
       const val = k * Math.pow(a, n);
       return { question:`\\(${k} \\times a^{${n}} = ${val}\\)`, answer:a, type:'number', answerPrefix:'a' };
+    } else if (t === 5) {
+      // 複雜分數求指數：(a^m × a^n) / (a^p)^q = a^x
+      const a = pick([2,3,5]);
+      const m = rp(2,4), n = rp(1,3), p = rp(1,3), q = rp(2,3);
+      const x = m+n-p*q;
+      if (x <= 0) return null;
+      return { question:`\\(\\dfrac{${a}^{${m}} \\times ${a}^{${n}}}{(${a}^{${p}})^{${q}}} = ${a}^x\\)`, answer: x, type:'number', answerPrefix:'x' };
+    } else if (t === 6) {
+      // 因式加法求值：a^m + k × a^(m-1) = a^(m-1)(a + k)
+      const a = pick([2,3,4]);
+      const m = rp(2,4);
+      const k = pick([2,3,4,5]);
+      if (m < 2) return null;
+      const val = Math.pow(a,m) + k * Math.pow(a,m-1);
+      if (val > 1000) return null;
+      return { question:`\\(${a}^{${m}} + ${k} \\times ${a}^{${m-1}}\\)`, answer: val, type:'number' };
+    } else {
+      // 分數求值（含冪次律）：(a^m)^n / a^p
+      const a = pick([2,3]);
+      const m = rp(2,3), n = rp(2,3), p = rp(1, m*n-1);
+      const x = m*n-p;
+      if (Math.pow(a,x) > 512) return null;
+      return { question:`\\(\\dfrac{(${a}^{${m}})^{${n}}}{${a}^{${p}}}\\)`, answer: Math.pow(a,x), type:'number' };
     }
   }
 }
@@ -1189,6 +1313,39 @@ function gen7aSci(level) {
   return _7aSci('basic');
 }
 
+function _7aSciUnitConv() {
+  const rules = [
+    // [from_display, to_display, exp_factor]
+    ['km', '公尺 (m)', 3],
+    ['km', '公分 (cm)', 5],
+    ['km', '毫米 (mm)', 6],
+    ['公尺 (m)', '公分 (cm)', 2],
+    ['公尺 (m)', '毫米 (mm)', 3],
+    ['公克 (g)', '毫克 (mg)', 3],
+    ['公斤 (kg)', '公克 (g)', 3],
+    // 反向換算（負因數）
+    ['公尺 (m)', 'km', -3],
+    ['公分 (cm)', '公尺 (m)', -2],
+    ['毫米 (mm)', '公尺 (m)', -3],
+    ['毫克 (mg)', '公克 (g)', -3],
+    ['公克 (g)', '公斤 (kg)', -3],
+  ];
+  const coefs = ['1.5','2.0','2.5','3.0','3.6','4.0','4.5','5.0','6.0','7.5','8.0'];
+  const rule = pick(rules);
+  const [from, to, factor] = rule;
+  const coef = pick(coefs);
+  const startExp = pick([0, 1, 2, -1, -2]);
+  const resultExp = startExp + factor;
+  if (resultExp < -6 || resultExp > 12) return null;
+  // 係數不變，只需填指數（一格）
+  return {
+    question: `\\(${coef} \\times 10^{${startExp}}\\) ${from} = \\(${coef} \\times 10^x\\) ${to}，求 \\(x\\)`,
+    answer: resultExp,
+    type: 'number',
+    answerPrefix: 'x'
+  };
+}
+
 function _7aSci(level) {
   if (level === 'basic') {
     const [coef, exp, std] = pick(_SCI_POS);
@@ -1196,20 +1353,256 @@ function _7aSci(level) {
       ? { question:`\\(${coef} \\times 10^{${exp}}\\)`, answer: std, type:'number' }
       : { question:`\\(${std} = ${coef} \\times 10^x\\)`, answer: exp, type:'number', answerPrefix:'x' };
   } else if (level === 'hard') {
-    const t = randInt(0, 1);
+    // 困難：乘法完整科學記號 / 除法完整科學記號 / 單位換算（各佔1/3）
+    const t = randInt(0, 2);
     if (t === 0) {
-      const [c1,e1,c2,e2,rc,re] = pick(_SCI_MULT);
-      return { question:`\\((${c1} \\times 10^{${e1}}) \\times (${c2} \\times 10^{${e2}}) = ${rc} \\times 10^x\\)`,
-               answer: re, type:'number', answerPrefix:'x' };
+      const entry = pick(_SCI_MULT_FULL);
+      return {
+        question: `\\((${entry.c1} \\times 10^{${entry.e1}}) \\times (${entry.c2} \\times 10^{${entry.e2}})\\) = ？（寫出完整科學記號）`,
+        type: 'sci',
+        sciCoef: parseFloat(entry.rc),
+        sciExp: entry.re
+      };
+    } else if (t === 1) {
+      const entry = pick(_SCI_DIV_FULL);
+      return {
+        question: `\\((${entry.c1} \\times 10^{${entry.e1}}) \\div (${entry.c2} \\times 10^{${entry.e2}})\\) = ？（寫出完整科學記號）`,
+        type: 'sci',
+        sciCoef: parseFloat(entry.rc),
+        sciExp: entry.re
+      };
     } else {
-      const [c1,e1,c2,e2,rc,re] = pick(_SCI_DIV);
-      return { question:`\\((${c1} \\times 10^{${e1}}) \\div (${c2} \\times 10^{${e2}}) = ${rc} \\times 10^x\\)`,
-               answer: re, type:'number', answerPrefix:'x' };
+      return _7aSciUnitConv();
     }
   } else {
-    // medium：負指數，填寫指數（答案為負整數）
-    const [std_str, coef_str, neg_exp] = pick(_SCI_NEG);
-    return { question:`\\(${std_str} = ${coef_str} \\times 10^x\\)`, answer: -neg_exp, type:'number', answerPrefix:'x' };
+    // 中等：負指數 / 單位換算（各佔1/2）
+    if (randInt(0,1) === 0) {
+      const [std_str, coef_str, neg_exp] = pick(_SCI_NEG);
+      return { question:`\\(${std_str} = ${coef_str} \\times 10^x\\)`, answer: -neg_exp, type:'number', answerPrefix:'x' };
+    } else {
+      return _7aSciUnitConv();
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  七上 ▸ 指數律四則運算
+// ═══════════════════════════════════════════════════════════════════
+
+function gen7aExpArith(level) {
+  for (let i = 0; i < 20; i++) {
+    const q = _7aExpArith(level);
+    if (q) { q.inlineAnswer = true; return q; }
+  }
+  const q = _7aExpArith('basic');
+  if (q) q.inlineAnswer = true;
+  return q;
+}
+
+function _7aExpArith(level) {
+  // 分數輔助
+  function xgcd(a, b) { return b === 0 ? Math.abs(a) : xgcd(b, a % b); }
+  function fStr(n, d) { const g = xgcd(Math.abs(n), d); const sn=n/g, sd=d/g; return sd===1?`${sn}`:`${sn}/${sd}`; }
+  function fAdd(n1,d1,n2,d2) { return [n1*d2+n2*d1, d1*d2]; }
+  function fSub(n1,d1,n2,d2) { return [n1*d2-n2*d1, d1*d2]; }
+  function fMul(n1,d1,n2,d2) { return [n1*n2, d1*d2]; }
+
+  const pw = (a, n) => Math.pow(a, n);
+
+  if (level === 'basic') {
+    // 基礎：含小括號的多步運算，底數範圍擴大避免重複
+    const t = randInt(0, 4);
+    if (t === 0) {
+      // a^m + b^n - c^p（三項加減）
+      const a = pick([2,3,4,5,6,7,8]), m = rp(2,3);
+      const b = pick([2,3,4,5,6,7]), n = rp(2,3);
+      const c = pick([2,3,4,5,6]), p = rp(2,3);
+      const val = pw(a,m) + pw(b,n) - pw(c,p);
+      if (val <= 0 || val > 600) return null;
+      return { question:`\\(${a}^{${m}} + ${b}^{${n}} - ${c}^{${p}}\\)`, answer:val, type:'number' };
+    } else if (t === 1) {
+      // (a^m + b) × c（小括號，先算括號再乘）
+      const a = pick([2,3,4,5,6]), m = rp(2,3);
+      const b = rp(2,20);
+      const c = pick([2,3,4,5,6]);
+      const val = (pw(a,m) + b) * c;
+      if (val > 700) return null;
+      return { question:`\\((${a}^{${m}} + ${b}) \\times ${c}\\)`, answer:val, type:'number' };
+    } else if (t === 2) {
+      // a × (b^n - c^m)（整數 × 小括號）
+      const a = pick([2,3,4,5,6]);
+      const b = pick([3,4,5,6,7,8]), n = rp(2,3);
+      const c = pick([2,3,4,5,6]), m = rp(2,3);
+      const inner = pw(b,n) - pw(c,m);
+      if (inner <= 0 || inner * a > 700) return null;
+      return { question:`\\(${a} \\times (${b}^{${n}} - ${c}^{${m}})\\)`, answer:inner*a, type:'number' };
+    } else if (t === 3) {
+      // a^m × b^n + c^p（先乘後加）
+      const a = pick([2,3,4,5,6]), m = rp(2,3);
+      const b = pick([2,3,4,5,6]), n = rp(2,3);
+      const c = pick([2,3,4,5,6,7,8,9]), p = rp(2,3);
+      const val = pw(a,m)*pw(b,n) + pw(c,p);
+      if (val > 700) return null;
+      return { question:`\\(${a}^{${m}} \\times ${b}^{${n}} + ${c}^{${p}}\\)`, answer:val, type:'number' };
+    } else {
+      // (1/a)^n 分數底數（擴大底數範圍）
+      const a = pick([2,3,4,5,6,7,8,9,10,11,12]), n = rp(2,3);
+      const den = pw(a,n);
+      if (den > 1500) return null;
+      return { question:`\\(\\left(\\dfrac{1}{${a}}\\right)^{${n}}\\) ＝ ？（格式：1/8）`, answer:`1/${den}`, type:'text', answerPrefix:'' };
+    }
+  } else if (level === 'medium') {
+    // 中等：含中括號 [ ] 的雙層運算
+    const t = randInt(0, 4);
+    if (t === 0) {
+      // a × [b^n - (c + d^p)]（中括號含小括號）
+      const d = pick([2,3,4,5,6]), p = rp(2,3);
+      const c = rp(2,15);
+      const inner = c + pw(d,p);
+      const b = pick([4,5,6,7,8,9,10,11,12]), n = rp(2,3);
+      const mid = pw(b,n) - inner;
+      if (mid <= 0) return null;
+      const a = pick([2,3,4,5,6]);
+      if (mid * a > 900) return null;
+      return { question:`\\(${a} \\times \\left[${b}^{${n}} - (${c} + ${d}^{${p}})\\right]\\)`, answer:mid*a, type:'number' };
+    } else if (t === 1) {
+      // [a^m + b^n] - c × d^p（中括號後減去乘積）
+      const a = pick([3,4,5,6,7,8,9]), m = rp(2,3);
+      const b = pick([3,4,5,6,7,8,9]), n = rp(2,3);
+      const c = pick([2,3,4,5,6]);
+      const d = pick([2,3,4,5,6]), p = rp(2,3);
+      const val = pw(a,m) + pw(b,n) - c * pw(d,p);
+      if (val <= 0 || val > 900) return null;
+      return { question:`\\(\\left[${a}^{${m}} + ${b}^{${n}}\\right] - ${c} \\times ${d}^{${p}}\\)`, answer:val, type:'number' };
+    } else if (t === 2) {
+      // (a^m - b) × (c + d^n)（兩個小括號相乘）
+      const a = pick([3,4,5,6,7,8,9,10]), m = rp(2,3);
+      const b = rp(2, Math.min(pw(a,m)-1, 30));
+      const d = pick([2,3,4,5,6,7]), n = rp(2,3);
+      const c = rp(2,20);
+      const val = (pw(a,m) - b) * (c + pw(d,n));
+      if (val <= 0 || val > 900) return null;
+      return { question:`\\((${a}^{${m}} - ${b}) \\times (${c} + ${d}^{${n}})\\)`, answer:val, type:'number' };
+    } else if (t === 3) {
+      // a^m × [b^n - c] + d^p（中括號乘後再加）
+      const b = pick([3,4,5,6,7,8,9,10]), n = rp(2,3);
+      const c = rp(2, Math.min(pw(b,n)-1, 30));
+      const a = pick([2,3,4,5,6,7]), m = rp(2,3);
+      const d = pick([2,3,4,5,6,7,8,9,10,11,12]), p = rp(2,3);
+      const val = pw(a,m) * (pw(b,n) - c) + pw(d,p);
+      if (val <= 0 || val > 900) return null;
+      return { question:`\\(${a}^{${m}} \\times \\left[${b}^{${n}} - ${c}\\right] + ${d}^{${p}}\\)`, answer:val, type:'number' };
+    } else {
+      // (1/a)^m + (1/b)^n（分數底數通分相加）
+      const a = pick([2,3,4,5,6,7,8,9,10,11,12]), m = rp(2,3);
+      const b = pick([2,3,4,5,6,7,8,9,10,11,12]), n = rp(2,3);
+      const d1 = pw(a,m), d2 = pw(b,n);
+      const [rn, rd] = fAdd(1, d1, 1, d2);
+      if (rd > 2000) return null;
+      return {
+        question:`\\(\\left(\\dfrac{1}{${a}}\\right)^{${m}} + \\left(\\dfrac{1}{${b}}\\right)^{${n}}\\) ＝ ？（格式：p/q）`,
+        answer: fStr(rn,rd), type:'text', answerPrefix:''
+      };
+    }
+  } else {
+    // 困難：{大括號 [ 中括號 ( 小括號 )]} 三層 + 分數題型
+    const t = randInt(0, 6);
+    if (t === 0) {
+      // {a^m - [b^n + c^p]} × d（大括號含中括號）
+      const b = pick([2,3,4,5,6,7,8]), n = rp(2,3);
+      const c = pick([2,3,4,5,6,7,8]), p = rp(2,3);
+      const inner = pw(b,n) + pw(c,p);
+      const a = pick([5,6,7,8,9,10,11,12,13,14]), m = rp(2,3);
+      if (pw(a,m) <= inner) return null;
+      const d = pick([2,3,4,5,6]);
+      const val = (pw(a,m) - inner) * d;
+      if (val <= 0 || val > 1200) return null;
+      return {
+        question:`\\(\\left\\{${a}^{${m}} - \\left[${b}^{${n}} + ${c}^{${p}}\\right]\\right\\} \\times ${d}\\)`,
+        answer:val, type:'number'
+      };
+    } else if (t === 1) {
+      // a × {[b^m + c^n] - (d^p - e^q)}（三層括號）
+      const d = pick([3,4,5,6,7,8,9]), p = rp(2,3);
+      const e = pick([2,3,4,5,6,7]), q = rp(2,3);
+      if (pw(d,p) <= pw(e,q)) return null;
+      const innerR = pw(d,p) - pw(e,q);
+      const b = pick([2,3,4,5,6,7,8,9]), m = rp(2,3);
+      const c = pick([2,3,4,5,6,7,8]), n = rp(2,3);
+      const innerL = pw(b,m) + pw(c,n);
+      if (innerL <= innerR) return null;
+      const a = pick([2,3,4,5,6]);
+      const val = a * (innerL - innerR);
+      if (val <= 0 || val > 1200) return null;
+      return {
+        question:`\\(${a} \\times \\left\\{\\left[${b}^{${m}} + ${c}^{${n}}\\right] - (${d}^{${p}} - ${e}^{${q}})\\right\\}\\)`,
+        answer:val, type:'number'
+      };
+    } else if (t === 2) {
+      // [a^m - (b + c^n)] × (d^p + e)（中括號×小括號）
+      const c = pick([2,3,4,5,6,7]), n = rp(2,3);
+      const a = pick([4,5,6,7,8,9,10,11,12]), m = rp(2,3);
+      const maxB = Math.max(pw(a,m) - pw(c,n) - 1, 1);
+      const b = rp(2, Math.min(maxB, 30));
+      const innerA = pw(a,m) - b - pw(c,n);
+      if (innerA <= 0) return null;
+      const d = pick([2,3,4,5,6,7,8,9]), p = rp(2,3);
+      const e = rp(2,20);
+      const val = innerA * (pw(d,p) + e);
+      if (val <= 0 || val > 1200) return null;
+      return {
+        question:`\\(\\left[${a}^{${m}} - (${b} + ${c}^{${n}})\\right] \\times (${d}^{${p}} + ${e})\\)`,
+        answer:val, type:'number'
+      };
+    } else if (t === 3) {
+      // {a^m × [b^n - c]} + d^p（大括號含中括號，再加）
+      const b = pick([3,4,5,6,7,8,9,10,11,12]), n = rp(2,3);
+      const c = rp(2, Math.min(pw(b,n)-1, 30));
+      const a = pick([2,3,4,5,6,7,8]), m = rp(2,3);
+      const d = pick([2,3,4,5,6,7,8,9,10,11,12]), p = rp(2,3);
+      const val = pw(a,m) * (pw(b,n) - c) + pw(d,p);
+      if (val <= 0 || val > 1200) return null;
+      return {
+        question:`\\(\\left\\{${a}^{${m}} \\times \\left[${b}^{${n}} - ${c}\\right]\\right\\} + ${d}^{${p}}\\)`,
+        answer:val, type:'number'
+      };
+    } else if (t === 4) {
+      // a^m ÷ b^n（互質底數，分數結果）
+      const pairs = [[2,3],[3,2],[2,5],[3,5],[5,3],[5,2],[4,3],[3,4],[7,3],[3,7],[5,4],[4,5]];
+      const [a,b] = pick(pairs);
+      const m = rp(2,3), n = rp(2,3);
+      return { question:`\\(${a}^{${m}} \\div ${b}^{${n}}\\) ＝ ？（格式：p/q）`, answer:fStr(pw(a,m),pw(b,n)), type:'text', answerPrefix:'' };
+    } else if (t === 5) {
+      // (a/b)^m ± (c/d)^n（分數底數加減，需通分）
+      const pairs = [[1,2],[1,3],[2,3],[1,4],[3,4],[1,5],[2,5],[3,5],[1,6],[1,7],[1,8],[1,9],[1,10]];
+      const [a,b] = pick(pairs);
+      const [c,d] = pick(pairs);
+      const m = rp(2,3), n = rp(2,3);
+      const n1=pw(a,m), d1=pw(b,m), n2=pw(c,n), d2=pw(d,n);
+      const op = randInt(0,1) === 0 ? '+' : '-';
+      const [rn, rd] = op==='+' ? fAdd(n1,d1,n2,d2) : fSub(n1,d1,n2,d2);
+      if (rn <= 0 || rd > 3000) return null;
+      const aFrac = a===1?`\\dfrac{1}{${b}}`:`\\dfrac{${a}}{${b}}`;
+      const cFrac = c===1?`\\dfrac{1}{${d}}`:`\\dfrac{${c}}{${d}}`;
+      return {
+        question:`\\(\\left(${aFrac}\\right)^{${m}} ${op} \\left(${cFrac}\\right)^{${n}}\\) ＝ ？（格式：p/q）`,
+        answer: fStr(rn,rd), type:'text', answerPrefix:''
+      };
+    } else {
+      // (a/b)^m × (c/d)^n（分數底數相乘）
+      const pairs = [[1,2],[2,3],[1,3],[3,4],[1,4],[2,5],[3,5],[1,5],[1,6],[1,7],[1,8],[1,9]];
+      const [a,b] = pick(pairs);
+      const [c,d] = pick(pairs);
+      const m = rp(2,3), n = rp(2,3);
+      const [rn, rd] = fMul(pw(a,m), pw(b,m), pw(c,n), pw(d,n));
+      if (rd > 3000 || rn === 0) return null;
+      const aFrac = a===1?`\\dfrac{1}{${b}}`:`\\dfrac{${a}}{${b}}`;
+      const cFrac = c===1?`\\dfrac{1}{${d}}`:`\\dfrac{${c}}{${d}}`;
+      return {
+        question:`\\(\\left(${aFrac}\\right)^{${m}} \\times \\left(${cFrac}\\right)^{${n}}\\) ＝ ？（格式：p/q 或整數）`,
+        answer: fStr(rn,rd), type:'text', answerPrefix:''
+      };
+    }
   }
 }
 
@@ -6117,6 +6510,7 @@ const JR_GENERATORS = {
   '7a-prime':     gen7aPrime,
   // 七上 指數律與科學記號
   '7a-exp':       gen7aExp,
+  '7a-exp-arith': gen7aExpArith,
   '7a-sci':       gen7aSci,
   // 七上 一元一次式與方程式
   '7a-poly':      gen7aPoly,
