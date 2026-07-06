@@ -383,9 +383,9 @@ function genB1Exp(level) {
 
 function _b1Exp(level) {
   if (level === 'basic') {
-    const t = srRandInt(0, 3);
+    const t = srRandInt(0, 5);
     if (t === 0) {
-      // a^{-n} 求值 → 1/a^n
+      // a^{-n} → 1/a^n
       const a = [2,3,4,5][srRandInt(0,3)];
       const n = srRandInt(1,3);
       const den = Math.pow(a,n);
@@ -397,39 +397,59 @@ function _b1Exp(level) {
       return { question:`\\(\\left(\\dfrac{${a}}{${b}}\\right)^{-1}\\) ＝ ？（格式：p/q）`, answer:`${b}/${a}`, type:'text', answerPrefix:'' };
     } else if (t === 2) {
       // a^0 = 1
-      const a = srRandInt(2, 9);
+      const a = srRandInt(2,9);
       return { question:`\\(${a}^{0}\\) ＝ ？`, answer:1, type:'number', answerPrefix:'' };
-    } else {
+    } else if (t === 3) {
       // 求 x：a^x = 1/a^n → x = -n
       const a = [2,3,5][srRandInt(0,2)];
       const n = srRandInt(1,3);
       const den = Math.pow(a,n);
       return { question:`\\(${a}^{x} = \\dfrac{1}{${den}}\\)，求 \\(x\\)`, answer:-n, type:'number', answerPrefix:'x' };
+    } else if (t === 4) {
+      // 整數底有理指數 a^(p/q) → 整數；偶爾出負指數版 → 分數
+      const tbl = [
+        [4,1,2,2],[4,3,2,8],[8,1,3,2],[8,2,3,4],
+        [9,1,2,3],[9,3,2,27],[16,1,4,2],[16,3,4,8],[16,1,2,4],
+        [25,1,2,5],[27,1,3,3],[27,2,3,9],
+        [32,2,5,4],[32,3,5,8],[64,1,3,4],[64,2,3,16],[81,1,4,3],[81,3,4,27],
+      ];
+      const [base,p,q,ans] = tbl[srRandInt(0,tbl.length-1)];
+      if (srRandInt(0,2)===0) {
+        return { question:`\\(${base}^{-\\frac{${p}}{${q}}}\\) ＝ ？（格式：p/q）`, answer:`1/${ans}`, type:'text', answerPrefix:'' };
+      }
+      return { question:`\\(${base}^{\\frac{${p}}{${q}}}\\) ＝ ？`, answer:ans, type:'number', answerPrefix:'' };
+    } else {
+      // 分數底有理指數 (a/b)^(±p/q) → 分數
+      const tbl = [
+        [4,9,1,2,2,3],[4,9,3,2,8,27],[8,27,1,3,2,3],[8,27,2,3,4,9],
+        [4,25,1,2,2,5],[27,8,1,3,3,2],[27,8,2,3,9,4],
+        [16,81,1,4,2,3],[16,81,3,4,8,27],[125,8,2,3,25,4],[125,8,1,3,5,2],
+      ];
+      const [a,b,p,q,rn,rd] = tbl[srRandInt(0,tbl.length-1)];
+      const neg = srRandInt(0,1)===0;
+      const [ansN,ansD] = neg ? [rd,rn] : [rn,rd];
+      const sign = neg ? '-' : '';
+      const expStr = p===1 ? `${sign}\\frac{1}{${q}}` : `${sign}\\frac{${p}}{${q}}`;
+      const ansStr = `${ansN}/${ansD}`;
+      return { question:`\\(\\left(\\dfrac{${a}}{${b}}\\right)^{${expStr}}\\) ＝ ？（格式：p/q）`, answer:ansStr, type:'text', answerPrefix:'' };
     }
   } else if (level === 'medium') {
-    const t = srRandInt(0, 3);
+    const t = srRandInt(0, 4);
     if (t === 0) {
-      // a^m × a^{-n}（m>n，整數結果）
+      // a^m × a^{-n}
       const a = [2,3,4][srRandInt(0,2)];
       const n = srRandInt(1,3), m = n + srRandInt(1,3);
       const val = Math.pow(a, m-n);
       if (val > 256) return null;
       return { question:`\\(${a}^{${m}} \\times ${a}^{-${n}}\\) ＝ ？`, answer:val, type:'number', answerPrefix:'' };
     } else if (t === 1) {
-      // (a^{-m})^{-n} = a^{mn}（整數結果）
+      // (a^{-m})^{-n} = a^{mn}
       const a = [2,3][srRandInt(0,1)];
       const m = srRandInt(1,3), n = srRandInt(1,3);
       if (Math.pow(a,m*n) > 512) return null;
       return { question:`\\((${a}^{-${m}})^{-${n}}\\) ＝ ？`, answer:Math.pow(a,m*n), type:'number', answerPrefix:'' };
     } else if (t === 2) {
-      // a^{-1} + b^{-1} = (a+b)/(ab)（分數結果）
-      const pairs = [[2,3],[2,4],[3,6],[2,6],[4,6],[3,4]];
-      const [a,b] = pairs[srRandInt(0, pairs.length-1)];
-      const g = srGcd(a+b, a*b);
-      const sn = (a+b)/g, sd = (a*b)/g;
-      return { question:`\\(${a}^{-1} + ${b}^{-1}\\) ＝ ？（格式：p/q）`, answer:`${sn}/${sd}`, type:'text', answerPrefix:'' };
-    } else {
-      // (a/b)^{-n} = (b/a)^n（整數或分數）
+      // (a/b)^{-n}
       const pairs = [[2,3],[3,2],[2,5],[3,4]];
       const [a,b] = pairs[srRandInt(0, pairs.length-1)];
       const n = srRandInt(2,3);
@@ -438,12 +458,39 @@ function _b1Exp(level) {
       const sn = numAns/g, sd = denAns/g;
       if (sd === 1) return { question:`\\(\\left(\\dfrac{${a}}{${b}}\\right)^{-${n}}\\) ＝ ？`, answer:sn, type:'number', answerPrefix:'' };
       return { question:`\\(\\left(\\dfrac{${a}}{${b}}\\right)^{-${n}}\\) ＝ ？（格式：p/q）`, answer:`${sn}/${sd}`, type:'text', answerPrefix:'' };
+    } else if (t === 3) {
+      // 條件題：given a^r=K，求 a^(p/q)（整數答案）
+      // 驗證: a^(p/q) = (a^r)^(p/(qr))，需為整數
+      const tbl = [
+        [3, 4,  6,1, 16],   // a^3=4  → a^6=16
+        [3, 9,  6,1, 81],   // a^3=9  → a^6=81
+        [3, 16, 3,2, 4],    // a^3=16 → a^(3/2)=4
+        [3, 16, 3,4, 2],    // a^3=16 → a^(3/4)=2
+        [3, 32, 3,5, 2],    // a^3=32 → a^(3/5)=2
+        [3, 32, 6,5, 4],    // a^3=32 → a^(6/5)=4
+        [2, 27, 2,3, 3],    // a^2=27 → a^(2/3)=3
+        [2, 27, 4,3, 9],    // a^2=27 → a^(4/3)=9
+        [4, 32, 4,5, 2],    // a^4=32 → a^(4/5)=2
+        [4, 32, 8,5, 4],    // a^4=32 → a^(8/5)=4
+        [3, 27, 2,1, 9],    // a^3=27 → a^2=9
+        [4, 81, 3,1, 27],   // a^4=81 → a^3=27
+      ];
+      const [gE,gV,fN,fD,fV] = tbl[srRandInt(0,tbl.length-1)];
+      const findStr = fD===1 ? `${fN}` : `\\dfrac{${fN}}{${fD}}`;
+      return { question:`若 \\(a > 0\\)，\\(a^{${gE}} = ${gV}\\)，求 \\(a^{${findStr}}\\)`, answer:fV, type:'number', answerPrefix:'' };
+    } else {
+      // a^{-1}+b^{-1} = (a+b)/(ab)
+      const pairs = [[2,3],[2,4],[3,6],[2,6],[4,6],[3,4]];
+      const [a,b] = pairs[srRandInt(0, pairs.length-1)];
+      const g = srGcd(a+b, a*b);
+      const sn = (a+b)/g, sd = (a*b)/g;
+      return { question:`\\(${a}^{-1} + ${b}^{-1}\\) ＝ ？（格式：p/q）`, answer:`${sn}/${sd}`, type:'text', answerPrefix:'' };
     }
   } else {
     // hard
-    const t = srRandInt(0, 3);
+    const t = srRandInt(0, 4);
     if (t === 0) {
-      // (a^m × a^{-n}) / (a^{-p} × a^q) = a^{m-n+p-q}
+      // (a^m × a^{-n}) / (a^{-p} × a^q) 同底化簡
       const a = [2,3][srRandInt(0,1)];
       const m = srRandInt(2,4), n = srRandInt(1,3), p = srRandInt(1,3), q = srRandInt(1,3);
       const exp = m - n + p - q;
@@ -456,7 +503,7 @@ function _b1Exp(level) {
       const den = Math.pow(a, -exp);
       return { question:`\\(\\dfrac{${a}^{${m}} \\times ${a}^{-${n}}}{${a}^{-${p}} \\times ${a}^{${q}}}\\) ＝ ？（格式：p/q）`, answer:`1/${den}`, type:'text', answerPrefix:'' };
     } else if (t === 1) {
-      // (a^{-m} + b^{-n})^{-1} = (a^m × b^n) / (a^m + b^n)
+      // (a^{-m}+b^{-n})^{-1}
       const a = [2,3][srRandInt(0,1)], m = srRandInt(1,2);
       const b = [2,3,4][srRandInt(0,2)], n = srRandInt(1,2);
       const am = Math.pow(a,m), bn = Math.pow(b,n);
@@ -466,7 +513,37 @@ function _b1Exp(level) {
       if (sd === 1) return { question:`\\((${a}^{-${m}} + ${b}^{-${n}})^{-1}\\) ＝ ？`, answer:sn, type:'number', answerPrefix:'' };
       return { question:`\\((${a}^{-${m}} + ${b}^{-${n}})^{-1}\\) ＝ ？（格式：p/q）`, answer:`${sn}/${sd}`, type:'text', answerPrefix:'' };
     } else if (t === 2) {
-      // a^{-m} × b^n ÷ (a^p × b^{-q}) = b^{n+q} / a^{m+p}
+      // 雙條件：given a^r=K1, b^s=K2，求 a^(p/q) ± b^(t/u)（整數答案）
+      // 每列: [aGE,aGV,aFN,aFD,aFV, bGE,bGV,bFN,bFD,bFV, sign(+1/-1)]
+      const tbl = [
+        [3,16,3,2,4,  2,27,4,3,9,  -1],  // a^(3/2)=4, b^(4/3)=9 → 4-9=-5
+        [3,27,2,1,9,  2,16,3,2,8,  -1],  // a^2=9, b^(3/2)=8 → 9-8=1
+        [3,16,3,4,2,  2,27,2,3,3,   1],  // a^(3/4)=2, b^(2/3)=3 → 2+3=5
+        [4,81,3,1,27, 3,8, 2,1,4,   1],  // a^3=27, b^2=4 → 27+4=31
+        [3,32,6,5,4,  2,27,4,3,9,   1],  // a^(6/5)=4, b^(4/3)=9 → 4+9=13
+        [3,16,3,2,4,  4,32,8,5,4,   1],  // a^(3/2)=4, b^(8/5)=4 → 4+4=8
+      ];
+      const row = tbl[srRandInt(0,tbl.length-1)];
+      const [aGE,aGV,aFN,aFD,aFV, bGE,bGV,bFN,bFD,bFV, sign] = row;
+      const aFS = aFD===1 ? `${aFN}` : `\\dfrac{${aFN}}{${aFD}}`;
+      const bFS = bFD===1 ? `${bFN}` : `\\dfrac{${bFN}}{${bFD}}`;
+      const op = sign===1 ? '+' : '-';
+      const ans = aFV + sign * bFV;
+      return {
+        question:`設 \\(a > 0,\\ b > 0\\)，若 \\(a^{${aGE}} = ${aGV}\\)，\\(b^{${bGE}} = ${bGV}\\)，求 \\(a^{${aFS}} ${op} b^{${bFS}}\\)`,
+        answer:ans, type:'number', answerPrefix:''
+      };
+    } else if (t === 3) {
+      // a+a^{-1}=k，求 a²+a^{-2}=k²-2 或 a³+a^{-3}=k³-3k
+      const k = srRandInt(3,6);
+      if (srRandInt(0,1)===0) {
+        return { question:`設 \\(a > 0\\)，若 \\(a + a^{-1} = ${k}\\)，求 \\(a^2 + a^{-2}\\)`, answer:k*k-2, type:'number', answerPrefix:'' };
+      } else {
+        const ans = k*k*k - 3*k;
+        return { question:`設 \\(a > 0\\)，若 \\(a + a^{-1} = ${k}\\)，求 \\(a^3 + a^{-3}\\)`, answer:ans, type:'number', answerPrefix:'' };
+      }
+    } else {
+      // 兩底數：a^{-m}×b^n÷(a^p×b^{-q})
       const bases = [[2,3],[2,5],[3,5]];
       const [a,b] = bases[srRandInt(0,2)];
       const m = srRandInt(1,2), n = srRandInt(1,3), p = srRandInt(1,2), q = srRandInt(1,2);
@@ -476,13 +553,6 @@ function _b1Exp(level) {
       if (sn > 200 || sd > 200) return null;
       if (sd === 1) return { question:`\\(${a}^{-${m}} \\times ${b}^{${n}} \\div (${a}^{${p}} \\times ${b}^{-${q}})\\) ＝ ？`, answer:sn, type:'number', answerPrefix:'' };
       return { question:`\\(${a}^{-${m}} \\times ${b}^{${n}} \\div (${a}^{${p}} \\times ${b}^{-${q}})\\) ＝ ？（格式：p/q）`, answer:`${sn}/${sd}`, type:'text', answerPrefix:'' };
-    } else {
-      // a^{-m} × (a^k)^n ÷ (a^j)^{-p}（轉同底再合併）
-      const a = [2,3][srRandInt(0,1)];
-      const k = srRandInt(2,3), n = srRandInt(1,2), j = srRandInt(2,3), p = srRandInt(1,2), m = srRandInt(1,3);
-      const totalExp = -m + k*n + j*p;
-      if (totalExp <= 0 || Math.pow(a, totalExp) > 512) return null;
-      return { question:`\\(${a}^{-${m}} \\times (${a}^{${k}})^{${n}} \\div (${a}^{${j}})^{-${p}}\\) ＝ ？`, answer:Math.pow(a,totalExp), type:'number', answerPrefix:'' };
     }
   }
 }
