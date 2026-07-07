@@ -2196,7 +2196,7 @@ function _7bPoly(level) {
 // ═══════════════════════════════════════════════════════════════════
 function _gcd(a, b) { return b === 0 ? a : _gcd(b, a % b); }
 
-function _makeSVG({ pts=[], lines=[], size=150, range=5 }) {
+function _makeSVG({ pts=[], lines=[], segs=[], size=150, range=5 }) {
   const S=size, R=range, CX=S/2, CY=S/2, PAD=16;
   const sc=(S/2-PAD)/R;
   const px=x=>+(CX+x*sc).toFixed(1);
@@ -2230,6 +2230,11 @@ function _makeSVG({ pts=[], lines=[], size=150, range=5 }) {
     p.push(`<line x1="${CX-2}" y1="${py(i)}" x2="${CX+2}" y2="${py(i)}" stroke="#555" stroke-width="1"/>`);
     p.push(`<text x="${px(i)}" y="${CY+11}" font-size="8" fill="#888" text-anchor="middle">${i}</text>`);
     p.push(`<text x="${CX-4}" y="${py(i)+3}" font-size="8" fill="#888" text-anchor="end">${i}</text>`);
+  }
+
+  // 線段（任意兩端點，數學座標）
+  for(const {x1,y1,x2,y2,color='#90A4AE'} of segs){
+    p.push(`<line x1="${px(x1)}" y1="${py(y1)}" x2="${px(x2)}" y2="${py(y2)}" stroke="${color}" stroke-width="1.5"/>`);
   }
 
   // 直線（ax+by=c）
@@ -2308,8 +2313,8 @@ function _7bCoord(level) {
                ...coord(mx,my), graph:g };
     }
   } else {
-    // hard：三點讀座標（t=0）或已知中點求另一端點（t=1）
-    const t=randInt(0,1);
+    // hard：三點讀座標（t=0）、中點求端點（t=1）、三角形面積（t=2）
+    const t=randInt(0,2);
     if(t===0){
       const pts3 = [];
       const labels = ['A','B','C'];
@@ -2322,13 +2327,34 @@ function _7bCoord(level) {
       const g=_makeSVG({ pts: pts3.map((p,i)=>({...p, label:labels[i], color:colors[i]})), size:200 });
       return { question:`根據右圖，寫出點 ${labels[ask]} 的座標`, ...coord(pts3[ask].x, pts3[ask].y), graph:g };
     }
-    // t=1：已知 A 端點和中點 M，求另一端點 B
-    const x1=randInt(-5,5), y1=randInt(-5,5);
-    const mx=randInt(-4,4), my=randInt(-4,4);
-    const x2=2*mx-x1, y2=2*my-y1;
-    const g=_makeSVG({pts:[{x:x1,y:y1,label:'A'},{x:mx,y:my,label:'M',color:'#e07000'},{x:x2,y:y2,label:'B',color:'#2E7D32'}], size:200});
-    return { question:`線段 \\(AB\\) 的中點 \\(M(${mx},\\,${my})\\)，已知 \\(A(${x1},\\,${y1})\\)，求 \\(B\\) 的座標`,
-             ...coord(x2,y2), graph:g };
+    if(t===1){
+      // 已知 A 端點和中點 M，求另一端點 B（確保 B 在圖範圍內）
+      const x1=randInt(-4,4), y1=randInt(-4,4);
+      const mx=randInt(-3,3), my=randInt(-3,3);
+      const x2=2*mx-x1, y2=2*my-y1;
+      if(Math.abs(x2)>4||Math.abs(y2)>4) return null;
+      const g=_makeSVG({pts:[{x:x1,y:y1,label:'A'},{x:mx,y:my,label:'M',color:'#e07000'},{x:x2,y:y2,label:'B',color:'#2E7D32'}], size:200});
+      return { question:`線段 \\(AB\\) 的中點 \\(M(${mx},\\,${my})\\)，已知 \\(A(${x1},\\,${y1})\\)，求 \\(B\\) 的座標`,
+               ...coord(x2,y2), graph:g };
+    }
+    // t===2：三角形面積（底高法，底為水平線段）
+    const y0=randInt(-3,3);
+    const xa=pick([-4,-3,-2,-1]), xb=pick([1,2,3,4]);
+    const base=xb-xa;
+    const yc=randInt(-4,4);
+    if(yc===y0) return null;
+    const height=Math.abs(yc-y0);
+    const area2=base*height;
+    if(area2%2!==0||area2<4||area2>24) return null;
+    const area=area2/2;
+    const xc=randInt(-3,3);
+    const g=_makeSVG({
+      pts:[{x:xa,y:y0,label:'A'},{x:xb,y:y0,label:'B',color:'#2E7D32'},{x:xc,y:yc,label:'C',color:'#7B1FA2'}],
+      segs:[{x1:xa,y1:y0,x2:xb,y2:y0},{x1:xb,y1:y0,x2:xc,y2:yc},{x1:xc,y1:yc,x2:xa,y2:y0}],
+      size:200
+    });
+    return { question:`三角形 \\(ABC\\)，\\(A(${xa},\\,${y0})\\)、\\(B(${xb},\\,${y0})\\)、\\(C(${xc},\\,${yc})\\)，求面積`,
+             answer:area, type:'number', graph:g, answerPrefix:'面積' };
   }
 }
 
@@ -2409,7 +2435,7 @@ function _7bLinePic(level) {
     if(a1*b2===a2*b1) return null;
     const g=_makeSVG({
       lines:[{a:a1,b:b1,c:c1},{a:a2,b:b2,c:c2,color:'#2E7D32'}],
-      pts:[{x:x0,y:y0,label:`(${x0},${y0})`}]
+      pts:[{x:x0,y:y0,label:'',color:'#e07000'}]
     });
     return {
       question:`根據右圖，兩直線 \\(${_eqLine(a1,b1,c1)}\\) 與 \\(${_eqLine(a2,b2,c2)}\\) 的交點座標`,
@@ -2437,16 +2463,19 @@ function _7bRatio(level) {
   if (level==='basic') {
     // a:b = c:d，隱藏其中一項，均為正整數
     const p=rnzInt(1,8), q=rnzInt(1,8), k=rnzInt(2,6);
+    if(p===q) return null; // 避免出現 k:k 型等比
     const c=p*k, d=q*k;
     const t=randInt(0,6);
     // t=5: a:b=p:q，求比值 a/b（即 p/q 的分數）
     if(t===5){
       const pa=randInt(1,8),qa=randInt(1,8);
+      if(pa===qa) return null;
       return {question:`\\(a:b=${pa}:${qa}\\)，求比值 \\(\\dfrac{a}{b}\\)`,answer:frac(pa,qa),type:'fraction',answerPrefix:'\\(\\dfrac{a}{b}\\)'};
     }
     // t=6: a:b=p:q，a=k，求 b
     if(t===6){
       const pa=randInt(1,7),qa=randInt(1,7),ka=randInt(2,8);
+      if(pa===qa) return null;
       return {question:`\\(a:b=${pa}:${qa}\\)，\\(a=${pa*ka}\\)，求 \\(b\\)`,answer:qa*ka,type:'number',answerPrefix:'\\(b\\)'};
     }
     if (t < 4) {
@@ -2471,6 +2500,7 @@ function _7bRatio(level) {
     if(mt===2){
       // a:b=p:q，求 a/(a+b) 的分數值
       const pa=randInt(1,8),qa=randInt(1,8);
+      if(pa===qa) return null;
       return {question:`\\(a:b=${pa}:${qa}\\)，求 \\(\\dfrac{a}{a+b}\\)`,answer:frac(pa,pa+qa),type:'fraction',answerPrefix:'\\(\\dfrac{a}{a+b}\\)'};
     }
     if (mt===0) {
@@ -2497,6 +2527,7 @@ function _7bRatio(level) {
   } else {
     // (ax+b):(cx+d)=p:q，大係數，答案可為分數
     const p=rnzInt(1,12), q=rnzInt(1,12), a=rnzInt(1,10), c=rnzInt(1,10);
+    if(p===q) return null; // 避免 k:k 等比
     const b=randInt(-12,12), d=randInt(-12,12);
     const coef=q*a-p*c;
     if (coef===0) return null;

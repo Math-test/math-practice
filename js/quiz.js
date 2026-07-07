@@ -662,7 +662,7 @@ function renderAnswerSheet(questions, topicLabel, levelLabel, dateStr) {
       }
     } else {
       const _ip = q.sym ? `x ${q.sym} ` : (q.answerPrefix && /[<>≤≥]$/.test(q.answerPrefix) ? `${q.answerPrefix} ` : '');
-      val = _ip + (q.type === 'fraction' ? `\\(${fracToLatex(q.answer)}\\)` : q.type === 'text' ? String(q.answer) : dStr(q.answer));
+      val = _ip + (q.type === 'fraction' ? `\\(${fracToLatex(q.answer)}\\)` : q.type === 'text' ? String(q.answer) : q.type === 'sci' ? `\\(${q.sciCoef} \\times 10^{${q.sciExp}}\\)` : dStr(q.answer));
     }
     return `<div class="ans-item"><span class="ans-num">${idx + 1}.</span><span class="ans-val">${val}</span></div>`;
   }
