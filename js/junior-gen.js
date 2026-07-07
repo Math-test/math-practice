@@ -2433,15 +2433,10 @@ function _7bLinePic(level) {
       tries++;
     } while(a1*b2===a2*b1 && tries<20);
     if(a1*b2===a2*b1) return null;
-    const g=_makeSVG({
-      lines:[{a:a1,b:b1,c:c1},{a:a2,b:b2,c:c2,color:'#2E7D32'}],
-      pts:[{x:x0,y:y0,label:'',color:'#e07000'}]
-    });
     return {
-      question:`根據右圖，兩直線 \\(${_eqLine(a1,b1,c1)}\\) 與 \\(${_eqLine(a2,b2,c2)}\\) 的交點座標`,
+      question:`求兩直線 \\(${_eqLine(a1,b1,c1)}\\) 與 \\(${_eqLine(a2,b2,c2)}\\) 的交點座標`,
       coordAnswer: true,
-      answerParts: [{ answer:x0, type:'number' }, { answer:y0, type:'number' }],
-      graph:g
+      answerParts: [{ answer:x0, type:'number' }, { answer:y0, type:'number' }]
     };
   }
 }
