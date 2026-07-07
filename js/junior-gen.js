@@ -2376,9 +2376,8 @@ function _7bLinePic(level) {
       const xVal=randInt(-5,5);
       const yVal=a*xVal+b;
       if(Math.abs(yVal)>15) return null;
-      const g=_makeSVG({ lines:[{a,b:-1,c:-b}], pts:[{x:xVal,y:yVal,label:`(${xVal},${yVal})`}] });
       return { question:`直線 \\(y=${rhs}\\)，當 \\(x=${xVal}\\) 時`,
-               answer:yVal, type:'number', graph:g, answerPrefix:'y' };
+               answer:yVal, type:'number', answerPrefix:'y' };
     } else {
       // 求 x：y = ax+b → x = (yAsk-b)/a
       const yAsk=randInt(-6,6);
@@ -2386,9 +2385,8 @@ function _7bLinePic(level) {
       if(num%a!==0) return null;
       const xAns=num/a;
       if(Math.abs(xAns)>6) return null;
-      const g=_makeSVG({ lines:[{a,b:-1,c:-b}], pts:[{x:xAns,y:yAsk,label:`(${xAns},${yAsk})`}] });
       return { question:`直線 \\(y=${rhs}\\)，當 \\(y=${yAsk}\\) 時`,
-               answer:xAns, type:'number', graph:g, answerPrefix:'x' };
+               answer:xAns, type:'number', answerPrefix:'x' };
     }
 
   } else if (level==='medium') {
@@ -2403,9 +2401,8 @@ function _7bLinePic(level) {
       if(yNum%b!==0) return null;
       const yAns=yNum/b;
       if(Math.abs(yAns)>8) return null;
-      const g=_makeSVG({ lines:[{a,b,c}], pts:[{x:xAsk,y:yAns,label:`(${xAsk},${yAns})`}] });
       return { question:`直線 \\(${_eqLine(a,b,c)}\\)，當 \\(x=${xAsk}\\) 時`,
-               answer:yAns, type:'number', graph:g, answerPrefix:'y' };
+               answer:yAns, type:'number', answerPrefix:'y' };
     } else {
       // 求 x：ax+by=c → x=(c-b*yAsk)/a
       const a=pick([2,3,4,-2,-3,-4]), b=rnzInt(-5,5);
@@ -2416,9 +2413,8 @@ function _7bLinePic(level) {
       if(xNum%a!==0) return null;
       const xAns=xNum/a;
       if(Math.abs(xAns)>7) return null;
-      const g=_makeSVG({ lines:[{a,b,c}], pts:[{x:xAns,y:yAsk,label:`(${xAns},${yAsk})`}] });
       return { question:`直線 \\(${_eqLine(a,b,c)}\\)，當 \\(y=${yAsk}\\) 時`,
-               answer:xAns, type:'number', graph:g, answerPrefix:'x' };
+               answer:xAns, type:'number', answerPrefix:'x' };
     }
 
   } else {
