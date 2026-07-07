@@ -166,19 +166,19 @@ function genB1AbsCalc(level) {
 function _b1AbsCalc(level) {
   if (level === 'basic') {
     // 基礎：1個絕對值，係數為1（含分數變體）
-    const t = srRandInt(0, 2);
+    const t = srRandInt(0, 3);
     if (t === 0) {
       // |x| = a
       const a = srRandInt(1, 12);
-      return { question: `解方程式 \\(\\left|x\\right| = ${a}\\)`, answer: `${-a} 或 ${a}`, type: 'text', answerPrefix: 'x =' };
+      return { question: `解方程式 \\(\\left|x\\right| = ${a}\\)`, answer: `${-a} 或 ${a}`, type: 'text', answerPrefix: 'x' };
     } else if (t === 1) {
       // |x + a| = b（整數）
       const a = srRnz(-8, 8), b = srRandInt(1, 10);
       const x1 = b - a, x2 = -b - a;
       const ans = x1 < x2 ? `${x1} 或 ${x2}` : `${x2} 或 ${x1}`;
       const aStr = a > 0 ? `+${a}` : `${a}`;
-      return { question: `解方程式 \\(\\left|x${aStr}\\right| = ${b}\\)`, answer: ans, type: 'text', answerPrefix: 'x =' };
-    } else {
+      return { question: `解方程式 \\(\\left|x${aStr}\\right| = ${b}\\)`, answer: ans, type: 'text', answerPrefix: 'x' };
+    } else if (t === 2) {
       // |x + p/2| = b（分數在絕對值內，p為奇數）
       const oddPool = [1, 3, 5, -1, -3, -5];
       const p = oddPool[srRandInt(0, oddPool.length - 1)];
@@ -186,11 +186,22 @@ function _b1AbsCalc(level) {
       // x1=(2b-p)/2, x2=-(2b+p)/2；x1>x2 恆成立（x1-x2=2b>0）
       const ans = `${_srFracStr(-(2*b+p), 2)} 或 ${_srFracStr(2*b-p, 2)}`;
       const pDisp = p > 0 ? `+\\dfrac{${p}}{2}` : `-\\dfrac{${Math.abs(p)}}{2}`;
-      return { question: `解方程式 \\(\\left|x${pDisp}\\right| = ${b}\\)（格式：a/b 或 c/d）`, answer: ans, type: 'text', answerPrefix: 'x =' };
+      return { question: `解方程式 \\(\\left|x${pDisp}\\right| = ${b}\\)（格式：a/b 或 c/d）`, answer: ans, type: 'text', answerPrefix: 'x' };
+    } else {
+      // 反推：給兩解求 k，或給一解求另一解
+      const a = srRnz(-6, 6), k = srRandInt(2, 8);
+      const rx1 = k - a, rx2 = -k - a;
+      const aStr = a > 0 ? `+${a}` : `${a}`;
+      if (srRandInt(0, 1) === 0) {
+        const s = rx1 < rx2 ? `${rx1} 和 ${rx2}` : `${rx2} 和 ${rx1}`;
+        return { question: `\\(\\left|x${aStr}\\right| = k\\) 的兩解為 \\(${s}\\)，求 \\(k\\)`, answer: k, type: 'number', answerPrefix: 'k' };
+      } else {
+        return { question: `\\(\\left|x${aStr}\\right| = ${k}\\) 有一解 \\(x=${rx1}\\)，求另一解`, answer: rx2, type: 'number', answerPrefix: 'x' };
+      }
     }
   } else if (level === 'medium') {
     // 中等：1個絕對值，需化簡或含分數
-    const t = srRandInt(0, 3);
+    const t = srRandInt(0, 5);
     if (t === 0) {
       // |ax + b| = c（a ∈ {2,3,4}）
       const a = [2, 3, 4][srRandInt(0, 2)];
@@ -200,7 +211,7 @@ function _b1AbsCalc(level) {
       const x1 = n1 / a, x2 = n2 / a;
       const bStr = b === 0 ? '' : b > 0 ? `+${b}` : `${b}`;
       const ans = x1 < x2 ? `${x1} 或 ${x2}` : `${x2} 或 ${x1}`;
-      return { question: `解方程式 \\(\\left|${a}x${bStr}\\right| = ${c}\\)`, answer: ans, type: 'text', answerPrefix: 'x =' };
+      return { question: `解方程式 \\(\\left|${a}x${bStr}\\right| = ${c}\\)`, answer: ans, type: 'text', answerPrefix: 'x' };
     } else if (t === 1) {
       // k|x + a| = c → |x+a| = c/k
       const k = srRandInt(2, 4), m = srRandInt(1, 6);
@@ -209,7 +220,7 @@ function _b1AbsCalc(level) {
       const x1 = m - a, x2 = -m - a;
       const ans = x1 < x2 ? `${x1} 或 ${x2}` : `${x2} 或 ${x1}`;
       const aStr = a > 0 ? `+${a}` : `${a}`;
-      return { question: `解方程式 \\(${k}\\left|x${aStr}\\right| = ${c}\\)`, answer: ans, type: 'text', answerPrefix: 'x =' };
+      return { question: `解方程式 \\(${k}\\left|x${aStr}\\right| = ${c}\\)`, answer: ans, type: 'text', answerPrefix: 'x' };
     } else if (t === 2) {
       // |x + a| + k = rhs → |x+a| = rhs−k
       const a = srRnz(-6, 6), k = srRandInt(1, 5), rhs = srRandInt(k + 2, k + 9);
@@ -217,8 +228,8 @@ function _b1AbsCalc(level) {
       const x1 = b - a, x2 = -b - a;
       const ans = x1 < x2 ? `${x1} 或 ${x2}` : `${x2} 或 ${x1}`;
       const aStr = a > 0 ? `+${a}` : `${a}`;
-      return { question: `解方程式 \\(\\left|x${aStr}\\right| + ${k} = ${rhs}\\)`, answer: ans, type: 'text', answerPrefix: 'x =' };
-    } else {
+      return { question: `解方程式 \\(\\left|x${aStr}\\right| + ${k} = ${rhs}\\)`, answer: ans, type: 'text', answerPrefix: 'x' };
+    } else if (t === 3) {
       // |x + a| = p/2（分數在右側，p為奇數正整數）
       const oddPos = [1, 3, 5, 7, 9];
       const p = oddPos[srRandInt(0, oddPos.length - 1)];
@@ -226,7 +237,27 @@ function _b1AbsCalc(level) {
       // x1=(p-2a)/2, x2=-(p+2a)/2；x1>x2 恆成立（x1-x2=p>0）
       const ans = `${_srFracStr(-(p+2*a), 2)} 或 ${_srFracStr(p-2*a, 2)}`;
       const aStr = a === 0 ? '' : a > 0 ? `+${a}` : `${a}`;
-      return { question: `解方程式 \\(\\left|x${aStr}\\right| = \\dfrac{${p}}{2}\\)（格式：a/b 或 c/d）`, answer: ans, type: 'text', answerPrefix: 'x =' };
+      return { question: `解方程式 \\(\\left|x${aStr}\\right| = \\dfrac{${p}}{2}\\)（格式：a/b 或 c/d）`, answer: ans, type: 'text', answerPrefix: 'x' };
+    } else if (t === 4) {
+      // |x/n + a| = b，x 的係數為分數（整數解）
+      const n = [2, 3][srRandInt(0, 1)];
+      const a = srRnz(-4, 4), b = srRandInt(2, 6);
+      const rx1 = n * (b - a), rx2 = n * (-b - a);
+      if (rx1 === rx2) return null;
+      const aStr = a === 0 ? '' : a > 0 ? `+${a}` : `${a}`;
+      const ans = rx1 < rx2 ? `${rx1} 或 ${rx2}` : `${rx2} 或 ${rx1}`;
+      return { question: `解方程式 \\(\\left|\\dfrac{x}{${n}}${aStr}\\right| = ${b}\\)`, answer: ans, type: 'text', answerPrefix: 'x' };
+    } else {
+      // 反推：給兩解求 k，或給兩解和 k 求偏移量 c
+      const a = srRnz(-5, 5), k = srRandInt(2, 8);
+      const rx1 = k - a, rx2 = -k - a;
+      const aStr = a > 0 ? `+${a}` : `${a}`;
+      const s = rx1 < rx2 ? `${rx1} 和 ${rx2}` : `${rx2} 和 ${rx1}`;
+      if (srRandInt(0, 1) === 0) {
+        return { question: `\\(\\left|x${aStr}\\right| = k\\) 的兩解為 \\(${s}\\)，求 \\(k\\)`, answer: k, type: 'number', answerPrefix: 'k' };
+      } else {
+        return { question: `\\(\\left|x+c\\right| = ${k}\\) 的兩解為 \\(${s}\\)，求 \\(c\\)`, answer: a, type: 'number', answerPrefix: 'c' };
+      }
     }
   } else {
     // 困難：2個絕對值
@@ -241,7 +272,7 @@ function _b1AbsCalc(level) {
       const x = -(a + b) / 2;
       const aStr = a === 0 ? '' : a > 0 ? `+${a}` : `${a}`;
       const bStr = b === 0 ? '' : b > 0 ? `+${b}` : `${b}`;
-      return { question: `解方程式 \\(\\left|x${aStr}\\right| = \\left|x${bStr}\\right|\\)`, answer: x, type: 'number', answerPrefix: 'x =' };
+      return { question: `解方程式 \\(\\left|x${aStr}\\right| = \\left|x${bStr}\\right|\\)`, answer: x, type: 'number', answerPrefix: 'x' };
     } else {
       // |x−p| + |x−q| = c（p<q），兩個整數解
       const p = srRandInt(-5, 0), q = srRandInt(1, 5);
@@ -255,7 +286,7 @@ function _b1AbsCalc(level) {
       const qStr = q === 0 ? '' : q > 0 ? `-${q}` : `+${Math.abs(q)}`;
       return {
         question: `解方程式 \\(\\left|x${pStr}\\right| + \\left|x${qStr}\\right| = ${c}\\)`,
-        answer: `${x1} 或 ${x2}`, type: 'text', answerPrefix: 'x ='
+        answer: `${x1} 或 ${x2}`, type: 'text', answerPrefix: 'x'
       };
     }
   }
@@ -288,7 +319,7 @@ function _b1AbsIneq(level) {
     }
   } else if (level === 'medium') {
     // 中等：1個絕對值，需化簡或含分數
-    const t = srRandInt(0, 3);
+    const t = srRandInt(0, 5);
     if (t === 0) {
       // |ax+b| ≤ c（整數）
       const a = [2, 3, 4][srRandInt(0, 2)];
@@ -315,7 +346,7 @@ function _b1AbsIneq(level) {
       const lo = -m - a, hi = m - a;
       const aStr = a > 0 ? `+${a}` : `${a}`;
       return { question: `解不等式 \\(${k}\\left|x${aStr}\\right| < ${c}\\)（格式：c < x < d）`, answer: `${lo} < x < ${hi}`, type: 'text', answerPrefix: '' };
-    } else {
+    } else if (t === 3) {
       // |x+a| < p/2（分數在右側，p為奇數正整數）
       const oddPos = [1, 3, 5, 7];
       const p = oddPos[srRandInt(0, oddPos.length - 1)];
@@ -324,6 +355,27 @@ function _b1AbsIneq(level) {
       const loStr = _srFracStr(-(p + 2*a), 2), hiStr = _srFracStr(p - 2*a, 2);
       const aStr = a === 0 ? '' : a > 0 ? `+${a}` : `${a}`;
       return { question: `解不等式 \\(\\left|x${aStr}\\right| < \\dfrac{${p}}{2}\\)（格式：a/b < x < c/d）`, answer: `${loStr} < x < ${hiStr}`, type: 'text', answerPrefix: '' };
+    } else if (t === 4) {
+      // 反推：給解的範圍，求 k
+      const a = srRnz(-5, 5), k = srRandInt(2, 7);
+      const lo = -k - a, hi = k - a;
+      const aStr = a > 0 ? `+${a}` : `${a}`;
+      if (srRandInt(0, 1) === 0) {
+        return { question: `若 \\(\\left|x${aStr}\\right| \\leq k\\) 的解為 \\(${lo} \\leq x \\leq ${hi}\\)，求 \\(k\\)`, answer: k, type: 'number', answerPrefix: 'k' };
+      } else {
+        return { question: `若 \\(\\left|x${aStr}\\right| \\geq k\\) 的解為 \\(x \\leq ${lo}\\) 或 \\(x \\geq ${hi}\\)，求 \\(k\\)`, answer: k, type: 'number', answerPrefix: 'k' };
+      }
+    } else {
+      // 兩個絕對值（中等）：|x| + |x−a|（一個為 |x|，較簡單）
+      const a = srRandInt(1, 4);
+      const c = a + srRandInt(1, 3) * 2; // c > a，同奇偶性確保整數解
+      const x1 = (a - c) / 2, x2 = (a + c) / 2;
+      const qStr = `-${a}`;
+      if (srRandInt(0, 1) === 0) {
+        return { question: `解不等式 \\(\\left|x\\right|+\\left|x${qStr}\\right| \\leq ${c}\\)（格式：c ≤ x ≤ d）`, answer: `${x1} ≤ x ≤ ${x2}`, type: 'text', answerPrefix: '' };
+      } else {
+        return { question: `解不等式 \\(\\left|x\\right|+\\left|x${qStr}\\right| \\geq ${c}\\)（格式：x ≤ c 或 x ≥ d）`, answer: `x ≤ ${x1} 或 x ≥ ${x2}`, type: 'text', answerPrefix: '' };
+      }
     }
   } else {
     // 困難：2個絕對值
