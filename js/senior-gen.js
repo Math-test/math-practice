@@ -646,9 +646,10 @@ function _b1Exp(level) {
       const a = srRandInt(2,9);
       return { question:`\\(${a}^{0}\\) ＝ ？`, answer:1, type:'number', answerPrefix:'' };
     } else if (t === 3) {
-      // 求 x：a^x = 1/a^n → x = -n
-      const a = [2,3,5][srRandInt(0,2)];
-      const n = srRandInt(1,3);
+      // 求 x：a^x = 1/a^n → x = -n（擴大底數與指數增加多樣性）
+      const a = [2,3,5,7][srRandInt(0,3)];
+      const maxN = a <= 3 ? 4 : 3;
+      const n = srRandInt(1, maxN);
       const den = Math.pow(a,n);
       return { question:`\\(${a}^{x} = \\dfrac{1}{${den}}\\)，求 \\(x\\)`, answer:-n, type:'number', answerPrefix:'x' };
     } else if (t === 4) {
@@ -722,7 +723,7 @@ function _b1Exp(level) {
         [4, 81, 3,1, 27],   // a^4=81 → a^3=27
       ];
       const [gE,gV,fN,fD,fV] = tbl[srRandInt(0,tbl.length-1)];
-      const findStr = fD===1 ? `${fN}` : `\\dfrac{${fN}}{${fD}}`;
+      const findStr = fD===1 ? `${fN}` : `\\frac{${fN}}{${fD}}`;
       return { question:`若 \\(a > 0\\)，\\(a^{${gE}} = ${gV}\\)，求 \\(a^{${findStr}}\\)`, answer:fV, type:'number', answerPrefix:'' };
     } else {
       // a^{-1}+b^{-1} = (a+b)/(ab)
@@ -771,8 +772,8 @@ function _b1Exp(level) {
       ];
       const row = tbl[srRandInt(0,tbl.length-1)];
       const [aGE,aGV,aFN,aFD,aFV, bGE,bGV,bFN,bFD,bFV, sign] = row;
-      const aFS = aFD===1 ? `${aFN}` : `\\dfrac{${aFN}}{${aFD}}`;
-      const bFS = bFD===1 ? `${bFN}` : `\\dfrac{${bFN}}{${bFD}}`;
+      const aFS = aFD===1 ? `${aFN}` : `\\frac{${aFN}}{${aFD}}`;
+      const bFS = bFD===1 ? `${bFN}` : `\\frac{${bFN}}{${bFD}}`;
       const op = sign===1 ? '+' : '-';
       const ans = aFV + sign * bFV;
       return {
