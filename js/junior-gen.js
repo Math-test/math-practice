@@ -62,25 +62,51 @@ function _7aIntSign(level) {
       return { question:`\\(-(-${a})\\) ＝ ？`, answer: a, type:'number' };
     }
   } else if (level === 'hard') {
-    const t = randInt(0, 1);
+    const t = randInt(0, 3);
     if (t === 0) {
       const a = rnzInt(-100, 100), b = rnzInt(-100, 100);
       return { question:`\\(\\left|${a} + ${ni(b)}\\right|\\) ＝ ？`, answer: Math.abs(a+b), type:'number' };
-    } else {
+    } else if (t === 1) {
       const a = rnzInt(-100, 100);
       return { question:`\\(-\\left|${a}\\right|\\) ＝ ？`, answer: -Math.abs(a), type:'number' };
+    } else if (t === 2) {
+      // |a×b + [c + d]|，中括號嵌套在絕對值內
+      const a=rnzInt(-10,10), b=rnzInt(-10,10), c=rnzInt(-20,20), d=rnzInt(-20,20);
+      const inner = a*b + (c+d);
+      if (Math.abs(a*b)<2 || Math.abs(inner)===0) return null;
+      return { question:`\\(\\left|${ni(a)} \\times ${ni(b)} + \\left[${ni(c)} + ${ni(d)}\\right]\\right|\\) ＝ ？`, answer:Math.abs(inner), type:'number' };
+    } else {
+      // [|a+b|×c + d] ÷ e，絕對值嵌套在中括號內
+      const a=rnzInt(-15,15), b=rnzInt(-15,15), c=rnzInt(-8,8), d=rnzInt(-30,30), e=rnzInt(-8,8);
+      if (!c || !e) return null;
+      const absVal = Math.abs(a+b);
+      const inner = absVal*c + d;
+      if (inner % e !== 0 || Math.abs(inner/e) > 100 || absVal===0) return null;
+      return { question:`\\(\\left[\\left|${ni(a)} + ${ni(b)}\\right| \\times ${ni(c)} + ${ni(d)}\\right] \\div ${ni(e)}\\) ＝ ？`, answer:inner/e, type:'number' };
     }
   } else {
-    const t = randInt(0, 2);
+    const t = randInt(0, 4);
     if (t === 0) {
       const a = rp(1, 100);
       return { question:`\\(+(-${a})\\) ＝ ？`, answer: -a, type:'number' };
     } else if (t === 1) {
       const a = rp(1, 100);
       return { question:`\\(-(-(-${a}))\\) ＝ ？`, answer: -a, type:'number' };
-    } else {
+    } else if (t === 2) {
       const a = -rp(1,100), b = -rp(1,100);
       return { question:`\\(|${a}| + |${b}|\\) ＝ ？`, answer: Math.abs(a)+Math.abs(b), type:'number' };
+    } else if (t === 3) {
+      // |a×b + c|，乘法在絕對值內
+      const a = rnzInt(-12,12), b = rnzInt(-12,12), c = rnzInt(-30,30);
+      const inner = a*b+c;
+      if (Math.abs(a*b)<2 || Math.abs(inner)===0) return null;
+      return { question:`\\(\\left|${ni(a)} \\times ${ni(b)} + ${ni(c)}\\right|\\) ＝ ？`, answer:Math.abs(inner), type:'number' };
+    } else {
+      // |a×(b+c)|，括號在絕對值內
+      const a = rnzInt(-10,10), b = rnzInt(-15,15), c = rnzInt(-15,15);
+      const inner = a*(b+c);
+      if (Math.abs(inner)<2 || b+c===0) return null;
+      return { question:`\\(\\left|${ni(a)} \\times \\left(${ni(b)} + ${ni(c)}\\right)\\right|\\) ＝ ？`, answer:Math.abs(inner), type:'number' };
     }
   }
 }
