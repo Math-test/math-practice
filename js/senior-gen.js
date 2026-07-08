@@ -260,21 +260,18 @@ function _b1AbsCalc(level) {
       }
     }
   } else {
-    // 困難：2個絕對值
-    const t = srRandInt(0, 1);
+    // 困難：多種型態
+    const t = srRandInt(0, 3);
     if (t === 0) {
-      // |x+a| = |x+b| → x = −(a+b)/2，一個解
+      // |x+a| = |x+b|（一個解）
       let a, b;
-      do {
-        a = srRandInt(-6, 6);
-        b = srRandInt(-6, 6);
-      } while (a === b || (a + b) % 2 !== 0);
+      do { a = srRandInt(-6, 6); b = srRandInt(-6, 6); } while (a === b || (a + b) % 2 !== 0);
       const x = -(a + b) / 2;
       const aStr = a === 0 ? '' : a > 0 ? `+${a}` : `${a}`;
       const bStr = b === 0 ? '' : b > 0 ? `+${b}` : `${b}`;
       return { question: `解方程式 \\(\\left|x${aStr}\\right| = \\left|x${bStr}\\right|\\)`, answer: x, type: 'number', answerPrefix: 'x' };
-    } else {
-      // |x−p| + |x−q| = c（p<q），兩個整數解
+    } else if (t === 1) {
+      // |x−p| + |x−q| = c（兩個整數解）
       const p = srRandInt(-5, 0), q = srRandInt(1, 5);
       const minC = q - p + 1;
       const parity = ((p + q) % 2 + 2) % 2;
@@ -284,10 +281,35 @@ function _b1AbsCalc(level) {
       if (!Number.isInteger(x1) || !Number.isInteger(x2)) return null;
       const pStr = p === 0 ? '' : p > 0 ? `-${p}` : `+${Math.abs(p)}`;
       const qStr = q === 0 ? '' : q > 0 ? `-${q}` : `+${Math.abs(q)}`;
-      return {
-        question: `解方程式 \\(\\left|x${pStr}\\right| + \\left|x${qStr}\\right| = ${c}\\)`,
-        answer: `${x1} 或 ${x2}`, type: 'text', answerPrefix: 'x'
-      };
+      return { question: `解方程式 \\(\\left|x${pStr}\\right| + \\left|x${qStr}\\right| = ${c}\\)`, answer: `${x1} 或 ${x2}`, type: 'text', answerPrefix: 'x' };
+    } else if (t === 2) {
+      // |ax+b| = c，含分數解（a ∈ {3,5,7}）
+      const a = pick([3, 5, 7]);
+      const b = srRnz(-8, 8), c = srRandInt(2, 10);
+      const n1 = c - b, n2 = -c - b;
+      if (n1 % a === 0 && n2 % a === 0) return null;
+      const s1 = _srFracStr(n1, a), s2 = _srFracStr(n2, a);
+      const bStr = b === 0 ? '' : b > 0 ? `+${b}` : `${b}`;
+      const ans = n1/a < n2/a ? `${s1} 或 ${s2}` : `${s2} 或 ${s1}`;
+      return { question: `解方程式 \\(\\left|${a}x${bStr}\\right| = ${c}\\)（格式：a/b 或 c/d）`, answer: ans, type: 'text', answerPrefix: 'x' };
+    } else {
+      // 減法型：|a₁x+b₁| − |a₂x+b₂| = e（lookup table，格式：a/b 或 c/d）
+      const tbl = [
+        { q:`解方程式 \\(\\left|2x-1\\right|-\\left|x+1\\right|=2\\)`, ans:`-2/3 或 4` },
+        { q:`解方程式 \\(\\left|3x-2\\right|-\\left|x+3\\right|=1\\)`, ans:`-1/2 或 3` },
+        { q:`解方程式 \\(\\left|2x+1\\right|-\\left|x-2\\right|=3\\)`, ans:`-6 或 4/3` },
+        { q:`解方程式 \\(\\left|3x+1\\right|-\\left|x-3\\right|=4\\)`, ans:`-4 或 3/2` },
+        { q:`解方程式 \\(\\left|2x-5\\right|-\\left|x+1\\right|=2\\)`, ans:`2/3 或 8` },
+        { q:`解方程式 \\(\\left|2x-3\\right|-\\left|x-4\\right|=3\\)`, ans:`-4 或 10/3` },
+        { q:`解方程式 \\(\\left|3x-4\\right|-\\left|x+2\\right|=2\\)`, ans:`0 或 4` },
+        { q:`解方程式 \\(\\left|2x+3\\right|-\\left|x-1\\right|=5\\)`, ans:`-9 或 1` },
+        { q:`解方程式 \\(\\left|3x+2\\right|-\\left|2x-1\\right|=1\\)`, ans:`-4 或 0` },
+        { q:`解方程式 \\(\\left|5x-2\\right|-\\left|2x+1\\right|=3\\)`, ans:`-2/7 或 2` },
+        { q:`解方程式 \\(\\left|4x-1\\right|-\\left|x+2\\right|=4\\)`, ans:`-1 或 7/3` },
+        { q:`解方程式 \\(\\left|3x+5\\right|-\\left|x-2\\right|=6\\)`, ans:`-13/2 或 3/4` },
+      ];
+      const e = tbl[srRandInt(0, tbl.length - 1)];
+      return { question: `${e.q}（格式：a/b 或 c/d）`, answer: e.ans, type: 'text', answerPrefix: 'x' };
     }
   }
 }
@@ -378,23 +400,49 @@ function _b1AbsIneq(level) {
       }
     }
   } else {
-    // 困難：2個絕對值
-    const p = srRandInt(-5, 0), q = srRandInt(1, 5);
-    const minC = q - p + 1;
-    const parity = ((p + q) % 2 + 2) % 2;
-    let c = minC + (minC % 2 !== parity ? 1 : 0);
-    c += srRandInt(0, 2) * 2;
-    const x1 = (p + q - c) / 2, x2 = (p + q + c) / 2;
-    if (!Number.isInteger(x1) || !Number.isInteger(x2)) return null;
-    const pStr = p === 0 ? '' : p > 0 ? `-${p}` : `+${Math.abs(p)}`;
-    const qStr = q === 0 ? '' : q > 0 ? `-${q}` : `+${Math.abs(q)}`;
-    const t = srRandInt(0, 1);
-    if (t === 0) {
-      // |x−p|+|x−q| ≤ c → x1 ≤ x ≤ x2
-      return { question: `解不等式 \\(\\left|x${pStr}\\right| + \\left|x${qStr}\\right| \\leq ${c}\\)（格式：c ≤ x ≤ d）`, answer: `${x1} ≤ x ≤ ${x2}`, type: 'text', answerPrefix: '' };
+    // 困難：多種型態
+    const ht = srRandInt(0, 3);
+    if (ht === 0) {
+      // |x−p|+|x−q| ≤/≥ c（整數解）
+      const p = srRandInt(-5, 0), q = srRandInt(1, 5);
+      const minC = q - p + 1;
+      const parity = ((p + q) % 2 + 2) % 2;
+      let c = minC + (minC % 2 !== parity ? 1 : 0);
+      c += srRandInt(0, 2) * 2;
+      const x1 = (p + q - c) / 2, x2 = (p + q + c) / 2;
+      if (!Number.isInteger(x1) || !Number.isInteger(x2)) return null;
+      const pStr = p === 0 ? '' : p > 0 ? `-${p}` : `+${Math.abs(p)}`;
+      const qStr = q === 0 ? '' : q > 0 ? `-${q}` : `+${Math.abs(q)}`;
+      if (srRandInt(0, 1) === 0) {
+        return { question: `解不等式 \\(\\left|x${pStr}\\right| + \\left|x${qStr}\\right| \\leq ${c}\\)（格式：c ≤ x ≤ d）`, answer: `${x1} ≤ x ≤ ${x2}`, type: 'text', answerPrefix: '' };
+      } else {
+        return { question: `解不等式 \\(\\left|x${pStr}\\right| + \\left|x${qStr}\\right| \\geq ${c}\\)（格式：x ≤ c 或 x ≥ d）`, answer: `x ≤ ${x1} 或 x ≥ ${x2}`, type: 'text', answerPrefix: '' };
+      }
+    } else if (ht === 1) {
+      // 複合不等式 c < |x+b| ≤ d 或 c ≤ |x+b| < d（整數解）
+      const b = srRnz(-5, 5), c = srRandInt(1, 4), d = c + srRandInt(2, 5);
+      const lo1 = -d - b, hi1 = -c - b, lo2 = c - b, hi2 = d - b;
+      const aStr = b > 0 ? `+${b}` : `${b}`;
+      if (srRandInt(0, 1) === 0) {
+        // c < |x+b| ≤ d → lo1 ≤ x < hi1 或 lo2 < x ≤ hi2
+        return { question: `解不等式 \\(${c} < \\left|x${aStr}\\right| \\leq ${d}\\)（格式：a ≤ x < b 或 c < x ≤ d）`, answer: `${lo1} ≤ x < ${hi1} 或 ${lo2} < x ≤ ${hi2}`, type: 'text', answerPrefix: '' };
+      } else {
+        // c ≤ |x+b| < d → lo1 < x ≤ hi1 或 lo2 ≤ x < hi2
+        return { question: `解不等式 \\(${c} \\leq \\left|x${aStr}\\right| < ${d}\\)（格式：a < x ≤ b 或 c ≤ x < d）`, answer: `${lo1} < x ≤ ${hi1} 或 ${lo2} ≤ x < ${hi2}`, type: 'text', answerPrefix: '' };
+      }
+    } else if (ht === 2) {
+      // 無解型：|x−p|+|x−q| < k 無解，求 k 最大值（= 兩點距離 |p−q|）
+      const p = srRandInt(-5, 4), q = srRandInt(p + 1, 6);
+      const minVal = q - p;
+      const pStr = p === 0 ? '' : p > 0 ? `-${p}` : `+${Math.abs(p)}`;
+      const qStr = q === 0 ? '' : q > 0 ? `-${q}` : `+${Math.abs(q)}`;
+      return { question: `設 \\(x\\) 為實數，\\(\\left|x${pStr}\\right|+\\left|x${qStr}\\right| < k\\) 無解，求 \\(k\\) 的最大值`, answer: minVal, type: 'number', answerPrefix: 'k' };
     } else {
-      // |x−p|+|x−q| ≥ c → x ≤ x1 或 x ≥ x2
-      return { question: `解不等式 \\(\\left|x${pStr}\\right| + \\left|x${qStr}\\right| \\geq ${c}\\)（格式：x ≤ c 或 x ≥ d）`, answer: `x ≤ ${x1} 或 x ≥ ${x2}`, type: 'text', answerPrefix: '' };
+      // 線性與絕對值比較：2x+q > |x−a|，解 x > r（分數）
+      const a = srRandInt(1, 7), q = srRandInt(1, 6);
+      // x≥a: 2x+q>x-a → 恆成立；x<a: 3x>a-q → x>(a-q)/3
+      const ansStr = _srFracStr(a - q, 3);
+      return { question: `若 \\(x\\) 為實數且滿足 \\(2x+${q} > \\left|x-${a}\\right|\\)，則 \\(x\\) 的解為（格式：x > a/b）`, answer: `x > ${ansStr}`, type: 'text', answerPrefix: '' };
     }
   }
 }
