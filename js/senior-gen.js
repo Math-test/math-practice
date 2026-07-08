@@ -545,7 +545,7 @@ function _b1Expr(level) {
   }
 
   // ── 困難 ──────────────────────────────────────────────────────
-  const ht = srRandInt(0, 3);
+  const ht = srRandInt(0, 5);
 
   if (ht === 0) {
     // 望遠鏡求和：Σ 1/(√(k+1)+√k), k=p² to q²-1，答案=q-p（整數）
@@ -578,14 +578,43 @@ function _b1Expr(level) {
   }
 
   // ht=3: 聯立三次 x+ky=s, x³+k³y³=t → 求 x²+k²y²
-  const simTbl = [
-    { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+2y=3\\)，\\(x^3+8y^3=9\\)，試求 \\(x^2+4y^2\\) 的值？`, ans:5 },
-    { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+y=4\\)，\\(x^3+y^3=16\\)，試求 \\(x^2+y^2\\) 的值？`, ans:8 },
-    { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+y=5\\)，\\(x^3+y^3=35\\)，試求 \\(x^2+y^2\\) 的值？`, ans:13 },
-    { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+3y=6\\)，\\(x^3+27y^3=72\\)，試求 \\(x^2+9y^2\\) 的值？`, ans:20 }
+  if (ht === 3) {
+    const simTbl = [
+      { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+2y=3\\)，\\(x^3+8y^3=9\\)，試求 \\(x^2+4y^2\\) 的值？`, ans:5 },
+      { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+y=4\\)，\\(x^3+y^3=16\\)，試求 \\(x^2+y^2\\) 的值？`, ans:8 },
+      { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+y=5\\)，\\(x^3+y^3=35\\)，試求 \\(x^2+y^2\\) 的值？`, ans:13 },
+      { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+3y=6\\)，\\(x^3+27y^3=72\\)，試求 \\(x^2+9y^2\\) 的值？`, ans:20 }
+    ];
+    const e = simTbl[srRandInt(0, simTbl.length-1)];
+    return { question:e.q, answer:e.ans, type:'number', answerPrefix:'' };
+  }
+
+  if (ht === 4) {
+    // √(n又1/k²) = (k²±1)/k 型（混合數根號化簡）
+    // 利用恆等式：(k²+2)k²+1=(k²+1)²，(k²-2)k²+1=(k²-1)²
+    const ks = [4,5,6,8,10,12,15,16];
+    const k = ks[srRandInt(0, ks.length-1)];
+    const fam = srRandInt(0, 1); // 0: n=k²+2, ans=(k²+1)/k；1: n=k²-2, ans=(k²-1)/k
+    const k2 = k*k;
+    const n = fam===0 ? k2+2 : k2-2;
+    const m = fam===0 ? k2+1 : k2-1;
+    return { question:`化簡 \\(\\sqrt{${n}\\,\\dfrac{1}{${k2}}}\\)（格式：a/b）`, answer:`${m}/${k}`, type:'text', answerPrefix:'' };
+  }
+
+  // ht=5: x=(√n+1)/(√n-1)，先有理化求 x+1/x（整數），再求 x²+1/x² 或 x⁴+1/x⁴
+  const cases5 = [
+    {n:2, s:6},  // x+1/x=6 → x²+1/x²=34, x⁴+1/x⁴=1154
+    {n:3, s:4},  // x+1/x=4 → x²+1/x²=14, x⁴+1/x⁴=194
+    {n:5, s:3},  // x+1/x=3 → x²+1/x²=7,  x⁴+1/x⁴=47
   ];
-  const e = simTbl[srRandInt(0, simTbl.length-1)];
-  return { question:e.q, answer:e.ans, type:'number', answerPrefix:'' };
+  const c5 = cases5[srRandInt(0, cases5.length-1)];
+  const ask5 = srRandInt(0, 1); // 0: x²+1/x², 1: x⁴+1/x⁴
+  const step1 = c5.s*c5.s - 2;
+  const step2 = step1*step1 - 2;
+  const [askStr5, ans5] = ask5===0
+    ? [`x^2+\\dfrac{1}{x^2}`, step1]
+    : [`x^4+\\dfrac{1}{x^4}`, step2];
+  return { question:`設 \\(x=\\dfrac{\\sqrt{${c5.n}}+1}{\\sqrt{${c5.n}}-1}\\)，求 \\(${askStr5}\\) 的值？`, answer:ans5, type:'number', answerPrefix:'' };
 }
 
 // ── b1-exp：指數律（含負指數、零次方、分數底數） ─────────────────
