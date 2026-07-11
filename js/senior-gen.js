@@ -1303,6 +1303,238 @@ function _b1Log(level) {
   }
 }
 
+// ── b1-line：直線方程式 ────────────────────────────────────────────
+function genB1Line(level, _n) {
+  for (let _i = 0; _i < 40; _i++) {
+    const q = _b1Line(level);
+    if (q) return q;
+  }
+  return { question:'直線計算', answer:0, type:'number', answerPrefix:'' };
+}
+
+function _b1LFrac(p, q) {
+  if (q === 0) return null;
+  const g = srGcd(Math.abs(p), Math.abs(q));
+  let n = p / g, d = q / g;
+  if (d < 0) { n = -n; d = -d; }
+  return { n, d, str: d === 1 ? `${n}` : `${n}/${d}`, isInt: d === 1 };
+}
+
+function _b1LSlpInt(m, b) {
+  const mp = m === 1 ? '' : m === -1 ? '-' : `${m}`;
+  const lhs = `${mp}x`;
+  if (b === 0) return `y = ${lhs}`;
+  if (b > 0) return `y = ${lhs} + ${b}`;
+  return `y = ${lhs} - ${Math.abs(b)}`;
+}
+
+function _b1LGen(a, b, c) {
+  // normalize: first non-zero coefficient positive
+  const s = (a !== 0 ? a : b) < 0 ? -1 : 1;
+  const [A, B, C] = [s * a, s * b, s * c];
+  function xT(v, lead) {
+    if (v === 0) return '';
+    const abs = Math.abs(v), neg = v < 0;
+    const mag = abs === 1 ? 'x' : `${abs}x`;
+    return lead ? (neg ? `-${mag}` : mag) : (neg ? ` - ${mag}` : ` + ${mag}`);
+  }
+  function yT(v, lead) {
+    if (v === 0) return '';
+    const abs = Math.abs(v), neg = v < 0;
+    const mag = abs === 1 ? 'y' : `${abs}y`;
+    return lead ? (neg ? `-${mag}` : mag) : (neg ? ` - ${mag}` : ` + ${mag}`);
+  }
+  function cT(v, lead) {
+    if (v === 0) return '';
+    return lead ? `${v}` : (v > 0 ? ` + ${v}` : ` - ${Math.abs(v)}`);
+  }
+  let str = '', first = true;
+  if (A !== 0) { str += xT(A, first); first = false; }
+  if (B !== 0) { str += yT(B, first); first = false; }
+  if (C !== 0) { str += cT(C, first); }
+  return str + ' = 0';
+}
+
+function _b1Line(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0, 4);
+
+    if (t === 0) {
+      // 兩整數點求整數斜率
+      const m = srRnz(-4, 4);
+      const x1 = srRandInt(-3, 3), y1 = srRandInt(-3, 3);
+      const dx = srRandInt(1, 3);
+      const x2 = x1 + dx, y2 = y1 + m * dx;
+      return {
+        question:`直線過 \\((${x1},\\ ${y1})\\) 與 \\((${x2},\\ ${y2})\\)，求斜率`,
+        answer:m, type:'number', answerPrefix:'m'
+      };
+    }
+
+    if (t === 1) {
+      // 斜截式 y=mx+b，求斜率
+      const m = srRnz(-5, 5), b = srRandInt(-5, 5);
+      return {
+        question:`直線 \\(${_b1LSlpInt(m, b)}\\) 的斜率為何？`,
+        answer:m, type:'number', answerPrefix:'m'
+      };
+    }
+
+    if (t === 2) {
+      // 斜截式 y=mx+b，求 y 截距
+      const m = srRnz(-4, 4), b = srRnz(-6, 6);
+      return {
+        question:`直線 \\(${_b1LSlpInt(m, b)}\\) 的 \\(y\\) 截距為何？`,
+        answer:b, type:'number', answerPrefix:''
+      };
+    }
+
+    if (t === 3) {
+      // 斜截式求 x 截距（整數）：x-int = -b/m
+      const m = srRnz(-4, 4), xInt = srRnz(-5, 5);
+      const b = -m * xInt;
+      if (Math.abs(b) > 20) return null;
+      return {
+        question:`直線 \\(${_b1LSlpInt(m, b)}\\) 的 \\(x\\) 截距為何？`,
+        answer:xInt, type:'number', answerPrefix:''
+      };
+    }
+
+    // t=4: 水平線斜率
+    const k = srRandInt(-5, 5);
+    return {
+      question:`水平線 \\(y = ${k}\\) 的斜率為何？`,
+      answer:0, type:'number', answerPrefix:'m'
+    };
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 5);
+
+    if (t === 0) {
+      // 兩點求分數斜率
+      const pNum = srRnz(-5, 5), pDen = srRandInt(2, 3);
+      if (srGcd(Math.abs(pNum), pDen) !== 1) return null;
+      const x1 = srRandInt(-2, 3), y1 = srRandInt(-3, 3);
+      const x2 = x1 + pDen, y2 = y1 + pNum;
+      const f = _b1LFrac(pNum, pDen);
+      return {
+        question:`直線過 \\((${x1},\\ ${y1})\\) 與 \\((${x2},\\ ${y2})\\)，求斜率`,
+        answer:f.str, type:'text', answerPrefix:'m'
+      };
+    }
+
+    if (t === 1) {
+      // 一般式 ax+by+c=0，求斜率 -a/b
+      const a = srRnz(-4, 4), b = srRnz(-4, 4), c = srRandInt(-6, 6);
+      const f = _b1LFrac(-a, b);
+      if (!f) return null;
+      return {
+        question:`直線 \\(${_b1LGen(a, b, c)}\\) 的斜率為何？`,
+        answer:f.str, type: f.isInt ? 'number' : 'text', answerPrefix:'m'
+      };
+    }
+
+    if (t === 2) {
+      // 一般式求 x 截距（整數）：-c/a
+      const a = srRnz(-3, 3), b = srRnz(-3, 3), xInt = srRnz(-5, 5);
+      const c = -a * xInt;
+      if (Math.abs(c) > 20) return null;
+      return {
+        question:`直線 \\(${_b1LGen(a, b, c)}\\) 的 \\(x\\) 截距為何？`,
+        answer:xInt, type:'number', answerPrefix:''
+      };
+    }
+
+    if (t === 3) {
+      // 一般式求 y 截距（整數）：-c/b
+      const a = srRnz(-3, 3), b = srRnz(-3, 3), yInt = srRnz(-5, 5);
+      const c = -b * yInt;
+      if (Math.abs(c) > 20) return null;
+      return {
+        question:`直線 \\(${_b1LGen(a, b, c)}\\) 的 \\(y\\) 截距為何？`,
+        answer:yInt, type:'number', answerPrefix:''
+      };
+    }
+
+    if (t === 4) {
+      // 截距式 x/a+y/b=1，求斜率 -b/a
+      const a = srRnz(-5, 5), b = srRnz(-5, 5);
+      const f = _b1LFrac(-b, a);
+      if (!f) return null;
+      return {
+        question:`截距式 \\(\\dfrac{x}{${a}} + \\dfrac{y}{${b}} = 1\\) 的斜率為何？`,
+        answer:f.str, type: f.isInt ? 'number' : 'text', answerPrefix:'m'
+      };
+    }
+
+    // t=5: 截距式求 x 或 y 截距
+    const a = srRnz(-5, 5), b = srRnz(-5, 5);
+    const askX = srRandInt(0, 1) === 0;
+    return {
+      question:`截距式 \\(\\dfrac{x}{${a}} + \\dfrac{y}{${b}} = 1\\) 的 \\(${askX ? 'x' : 'y'}\\) 截距為何？`,
+      answer: askX ? a : b, type:'number', answerPrefix:''
+    };
+  }
+
+  // hard
+  const t = srRandInt(0, 4);
+
+  if (t === 0) {
+    // 兩點求 y 截距（含分數）
+    const slopes = [[1,2],[3,2],[1,3],[2,3],[-1,2],[-3,2],[-1,3],[-2,3]];
+    const [pn, pd] = slopes[srRandInt(0, slopes.length - 1)];
+    const x1 = srRandInt(-2, 3), y1 = srRandInt(-3, 3);
+    const x2 = x1 + pd, y2 = y1 + pn;
+    const f = _b1LFrac(y1 * pd - pn * x1, pd);
+    if (!f || f.d > 4) return null;
+    return {
+      question:`直線過 \\((${x1},\\ ${y1})\\) 與 \\((${x2},\\ ${y2})\\)，求 \\(y\\) 截距`,
+      answer:f.str, type: f.isInt ? 'number' : 'text', answerPrefix:''
+    };
+  }
+
+  if (t === 1) {
+    // 斜截式→截距式求 x 截距 a = -b/m
+    const m = srRnz(-4, 4), b = srRnz(-4, 4);
+    const f = _b1LFrac(-b, m);
+    if (!f) return null;
+    return {
+      question:`直線 \\(${_b1LSlpInt(m, b)}\\) 改寫成截距式 \\(\\dfrac{x}{a} + \\dfrac{y}{b} = 1\\)，求 \\(a\\)`,
+      answer:f.str, type: f.isInt ? 'number' : 'text', answerPrefix:'a'
+    };
+  }
+
+  if (t === 2) {
+    // 一般式求截距和 a+b（兩截距皆為整數）
+    const A = srRnz(-3, 3), B = srRnz(-3, 3), C = srRnz(-4, 4);
+    if (C % A !== 0 || C % B !== 0) return null;
+    const a = -C / A, b = -C / B;
+    return {
+      question:`直線 \\(${_b1LGen(A, B, C)}\\) 的截距式為 \\(\\dfrac{x}{a} + \\dfrac{y}{b} = 1\\)，求 \\(a + b\\)`,
+      answer:a + b, type:'number', answerPrefix:''
+    };
+  }
+
+  if (t === 3) {
+    // 平行線斜率相同
+    const m = srRnz(-4, 4), b = srRandInt(-4, 4);
+    return {
+      question:`若直線 \\(L\\) 平行於 \\(${_b1LSlpInt(m, b)}\\)，則 \\(L\\) 的斜率為何？`,
+      answer:m, type:'number', answerPrefix:'m'
+    };
+  }
+
+  // t=4: 垂直線斜率 = -1/m
+  const m = srRnz(-4, 4), b = srRandInt(-4, 4);
+  const f = _b1LFrac(-1, m);
+  if (!f) return null;
+  return {
+    question:`若直線 \\(L\\) 垂直於 \\(${_b1LSlpInt(m, b)}\\)，則 \\(L\\) 的斜率為何？`,
+    answer:f.str, type: f.isInt ? 'number' : 'text', answerPrefix:'m'
+  };
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  輸出表
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1314,4 +1546,5 @@ const SR_GENERATORS = {
   'b1-expr':         genB1Expr,
   'b1-exp':          genB1Exp,
   'b1-log':          genB1Log,
+  'b1-line':         genB1Line,
 };
