@@ -629,7 +629,7 @@ function genB1Exp(level) {
 
 function _b1Exp(level) {
   if (level === 'basic') {
-    const t = srRandInt(0, 5);
+    const t = srRandInt(0, 7);
     if (t === 0) {
       // a^{-n} → 1/a^n
       const a = [2,3,4,5][srRandInt(0,3)];
@@ -665,7 +665,7 @@ function _b1Exp(level) {
         return { question:`\\(${base}^{-\\frac{${p}}{${q}}}\\) ＝ ？（格式：p/q）`, answer:`1/${ans}`, type:'text', answerPrefix:'' };
       }
       return { question:`\\(${base}^{\\frac{${p}}{${q}}}\\) ＝ ？`, answer:ans, type:'number', answerPrefix:'' };
-    } else {
+    } else if (t === 5) {
       // 分數底有理指數 (a/b)^(±p/q) → 分數
       const tbl = [
         [4,9,1,2,2,3],[4,9,3,2,8,27],[8,27,1,3,2,3],[8,27,2,3,4,9],
@@ -679,9 +679,24 @@ function _b1Exp(level) {
       const expStr = p===1 ? `${sign}\\frac{1}{${q}}` : `${sign}\\frac{${p}}{${q}}`;
       const ansStr = `${ansN}/${ansD}`;
       return { question:`\\(\\left(\\dfrac{${a}}{${b}}\\right)^{${expStr}}\\) ＝ ？（格式：p/q）`, answer:ansStr, type:'text', answerPrefix:'' };
+    } else if (t === 6) {
+      // 中括號：[(a^m)^n] = a^{mn}
+      const a = [2,3][srRandInt(0,1)];
+      const m = srRandInt(2,4), n = srRandInt(2,3);
+      if (Math.pow(a,m*n) > 512) return null;
+      return { question:`\\(\\left[(${a}^{${m}})^{${n}}\\right]\\) ＝ ？`, answer:Math.pow(a,m*n), type:'number', answerPrefix:'' };
+    } else {
+      // 大中括號：{[(a/b)^m]^n} = (b/a)^{mn}
+      const pairs = [[2,3],[3,4],[2,5],[3,5]];
+      const [a,b] = pairs[srRandInt(0,pairs.length-1)];
+      const m = srRandInt(1,2), n = srRandInt(1,2);
+      const mn = m*n;
+      const rn = Math.pow(b,mn), rd = Math.pow(a,mn);
+      const g = srGcd(rn,rd);
+      return { question:`\\(\\left\\{\\left[\\left(\\dfrac{${a}}{${b}}\\right)^{${m}}\\right]^{${n}}\\right\\}\\) ＝ ？（格式：p/q）`, answer:`${rn/g}/${rd/g}`, type:'text', answerPrefix:'' };
     }
   } else if (level === 'medium') {
-    const t = srRandInt(0, 4);
+    const t = srRandInt(0, 6);
     if (t === 0) {
       // a^m × a^{-n}
       const a = [2,3,4][srRandInt(0,2)];
@@ -725,17 +740,39 @@ function _b1Exp(level) {
       const [gE,gV,fN,fD,fV] = tbl[srRandInt(0,tbl.length-1)];
       const findStr = fD===1 ? `${fN}` : `\\frac{${fN}}{${fD}}`;
       return { question:`若 \\(a > 0\\)，\\(a^{${gE}} = ${gV}\\)，求 \\(a^{${findStr}}\\)`, answer:fV, type:'number', answerPrefix:'' };
-    } else {
+    } else if (t === 4) {
       // a^{-1}+b^{-1} = (a+b)/(ab)
       const pairs = [[2,3],[2,4],[3,6],[2,6],[4,6],[3,4]];
       const [a,b] = pairs[srRandInt(0, pairs.length-1)];
       const g = srGcd(a+b, a*b);
       const sn = (a+b)/g, sd = (a*b)/g;
       return { question:`\\(${a}^{-1} + ${b}^{-1}\\) ＝ ？（格式：p/q）`, answer:`${sn}/${sd}`, type:'text', answerPrefix:'' };
+    } else if (t === 5) {
+      // 小括號：(a^{1/p} × b^{1/q})^{pq} = a^q × b^p
+      const tbl = [
+        [2,3,2,3,72],[2,3,3,2,108],[2,5,2,3,200],
+        [2,4,3,2,256],[2,3,2,2,36],[2,5,2,2,100],
+      ];
+      const [a,b,p,q,ans] = tbl[srRandInt(0,tbl.length-1)];
+      return {
+        question:`\\(\\left(${a}^{\\frac{1}{${p}}} \\times ${b}^{\\frac{1}{${q}}}\\right)^{${p*q}}\\) ＝ ？`,
+        answer:ans, type:'number', answerPrefix:''
+      };
+    } else {
+      // 大中括號三層：{[a^{1/p}]^q}^r = a^{qr/p}
+      const tbl = [
+        [4,2,3,2,64],[8,3,2,2,16],[27,3,2,2,81],
+        [16,4,3,2,64],[32,5,2,3,64],
+      ];
+      const [a,p,q,r,ans] = tbl[srRandInt(0,tbl.length-1)];
+      return {
+        question:`\\(\\left\\{\\left[${a}^{\\frac{1}{${p}}}\\right]^{${q}}\\right\\}^{${r}}\\) ＝ ？`,
+        answer:ans, type:'number', answerPrefix:''
+      };
     }
   } else {
     // hard
-    const t = srRandInt(0, 4);
+    const t = srRandInt(0, 6);
     if (t === 0) {
       // (a^m × a^{-n}) / (a^{-p} × a^q) 同底化簡
       const a = [2,3][srRandInt(0,1)];
@@ -789,7 +826,7 @@ function _b1Exp(level) {
         const ans = k*k*k - 3*k;
         return { question:`設 \\(a > 0\\)，若 \\(a + a^{-1} = ${k}\\)，求 \\(a^3 + a^{-3}\\)`, answer:ans, type:'number', answerPrefix:'' };
       }
-    } else {
+    } else if (t === 4) {
       // 兩底數：a^{-m}×b^n÷(a^p×b^{-q})
       const bases = [[2,3],[2,5],[3,5]];
       const [a,b] = bases[srRandInt(0,2)];
@@ -800,6 +837,303 @@ function _b1Exp(level) {
       if (sn > 200 || sd > 200) return null;
       if (sd === 1) return { question:`\\(${a}^{-${m}} \\times ${b}^{${n}} \\div (${a}^{${p}} \\times ${b}^{-${q}})\\) ＝ ？`, answer:sn, type:'number', answerPrefix:'' };
       return { question:`\\(${a}^{-${m}} \\times ${b}^{${n}} \\div (${a}^{${p}} \\times ${b}^{-${q}})\\) ＝ ？（格式：p/q）`, answer:`${sn}/${sd}`, type:'text', answerPrefix:'' };
+    } else if (t === 5) {
+      // 中大括號：{[a^r × b^{-s}]^m × (a^{-t} × b^u)^n}，兩底數多層括號
+      // 結果 = a^{rm-tn} × b^{un-sm}
+      const tbl = [
+        [2,3, 2,1,3, 1,2,2, 48],   // {[2^2×3^{-1}]^3×(2^{-1}×3^2)^2} = 2^4×3 = 48
+        [2,3, 3,2,2, 2,3,2, 36],   // {[2^3×3^{-2}]^2×(2^{-2}×3^3)^2} = 4×9 = 36
+        [2,5, 2,1,3, 1,2,2, 80],   // {[2^2×5^{-1}]^3×(2^{-1}×5^2)^2} = 2^4×5 = 80
+        [3,2, 2,1,3, 1,2,2, 162],  // {[3^2×2^{-1}]^3×(3^{-1}×2^2)^2} = 3^4×2 = 162
+        [2,3, 3,1,2, 1,2,1, 32],   // {[2^3×3^{-1}]^2×(2^{-1}×3^2)^1} = 2^5 = 32
+      ];
+      const [a,b,r,s,m,tt,u,n,ans] = tbl[srRandInt(0,tbl.length-1)];
+      return {
+        question:`\\(\\left\\{\\left[${a}^{${r}} \\times ${b}^{-${s}}\\right]^{${m}} \\times \\left(${a}^{-${tt}} \\times ${b}^{${u}}\\right)^{${n}}\\right\\}\\) ＝ ？`,
+        answer:ans, type:'number', answerPrefix:''
+      };
+    } else {
+      // 小中括號鏈：[(a^{1/p} × a^n)^m]^p = a^{m(1+np)}
+      const tbl = [
+        [2,2,1,2,64],[2,2,1,3,512],[2,3,1,2,256],[2,3,2,1,128],[2,2,2,1,32],
+      ];
+      const [a,p,n,m,ans] = tbl[srRandInt(0,tbl.length-1)];
+      return {
+        question:`\\(\\left[\\left(${a}^{\\frac{1}{${p}}} \\times ${a}^{${n}}\\right)^{${m}}\\right]^{${p}}\\) ＝ ？`,
+        answer:ans, type:'number', answerPrefix:''
+      };
+    }
+  }
+}
+
+// ── b1-log：常用對數（底數10） ────────────────────────────────────
+
+function genB1Log(level) {
+  for (let i = 0; i < 40; i++) {
+    const q = _b1Log(level);
+    if (q) return q;
+  }
+  return null;
+}
+
+function _b1Log(level) {
+  const L2 = 0.3010, L3 = 0.4771;
+
+  if (level === 'basic') {
+    const t = srRandInt(0, 5);
+
+    if (t === 0) {
+      // log(10^n) = n
+      const n = srRnz(-2, 4);
+      return { question:`\\(\\log 10^{${n}}\\) ＝ ？`, answer:n, type:'number', answerPrefix:'' };
+
+    } else if (t === 1) {
+      // log N = k (正整數冪) 或 log x = k 求 x
+      const k = srRandInt(1, 5);
+      const N = Math.pow(10, k);
+      if (srRandInt(0,1) === 0) {
+        return { question:`\\(\\log ${N}\\) ＝ ？`, answer:k, type:'number', answerPrefix:'' };
+      }
+      return { question:`若 \\(\\log x = ${k}\\)，求 \\(x\\)`, answer:N, type:'number', answerPrefix:'x' };
+
+    } else if (t === 2) {
+      // log a + log b = 整數（ab = 10^k）
+      const pairs = [
+        [4,25,2],[8,125,3],[2,5000,4],[20,50,3],
+        [0.2,500,2],[4,2500,4],[40,25,3],[0.5,200,2],[5,200,3],
+      ];
+      const [a,b,ans] = pairs[srRandInt(0,pairs.length-1)];
+      return { question:`\\(\\log ${a} + \\log ${b}\\) ＝ ？`, answer:ans, type:'number', answerPrefix:'' };
+
+    } else if (t === 3) {
+      // log a - log b = 整數（a/b = 10^k）
+      const pairs = [
+        [1000,10,2],[100,0.1,3],[10000,100,2],
+        [1000,0.01,5],[10,0.001,4],[100000,1000,2],
+      ];
+      const [a,b,ans] = pairs[srRandInt(0,pairs.length-1)];
+      return { question:`\\(\\log ${a} - \\log ${b}\\) ＝ ？`, answer:ans, type:'number', answerPrefix:'' };
+
+    } else if (t === 4) {
+      // n × log(10^k) = nk
+      const n = srRandInt(2,5), k = srRandInt(1,3);
+      return { question:`\\(${n} \\log 10^{${k}}\\) ＝ ？`, answer:n*k, type:'number', answerPrefix:'' };
+
+    } else {
+      // 已知 log 2, log 3 近似值，求 log N（四位小數）
+      const cases = [
+        { N:'4',   a:2*L2 },
+        { N:'8',   a:3*L2 },
+        { N:'9',   a:2*L3 },
+        { N:'6',   a:L2+L3 },
+        { N:'5',   a:1-L2 },
+        { N:'27',  a:3*L3 },
+        { N:'18',  a:L2+2*L3 },
+        { N:'12',  a:2*L2+L3 },
+      ];
+      const c = cases[srRandInt(0,cases.length-1)];
+      return {
+        question:`已知 \\(\\log 2 \\approx ${L2},\\ \\log 3 \\approx ${L3}\\)，求 \\(\\log ${c.N}\\)（四位小數）`,
+        answer:c.a.toFixed(4), type:'text', answerPrefix:''
+      };
+    }
+
+  } else if (level === 'medium') {
+    const t = srRandInt(0, 5);
+
+    if (t === 0) {
+      // 替換型：已知 log 2, log 3，求較複雜 log N（四位小數）
+      const cases = [
+        { N:'36',   a:2*L2+2*L3 },
+        { N:'24',   a:3*L2+L3 },
+        { N:'15',   a:L3+(1-L2) },
+        { N:'1.5',  a:L3-L2 },
+        { N:'0.5',  a:-L2 },
+        { N:'45',   a:2*L3+(1-L2) },
+        { N:'0.04', a:2*L2-2 },
+        { N:'0.09', a:2*L3-2 },
+        { N:'72',   a:3*L2+2*L3 },
+        { N:'0.6',  a:L2+L3-1 },
+      ];
+      const c = cases[srRandInt(0,cases.length-1)];
+      return {
+        question:`已知 \\(\\log 2 \\approx ${L2},\\ \\log 3 \\approx ${L3}\\)，求 \\(\\log ${c.N}\\)（四位小數）`,
+        answer:c.a.toFixed(4), type:'text', answerPrefix:''
+      };
+
+    } else if (t === 1) {
+      // 合併對數為整數
+      const cases = [
+        { q:`2\\log 2 + \\log 25`,                   ans:2 },
+        { q:`3\\log 2 + 3\\log 5`,                   ans:3 },
+        { q:`2\\log 3 + \\log \\dfrac{100}{9}`,      ans:2 },
+        { q:`\\log 12 + \\log \\dfrac{25}{3}`,       ans:2 },
+        { q:`\\log 6 + \\log \\dfrac{50}{3}`,        ans:2 },
+        { q:`3\\log 5 + 3\\log 2`,                   ans:3 },
+        { q:`\\log 5 + \\log 2 + \\log 10`,          ans:2 },
+        { q:`4\\log 2 + 4\\log 5`,                   ans:4 },
+      ];
+      const c = cases[srRandInt(0,cases.length-1)];
+      return { question:`計算 \\(${c.q}\\)`, answer:c.ans, type:'number', answerPrefix:'' };
+
+    } else if (t === 2) {
+      // 求 x：log(ax + b) = n
+      const cases = [
+        { a:1,b:0,n:2,x:100 },
+        { a:1,b:-1,n:2,x:101 },
+        { a:2,b:0,n:1,x:5 },
+        { a:1,b:1,n:2,x:99 },
+        { a:1,b:-10,n:2,x:110 },
+        { a:5,b:0,n:2,x:20 },
+        { a:1,b:0,n:3,x:1000 },
+        { a:2,b:-4,n:1,x:7 },
+      ];
+      const c = cases[srRandInt(0,cases.length-1)];
+      let qStr;
+      if (c.a===1 && c.b===0) {
+        qStr = `\\log x = ${c.n}`;
+      } else if (c.a===1) {
+        const bs = c.b>0?`+${c.b}`:`${c.b}`;
+        qStr = `\\log(x${bs}) = ${c.n}`;
+      } else {
+        const bs = c.b>0?`+${c.b}`:(c.b<0?`${c.b}`:'');
+        qStr = `\\log(${c.a}x${bs}) = ${c.n}`;
+      }
+      return { question:`解方程式 \\(${qStr}\\)`, answer:c.x, type:'number', answerPrefix:'x' };
+
+    } else if (t === 3) {
+      // 展開 log(a^m × b^n / c^p) 代入近似值
+      const cases = [
+        { str:`\\log(4 \\times 27)`,    a:2*L2+3*L3 },
+        { str:`\\log \\dfrac{9}{2}`,    a:2*L3-L2 },
+        { str:`\\log \\dfrac{8}{3}`,    a:3*L2-L3 },
+        { str:`\\log(2^3 \\times 3^2)`, a:3*L2+2*L3 },
+        { str:`\\log(2 \\times 3^3)`,   a:L2+3*L3 },
+        { str:`\\log \\sqrt{6}`,        a:(L2+L3)/2 },
+        { str:`\\log \\dfrac{4}{27}`,   a:2*L2-3*L3 },
+      ];
+      const c = cases[srRandInt(0,cases.length-1)];
+      return {
+        question:`已知 \\(\\log 2 \\approx ${L2},\\ \\log 3 \\approx ${L3}\\)，求 \\(${c.str}\\)（四位小數）`,
+        answer:c.a.toFixed(4), type:'text', answerPrefix:''
+      };
+
+    } else if (t === 4) {
+      // 對數方程：log(ax²+bx+c)=0 → ax²+bx+c=1，取整數根
+      const cases = [
+        { q:`\\log(x^2-3x) = 1`,    ans:'5（x=−2 不符）', aVal:5, hint:'log(x²−3x)=1 → x²−3x=10 → (x−5)(x+2)=0' },
+        { q:`\\log(x) + \\log(x-3) = 1`, ans:5, hint:'log[x(x−3)]=1 → x²−3x−10=0 → x=5' },
+        { q:`2\\log(x+2) = \\log(3x+4)`,  ans:0, hint:'(x+2)²=3x+4 → x²+x=0 → x=0' },
+        { q:`\\log(x+3)+\\log(x-1)=\\log 5`, ans:2, hint:'(x+3)(x−1)=5 → x=2' },
+      ];
+      const c = cases[srRandInt(0,cases.length-1)];
+      if (typeof c.aVal !== 'undefined') {
+        return { question:`解方程式 \\(${c.q}\\)（取正值）`, answer:c.aVal, type:'number', answerPrefix:'x' };
+      }
+      return { question:`解方程式 \\(${c.q}\\)`, answer:c.ans, type:'number', answerPrefix:'x' };
+
+    } else {
+      // 括號展開：log{[(ab)^m / c^n]} 合併為整數
+      const cases = [
+        { q:`\\log\\left[\\dfrac{(2 \\times 5)^3}{10}\\right]`,   ans:2 },
+        { q:`\\log\\left[\\dfrac{(4 \\times 25)^2}{100}\\right]`, ans:2 },
+        { q:`\\log\\left[(2 \\times 5)^4\\right]`,                ans:4 },
+        { q:`\\log\\left[\\dfrac{8 \\times 125}{10}\\right]`,     ans:2 },
+        { q:`\\log\\left[\\dfrac{(2 \\times 5)^5}{10^2}\\right]`, ans:3 },
+      ];
+      const c = cases[srRandInt(0,cases.length-1)];
+      return { question:`計算 \\(${c.q}\\)`, answer:c.ans, type:'number', answerPrefix:'' };
+    }
+
+  } else {
+    // hard
+    const t = srRandInt(0, 4);
+
+    if (t === 0) {
+      // 幾位數：N = base^n，digits = floor(n × log base) + 1
+      const cases = [
+        { base:2, n:10,  logGiven:'\\log 2 \\approx 0.3010', logVal:10*L2,   digits:4 },
+        { base:2, n:20,  logGiven:'\\log 2 \\approx 0.3010', logVal:20*L2,   digits:7 },
+        { base:2, n:30,  logGiven:'\\log 2 \\approx 0.3010', logVal:30*L2,   digits:10 },
+        { base:2, n:50,  logGiven:'\\log 2 \\approx 0.3010', logVal:50*L2,   digits:16 },
+        { base:3, n:10,  logGiven:'\\log 3 \\approx 0.4771', logVal:10*L3,   digits:5 },
+        { base:3, n:20,  logGiven:'\\log 3 \\approx 0.4771', logVal:20*L3,   digits:10 },
+        { base:3, n:15,  logGiven:'\\log 3 \\approx 0.4771', logVal:15*L3,   digits:8 },
+        { base:5, n:10,  logGiven:'\\log 5 \\approx 0.6990', logVal:10*0.699, digits:7 },
+        { base:5, n:20,  logGiven:'\\log 5 \\approx 0.6990', logVal:20*0.699, digits:14 },
+      ];
+      const c = cases[srRandInt(0,cases.length-1)];
+      return {
+        question:`已知 \\(${c.logGiven}\\)，問 \\(${c.base}^{${c.n}}\\) 是幾位數？`,
+        answer:c.digits, type:'number', answerPrefix:''
+      };
+
+    } else if (t === 1) {
+      // 最高位數字：從 log N 的小數部分求首位數字
+      const cases = [
+        { base:2, n:10,  logGiven:'\\log 2 \\approx 0.3010', frac:0.010, leading:1 },
+        { base:2, n:15,  logGiven:'\\log 2 \\approx 0.3010', frac:0.515, leading:3 },
+        { base:2, n:25,  logGiven:'\\log 2 \\approx 0.3010', frac:0.525, leading:3 },
+        { base:3, n:5,   logGiven:'\\log 3 \\approx 0.4771', frac:0.3855,leading:2 },
+        { base:3, n:10,  logGiven:'\\log 3 \\approx 0.4771', frac:0.771, leading:5 },
+        { base:3, n:20,  logGiven:'\\log 3 \\approx 0.4771', frac:0.542, leading:3 },
+        { base:5, n:5,   logGiven:'\\log 5 \\approx 0.6990', frac:0.495, leading:3 },
+        { base:5, n:10,  logGiven:'\\log 5 \\approx 0.6990', frac:0.990, leading:9 },
+      ];
+      const c = cases[srRandInt(0,cases.length-1)];
+      return {
+        question:`已知 \\(${c.logGiven}\\)，求 \\(${c.base}^{${c.n}}\\) 的最高位數字（即首位數字）`,
+        answer:c.leading, type:'number', answerPrefix:''
+      };
+
+    } else if (t === 2) {
+      // 超小數：N = (0.x)^n，第幾位小數才有非零數字
+      // 位置 = -floor(log N) = ceil(n × |log base|)
+      const cases = [
+        { base:'0.5',  n:5,   logGiven:'\\log 2 \\approx 0.3010', pos:2 },
+        { base:'0.5',  n:10,  logGiven:'\\log 2 \\approx 0.3010', pos:4 },
+        { base:'0.5',  n:15,  logGiven:'\\log 2 \\approx 0.3010', pos:5 },
+        { base:'0.3',  n:5,   logGiven:'\\log 3 \\approx 0.4771', pos:3 },
+        { base:'0.3',  n:10,  logGiven:'\\log 3 \\approx 0.4771', pos:6 },
+        { base:'0.2',  n:5,   logGiven:'\\log 2 \\approx 0.3010', pos:4 },
+        { base:'0.2',  n:10,  logGiven:'\\log 2 \\approx 0.3010', pos:7 },
+      ];
+      const c = cases[srRandInt(0,cases.length-1)];
+      return {
+        question:`已知 \\(${c.logGiven}\\)，\\(${c.base}^{${c.n}}\\) 的小數點後第幾位才出現非零數字？`,
+        answer:c.pos, type:'number', answerPrefix:''
+      };
+
+    } else if (t === 3) {
+      // 混合：a^m × b^n 的位數
+      const cases = [
+        { expr:'2^{10} \\times 3^{5}',  logExpr:'10\\times 0.3010+5\\times 0.4771', logVal:10*L2+5*L3,  digits:Math.floor(10*L2+5*L3)+1 },
+        { expr:'2^{20} \\times 3^{10}', logExpr:'20\\times 0.3010+10\\times 0.4771',logVal:20*L2+10*L3, digits:Math.floor(20*L2+10*L3)+1 },
+        { expr:'2^{5} \\times 5^{5}',   logExpr:'5\\times(\\log 2+\\log 5)',        logVal:5*1,          digits:6 },
+        { expr:'6^{10}', logExpr:'10\\times(\\log 2+\\log 3)',                       logVal:10*(L2+L3),   digits:Math.floor(10*(L2+L3))+1 },
+        { expr:'6^{15}', logExpr:'15\\times 0.7781',                                 logVal:15*(L2+L3),   digits:Math.floor(15*(L2+L3))+1 },
+      ];
+      const c = cases[srRandInt(0,cases.length-1)];
+      return {
+        question:`已知 \\(\\log 2 \\approx ${L2},\\ \\log 3 \\approx ${L3}\\)，問 \\(${c.expr}\\) 是幾位數？`,
+        answer:c.digits, type:'number', answerPrefix:''
+      };
+
+    } else {
+      // 科學記號：N = base^n，求整數部分位數 k，使 N = A × 10^k (1≤A<10)
+      const cases = [
+        { base:2, n:10,  logGiven:'\\log 2 \\approx 0.3010', k:3 },
+        { base:2, n:20,  logGiven:'\\log 2 \\approx 0.3010', k:6 },
+        { base:2, n:30,  logGiven:'\\log 2 \\approx 0.3010', k:9 },
+        { base:3, n:10,  logGiven:'\\log 3 \\approx 0.4771', k:4 },
+        { base:3, n:20,  logGiven:'\\log 3 \\approx 0.4771', k:9 },
+        { base:5, n:10,  logGiven:'\\log 5 \\approx 0.6990', k:6 },
+      ];
+      const c = cases[srRandInt(0,cases.length-1)];
+      return {
+        question:`已知 \\(${c.logGiven}\\)，將 \\(${c.base}^{${c.n}}\\) 表示為 \\(A \\times 10^k\\)（\\(1 \\le A < 10\\)），求 \\(k\\)`,
+        answer:c.k, type:'number', answerPrefix:'k'
+      };
     }
   }
 }
@@ -814,4 +1148,5 @@ const SR_GENERATORS = {
   'b1-abs-ineq':     genB1AbsIneq,
   'b1-expr':         genB1Expr,
   'b1-exp':          genB1Exp,
+  'b1-log':          genB1Log,
 };
