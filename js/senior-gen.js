@@ -1075,7 +1075,7 @@ function _b1Log(level) {
     }
 
   } else if (level === 'medium') {
-    const t = srRandInt(0, 9);
+    const t = srRandInt(0, 7);
 
     if (t === 0) {
       // 替換型：已知 log 2, log 3，求較複雜 log N（四位小數）
@@ -1155,21 +1155,6 @@ function _b1Log(level) {
       };
 
     } else if (t === 4) {
-      // 對數方程（二次型，8種不同解）
-      const cases = [
-        { q:`2\\log(x+2) = \\log(3x+4)`,           ans:0  },
-        { q:`\\log(x+3)+\\log(x-1)=\\log 5`,        ans:2  },
-        { q:`\\log(x-2)+\\log(x+7)=1`,              ans:3  },
-        { q:`\\log(x+6)+\\log(x-3)=1`,              ans:4  },
-        { q:`\\log x+\\log(x-3)=1`,                 ans:5  },
-        { q:`\\log(x+4)+\\log(x-5)=1`,              ans:6  },
-        { q:`2\\log(x-3)=\\log(3x-5)`,              ans:7  },
-        { q:`\\log x+\\log(x-9)=1`,                 ans:10 },
-      ];
-      const c = cases[srRandInt(0,cases.length-1)];
-      return { question:`解方程式 \\(${c.q}\\)`, answer:c.ans, type:'number', answerPrefix:'x' };
-
-    } else if (t === 5) {
       // 括號展開：log{[(ab)^m / c^n]} 合併為整數
       const cases5 = [
         { q:`\\log\\left[\\dfrac{(2 \\times 5)^3}{10}\\right]`,   ans:2 },
@@ -1181,22 +1166,7 @@ function _b1Log(level) {
       const c5 = cases5[srRandInt(0,cases5.length-1)];
       return { question:`計算 \\(${c5.q}\\)`, answer:c5.ans, type:'number', answerPrefix:'' };
 
-    } else if (t === 6) {
-      // 多元對數方程（含減法與二次，8種答案各異）
-      const valid6 = [
-        { q:`\\log(3x-1)+\\log(x-2)=2`,     ans:7  },
-        { q:`\\log x + \\log(x+21) = 2`,    ans:4  },
-        { q:`2\\log x = \\log(3x+10)`,      ans:5  },
-        { q:`2\\log(x-2) = \\log(x+10)`,   ans:6  },
-        { q:`\\log(5x) - \\log(x-8) = 1`,  ans:16 },
-        { q:`\\log(x+1) - \\log(x-8) = 1`, ans:9  },
-        { q:`\\log(5x) - \\log(x-4) = 1`,  ans:8  },
-        { q:`\\log x + \\log(x-21) = 2`,   ans:25 },
-      ];
-      const c6 = valid6[srRandInt(0,valid6.length-1)];
-      return { question:`解方程式 \\(${c6.q}\\)`, answer:c6.ans, type:'number', answerPrefix:'x' };
-
-    } else if (t === 7) {
+    } else if (t === 5) {
       // 比例型：若 log a = k1，log b = k2，a 是 b 的幾倍
       const ki = srRandInt(1,5), kd = srRandInt(1,9);
       const d = [1,2,3][srRandInt(0,2)];
@@ -1209,7 +1179,7 @@ function _b1Log(level) {
         answer:ans, type:'number', answerPrefix:''
       };
 
-    } else if (t === 8) {
+    } else if (t === 6) {
       // 已知 log a = k（含小數），求 log(Na) 或 log(a/N)
       const ki = srRandInt(1,4), kd = srRandInt(1,9);
       const shifts = [[1,'10a'],[2,'100a'],[-1,'\\dfrac{a}{10}'],[-2,'\\dfrac{a}{100}'],[-3,'\\dfrac{a}{1000}']];
