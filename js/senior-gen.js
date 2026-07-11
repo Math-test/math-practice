@@ -1242,7 +1242,7 @@ function _b1Log(level) {
 
   } else {
     // hard
-    const t = srRandInt(0, 5);
+    const t = srRandInt(0, 4);
 
     if (t === 0) {
       // 幾位數：N = base^n，digits = floor(n × log base) + 1
@@ -1329,16 +1329,6 @@ function _b1Log(level) {
         question:`已知 \\(${cH4.logGiven}\\)，將 \\(${cH4.base}^{${cH4.n}}\\) 表示為 \\(A \\times 10^k\\)（\\(1 \\le A < 10\\)），求 \\(k\\)`,
         answer:cH4.k, type:'number', answerPrefix:'k'
       };
-    } else {
-      // 對數方程求未知數（t=5）
-      const tblH5 = [
-        { q:`\\log(3x-1)+\\log(x-2)=2`,   ans:7 },   // (3x-1)(x-2)=100 → x=7
-        { q:`\\log x+\\log(x+21)=2`,       ans:4 },   // x(x+21)=100 → x=4
-        { q:`\\log(x+6)+\\log(2x-7)=1`,    ans:4 },   // (x+6)(2x-7)=10 → x=4
-        { q:`\\log(x-3)+\\log(2x+2)=1`,    ans:4 },   // (x-3)(2x+2)=10 → x=4
-      ];
-      const cH5 = tblH5[srRandInt(0,tblH5.length-1)];
-      return { question:`解方程式 \\(${cH5.q}\\)（取合法正值）`, answer:cH5.ans, type:'number', answerPrefix:'x' };
     }
   }
 }
