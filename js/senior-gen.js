@@ -699,7 +699,7 @@ function _b1Exp(level) {
       return { question:`\\(\\left\\{\\left[\\left(\\dfrac{${a}}{${b}}\\right)^{${m}}\\right]^{${n}}\\right\\}\\) ＝ ？（格式：p/q）`, answer:`${rn/g}/${rd/g}`, type:'text', answerPrefix:'' };
     }
   } else if (level === 'medium') {
-    const t = srRandInt(0, 6);
+    const t = srRandInt(0, 9);
     if (t === 0) {
       // a^m × a^{-n}
       const a = [2,3,4][srRandInt(0,2)];
@@ -761,7 +761,7 @@ function _b1Exp(level) {
         question:`\\(\\left(${a}^{\\frac{1}{${p}}} \\times ${b}^{\\frac{1}{${q}}}\\right)^{${p*q}}\\) ＝ ？`,
         answer:ans, type:'number', answerPrefix:''
       };
-    } else {
+    } else if (t === 6) {
       // 大中括號三層：{[a^{1/p}]^q}^r = a^{qr/p}
       const tbl = [
         [4,2,3,2,64],[8,3,2,2,16],[27,3,2,2,81],
@@ -772,10 +772,53 @@ function _b1Exp(level) {
         question:`\\(\\left\\{\\left[${a}^{\\frac{1}{${p}}}\\right]^{${q}}\\right\\}^{${r}}\\) ＝ ？`,
         answer:ans, type:'number', answerPrefix:''
       };
+    } else if (t === 7) {
+      // 3 同底項四則：a^e1 OP a^e2 OP a^e3（× 或 ÷，正整數指數）
+      const a = [2,3][srRandInt(0,1)];
+      const e1 = srRandInt(1,4), e2 = srRandInt(1,4), e3 = srRandInt(1,4);
+      const op1 = srRandInt(0,1), op2 = srRandInt(0,1);
+      const totalExp = e1 + (op1===0 ? e2 : -e2) + (op2===0 ? e3 : -e3);
+      if (totalExp === 0 || Math.pow(a, Math.abs(totalExp)) > 512) return null;
+      const op1s = op1===0 ? '\\times' : '\\div';
+      const op2s = op2===0 ? '\\times' : '\\div';
+      const qStr7m = `${a}^{${e1}} ${op1s} ${a}^{${e2}} ${op2s} ${a}^{${e3}}`;
+      if (totalExp > 0) return { question:`\\(${qStr7m}\\) ＝ ？`, answer:Math.pow(a,totalExp), type:'number', answerPrefix:'' };
+      return { question:`\\(${qStr7m}\\) ＝ ？（格式：p/q）`, answer:`1/${Math.pow(a,-totalExp)}`, type:'text', answerPrefix:'' };
+    } else if (t === 8) {
+      // 4 項兩底數：a^m × b^{-n} × a^{-p} × b^q = a^{m-p} × b^{q-n}
+      const bases8m = [[2,3],[2,5],[3,5]];
+      const [a8m,b8m] = bases8m[srRandInt(0,2)];
+      const m8m = srRandInt(2,4), n8m = srRandInt(1,3), p8m = srRandInt(1,3), q8m = srRandInt(2,4);
+      const expA8m = m8m - p8m, expB8m = q8m - n8m;
+      if (expA8m === 0 || expB8m === 0) return null;
+      if (Math.pow(a8m, Math.abs(expA8m)) > 64 || Math.pow(b8m, Math.abs(expB8m)) > 64) return null;
+      let num8m = 1, den8m = 1;
+      if (expA8m > 0) num8m *= Math.pow(a8m, expA8m); else den8m *= Math.pow(a8m, -expA8m);
+      if (expB8m > 0) num8m *= Math.pow(b8m, expB8m); else den8m *= Math.pow(b8m, -expB8m);
+      const g8m = srGcd(num8m, den8m);
+      const ansN8m = num8m/g8m, ansD8m = den8m/g8m;
+      if (ansN8m > 500 || ansD8m > 500) return null;
+      const qStr8m = `${a8m}^{${m8m}} \\times ${b8m}^{-${n8m}} \\times ${a8m}^{-${p8m}} \\times ${b8m}^{${q8m}}`;
+      if (ansD8m===1) return { question:`\\(${qStr8m}\\) ＝ ？`, answer:ansN8m, type:'number', answerPrefix:'' };
+      return { question:`\\(${qStr8m}\\) ＝ ？（格式：p/q）`, answer:`${ansN8m}/${ansD8m}`, type:'text', answerPrefix:'' };
+    } else {
+      // 3 項分數指數四則（lookup table）
+      const tbl9m = [
+        [`4^{\\frac{3}{4}} \\times 4^{\\frac{1}{4}} \\div 4^{\\frac{1}{2}}`, 2],
+        [`8^{\\frac{2}{3}} \\times 8^{\\frac{2}{3}} \\div 8^{\\frac{1}{3}}`, 8],
+        [`27^{\\frac{1}{3}} \\times 27^{\\frac{2}{3}} \\div 27^{\\frac{1}{3}}`, 9],
+        [`9^{\\frac{3}{4}} \\times 9^{\\frac{1}{4}} \\div 9^{\\frac{1}{2}}`, 3],
+        [`32^{\\frac{3}{5}} \\times 32^{\\frac{1}{5}} \\div 32^{\\frac{2}{5}}`, 4],
+        [`8^{\\frac{5}{6}} \\times 8^{\\frac{1}{6}} \\times 8^{-\\frac{1}{3}}`, 4],
+        [`16^{\\frac{3}{8}} \\times 16^{\\frac{3}{8}} \\div 16^{\\frac{1}{4}}`, 4],
+        [`27^{\\frac{5}{6}} \\times 27^{\\frac{1}{6}} \\div 27^{\\frac{2}{3}}`, 3],
+      ];
+      const [qm9,ansm9] = tbl9m[srRandInt(0,tbl9m.length-1)];
+      return { question:`\\(${qm9}\\) ＝ ？`, answer:ansm9, type:'number', answerPrefix:'' };
     }
   } else {
     // hard
-    const t = srRandInt(0, 6);
+    const t = srRandInt(0, 9);
     if (t === 0) {
       // (a^m × a^{-n}) / (a^{-p} × a^q) 同底化簡
       const a = [2,3][srRandInt(0,1)];
@@ -855,7 +898,7 @@ function _b1Exp(level) {
         question:`\\(\\left\\{\\left[${a}^{${r}} \\times ${b}^{-${s}}\\right]^{${m}} \\times \\left(${a}^{-${tt}} \\times ${b}^{${u}}\\right)^{${n}}\\right\\}\\) ＝ ？`,
         answer:ans, type:'number', answerPrefix:''
       };
-    } else {
+    } else if (t === 6) {
       // 小中括號鏈：[(a^{1/p} × a^n)^m]^p = a^{m(1+np)}
       const tbl = [
         [2,2,1,2,64],[2,2,1,3,512],[2,3,1,2,256],[2,3,2,1,128],[2,2,2,1,32],
@@ -865,6 +908,49 @@ function _b1Exp(level) {
         question:`\\(\\left[\\left(${a}^{\\frac{1}{${p}}} \\times ${a}^{${n}}\\right)^{${m}}\\right]^{${p}}\\) ＝ ？`,
         answer:ans, type:'number', answerPrefix:''
       };
+    } else if (t === 7) {
+      // 4~5 同底項四則：a^e1 OP a^e2 OP … OP a^eN（× 或 ÷，正整數指數）
+      const a = [2,3][srRandInt(0,1)];
+      const numTerms = srRandInt(4,5);
+      const exps = Array.from({length:numTerms}, () => srRandInt(1,4));
+      const ops = Array.from({length:numTerms-1}, () => srRandInt(0,1));
+      const totalExp = exps.reduce((sum,e,i) => sum + (i===0 ? e : (ops[i-1]===0 ? e : -e)), 0);
+      if (totalExp === 0 || Math.pow(a, Math.abs(totalExp)) > 512) return null;
+      const qParts7h = exps.map((e,i) =>
+        i===0 ? `${a}^{${e}}` : `${ops[i-1]===0?'\\times':'\\div'} ${a}^{${e}}`
+      ).join(' ');
+      if (totalExp > 0) return { question:`\\(${qParts7h}\\) ＝ ？`, answer:Math.pow(a,totalExp), type:'number', answerPrefix:'' };
+      return { question:`\\(${qParts7h}\\) ＝ ？（格式：p/q）`, answer:`1/${Math.pow(a,-totalExp)}`, type:'text', answerPrefix:'' };
+    } else if (t === 8) {
+      // 4 項兩底數含負指數：a^m × b^{-n} × a^{-p} × b^q = a^{m-p} × b^{q-n}
+      const bases8h = [[2,3],[2,5],[3,5]];
+      const [a8h,b8h] = bases8h[srRandInt(0,2)];
+      const m8h = srRandInt(2,5), n8h = srRandInt(1,4), p8h = srRandInt(1,4), q8h = srRandInt(2,5);
+      const expA8h = m8h - p8h, expB8h = q8h - n8h;
+      if (expA8h === 0 || expB8h === 0) return null;
+      if (Math.pow(a8h, Math.abs(expA8h)) > 64 || Math.pow(b8h, Math.abs(expB8h)) > 64) return null;
+      let num8h = 1, den8h = 1;
+      if (expA8h > 0) num8h *= Math.pow(a8h, expA8h); else den8h *= Math.pow(a8h, -expA8h);
+      if (expB8h > 0) num8h *= Math.pow(b8h, expB8h); else den8h *= Math.pow(b8h, -expB8h);
+      const g8h = srGcd(num8h, den8h);
+      const ansN8h = num8h/g8h, ansD8h = den8h/g8h;
+      if (ansN8h > 500 || ansD8h > 500) return null;
+      const qStr8h = `${a8h}^{${m8h}} \\times ${b8h}^{-${n8h}} \\times ${a8h}^{-${p8h}} \\times ${b8h}^{${q8h}}`;
+      if (ansD8h===1) return { question:`\\(${qStr8h}\\) ＝ ？`, answer:ansN8h, type:'number', answerPrefix:'' };
+      return { question:`\\(${qStr8h}\\) ＝ ？（格式：p/q）`, answer:`${ansN8h}/${ansD8h}`, type:'text', answerPrefix:'' };
+    } else {
+      // 4 項分數指數四則（lookup table）
+      const tbl9h = [
+        [`4^{\\frac{3}{4}} \\times 4^{\\frac{3}{4}} \\times 4^{\\frac{1}{4}} \\div 4^{\\frac{5}{4}}`, 2],
+        [`8^{\\frac{2}{3}} \\times 8^{\\frac{2}{3}} \\times 8^{\\frac{1}{3}} \\div 8`, 4],
+        [`27^{\\frac{2}{3}} \\times 27^{\\frac{2}{3}} \\times 27^{\\frac{1}{3}} \\div 27^{\\frac{4}{3}}`, 3],
+        [`32^{\\frac{3}{5}} \\times 32^{\\frac{3}{5}} \\times 32^{\\frac{1}{5}} \\div 32^{\\frac{4}{5}}`, 8],
+        [`2^{\\frac{3}{2}} \\times 2^{\\frac{1}{2}} \\div 2^{\\frac{1}{4}} \\times 2^{\\frac{1}{4}}`, 4],
+        [`8^{\\frac{1}{3}} \\times 8^{\\frac{2}{3}} \\times 8^{\\frac{1}{3}} \\div 8^{\\frac{2}{3}}`, 4],
+        [`16^{\\frac{1}{4}} \\times 16^{\\frac{3}{4}} \\times 16^{\\frac{1}{2}} \\div 16^{\\frac{3}{4}}`, 8],
+      ];
+      const [qh9,ansh9] = tbl9h[srRandInt(0,tbl9h.length-1)];
+      return { question:`\\(${qh9}\\) ＝ ？`, answer:ansh9, type:'number', answerPrefix:'' };
     }
   }
 }
