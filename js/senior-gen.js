@@ -699,7 +699,7 @@ function _b1Exp(level) {
       return { question:`\\(\\left\\{\\left[\\left(\\dfrac{${a}}{${b}}\\right)^{${m}}\\right]^{${n}}\\right\\}\\) ＝ ？（格式：p/q）`, answer:`${rn/g}/${rd/g}`, type:'text', answerPrefix:'' };
     }
   } else if (level === 'medium') {
-    const t = srRandInt(0, 9);
+    const t = srRandInt(0, 10);
     if (t === 0) {
       // a^m × a^{-n}
       const a = [2,3,4][srRandInt(0,2)];
@@ -801,7 +801,7 @@ function _b1Exp(level) {
       const qStr8m = `${a8m}^{${m8m}} \\times ${b8m}^{-${n8m}} \\times ${a8m}^{-${p8m}} \\times ${b8m}^{${q8m}}`;
       if (ansD8m===1) return { question:`\\(${qStr8m}\\) ＝ ？`, answer:ansN8m, type:'number', answerPrefix:'' };
       return { question:`\\(${qStr8m}\\) ＝ ？（格式：p/q）`, answer:`${ansN8m}/${ansD8m}`, type:'text', answerPrefix:'' };
-    } else {
+    } else if (t === 9) {
       // 3 項分數指數四則（lookup table）
       const tbl9m = [
         [`4^{\\frac{3}{4}} \\times 4^{\\frac{1}{4}} \\div 4^{\\frac{1}{2}}`, 2],
@@ -815,10 +815,25 @@ function _b1Exp(level) {
       ];
       const [qm9,ansm9] = tbl9m[srRandInt(0,tbl9m.length-1)];
       return { question:`\\(${qm9}\\) ＝ ？`, answer:ansm9, type:'number', answerPrefix:'' };
+    } else {
+      // 兩組不同底相加減：a^m × a^{-n} OP b^p × b^{-q}（t=10）
+      const bases10m = [[2,3],[2,5],[3,5]];
+      const [a10m,b10m] = bases10m[srRandInt(0,2)];
+      const aExp = srRandInt(1,4), bExp = srRandInt(1,3);
+      const n1 = srRandInt(1,2), m1 = aExp+n1;
+      const n2 = srRandInt(1,2), m2 = bExp+n2;
+      const partA = Math.pow(a10m, aExp), partB = Math.pow(b10m, bExp);
+      const op10m = srRandInt(0,1);
+      if (op10m===1 && partA <= partB) return null;
+      const ans10m = op10m===0 ? partA+partB : partA-partB;
+      if (ans10m <= 0 || ans10m > 300) return null;
+      const opStr10m = op10m===0 ? '+' : '-';
+      const qStr10m = `${a10m}^{${m1}} \\times ${a10m}^{-${n1}} ${opStr10m} ${b10m}^{${m2}} \\times ${b10m}^{-${n2}}`;
+      return { question:`\\(${qStr10m}\\) ＝ ？`, answer:ans10m, type:'number', answerPrefix:'' };
     }
   } else {
     // hard
-    const t = srRandInt(0, 9);
+    const t = srRandInt(0, 10);
     if (t === 0) {
       // (a^m × a^{-n}) / (a^{-p} × a^q) 同底化簡
       const a = [2,3][srRandInt(0,1)];
@@ -938,7 +953,7 @@ function _b1Exp(level) {
       const qStr8h = `${a8h}^{${m8h}} \\times ${b8h}^{-${n8h}} \\times ${a8h}^{-${p8h}} \\times ${b8h}^{${q8h}}`;
       if (ansD8h===1) return { question:`\\(${qStr8h}\\) ＝ ？`, answer:ansN8h, type:'number', answerPrefix:'' };
       return { question:`\\(${qStr8h}\\) ＝ ？（格式：p/q）`, answer:`${ansN8h}/${ansD8h}`, type:'text', answerPrefix:'' };
-    } else {
+    } else if (t === 9) {
       // 4 項分數指數四則（lookup table）
       const tbl9h = [
         [`4^{\\frac{3}{4}} \\times 4^{\\frac{3}{4}} \\times 4^{\\frac{1}{4}} \\div 4^{\\frac{5}{4}}`, 2],
@@ -948,9 +963,28 @@ function _b1Exp(level) {
         [`2^{\\frac{3}{2}} \\times 2^{\\frac{1}{2}} \\div 2^{\\frac{1}{4}} \\times 2^{\\frac{1}{4}}`, 4],
         [`8^{\\frac{1}{3}} \\times 8^{\\frac{2}{3}} \\times 8^{\\frac{1}{3}} \\div 8^{\\frac{2}{3}}`, 4],
         [`16^{\\frac{1}{4}} \\times 16^{\\frac{3}{4}} \\times 16^{\\frac{1}{2}} \\div 16^{\\frac{3}{4}}`, 8],
+        [`9^{\\frac{3}{4}} \\times 9^{\\frac{3}{4}} \\times 9^{\\frac{1}{4}} \\div 9^{\\frac{5}{4}}`, 3],
+        [`4^{\\frac{3}{4}} \\times 4^{\\frac{1}{4}} \\div 4^{\\frac{3}{4}} \\times 4^{\\frac{1}{4}}`, 2],
+        [`16^{\\frac{3}{4}} \\times 16^{\\frac{1}{4}} \\div 16^{\\frac{3}{4}} \\times 16^{\\frac{1}{4}}`, 4],
+        [`27^{\\frac{1}{3}} \\times 27^{\\frac{2}{3}} \\times 27^{\\frac{2}{3}} \\div 27^{\\frac{4}{3}}`, 3],
+        [`32^{\\frac{2}{5}} \\times 32^{\\frac{2}{5}} \\times 32^{\\frac{1}{5}} \\div 32^{\\frac{2}{5}}`, 8],
       ];
       const [qh9,ansh9] = tbl9h[srRandInt(0,tbl9h.length-1)];
       return { question:`\\(${qh9}\\) ＝ ？`, answer:ansh9, type:'number', answerPrefix:'' };
+    } else if (t === 10) {
+      // 整數底 × 分數底 加減（分數答案）— 整數底部份與 (p/q)^{-n} 相加減
+      const tblMix = [
+        [`3^{3} \\times 3^{-1} - \\left(\\dfrac{2}{3}\\right)^{-2}`, '27/4'],   // 9-9/4=27/4
+        [`2^{3} \\times 2^{-1} - \\left(\\dfrac{2}{3}\\right)^{-2}`, '7/4'],    // 4-9/4=7/4
+        [`\\left(\\dfrac{2}{3}\\right)^{-2} + 3^{3} \\times 3^{-2}`, '21/4'],   // 9/4+3=21/4
+        [`2^{4} \\times 2^{-2} + \\left(\\dfrac{2}{3}\\right)^{-2}`, '25/4'],   // 4+9/4=25/4
+        [`3^{4} \\times 3^{-2} + \\left(\\dfrac{2}{3}\\right)^{-2}`, '45/4'],   // 9+9/4=45/4
+        [`\\left(\\dfrac{2}{3}\\right)^{-2} - 2^{3} \\times 2^{-2}`, '1/4'],    // 9/4-2=1/4
+        [`2^{4} \\times 2^{-2} - \\left(\\dfrac{3}{2}\\right)^{-2}`, '32/9'],   // 4-4/9=32/9
+        [`3^{4} \\times 3^{-2} - \\left(\\dfrac{3}{2}\\right)^{-2}`, '77/9'],   // 9-4/9=77/9... wait 9=81/9, 81/9-4/9=77/9 ✓
+      ];
+      const [qMix,ansMix] = tblMix[srRandInt(0,tblMix.length-1)];
+      return { question:`\\(${qMix}\\) ＝ ？（格式：p/q）`, answer:ansMix, type:'text', answerPrefix:'' };
     }
   }
 }
@@ -1041,7 +1075,7 @@ function _b1Log(level) {
     }
 
   } else if (level === 'medium') {
-    const t = srRandInt(0, 6);
+    const t = srRandInt(0, 9);
 
     if (t === 0) {
       // 替換型：已知 log 2, log 3，求較複雜 log N（四位小數）
@@ -1121,17 +1155,18 @@ function _b1Log(level) {
       };
 
     } else if (t === 4) {
-      // 對數方程：log(ax²+bx+c)=0 → ax²+bx+c=1，取整數根
+      // 對數方程（二次型，8種不同解）
       const cases = [
-        { q:`\\log(x^2-3x) = 1`,    ans:'5（x=−2 不符）', aVal:5, hint:'log(x²−3x)=1 → x²−3x=10 → (x−5)(x+2)=0' },
-        { q:`\\log(x) + \\log(x-3) = 1`, ans:5, hint:'log[x(x−3)]=1 → x²−3x−10=0 → x=5' },
-        { q:`2\\log(x+2) = \\log(3x+4)`,  ans:0, hint:'(x+2)²=3x+4 → x²+x=0 → x=0' },
-        { q:`\\log(x+3)+\\log(x-1)=\\log 5`, ans:2, hint:'(x+3)(x−1)=5 → x=2' },
+        { q:`2\\log(x+2) = \\log(3x+4)`,           ans:0  },
+        { q:`\\log(x+3)+\\log(x-1)=\\log 5`,        ans:2  },
+        { q:`\\log(x-2)+\\log(x+7)=1`,              ans:3  },
+        { q:`\\log(x+6)+\\log(x-3)=1`,              ans:4  },
+        { q:`\\log x+\\log(x-3)=1`,                 ans:5  },
+        { q:`\\log(x+4)+\\log(x-5)=1`,              ans:6  },
+        { q:`2\\log(x-3)=\\log(3x-5)`,              ans:7  },
+        { q:`\\log x+\\log(x-9)=1`,                 ans:10 },
       ];
       const c = cases[srRandInt(0,cases.length-1)];
-      if (typeof c.aVal !== 'undefined') {
-        return { question:`解方程式 \\(${c.q}\\)（取正值）`, answer:c.aVal, type:'number', answerPrefix:'x' };
-      }
       return { question:`解方程式 \\(${c.q}\\)`, answer:c.ans, type:'number', answerPrefix:'x' };
 
     } else if (t === 5) {
@@ -1146,17 +1181,63 @@ function _b1Log(level) {
       const c5 = cases5[srRandInt(0,cases5.length-1)];
       return { question:`計算 \\(${c5.q}\\)`, answer:c5.ans, type:'number', answerPrefix:'' };
 
-    } else {
-      // 多元對數方程（未知數，t=6）
+    } else if (t === 6) {
+      // 多元對數方程（含減法與二次，8種答案各異）
       const valid6 = [
-        { q:`\\log x + \\log(x-9) = 1`,       ans:10 },
-        { q:`2\\log x = \\log(3x+10)`,         ans:5 },
-        { q:`\\log(x+5) + \\log(x-4) = 1`,    ans:5 },
-        { q:`\\log(x^2-3x) = 1`,              ans:5 },
-        { q:`\\log x + \\log(x-21) = 2`,      ans:25 },
+        { q:`\\log(3x-1)+\\log(x-2)=2`,     ans:7  },
+        { q:`\\log x + \\log(x+21) = 2`,    ans:4  },
+        { q:`2\\log x = \\log(3x+10)`,      ans:5  },
+        { q:`2\\log(x-2) = \\log(x+10)`,   ans:6  },
+        { q:`\\log(5x) - \\log(x-8) = 1`,  ans:16 },
+        { q:`\\log(x+1) - \\log(x-8) = 1`, ans:9  },
+        { q:`\\log(5x) - \\log(x-4) = 1`,  ans:8  },
+        { q:`\\log x + \\log(x-21) = 2`,   ans:25 },
       ];
       const c6 = valid6[srRandInt(0,valid6.length-1)];
-      return { question:`解方程式 \\(${c6.q}\\)（取合法正值）`, answer:c6.ans, type:'number', answerPrefix:'x' };
+      return { question:`解方程式 \\(${c6.q}\\)`, answer:c6.ans, type:'number', answerPrefix:'x' };
+
+    } else if (t === 7) {
+      // 比例型：若 log a = k1，log b = k2，a 是 b 的幾倍
+      const ki = srRandInt(1,5), kd = srRandInt(1,9);
+      const d = [1,2,3][srRandInt(0,2)];
+      const k2s = `${ki}.${kd}`;
+      const k1Tenths = ki*10 + kd + d*10;
+      const k1s = `${Math.floor(k1Tenths/10)}.${k1Tenths%10}`;
+      const ans = Math.pow(10, d);
+      return {
+        question:`若 \\(\\log a = ${k1s},\\ \\log b = ${k2s}\\)，則 \\(a\\) 是 \\(b\\) 的幾倍？`,
+        answer:ans, type:'number', answerPrefix:''
+      };
+
+    } else if (t === 8) {
+      // 已知 log a = k（含小數），求 log(Na) 或 log(a/N)
+      const ki = srRandInt(1,4), kd = srRandInt(1,9);
+      const shifts = [[1,'10a'],[2,'100a'],[-1,'\\dfrac{a}{10}'],[-2,'\\dfrac{a}{100}'],[-3,'\\dfrac{a}{1000}']];
+      const [n,expr] = shifts[srRandInt(0,4)];
+      const ansTenths = ki*10 + kd + n*10;
+      if (ansTenths <= 0) return null;
+      const kStr = `${ki}.${kd}`;
+      const aW = Math.floor(ansTenths/10), aF = ansTenths%10;
+      const ansStr = aF===0 ? `${aW}` : `${aW}.${aF}`;
+      return {
+        question:`已知 \\(\\log a = ${kStr}\\)，求 \\(\\log \\left(${expr}\\right)\\)`,
+        answer:ansStr, type:'text', answerPrefix:''
+      };
+
+    } else {
+      // 混合計算：10^{log N} + log(10^k) 各項
+      const cases9L = [
+        { q:`10^{\\log 5} + \\log 0.01 + \\log 1000`,  ans:6  },
+        { q:`10^{\\log 3} + \\log 100 + \\log 0.001`,  ans:2  },
+        { q:`10^{\\log 7} + \\log 10000 + \\log 0.1`,  ans:10 },
+        { q:`10^{\\log 4} + \\log 0.001 + \\log 10000`,ans:5  },
+        { q:`10^{\\log 2} + \\log 1000 + \\log 0.01`,  ans:3  },
+        { q:`10^{\\log 9} + \\log 0.01 + \\log 100`,   ans:9  },
+        { q:`10^{\\log 5} + \\log 10 - \\log 100`,     ans:4  },
+        { q:`10^{\\log 7} - \\log 100 + \\log 1000`,   ans:8  },
+      ];
+      const c9L = cases9L[srRandInt(0,cases9L.length-1)];
+      return { question:`計算 \\(${c9L.q}\\)`, answer:c9L.ans, type:'number', answerPrefix:'' };
     }
 
   } else {
