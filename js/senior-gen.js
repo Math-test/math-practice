@@ -1670,6 +1670,218 @@ function _b1Line(level) {
   };
 }
 
+// ── b1-amgm：算幾不等式 ────────────────────────────────────────────
+function genB1AmGm(level, _n) {
+  for (let _i = 0; _i < 40; _i++) {
+    const q = _b1AmGm(level);
+    if (q) return q;
+  }
+  return { question:'算幾不等式', answer:0, type:'number', answerPrefix:'' };
+}
+
+function _b1AmGm(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0, 3);
+
+    if (t === 0) {
+      // a+b=k, a,b>0, ab 最大值 = (k/2)²
+      const h = srRandInt(2, 6);
+      const k = 2 * h;
+      return {
+        question:`設 \\(a > 0,\\ b > 0,\\ a + b = ${k}\\)，則 \\(ab\\) 的最大值為何？`,
+        answer:h * h, type:'number', answerPrefix:''
+      };
+    }
+
+    if (t === 1) {
+      // ab=n², a,b>0, a+b 最小值 = 2n
+      const n = srRandInt(1, 6);
+      return {
+        question:`設 \\(a > 0,\\ b > 0,\\ ab = ${n*n}\\)，則 \\(a + b\\) 的最小值為何？`,
+        answer:2*n, type:'number', answerPrefix:''
+      };
+    }
+
+    if (t === 2) {
+      // x + c/x (c=n²), x>0, 最小值 = 2n
+      const n = srRandInt(1, 5);
+      const c = n * n;
+      return {
+        question:`設 \\(x > 0\\)，求 \\(x + \\dfrac{${c}}{x}\\) 的最小值`,
+        answer:2*n, type:'number', answerPrefix:''
+      };
+    }
+
+    // t=3: ax + b/x, ab 為完全平方，最小值 = 2√(ab)
+    const cases3 = [
+      [1,4,4],[1,9,6],[1,16,8],[1,25,10],
+      [4,9,12],[4,25,20],[9,16,24],
+      [2,8,8],[3,12,12],[4,16,16],
+    ];
+    const [a3,b3,min3] = cases3[srRandInt(0, cases3.length-1)];
+    return {
+      question:`設 \\(x > 0\\)，求 \\(${a3}x + \\dfrac{${b3}}{x}\\) 的最小值`,
+      answer:min3, type:'number', answerPrefix:''
+    };
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 5);
+
+    if (t === 0) {
+      // (x²+c)/x = x+c/x, x>0, 最小值 = 2n (c=n²)
+      const n = srRandInt(2, 5);
+      const c = n * n;
+      return {
+        question:`設 \\(x > 0\\)，求 \\(\\dfrac{x^2 + ${c}}{x}\\) 的最小值`,
+        answer:2*n, type:'number', answerPrefix:''
+      };
+    }
+
+    if (t === 1) {
+      // a+b=k, a,b>0, 1/a+1/b 最小值 = 4/k
+      const cases1 = [
+        { k:1,  ans:4,     tp:'number' },
+        { k:2,  ans:2,     tp:'number' },
+        { k:4,  ans:1,     tp:'number' },
+        { k:8,  ans:'1/2', tp:'text'   },
+        { k:6,  ans:'2/3', tp:'text'   },
+        { k:12, ans:'1/3', tp:'text'   },
+      ];
+      const e1 = cases1[srRandInt(0, cases1.length-1)];
+      return {
+        question:`設 \\(a > 0,\\ b > 0,\\ a + b = ${e1.k}\\)，則 \\(\\dfrac{1}{a} + \\dfrac{1}{b}\\) 的最小值為何？`,
+        answer:e1.ans, type:e1.tp, answerPrefix:''
+      };
+    }
+
+    if (t === 2) {
+      // a+b=k, a,b>0, a²+b² 最小值 = k²/2
+      const k = [2,4,6,8,10][srRandInt(0,4)];
+      return {
+        question:`設 \\(a > 0,\\ b > 0,\\ a + b = ${k}\\)，則 \\(a^2 + b^2\\) 的最小值為何？`,
+        answer:k*k/2, type:'number', answerPrefix:''
+      };
+    }
+
+    if (t === 3) {
+      // ab=k, a,b>0, a²+b² 最小值 = 2k
+      const k = [4,8,9,12,16,18,25][srRandInt(0,6)];
+      return {
+        question:`設 \\(a > 0,\\ b > 0,\\ ab = ${k}\\)，則 \\(a^2 + b^2\\) 的最小值為何？`,
+        answer:2*k, type:'number', answerPrefix:''
+      };
+    }
+
+    if (t === 4) {
+      // (x+a)(x+b)/x, x>0, 最小值 = (a+b)+2√(ab)
+      const cases4 = [
+        [1,4,9],[1,9,16],[4,9,25],[1,16,25],[4,16,36],[9,16,49],
+      ];
+      const [a4,b4,min4] = cases4[srRandInt(0, cases4.length-1)];
+      return {
+        question:`設 \\(x > 0\\)，求 \\(\\dfrac{(x+${a4})(x+${b4})}{x}\\) 的最小值`,
+        answer:min4, type:'number', answerPrefix:''
+      };
+    }
+
+    // t=5: a+b+c=k, a,b,c>0, abc 最大值 = (k/3)³
+    const cases5 = [[3,1],[6,8],[9,27],[12,64]];
+    const [k5,max5] = cases5[srRandInt(0, cases5.length-1)];
+    return {
+      question:`設 \\(a > 0,\\ b > 0,\\ c > 0,\\ a + b + c = ${k5}\\)，則 \\(abc\\) 的最大值為何？`,
+      answer:max5, type:'number', answerPrefix:''
+    };
+  }
+
+  // hard
+  const t = srRandInt(0, 4);
+
+  if (t === 0) {
+    // ax+by=k, x,y>0, xy 最大值 = k²/(4ab)
+    const casesH0 = [
+      { a:2, b:3, k:6,  ans:'3/2', tp:'text'   },
+      { a:2, b:2, k:8,  ans:4,     tp:'number' },
+      { a:3, b:3, k:9,  ans:'9/4', tp:'text'   },
+      { a:1, b:4, k:8,  ans:4,     tp:'number' },
+      { a:2, b:8, k:8,  ans:1,     tp:'number' },
+      { a:1, b:9, k:6,  ans:1,     tp:'number' },
+    ];
+    const eH0 = casesH0[srRandInt(0, casesH0.length-1)];
+    const xPH0 = eH0.a === 1 ? 'x' : `${eH0.a}x`;
+    const yPH0 = eH0.b === 1 ? 'y' : `${eH0.b}y`;
+    return {
+      question:`設 \\(x > 0,\\ y > 0,\\ ${xPH0} + ${yPH0} = ${eH0.k}\\)，則 \\(xy\\) 的最大值為何？`,
+      answer:eH0.ans, type:eH0.tp, answerPrefix:''
+    };
+  }
+
+  if (t === 1) {
+    // xy=k, x,y>0, ax+by 最小值 = 2√(abk)
+    const casesH1 = [
+      { a:3, b:4,  k:12, ans:24 },
+      { a:2, b:3,  k:6,  ans:12 },
+      { a:1, b:4,  k:4,  ans:8  },
+      { a:1, b:9,  k:9,  ans:18 },
+      { a:2, b:8,  k:4,  ans:16 },
+      { a:1, b:25, k:4,  ans:20 },
+      { a:4, b:9,  k:4,  ans:24 },
+    ];
+    const eH1 = casesH1[srRandInt(0, casesH1.length-1)];
+    const xPH1 = eH1.a === 1 ? 'x' : `${eH1.a}x`;
+    const yPH1 = eH1.b === 1 ? 'y' : `${eH1.b}y`;
+    return {
+      question:`設 \\(x > 0,\\ y > 0,\\ xy = ${eH1.k}\\)，則 \\(${xPH1} + ${yPH1}\\) 的最小值為何？`,
+      answer:eH1.ans, type:'number', answerPrefix:''
+    };
+  }
+
+  if (t === 2) {
+    // (x+a)²/x, x>0, 最小值 = 4a
+    const a2 = srRandInt(1, 5);
+    const sqStr = a2 === 1 ? '(x+1)^2' : `(x+${a2})^2`;
+    return {
+      question:`設 \\(x > 0\\)，求 \\(\\dfrac{${sqStr}}{x}\\) 的最小值`,
+      answer:4*a2, type:'number', answerPrefix:''
+    };
+  }
+
+  if (t === 3) {
+    // (x²+ax+c)/x = x+a+c/x, c=n², n≠a/2, 最小值 = a+2n
+    const casesH3 = [
+      { a:1, n:1, expr:'x^2+x+1',  min:3 },
+      { a:1, n:2, expr:'x^2+x+4',  min:5 },
+      { a:1, n:3, expr:'x^2+x+9',  min:7 },
+      { a:2, n:2, expr:'x^2+2x+4', min:6 },
+      { a:3, n:1, expr:'x^2+3x+1', min:5 },
+      { a:3, n:3, expr:'x^2+3x+9', min:9 },
+      { a:5, n:1, expr:'x^2+5x+1', min:7 },
+    ];
+    const eH3 = casesH3[srRandInt(0, casesH3.length-1)];
+    return {
+      question:`設 \\(x > 0\\)，求 \\(\\dfrac{${eH3.expr}}{x}\\) 的最小值`,
+      answer:eH3.min, type:'number', answerPrefix:''
+    };
+  }
+
+  // t=4: x + k/(x-c), x>c>0, 最小值 = c+2√k
+  const casesH4 = [
+    { c:1, k:4,  min:5 },
+    { c:1, k:9,  min:7 },
+    { c:2, k:4,  min:6 },
+    { c:2, k:9,  min:8 },
+    { c:3, k:4,  min:7 },
+    { c:3, k:1,  min:5 },
+    { c:1, k:16, min:9 },
+    { c:4, k:4,  min:8 },
+  ];
+  const eH4 = casesH4[srRandInt(0, casesH4.length-1)];
+  return {
+    question:`設 \\(x > ${eH4.c}\\)，求 \\(x + \\dfrac{${eH4.k}}{x - ${eH4.c}}\\) 的最小值`,
+    answer:eH4.min, type:'number', answerPrefix:''
+  };
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  輸出表
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1682,4 +1894,5 @@ const SR_GENERATORS = {
   'b1-exp':          genB1Exp,
   'b1-log':          genB1Log,
   'b1-line':         genB1Line,
+  'b1-amgm':         genB1AmGm,
 };
