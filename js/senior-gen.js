@@ -1725,7 +1725,7 @@ function _b1AmGm(level) {
   }
 
   if (level === 'medium') {
-    const t = srRandInt(0, 3);
+    const t = srRandInt(0, 5);
 
     if (t === 0) {
       // (x²+c)/x = x+c/x, x>0, 最小值 = 2n (c=n²)
@@ -1772,10 +1772,46 @@ function _b1AmGm(level) {
       };
     }
 
+    if (t === 4) {
+      // pa/b + qb/a 型，最小值 = 2√(pq)
+      const casesM4 = [
+        { p:1, q:1,  min:2  },
+        { p:1, q:4,  min:4  },
+        { p:1, q:9,  min:6  },
+        { p:4, q:9,  min:12 },
+        { p:4, q:1,  min:4  },
+        { p:9, q:1,  min:6  },
+        { p:1, q:16, min:8  },
+        { p:9, q:4,  min:12 },
+      ];
+      const eM4 = casesM4[srRandInt(0, casesM4.length-1)];
+      const lhsM4 = eM4.p === 1 ? '\\dfrac{a}{b}' : `\\dfrac{${eM4.p}a}{b}`;
+      const rhsM4 = eM4.q === 1 ? '\\dfrac{b}{a}' : `\\dfrac{${eM4.q}b}{a}`;
+      return {
+        question:`設 \\(a > 0,\\ b > 0\\)，求 \\(${lhsM4} + ${rhsM4}\\) 的最小值`,
+        answer:eM4.min, type:'number', answerPrefix:''
+      };
+    }
+
+    // t=5: ax + b/(cx) 型，最小值 = 2√(ab/c)
+    const casesM5 = [
+      { a:2, b:9, c:8, min:3  },
+      { a:3, b:4, c:3, min:4  },
+      { a:4, b:9, c:4, min:6  },
+      { a:8, b:9, c:2, min:12 },
+      { a:2, b:1, c:2, min:2  },
+      { a:9, b:4, c:9, min:4  },
+      { a:4, b:1, c:4, min:2  },
+    ];
+    const eM5 = casesM5[srRandInt(0, casesM5.length-1)];
+    return {
+      question:`設 \\(x > 0\\)，求 \\(${eM5.a}x + \\dfrac{${eM5.b}}{${eM5.c}x}\\) 的最小值`,
+      answer:eM5.min, type:'number', answerPrefix:''
+    };
   }
 
   // hard
-  const t = srRandInt(0, 4);
+  const t = srRandInt(0, 6);
 
   if (t === 0) {
     // ax+by=k, x,y>0, xy 最大值 = k²/(4ab)
@@ -1844,21 +1880,61 @@ function _b1AmGm(level) {
     };
   }
 
-  // t=4: x + k/(x-c), x>c>0, 最小值 = c+2√k
-  const casesH4 = [
-    { c:1, k:4,  min:5 },
-    { c:1, k:9,  min:7 },
-    { c:2, k:4,  min:6 },
-    { c:2, k:9,  min:8 },
-    { c:3, k:4,  min:7 },
-    { c:3, k:1,  min:5 },
-    { c:1, k:16, min:9 },
-    { c:4, k:4,  min:8 },
+  if (t === 4) {
+    // x + k/(x-c), x>c>0, 最小值 = c+2√k
+    const casesH4 = [
+      { c:1, k:4,  min:5 },
+      { c:1, k:9,  min:7 },
+      { c:2, k:4,  min:6 },
+      { c:2, k:9,  min:8 },
+      { c:3, k:4,  min:7 },
+      { c:3, k:1,  min:5 },
+      { c:1, k:16, min:9 },
+      { c:4, k:4,  min:8 },
+    ];
+    const eH4 = casesH4[srRandInt(0, casesH4.length-1)];
+    return {
+      question:`設 \\(x > ${eH4.c}\\)，求 \\(x + \\dfrac{${eH4.k}}{x - ${eH4.c}}\\) 的最小值`,
+      answer:eH4.min, type:'number', answerPrefix:''
+    };
+  }
+
+  if (t === 5) {
+    // (x-p)(y-q) = k, 均為正實數，求 x+y 最小值 = 2√k + p + q
+    const casesH5 = [
+      { p:2, q:3, k:9,  min:11 },
+      { p:1, q:1, k:4,  min:6  },
+      { p:2, q:2, k:4,  min:8  },
+      { p:1, q:2, k:9,  min:9  },
+      { p:3, q:4, k:4,  min:11 },
+      { p:1, q:3, k:16, min:12 },
+      { p:2, q:4, k:9,  min:12 },
+      { p:1, q:4, k:4,  min:9  },
+    ];
+    const eH5 = casesH5[srRandInt(0, casesH5.length-1)];
+    return {
+      question:`若 \\((x - ${eH5.p})\\) 與 \\((y - ${eH5.q})\\) 均為正實數且 \\((x - ${eH5.p})(y - ${eH5.q}) = ${eH5.k}\\)，求 \\(x + y\\) 的最小值`,
+      answer:eH5.min, type:'number', answerPrefix:''
+    };
+  }
+
+  // t=6: ax + b/x + c，最小值 = 2√(ab) + c
+  const casesH6 = [
+    { a:1, b:1,  c:4, min:6  },
+    { a:1, b:9,  c:4, min:10 },
+    { a:1, b:4,  c:3, min:7  },
+    { a:1, b:16, c:2, min:10 },
+    { a:1, b:9,  c:1, min:7  },
+    { a:4, b:1,  c:5, min:9  },
+    { a:9, b:1,  c:2, min:8  },
+    { a:1, b:4,  c:6, min:10 },
   ];
-  const eH4 = casesH4[srRandInt(0, casesH4.length-1)];
+  const eH6 = casesH6[srRandInt(0, casesH6.length-1)];
+  const xTermH6 = eH6.a === 1 ? 'x' : `${eH6.a}x`;
+  const cTermH6 = eH6.b === 1 ? '\\dfrac{1}{x}' : `\\dfrac{${eH6.b}}{x}`;
   return {
-    question:`設 \\(x > ${eH4.c}\\)，求 \\(x + \\dfrac{${eH4.k}}{x - ${eH4.c}}\\) 的最小值`,
-    answer:eH4.min, type:'number', answerPrefix:''
+    question:`設 \\(x > 0\\)，求 \\(${xTermH6} + ${cTermH6} + ${eH6.c}\\) 的最小值`,
+    answer:eH6.min, type:'number', answerPrefix:''
   };
 }
 
