@@ -1712,9 +1712,8 @@ function _b1AmGm(level) {
       };
     }
 
-    // t=3: ax + b/x, ab 為完全平方，最小值 = 2√(ab)
+    // t=3: ax + b/x (a≥2), ab 為完全平方，最小值 = 2√(ab)
     const cases3 = [
-      [1,4,4],[1,9,6],[1,16,8],[1,25,10],
       [4,9,12],[4,25,20],[9,16,24],
       [2,8,8],[3,12,12],[4,16,16],
     ];
@@ -1726,7 +1725,7 @@ function _b1AmGm(level) {
   }
 
   if (level === 'medium') {
-    const t = srRandInt(0, 5);
+    const t = srRandInt(0, 3);
 
     if (t === 0) {
       // (x²+c)/x = x+c/x, x>0, 最小值 = 2n (c=n²)
@@ -1773,25 +1772,6 @@ function _b1AmGm(level) {
       };
     }
 
-    if (t === 4) {
-      // (x+a)(x+b)/x, x>0, 最小值 = (a+b)+2√(ab)
-      const cases4 = [
-        [1,4,9],[1,9,16],[4,9,25],[1,16,25],[4,16,36],[9,16,49],
-      ];
-      const [a4,b4,min4] = cases4[srRandInt(0, cases4.length-1)];
-      return {
-        question:`設 \\(x > 0\\)，求 \\(\\dfrac{(x+${a4})(x+${b4})}{x}\\) 的最小值`,
-        answer:min4, type:'number', answerPrefix:''
-      };
-    }
-
-    // t=5: a+b+c=k, a,b,c>0, abc 最大值 = (k/3)³
-    const cases5 = [[3,1],[6,8],[9,27],[12,64]];
-    const [k5,max5] = cases5[srRandInt(0, cases5.length-1)];
-    return {
-      question:`設 \\(a > 0,\\ b > 0,\\ c > 0,\\ a + b + c = ${k5}\\)，則 \\(abc\\) 的最大值為何？`,
-      answer:max5, type:'number', answerPrefix:''
-    };
   }
 
   // hard
