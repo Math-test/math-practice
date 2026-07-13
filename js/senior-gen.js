@@ -1685,7 +1685,7 @@ function _b1AmGm(level) {
 
     if (t === 0) {
       // a+b=k, a,b>0, ab 最大值 = (k/2)²
-      const h = srRandInt(2, 6);
+      const h = srRandInt(2, 10);
       const k = 2 * h;
       return {
         question:`設 \\(a > 0,\\ b > 0,\\ a + b = ${k}\\)，則 \\(ab\\) 的最大值為何？`,
@@ -1695,7 +1695,7 @@ function _b1AmGm(level) {
 
     if (t === 1) {
       // ab=n², a,b>0, a+b 最小值 = 2n
-      const n = srRandInt(1, 6);
+      const n = srRandInt(1, 10);
       return {
         question:`設 \\(a > 0,\\ b > 0,\\ ab = ${n*n}\\)，則 \\(a + b\\) 的最小值為何？`,
         answer:2*n, type:'number', answerPrefix:''
@@ -1704,7 +1704,7 @@ function _b1AmGm(level) {
 
     if (t === 2) {
       // x + c/x (c=n²), x>0, 最小值 = 2n
-      const n = srRandInt(1, 5);
+      const n = srRandInt(1, 10);
       const c = n * n;
       return {
         question:`設 \\(x > 0\\)，求 \\(x + \\dfrac{${c}}{x}\\) 的最小值`,
@@ -1716,6 +1716,9 @@ function _b1AmGm(level) {
     const cases3 = [
       [4,9,12],[4,25,20],[9,16,24],
       [2,8,8],[3,12,12],[4,16,16],
+      [9,25,30],[4,36,24],[16,25,40],[9,36,36],
+      [4,49,28],[16,9,24],[25,16,40],[25,4,20],
+      [4,64,32],[9,49,42],[16,36,48],[25,36,60],
     ];
     const [a3,b3,min3] = cases3[srRandInt(0, cases3.length-1)];
     return {
@@ -1729,7 +1732,7 @@ function _b1AmGm(level) {
 
     if (t === 0) {
       // (x²+c)/x = x+c/x, x>0, 最小值 = 2n (c=n²)
-      const n = srRandInt(2, 5);
+      const n = srRandInt(2, 10);
       const c = n * n;
       return {
         question:`設 \\(x > 0\\)，求 \\(\\dfrac{x^2 + ${c}}{x}\\) 的最小值`,
@@ -1756,7 +1759,7 @@ function _b1AmGm(level) {
 
     if (t === 2) {
       // a+b=k, a,b>0, a²+b² 最小值 = k²/2
-      const k = [2,4,6,8,10][srRandInt(0,4)];
+      const k = [2,4,6,8,10,12,14][srRandInt(0,6)];
       return {
         question:`設 \\(a > 0,\\ b > 0,\\ a + b = ${k}\\)，則 \\(a^2 + b^2\\) 的最小值為何？`,
         answer:k*k/2, type:'number', answerPrefix:''
@@ -1765,7 +1768,7 @@ function _b1AmGm(level) {
 
     if (t === 3) {
       // ab=k, a,b>0, a²+b² 最小值 = 2k
-      const k = [4,8,9,12,16,18,25][srRandInt(0,6)];
+      const k = [4,8,9,12,16,18,25,32,36,40,45,48,49,50][srRandInt(0,13)];
       return {
         question:`設 \\(a > 0,\\ b > 0,\\ ab = ${k}\\)，則 \\(a^2 + b^2\\) 的最小值為何？`,
         answer:2*k, type:'number', answerPrefix:''
@@ -1775,14 +1778,22 @@ function _b1AmGm(level) {
     if (t === 4) {
       // pa/b + qb/a 型，最小值 = 2√(pq)
       const casesM4 = [
-        { p:1, q:1,  min:2  },
-        { p:1, q:4,  min:4  },
-        { p:1, q:9,  min:6  },
-        { p:4, q:9,  min:12 },
-        { p:4, q:1,  min:4  },
-        { p:9, q:1,  min:6  },
-        { p:1, q:16, min:8  },
-        { p:9, q:4,  min:12 },
+        { p:1,  q:1,  min:2  },
+        { p:1,  q:4,  min:4  },
+        { p:1,  q:9,  min:6  },
+        { p:4,  q:9,  min:12 },
+        { p:4,  q:1,  min:4  },
+        { p:9,  q:1,  min:6  },
+        { p:1,  q:16, min:8  },
+        { p:9,  q:4,  min:12 },
+        { p:1,  q:25, min:10 },
+        { p:25, q:1,  min:10 },
+        { p:4,  q:25, min:20 },
+        { p:25, q:4,  min:20 },
+        { p:9,  q:25, min:30 },
+        { p:16, q:9,  min:24 },
+        { p:16, q:25, min:40 },
+        { p:25, q:16, min:40 },
       ];
       const eM4 = casesM4[srRandInt(0, casesM4.length-1)];
       const lhsM4 = eM4.p === 1 ? '\\dfrac{a}{b}' : `\\dfrac{${eM4.p}a}{b}`;
@@ -1795,13 +1806,19 @@ function _b1AmGm(level) {
 
     // t=5: ax + b/(cx) 型，最小值 = 2√(ab/c)
     const casesM5 = [
-      { a:2, b:9, c:8, min:3  },
-      { a:3, b:4, c:3, min:4  },
-      { a:4, b:9, c:4, min:6  },
-      { a:8, b:9, c:2, min:12 },
-      { a:2, b:1, c:2, min:2  },
-      { a:9, b:4, c:9, min:4  },
-      { a:4, b:1, c:4, min:2  },
+      { a:2, b:9,  c:8,  min:3  },
+      { a:3, b:4,  c:3,  min:4  },
+      { a:4, b:9,  c:4,  min:6  },
+      { a:8, b:9,  c:2,  min:12 },
+      { a:2, b:1,  c:2,  min:2  },
+      { a:9, b:4,  c:9,  min:4  },
+      { a:4, b:1,  c:4,  min:2  },
+      { a:2, b:25, c:2,  min:10 },
+      { a:8, b:25, c:2,  min:20 },
+      { a:2, b:49, c:2,  min:14 },
+      { a:8, b:49, c:2,  min:28 },
+      { a:2, b:81, c:2,  min:18 },
+      { a:9, b:16, c:9,  min:8  },
     ];
     const eM5 = casesM5[srRandInt(0, casesM5.length-1)];
     return {
@@ -1854,7 +1871,7 @@ function _b1AmGm(level) {
 
   if (t === 2) {
     // (x+a)²/x, x>0, 最小值 = 4a
-    const a2 = srRandInt(1, 5);
+    const a2 = srRandInt(1, 10);
     const sqStr = a2 === 1 ? '(x+1)^2' : `(x+${a2})^2`;
     return {
       question:`設 \\(x > 0\\)，求 \\(\\dfrac{${sqStr}}{x}\\) 的最小值`,
@@ -1865,13 +1882,21 @@ function _b1AmGm(level) {
   if (t === 3) {
     // (x²+ax+c)/x = x+a+c/x, c=n², n≠a/2, 最小值 = a+2n
     const casesH3 = [
-      { a:1, n:1, expr:'x^2+x+1',  min:3 },
-      { a:1, n:2, expr:'x^2+x+4',  min:5 },
-      { a:1, n:3, expr:'x^2+x+9',  min:7 },
-      { a:2, n:2, expr:'x^2+2x+4', min:6 },
-      { a:3, n:1, expr:'x^2+3x+1', min:5 },
-      { a:3, n:3, expr:'x^2+3x+9', min:9 },
-      { a:5, n:1, expr:'x^2+5x+1', min:7 },
+      { a:1, n:1, expr:'x^2+x+1',   min:3  },
+      { a:1, n:2, expr:'x^2+x+4',   min:5  },
+      { a:1, n:3, expr:'x^2+x+9',   min:7  },
+      { a:2, n:2, expr:'x^2+2x+4',  min:6  },
+      { a:3, n:1, expr:'x^2+3x+1',  min:5  },
+      { a:3, n:3, expr:'x^2+3x+9',  min:9  },
+      { a:5, n:1, expr:'x^2+5x+1',  min:7  },
+      { a:1, n:4, expr:'x^2+x+16',  min:9  },
+      { a:1, n:5, expr:'x^2+x+25',  min:11 },
+      { a:2, n:4, expr:'x^2+2x+16', min:10 },
+      { a:3, n:5, expr:'x^2+3x+25', min:13 },
+      { a:5, n:3, expr:'x^2+5x+9',  min:11 },
+      { a:5, n:5, expr:'x^2+5x+25', min:15 },
+      { a:7, n:1, expr:'x^2+7x+1',  min:9  },
+      { a:1, n:7, expr:'x^2+x+49',  min:15 },
     ];
     const eH3 = casesH3[srRandInt(0, casesH3.length-1)];
     return {
@@ -1883,14 +1908,26 @@ function _b1AmGm(level) {
   if (t === 4) {
     // x + k/(x-c), x>c>0, 最小值 = c+2√k
     const casesH4 = [
-      { c:1, k:4,  min:5 },
-      { c:1, k:9,  min:7 },
-      { c:2, k:4,  min:6 },
-      { c:2, k:9,  min:8 },
-      { c:3, k:4,  min:7 },
-      { c:3, k:1,  min:5 },
-      { c:1, k:16, min:9 },
-      { c:4, k:4,  min:8 },
+      { c:1, k:4,  min:5  },
+      { c:1, k:9,  min:7  },
+      { c:2, k:4,  min:6  },
+      { c:2, k:9,  min:8  },
+      { c:3, k:4,  min:7  },
+      { c:3, k:1,  min:5  },
+      { c:1, k:16, min:9  },
+      { c:4, k:4,  min:8  },
+      { c:5, k:4,  min:9  },
+      { c:1, k:25, min:11 },
+      { c:6, k:4,  min:10 },
+      { c:2, k:16, min:10 },
+      { c:4, k:9,  min:10 },
+      { c:3, k:9,  min:9  },
+      { c:5, k:16, min:13 },
+      { c:1, k:36, min:13 },
+      { c:6, k:9,  min:12 },
+      { c:4, k:25, min:14 },
+      { c:9, k:4,  min:13 },
+      { c:1, k:49, min:15 },
     ];
     const eH4 = casesH4[srRandInt(0, casesH4.length-1)];
     return {
@@ -1910,6 +1947,14 @@ function _b1AmGm(level) {
       { p:1, q:3, k:16, min:12 },
       { p:2, q:4, k:9,  min:12 },
       { p:1, q:4, k:4,  min:9  },
+      { p:3, q:5, k:9,  min:14 },
+      { p:4, q:5, k:4,  min:13 },
+      { p:2, q:5, k:16, min:15 },
+      { p:5, q:6, k:4,  min:15 },
+      { p:1, q:5, k:9,  min:12 },
+      { p:3, q:6, k:9,  min:15 },
+      { p:4, q:6, k:4,  min:14 },
+      { p:2, q:6, k:16, min:16 },
     ];
     const eH5 = casesH5[srRandInt(0, casesH5.length-1)];
     return {
@@ -1920,14 +1965,24 @@ function _b1AmGm(level) {
 
   // t=6: ax + b/x + c，最小值 = 2√(ab) + c
   const casesH6 = [
-    { a:1, b:1,  c:4, min:6  },
-    { a:1, b:9,  c:4, min:10 },
-    { a:1, b:4,  c:3, min:7  },
-    { a:1, b:16, c:2, min:10 },
-    { a:1, b:9,  c:1, min:7  },
-    { a:4, b:1,  c:5, min:9  },
-    { a:9, b:1,  c:2, min:8  },
-    { a:1, b:4,  c:6, min:10 },
+    { a:1, b:1,  c:4,  min:6  },
+    { a:1, b:9,  c:4,  min:10 },
+    { a:1, b:4,  c:3,  min:7  },
+    { a:1, b:16, c:2,  min:10 },
+    { a:1, b:9,  c:1,  min:7  },
+    { a:4, b:1,  c:5,  min:9  },
+    { a:9, b:1,  c:2,  min:8  },
+    { a:1, b:4,  c:6,  min:10 },
+    { a:1, b:25, c:2,  min:12 },
+    { a:1, b:36, c:1,  min:13 },
+    { a:4, b:9,  c:3,  min:15 },
+    { a:9, b:4,  c:2,  min:14 },
+    { a:1, b:49, c:3,  min:17 },
+    { a:4, b:1,  c:10, min:14 },
+    { a:1, b:16, c:5,  min:13 },
+    { a:1, b:25, c:5,  min:15 },
+    { a:9, b:16, c:1,  min:25 },
+    { a:4, b:25, c:2,  min:22 },
   ];
   const eH6 = casesH6[srRandInt(0, casesH6.length-1)];
   const xTermH6 = eH6.a === 1 ? 'x' : `${eH6.a}x`;
