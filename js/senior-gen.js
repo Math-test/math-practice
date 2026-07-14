@@ -1993,6 +1993,406 @@ function _b1AmGm(level) {
   };
 }
 
+// ── b1-line-dist：點到直線的距離 ──────────────────────────────────────
+function genB1LineDist(level, _n) {
+  for (let _i = 0; _i < 40; _i++) {
+    const q = _b1LineDist(level);
+    if (q) return q;
+  }
+  return { question:'點到直線距離', answer:0, type:'number', answerPrefix:'' };
+}
+
+function _b1LineDist(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0, 2);
+    if (t === 0) {
+      const ab = [[3,4],[3,-4],[-3,4],[4,3],[4,-3],[-4,3]][srRandInt(0,5)];
+      const [A,B] = ab;
+      const x0 = srRandInt(-3,4), y0 = srRandInt(-3,4);
+      const d = srRandInt(1,4);
+      const base = A*x0+B*y0;
+      const C = srRandInt(0,1)===0 ? 5*d-base : -(5*d+base);
+      return {
+        question:`試求點 \\(P(${x0},\\ ${y0})\\) 到直線 \\(L : ${_b1LGen(A,B,C)}\\) 的距離`,
+        answer:d, type:'number', answerPrefix:''
+      };
+    }
+    if (t === 1) {
+      const ab = [[3,4,5],[4,3,5],[3,-4,5],[4,-3,5]][srRandInt(0,3)];
+      const [A,B,dn] = ab;
+      const d = srRandInt(1,4);
+      const c1 = srRandInt(-6,6);
+      const c2 = c1 + dn*d*(srRandInt(0,1)===0?1:-1);
+      if (c1===c2) return null;
+      return {
+        question:`求兩平行直線 \\(${_b1LGen(A,B,c1)}\\) 與 \\(${_b1LGen(A,B,c2)}\\) 之間的距離`,
+        answer:d, type:'number', answerPrefix:''
+      };
+    }
+    const ab5 = [[5,12],[5,-12],[12,5],[12,-5]][srRandInt(0,3)];
+    const [A5,B5] = ab5;
+    const x0 = srRandInt(-2,3), y0 = srRandInt(-2,3);
+    const d = srRandInt(1,3);
+    const base5 = A5*x0+B5*y0;
+    const C5 = srRandInt(0,1)===0 ? 13*d-base5 : -(13*d+base5);
+    return {
+      question:`試求點 \\(A(${x0},\\ ${y0})\\) 到直線 \\(${_b1LGen(A5,B5,C5)}\\) 的最短距離`,
+      answer:d, type:'number', answerPrefix:''
+    };
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0,3);
+    if (t === 0) {
+      const ab = [[3,4,5],[4,3,5],[3,-4,5],[4,-3,5]][srRandInt(0,3)];
+      const [A,B,dn] = ab;
+      const x0 = srRandInt(-4,4), y0 = srRandInt(-4,4);
+      const D = srRandInt(1,4);
+      const base = A*x0+B*y0;
+      const k1 = dn*D-base, k2 = -(dn*D+base);
+      if (k1===k2) return null;
+      const [klo,khi] = k1<k2?[k1,k2]:[k2,k1];
+      const Bsgn = B>0?`+${B}`:String(B);
+      return {
+        question:`坐標平面上點 \\(P(${x0},\\ ${y0})\\) 到直線 \\(L : ${A}x${Bsgn}y+k=0\\) 的距離為 \\(${D}\\)，則 \\(k =\\)`,
+        answer:`${klo} 或 ${khi}`, type:'text', answerPrefix:''
+      };
+    }
+    if (t === 1) {
+      const ab = [[3,4,5],[4,3,5],[3,-4,5],[4,-3,5]][srRandInt(0,3)];
+      const [A,B,dn] = ab;
+      const a = srRandInt(-3,4), b = srRandInt(-3,4);
+      const D = srRandInt(1,4);
+      const base = A*a+B*b;
+      const C = srRandInt(0,1)===0 ? dn*D-base : -(dn*D+base);
+      const xa = a===0?'x^2':(a>0?`(x-${a})^2`:`(x+${-a})^2`);
+      const yb = b===0?'y^2':(b>0?`(y-${b})^2`:`(y+${-b})^2`);
+      return {
+        question:`設點 \\(P(x,\\ y)\\) 在直線 \\(L : ${_b1LGen(A,B,C)}\\) 上，則 \\(\\sqrt{${xa}+${yb}}\\) 的最小值為`,
+        answer:D, type:'number', answerPrefix:''
+      };
+    }
+    if (t === 2) {
+      const cases = [
+        {pt1:[1,2],  pt2:[-2,1],  A:1,B:2,C:-3},
+        {pt1:[3,-2], pt2:[-5,1],  A:1,B:-4,C:4},
+        {pt1:[2,1],  pt2:[-1,-2], A:2,B:1,C:-4},
+        {pt1:[1,3],  pt2:[-3,-1], A:1,B:2,C:-5},
+        {pt1:[4,-1], pt2:[-2,3],  A:3,B:1,C:-5},
+        {pt1:[2,3],  pt2:[-4,-1], A:2,B:-1,C:1},
+      ];
+      const e = cases[srRandInt(0,cases.length-1)];
+      const rF1 = e.A*e.pt1[0]+e.B*e.pt1[1]+e.C;
+      const rF2 = e.A*e.pt2[0]+e.B*e.pt2[1]+e.C;
+      if (rF1*rF2>=0) return null;
+      const f1=Math.abs(rF1), f2=Math.abs(rF2), g=srGcd(f1,f2);
+      return {
+        question:`設 \\(A(${e.pt1[0]},\\ ${e.pt1[1]})\\)、\\(B(${e.pt2[0]},\\ ${e.pt2[1]})\\)，線段 \\(\\overline{AB}\\) 與直線 \\(L : ${_b1LGen(e.A,e.B,e.C)}\\) 交於點 \\(P\\)，則 \\(\\overline{AP} : \\overline{BP} =\\)`,
+        answer:`${f1/g}:${f2/g}`, type:'text', answerPrefix:''
+      };
+    }
+    const dcases = [
+      {A:1,B:-3,c1:-5,c2:5,  ans:'\\sqrt{10}'},
+      {A:1,B:-2,c1:-3,c2:7,  ans:'2\\sqrt{5}'},
+      {A:2,B:1, c1:-3,c2:7,  ans:'2\\sqrt{5}'},
+      {A:1,B:1, c1:-2,c2:4,  ans:'3\\sqrt{2}'},
+      {A:1,B:2, c1:0, c2:5,  ans:'\\sqrt{5}' },
+      {A:1,B:1, c1:0, c2:4,  ans:'2\\sqrt{2}'},
+    ][srRandInt(0,5)];
+    return {
+      question:`求兩平行直線 \\(${_b1LGen(dcases.A,dcases.B,dcases.c1)}\\) 與 \\(${_b1LGen(dcases.A,dcases.B,dcases.c2)}\\) 之間的距離`,
+      answer:dcases.ans, type:'text', answerPrefix:''
+    };
+  }
+
+  // hard
+  if (srRandInt(0,1)===0) {
+    const biscases = [
+      {L1:[4,-3,-3],L2:[3,4,-2],  ans:'x-7y-1=0 或 7x+y-5=0'},
+      {L1:[3,-4,0], L2:[4,3,-25], ans:'x+7y-25=0 或 7x-y-25=0'},
+    ][srRandInt(0,1)];
+    return {
+      question:`試求兩直線 \\(L_1 : ${_b1LGen(...biscases.L1)}\\) 與 \\(L_2 : ${_b1LGen(...biscases.L2)}\\) 的交角平分線方程式`,
+      answer:biscases.ans, type:'text', answerPrefix:''
+    };
+  }
+  const abH = [[5,12,13],[5,-12,13],[12,5,13],[12,-5,13]][srRandInt(0,3)];
+  const [AH,BH,dnH] = abH;
+  const aH = srRandInt(-2,3), bH = srRandInt(-2,3);
+  const DH = srRandInt(1,3);
+  const CH = srRandInt(0,1)===0 ? dnH*DH-AH*aH-BH*bH : -(dnH*DH+AH*aH+BH*bH);
+  const xaH = aH===0?'x^2':(aH>0?`(x-${aH})^2`:`(x+${-aH})^2`);
+  const ybH = bH===0?'y^2':(bH>0?`(y-${bH})^2`:`(y+${-bH})^2`);
+  return {
+    question:`設 \\(A(x,\\ y)\\) 為直線 \\(L : ${_b1LGen(AH,BH,CH)}\\) 上的動點，則 \\(\\sqrt{${xaH}+${ybH}}\\) 的最小值為`,
+    answer:DH, type:'number', answerPrefix:''
+  };
+}
+
+// ── b1-line-sys：聯立方程式的幾何意義 ─────────────────────────────────
+function genB1LineSys(level, _n) {
+  for (let _i = 0; _i < 40; _i++) {
+    const q = _b1LineSys(level);
+    if (q) return q;
+  }
+  return { question:'聯立方程式幾何意義', answer:'唯一解', type:'text', answerPrefix:'' };
+}
+
+function _b1SysEq(a, b, c) {
+  function tk(v, unit, first) {
+    if (v===0) return '';
+    const abs=Math.abs(v), neg=v<0;
+    const mag=abs===1?unit:`${abs}${unit}`;
+    return first?(neg?`-${mag}`:mag):(neg?` - ${mag}`:` + ${mag}`);
+  }
+  let s='', f=true;
+  const xt=tk(a,'x',f); if(xt){s+=xt;f=false;}
+  const yt=tk(b,'y',f); if(yt){s+=yt;}
+  return s+` = ${c}`;
+}
+
+function _b1LineSys(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0,2);
+    if (t === 0) {
+      const cases = [
+        {e1:[2,3,6],  e2:[1,-1,1],  ans:'唯一解'  },
+        {e1:[2,4,6],  e2:[1,2,5],   ans:'無解'     },
+        {e1:[2,4,6],  e2:[1,2,3],   ans:'無限多解' },
+        {e1:[3,2,5],  e2:[1,-1,2],  ans:'唯一解'  },
+        {e1:[1,3,7],  e2:[2,6,9],   ans:'無解'     },
+        {e1:[1,3,7],  e2:[2,6,14],  ans:'無限多解' },
+        {e1:[1,2,4],  e2:[3,1,5],   ans:'唯一解'  },
+        {e1:[2,6,4],  e2:[1,3,3],   ans:'無解'     },
+        {e1:[2,6,4],  e2:[1,3,2],   ans:'無限多解' },
+      ];
+      const e = cases[srRandInt(0,cases.length-1)];
+      const sys = `\\begin{cases} ${_b1SysEq(...e.e1)} \\\\ ${_b1SysEq(...e.e2)} \\end{cases}`;
+      return {
+        question:`試判斷聯立方程式 \\(${sys}\\) 解的情形（唯一解 / 無解 / 無限多解）`,
+        answer:e.ans, type:'text', answerPrefix:''
+      };
+    }
+    const intCases = [
+      {L1:[1,1,5],  L2:[2,-1,1],  x:2, y:3},
+      {L1:[1,1,7],  L2:[2,-1,2],  x:3, y:4},
+      {L1:[2,1,7],  L2:[1,-1,2],  x:3, y:1},
+      {L1:[1,2,7],  L2:[1,-1,1],  x:3, y:2},
+      {L1:[3,1,10], L2:[1,-1,2],  x:3, y:1},
+      {L1:[1,2,8],  L2:[3,-1,3],  x:2, y:3},
+      {L1:[2,3,12], L2:[1,-1,1],  x:3, y:2},
+      {L1:[1,2,5],  L2:[1,1,3],   x:1, y:2},
+    ];
+    const e = intCases[srRandInt(0,intCases.length-1)];
+    const sys = `\\begin{cases} ${_b1SysEq(...e.L1)} \\\\ ${_b1SysEq(...e.L2)} \\end{cases}`;
+    return {
+      question:`聯立方程式 \\(${sys}\\) 的解中，\\(${t===1?'x':'y'} =\\)`,
+      answer:t===1?e.x:e.y, type:'number', answerPrefix:''
+    };
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0,3);
+    if (t === 0) {
+      const cases = [
+        {L1:'kx+2y=3',  L2:'6x+4y=5',  k:3},
+        {L1:'kx+3y=2',  L2:'4x+6y=5',  k:2},
+        {L1:'kx+4y=3',  L2:'3x+12y=5', k:1},
+        {L1:'kx+2y=5',  L2:'3x+6y=7',  k:1},
+        {L1:'2x+ky=1',  L2:'6x+9y=4',  k:3},
+        {L1:'kx+6y=1',  L2:'2x+4y=3',  k:3},
+        {L1:'3x+ky=2',  L2:'9x+6y=5',  k:2},
+      ];
+      const e = cases[srRandInt(0,cases.length-1)];
+      return {
+        question:`若聯立方程式 \\(\\begin{cases} ${e.L1} \\\\ ${e.L2} \\end{cases}\\) 無解，則 \\(k =\\)`,
+        answer:e.k, type:'number', answerPrefix:''
+      };
+    }
+    if (t === 1) {
+      const cases = [
+        {L1:'5x+(k-3)y=0', L2:'x+2y=0',   k:13},
+        {L1:'4x+(k-2)y=0', L2:'2x+3y=0',  k:8 },
+        {L1:'6x+(k-1)y=0', L2:'3x+4y=0',  k:9 },
+        {L1:'3x+(k-2)y=0', L2:'x+4y=0',   k:14},
+        {L1:'4x+(k-1)y=0', L2:'2x+5y=0',  k:11},
+        {L1:'6x+(k-3)y=0', L2:'2x+5y=0',  k:18},
+        {L1:'7x+(k-2)y=0', L2:'x+3y=0',   k:23},
+        {L1:'9x+(k-1)y=0', L2:'3x+5y=0',  k:16},
+      ];
+      const e = cases[srRandInt(0,cases.length-1)];
+      return {
+        question:`若聯立方程式 \\(\\begin{cases} ${e.L1} \\\\ ${e.L2} \\end{cases}\\) 除了 \\((0,0)\\) 之外還有其他的解，則 \\(k =\\)`,
+        answer:e.k, type:'number', answerPrefix:''
+      };
+    }
+    if (t === 2) {
+      const cases = [
+        {L1:'kx+2y=4',  L2:'3x+6y=12',  k:1},
+        {L1:'kx+4y=6',  L2:'2x+8y=12',  k:1},
+        {L1:'2x+ky=6',  L2:'4x+6y=12',  k:3},
+        {L1:'kx+3y=9',  L2:'2x+6y=18',  k:1},
+        {L1:'3x+ky=9',  L2:'6x+4y=18',  k:2},
+        {L1:'kx+2y=8',  L2:'2x+4y=16',  k:1},
+        {L1:'4x+ky=12', L2:'2x+3y=6',   k:6},
+      ];
+      const e = cases[srRandInt(0,cases.length-1)];
+      return {
+        question:`若聯立方程式 \\(\\begin{cases} ${e.L1} \\\\ ${e.L2} \\end{cases}\\) 有無限多解，則 \\(k =\\)`,
+        answer:e.k, type:'number', answerPrefix:''
+      };
+    }
+    const pcases = [
+      {q:'若兩直線 \\((a-1)x+(3-a)y+3=0\\) 與 \\(2x+ay+3a=0\\) 平行，則實數 \\(a =\\)', ans:-3},
+      {q:'若兩直線 \\((2a-1)x+(a+1)y-3=0\\) 與 \\(x+2y-5=0\\) 平行，則實數 \\(a =\\)', ans:1},
+    ];
+    const pe = pcases[srRandInt(0,1)];
+    return {question:pe.q, answer:pe.ans, type:'number', answerPrefix:''};
+  }
+
+  // hard
+  if (srRandInt(0,1)===0) {
+    return {
+      question:`若 \\(x,y\\) 的二元一次方程組 \\(\\begin{cases} (k-3)x-2y=2k \\\\ 3x+(2k+1)y=-k-2 \\end{cases}\\) 是矛盾方程組（無解），則實數 \\(k =\\)`,
+      answer:'3/2', type:'text', answerPrefix:''
+    };
+  }
+  return {
+    question:`平面上有直線 \\(L : x-ky=5\\)、\\(A(5,\\ 1)\\)、\\(B(-7,\\ 0)\\)，已知線段 \\(\\overline{AB}\\) 與直線 \\(L\\) 有交點，則 \\(k\\) 的最大值為`,
+    answer:0, type:'number', answerPrefix:''
+  };
+}
+
+// ── b1-line-ineq：二元一次不等式 ──────────────────────────────────────
+function genB1LineIneq(level, _n) {
+  for (let _i = 0; _i < 40; _i++) {
+    const q = _b1LineIneq(level);
+    if (q) return q;
+  }
+  return { question:'二元一次不等式', answer:0, type:'number', answerPrefix:'' };
+}
+
+function _b1LineIneq(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0,2);
+    if (t === 0) {
+      const ptCases = [
+        {P:[2,1], A:1,B:2,c:5,op:'\\leq', sat:true},
+        {P:[3,2], A:1,B:1,c:4,op:'\\leq', sat:false},
+        {P:[1,3], A:2,B:1,c:4,op:'\\leq', sat:false},
+        {P:[4,1], A:1,B:2,c:5,op:'\\leq', sat:false},
+        {P:[0,3], A:2,B:-1,c:2,op:'\\geq', sat:false},
+        {P:[2,0], A:3,B:-1,c:5,op:'\\leq', sat:false},
+        {P:[-1,2],A:1,B:3,c:5,op:'\\leq', sat:true},
+        {P:[3,-1],A:2,B:1,c:4,op:'\\geq', sat:true},
+      ];
+      const e = ptCases[srRandInt(0,ptCases.length-1)];
+      const Bsgn = e.B>0?`+${e.B}`:String(e.B);
+      return {
+        question:`請問點 \\((${e.P[0]},\\ ${e.P[1]})\\) 是否在不等式 \\(${e.A}x${Bsgn}y ${e.op} ${e.c}\\) 的解區域內？（是 / 否）`,
+        answer:e.sat?'是':'否', type:'text', answerPrefix:''
+      };
+    }
+    if (t === 1) {
+      const latCases = [
+        {a:1,b:1,n:3,  cnt:10},
+        {a:1,b:1,n:4,  cnt:15},
+        {a:2,b:1,n:6,  cnt:16},
+        {a:1,b:2,n:6,  cnt:16},
+        {a:2,b:3,n:12, cnt:19},
+        {a:3,b:1,n:6,  cnt:12},
+        {a:1,b:3,n:6,  cnt:12},
+      ];
+      const e = latCases[srRandInt(0,latCases.length-1)];
+      const aStr = e.a===1?'x':`${e.a}x`;
+      const bStr = e.b===1?'+y':`+${e.b}y`;
+      return {
+        question:`設 \\(x\\)、\\(y\\) 皆為整數，則在不等式組 \\(x \\geq 0\\)、\\(y \\geq 0\\)、\\(${aStr}${bStr} \\leq ${e.n}\\) 的區域中有幾個格子點？`,
+        answer:e.cnt, type:'number', answerPrefix:''
+      };
+    }
+    // t=2: point in 2-inequality system (yes/no)
+    const hcV2 = [
+      {P:[2,1], q:'x+2y \\leq 5 \\\\ 2x-y \\geq 1', ans:'是'},
+      {P:[3,2], q:'x+2y \\leq 5 \\\\ 3x-y \\geq 5', ans:'否'},
+      {P:[2,2], q:'x+y \\leq 5 \\\\ 2x-y \\geq 1',  ans:'是'},
+      {P:[4,2], q:'x+y \\leq 5 \\\\ 2x-y \\geq 3',  ans:'否'},
+      {P:[1,2], q:'2x+y \\leq 4 \\\\ x+3y \\geq 8',   ans:'否'},
+      {P:[0,3], q:'x+2y \\leq 7 \\\\ 3x-y \\geq -3', ans:'是'},
+    ];
+    const ev2 = hcV2[srRandInt(0,hcV2.length-1)];
+    return {
+      question:`若點 \\((${ev2.P[0]},\\ ${ev2.P[1]})\\) 是否在聯立不等式 \\(\\begin{cases} ${ev2.q} \\end{cases}\\) 的解區域中？（是 / 否）`,
+      answer:ev2.ans, type:'text', answerPrefix:''
+    };
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0,3);
+    if (t === 0) {
+      const cases = [
+        {Pq:'P(a+1,\\ 2a-1)', sys:'x+5y \\geq 18 \\\\ 3x-2y \\leq 2',   ask:'a 的最小值', ans:3, tp:'number'},
+        {Pq:'P(a+2,\\ 3a)',   sys:'x-y \\leq 2 \\\\ x+y \\geq 6',         ask:'a 的最小值', ans:1, tp:'number'},
+        {Pq:'P(2a,\\ a+1)',   sys:'x+y \\leq 6 \\\\ x-y \\geq -2',        ask:'a 的最大整數值', ans:1, tp:'number'},
+      ];
+      const e = cases[srRandInt(0,cases.length-1)];
+      return {
+        question:`若點 \\(${e.Pq}\\) 在二元一次聯立不等式 \\(\\begin{cases} ${e.sys} \\end{cases}\\) 的圖形內，則 ${e.ask}為`,
+        answer:e.ans, type:e.tp, answerPrefix:''
+      };
+    }
+    if (t === 1) {
+      const areaCases = [
+        {sys:'y \\geq 0 \\\\ x-y \\geq -1 \\\\ x+2y \\leq 5', ans:6},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+y \\leq 4',     ans:8},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 2x+y \\leq 6',    ans:9},
+        {sys:'y \\geq 0 \\\\ x+y \\leq 3 \\\\ x-y \\geq -1',  ans:4},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+2y \\leq 4',    ans:4},
+      ];
+      const e = areaCases[srRandInt(0,areaCases.length-1)];
+      return {
+        question:`滿足二元一次聯立不等式 \\(\\begin{cases} ${e.sys} \\end{cases}\\) 的圖形，其面積為`,
+        answer:e.ans, type:'number', answerPrefix:''
+      };
+    }
+    if (t === 2) {
+      const latCases2 = [
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+y \\leq 3',      cnt:10},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+y \\leq 4',      cnt:15},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 2x+3y \\leq 12',   cnt:19},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 2x+y \\leq 6',     cnt:16},
+      ];
+      const e = latCases2[srRandInt(0,latCases2.length-1)];
+      return {
+        question:`設 \\(x\\)、\\(y\\) 均為整數，則在不等式組 \\(\\begin{cases} ${e.sys} \\end{cases}\\) 的區域中有幾個格子點？`,
+        answer:e.cnt, type:'number', answerPrefix:''
+      };
+    }
+    // t=3: P(k+h, mk+j) → max k
+    const kCases = [
+      {Pq:'P(k+1,\\ 2k-1)', sys:'x+3y \\leq 0 \\\\ 4x-y+1 \\geq 0', ask:'k 的最大值', ans:'2/7', tp:'text'},
+      {Pq:'P(k,\\ k+1)',    sys:'x+y \\leq 5 \\\\ x-y \\geq -1',     ask:'k 的最大值', ans:2,      tp:'number'},
+    ];
+    const ke = kCases[srRandInt(0,1)];
+    return {
+      question:`若點 \\(${ke.Pq}\\) 在聯立不等式 \\(\\begin{cases} ${ke.sys} \\end{cases}\\) 的圖形中，則 ${ke.ask}為`,
+      answer:ke.ans, type:ke.tp, answerPrefix:''
+    };
+  }
+
+  // hard
+  if (srRandInt(0,1)===0) {
+    return {
+      question:`平面上有直線 \\(L : x-ky=5\\)、\\(A(5,\\ 1)\\)、\\(B(-7,\\ 0)\\)，已知線段 \\(\\overline{AB}\\) 與直線 \\(L\\) 有交點，則 \\(k\\) 的最大值為`,
+      answer:0, type:'number', answerPrefix:''
+    };
+  }
+  return {
+    question:`滿足二元一次聯立不等式 \\(\\begin{cases} y \\geq 0 \\\\ x-y \\geq -1 \\\\ x+2y \\leq 5 \\end{cases}\\) 的圖形，其面積為`,
+    answer:6, type:'number', answerPrefix:''
+  };
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  輸出表
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2006,4 +2406,7 @@ const SR_GENERATORS = {
   'b1-log':          genB1Log,
   'b1-line':         genB1Line,
   'b1-amgm':         genB1AmGm,
+  'b1-line-dist':    genB1LineDist,
+  'b1-line-sys':     genB1LineSys,
+  'b1-line-ineq':    genB1LineIneq,
 };
