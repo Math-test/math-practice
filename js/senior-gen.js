@@ -2146,6 +2146,10 @@ function _b1LineDist(level) {
 }
 
 // ── b1-line-sys：聯立方程式的幾何意義 ─────────────────────────────────
+let _b1LineSysBasQ  = [];   // shuffle queue for basic cases
+let _b1LineSysParaQ = [];   // shuffle queue for paradox (矛盾) cases
+let _b1LineSysSegQ  = [];   // shuffle queue for segment-intersection cases
+
 function genB1LineSys(level, _n) {
   for (let _i = 0; _i < 40; _i++) {
     const q = _b1LineSys(level);
@@ -2169,41 +2173,34 @@ function _b1SysEq(a, b, c) {
 
 function _b1LineSys(level) {
   if (level === 'basic') {
-    const t = srRandInt(0,2);
-    if (t === 0) {
-      const cases = [
-        {e1:[2,3,6],  e2:[1,-1,1],  ans:'唯一解'  },
-        {e1:[2,4,6],  e2:[1,2,5],   ans:'無解'     },
-        {e1:[2,4,6],  e2:[1,2,3],   ans:'無限多解' },
-        {e1:[3,2,5],  e2:[1,-1,2],  ans:'唯一解'  },
-        {e1:[1,3,7],  e2:[2,6,9],   ans:'無解'     },
-        {e1:[1,3,7],  e2:[2,6,14],  ans:'無限多解' },
-        {e1:[1,2,4],  e2:[3,1,5],   ans:'唯一解'  },
-        {e1:[2,6,4],  e2:[1,3,3],   ans:'無解'     },
-        {e1:[2,6,4],  e2:[1,3,2],   ans:'無限多解' },
-      ];
-      const e = cases[srRandInt(0,cases.length-1)];
-      const sys = `\\begin{cases} ${_b1SysEq(...e.e1)} \\\\ ${_b1SysEq(...e.e2)} \\end{cases}`;
-      return {
-        question:`試判斷聯立方程式 \\(${sys}\\) 解的情形（唯一解 / 無解 / 無限多解）`,
-        answer:e.ans, type:'text', answerPrefix:''
-      };
-    }
-    const intCases = [
-      {L1:[1,1,5],  L2:[2,-1,1],  x:2, y:3},
-      {L1:[1,1,7],  L2:[2,-1,2],  x:3, y:4},
-      {L1:[2,1,7],  L2:[1,-1,2],  x:3, y:1},
-      {L1:[1,2,7],  L2:[1,-1,1],  x:3, y:2},
-      {L1:[3,1,10], L2:[1,-1,2],  x:3, y:1},
-      {L1:[1,2,8],  L2:[3,-1,3],  x:2, y:3},
-      {L1:[2,3,12], L2:[1,-1,1],  x:3, y:2},
-      {L1:[1,2,5],  L2:[1,1,3],   x:1, y:2},
+    const cases = [
+      {e1:[2,3,6],  e2:[1,-1,1],  ans:'唯一解'  },
+      {e1:[2,4,6],  e2:[1,2,5],   ans:'無解'     },
+      {e1:[2,4,6],  e2:[1,2,3],   ans:'無限多解' },
+      {e1:[3,2,5],  e2:[1,-1,2],  ans:'唯一解'  },
+      {e1:[1,3,7],  e2:[2,6,9],   ans:'無解'     },
+      {e1:[1,3,7],  e2:[2,6,14],  ans:'無限多解' },
+      {e1:[1,2,4],  e2:[3,1,5],   ans:'唯一解'  },
+      {e1:[2,6,4],  e2:[1,3,3],   ans:'無解'     },
+      {e1:[2,6,4],  e2:[1,3,2],   ans:'無限多解' },
+      {e1:[3,1,7],  e2:[1,-2,1],  ans:'唯一解'  },
+      {e1:[2,3,8],  e2:[4,6,16],  ans:'無限多解' },
+      {e1:[2,3,8],  e2:[4,6,7],   ans:'無解'     },
+      {e1:[1,-2,3], e2:[3,-6,9],  ans:'無限多解' },
+      {e1:[1,-2,3], e2:[3,-6,8],  ans:'無解'     },
+      {e1:[1,4,9],  e2:[2,-1,3],  ans:'唯一解'  },
+      {e1:[5,2,11], e2:[2,3,7],   ans:'唯一解'  },
     ];
-    const e = intCases[srRandInt(0,intCases.length-1)];
-    const sys = `\\begin{cases} ${_b1SysEq(...e.L1)} \\\\ ${_b1SysEq(...e.L2)} \\end{cases}`;
+    if (_b1LineSysBasQ.length === 0) {
+      const idx = cases.map((_,i)=>i);
+      for (let i=idx.length-1;i>0;i--){const j=srRandInt(0,i);[idx[i],idx[j]]=[idx[j],idx[i]];}
+      _b1LineSysBasQ.push(...idx);
+    }
+    const e = cases[_b1LineSysBasQ.pop()];
+    const sys = `\\begin{cases} ${_b1SysEq(...e.e1)} \\\\ ${_b1SysEq(...e.e2)} \\end{cases}`;
     return {
-      question:`聯立方程式 \\(${sys}\\) 的解中，\\(${t===1?'x':'y'} =\\)`,
-      answer:t===1?e.x:e.y, type:'number', answerPrefix:''
+      question:`試判斷聯立方程式 \\(${sys}\\) 解的情形（唯一解 / 無解 / 無限多解）`,
+      answer:e.ans, type:'text', answerPrefix:''
     };
   }
 
@@ -2268,14 +2265,39 @@ function _b1LineSys(level) {
 
   // hard
   if (srRandInt(0,1)===0) {
+    const paraCases = [
+      {L1:'(k-3)x-2y=2k',  L2:'3x+(2k+1)y=-k-2', ans:'3/2'},
+      {L1:'(k-1)x-2y=k+1', L2:'x+(k-4)y=2',       ans:'2'  },
+      {L1:'(k-2)x+y=2k',   L2:'2x+(k-3)y=k+4',    ans:'1'  },
+      {L1:'(k-2)x+y=k+1',  L2:'2x+(k-3)y=2k-6',   ans:'4'  },
+      {L1:'(k+1)x+2y=2',   L2:'2x+(k-2)y=1',       ans:'-2' },
+      {L1:'(k+1)x+2y=1',   L2:'3x+(k-4)y=-3',      ans:'5'  },
+    ];
+    if (_b1LineSysParaQ.length === 0) {
+      const idx = paraCases.map((_,i)=>i);
+      for (let i=idx.length-1;i>0;i--){const j=srRandInt(0,i);[idx[i],idx[j]]=[idx[j],idx[i]];}
+      _b1LineSysParaQ.push(...idx);
+    }
+    const c = paraCases[_b1LineSysParaQ.pop()];
     return {
-      question:`若 \\(x,y\\) 的二元一次方程組 \\(\\begin{cases} (k-3)x-2y=2k \\\\ 3x+(2k+1)y=-k-2 \\end{cases}\\) 是矛盾方程組（無解），則實數 \\(k =\\)`,
-      answer:'3/2', type:'text', answerPrefix:''
+      question:`若 \\(x,y\\) 的二元一次方程組 \\(\\begin{cases} ${c.L1} \\\\ ${c.L2} \\end{cases}\\) 是矛盾方程組（無解），則實數 \\(k =\\)`,
+      answer:c.ans, type:'text', answerPrefix:''
     };
   }
+  const segCases = [
+    {L:'x-ky=5', Ax:5, Ay:1, Bx:-7, By:0, maxK:0 },
+    {L:'x-ky=4', Ax:2, Ay:1, Bx:-6, By:3, maxK:-2},
+    {L:'x-ky=3', Ax:4, Ay:1, Bx:-5, By:2, maxK:1 },
+  ];
+  if (_b1LineSysSegQ.length === 0) {
+    const idx = segCases.map((_,i)=>i);
+    for (let i=idx.length-1;i>0;i--){const j=srRandInt(0,i);[idx[i],idx[j]]=[idx[j],idx[i]];}
+    _b1LineSysSegQ.push(...idx);
+  }
+  const sc = segCases[_b1LineSysSegQ.pop()];
   return {
-    question:`平面上有直線 \\(L : x-ky=5\\)、\\(A(5,\\ 1)\\)、\\(B(-7,\\ 0)\\)，已知線段 \\(\\overline{AB}\\) 與直線 \\(L\\) 有交點，則 \\(k\\) 的最大值為`,
-    answer:0, type:'number', answerPrefix:''
+    question:`平面上有直線 \\(L : ${sc.L}\\)、\\(A(${sc.Ax},\\ ${sc.Ay})\\)、\\(B(${sc.Bx},\\ ${sc.By})\\)，已知線段 \\(\\overline{AB}\\) 與直線 \\(L\\) 有交點，則 \\(k\\) 的最大值為`,
+    answer:sc.maxK, type:'number', answerPrefix:''
   };
 }
 
