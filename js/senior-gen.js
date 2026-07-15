@@ -1994,6 +1994,8 @@ function _b1AmGm(level) {
 }
 
 // ── b1-line-dist：點到直線的距離 ──────────────────────────────────────
+let _b1LineDistBisQ = [];   // shuffle queue — prevents bisector repeats within a quiz
+
 function genB1LineDist(level, _n) {
   for (let _i = 0; _i < 40; _i++) {
     const q = _b1LineDist(level);
@@ -2108,12 +2110,26 @@ function _b1LineDist(level) {
   // hard
   if (srRandInt(0,1)===0) {
     const biscases = [
-      {L1:[4,-3,-3],L2:[3,4,-2],  ans:'x-7y-1=0 或 7x+y-5=0'},
-      {L1:[3,-4,0], L2:[4,3,-25], ans:'x+7y-25=0 或 7x-y-25=0'},
-    ][srRandInt(0,1)];
+      {L1:[4,-3,-3], L2:[3,4,-2],  ans:'x-7y-1=0 或 7x+y-5=0'},
+      {L1:[3,-4,0],  L2:[4,3,-25], ans:'x+7y-25=0 或 7x-y-25=0'},
+      {L1:[3,4,-5],  L2:[4,-3,-2], ans:'x-7y+3=0 或 7x+y-7=0'},
+      {L1:[3,-4,5],  L2:[4,3,0],   ans:'x+7y-5=0 或 7x-y+5=0'},
+      {L1:[4,3,-10], L2:[3,-4,0],  ans:'x+7y-10=0 或 7x-y-10=0'},
+      {L1:[3,4,5],   L2:[4,-3,0],  ans:'x-7y-5=0 或 7x+y+5=0'},
+      {L1:[4,-3,15], L2:[3,4,0],   ans:'x-7y+15=0 或 7x+y+15=0'},
+      {L1:[4,-3,-5], L2:[3,4,-10], ans:'x-7y+5=0 或 7x+y-15=0'},
+    ];
+    if (_b1LineDistBisQ.length === 0) {
+      const idx = biscases.map((_,i) => i);
+      for (let i = idx.length-1; i > 0; i--) {
+        const j = srRandInt(0, i); [idx[i],idx[j]] = [idx[j],idx[i]];
+      }
+      _b1LineDistBisQ.push(...idx);
+    }
+    const c = biscases[_b1LineDistBisQ.pop()];
     return {
-      question:`試求兩直線 \\(L_1 : ${_b1LGen(...biscases.L1)}\\) 與 \\(L_2 : ${_b1LGen(...biscases.L2)}\\) 的交角平分線方程式`,
-      answer:biscases.ans, type:'text', answerPrefix:''
+      question:`試求兩直線 \\(L_1 : ${_b1LGen(...c.L1)}\\) 與 \\(L_2 : ${_b1LGen(...c.L2)}\\) 的交角平分線方程式`,
+      answer:c.ans, type:'text', answerPrefix:''
     };
   }
   const abH = [[5,12,13],[5,-12,13],[12,5,13],[12,-5,13]][srRandInt(0,3)];
@@ -2393,6 +2409,12 @@ function _b1LineIneq(level) {
   };
 }
 
+// ── b1-line-app：直線方程式的應用（距離・聯立・不等式 混合）────────────
+function genB1LineApp(level, _n) {
+  const sub = [genB1LineDist, genB1LineSys, genB1LineIneq][srRandInt(0,2)];
+  return sub(level, _n);
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  輸出表
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2409,4 +2431,5 @@ const SR_GENERATORS = {
   'b1-line-dist':    genB1LineDist,
   'b1-line-sys':     genB1LineSys,
   'b1-line-ineq':    genB1LineIneq,
+  'b1-line-app':     genB1LineApp,
 };
