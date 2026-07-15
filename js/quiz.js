@@ -860,9 +860,9 @@ function printQuiz() {
 }
 
 function printWithAnswers() {
-  document.body.classList.add('printing', 'printing-with-answers');
+  document.body.classList.add('printing-ans-only');
   window.print();
-  document.body.classList.remove('printing', 'printing-with-answers');
+  document.body.classList.remove('printing-ans-only');
 }
 
 async function downloadWord() {

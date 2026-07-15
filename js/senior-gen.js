@@ -1995,6 +1995,8 @@ function _b1AmGm(level) {
 
 // ── b1-line-dist：點到直線的距離 ──────────────────────────────────────
 let _b1LineDistBisQ = [];   // shuffle queue — prevents bisector repeats within a quiz
+let _b1LineDistAPBQ = [];   // shuffle queue — AP:BP ratio cases (medium t=2)
+let _b1LineDistDQ   = [];   // shuffle queue — irrational parallel distance cases (medium t=3)
 
 function genB1LineDist(level, _n) {
   for (let _i = 0; _i < 40; _i++) {
@@ -2076,14 +2078,22 @@ function _b1LineDist(level) {
     }
     if (t === 2) {
       const cases = [
-        {pt1:[1,2],  pt2:[-2,1],  A:1,B:2,C:-3},
-        {pt1:[3,-2], pt2:[-5,1],  A:1,B:-4,C:4},
-        {pt1:[2,1],  pt2:[-1,-2], A:2,B:1,C:-4},
-        {pt1:[1,3],  pt2:[-3,-1], A:1,B:2,C:-5},
-        {pt1:[4,-1], pt2:[-2,3],  A:3,B:1,C:-5},
-        {pt1:[2,3],  pt2:[-4,-1], A:2,B:-1,C:1},
+        {pt1:[1,2],  pt2:[-2,1],  A:1,B:2, C:-3},
+        {pt1:[3,-2], pt2:[-5,1],  A:1,B:-4,C:4 },
+        {pt1:[2,1],  pt2:[-1,-2], A:2,B:1, C:-4},
+        {pt1:[1,3],  pt2:[-3,-1], A:1,B:2, C:-5},
+        {pt1:[4,-1], pt2:[-2,3],  A:3,B:1, C:-5},
+        {pt1:[2,3],  pt2:[-4,-1], A:2,B:-1,C:1 },
+        {pt1:[3,1],  pt2:[-1,-4], A:1,B:1, C:-2},
+        {pt1:[3,-1], pt2:[-1,4],  A:2,B:1, C:-3},
+        {pt1:[4,1],  pt2:[-2,-3], A:1,B:-2,C:-3},
       ];
-      const e = cases[srRandInt(0,cases.length-1)];
+      if (_b1LineDistAPBQ.length === 0) {
+        const idx = cases.map((_,i)=>i);
+        for (let i=idx.length-1;i>0;i--){const j=srRandInt(0,i);[idx[i],idx[j]]=[idx[j],idx[i]];}
+        _b1LineDistAPBQ.push(...idx);
+      }
+      const e = cases[_b1LineDistAPBQ.pop()];
       const rF1 = e.A*e.pt1[0]+e.B*e.pt1[1]+e.C;
       const rF2 = e.A*e.pt2[0]+e.B*e.pt2[1]+e.C;
       if (rF1*rF2>=0) return null;
@@ -2100,10 +2110,19 @@ function _b1LineDist(level) {
       {A:1,B:1, c1:-2,c2:4,  ans:'3\\sqrt{2}'},
       {A:1,B:2, c1:0, c2:5,  ans:'\\sqrt{5}' },
       {A:1,B:1, c1:0, c2:4,  ans:'2\\sqrt{2}'},
-    ][srRandInt(0,5)];
+      {A:1,B:-3,c1:0, c2:10, ans:'\\sqrt{10}'},
+      {A:2,B:-1,c1:0, c2:5,  ans:'\\sqrt{5}' },
+      {A:1,B:-2,c1:1, c2:6,  ans:'\\sqrt{5}' },
+    ];
+    if (_b1LineDistDQ.length === 0) {
+      const idx = dcases.map((_,i)=>i);
+      for (let i=idx.length-1;i>0;i--){const j=srRandInt(0,i);[idx[i],idx[j]]=[idx[j],idx[i]];}
+      _b1LineDistDQ.push(...idx);
+    }
+    const dc = dcases[_b1LineDistDQ.pop()];
     return {
-      question:`求兩平行直線 \\(${_b1LGen(dcases.A,dcases.B,dcases.c1)}\\) 與 \\(${_b1LGen(dcases.A,dcases.B,dcases.c2)}\\) 之間的距離`,
-      answer:dcases.ans, type:'text', answerPrefix:''
+      question:`求兩平行直線 \\(${_b1LGen(dc.A,dc.B,dc.c1)}\\) 與 \\(${_b1LGen(dc.A,dc.B,dc.c2)}\\) 之間的距離`,
+      answer:dc.ans, type:'text', answerPrefix:''
     };
   }
 

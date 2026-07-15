@@ -46,34 +46,22 @@ function qmixed(whole, num, den) {
   return `${whole}${qfrac(num, den)}`;
 }
 
-// 答案顯示（自動化為帶分數或整數）
+// 答案顯示（假分數，不化帶分數）
 function fracToLatex(f) {
   if (f.num === 0) return '0';
-  const sign = f.num < 0 ? '-' : '';
-  const absNum = Math.abs(f.num);
   if (f.den === 1) return String(f.num);
-  if (absNum >= f.den) {
-    const w = Math.floor(absNum / f.den);
-    const r = absNum % f.den;
-    if (r === 0) return `${f.num < 0 ? '-' : ''}${w}`;
-    return `${sign}${w}\\dfrac{${r}}{${f.den}}`;
-  }
+  const absNum = Math.abs(f.num);
+  const sign = f.num < 0 ? '-' : '';
   return `${sign}\\dfrac{${absNum}}{${f.den}}`;
 }
 
-// 答案的可讀字串（給學生看範例格式）
+// 答案的可讀字串（假分數格式，供格式提示用）
 function fracToStr(f) {
   if (f.num === 0) return '0';
+  if (f.den === 1) return String(f.num);
   const absNum = Math.abs(f.num);
   const sign = f.num < 0 ? '-' : '';
-  if (f.den === 1) return String(f.num);
-  if (absNum >= f.den) {
-    const w = Math.floor(absNum / f.den);
-    const r = absNum % f.den;
-    if (r === 0) return `${f.num < 0 ? '-' : ''}${w}`;
-    return `${sign}${w} ${r}/${f.den}`;
-  }
-  return `${f.num}/${f.den}`;
+  return `${sign}${absNum}/${f.den}`;
 }
 
 // ─── 解析學生輸入 ─────────────────────────────────────────────────

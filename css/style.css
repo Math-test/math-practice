@@ -471,10 +471,18 @@ body.printing .print-page-header  { display: block; }
 body.printing .q-input::placeholder { color: transparent; }
 body.printing .print-page-break  { display: block; }
 
-/* 列印含解答：解答頁出現在第三頁 */
+/* 列印含解答：解答頁出現在題目後 */
 body.printing-with-answers .answer-sheet {
   display: block;
   page-break-before: always;
   break-before: page;
 }
 body.printing-with-answers .answer-sheet .print-page-header { display: block; }
+
+/* 只列印解答頁 */
+body.printing-ans-only .card { display: none !important; }
+body.printing-ans-only .answer-sheet {
+  display: block;
+  page-break-before: auto;
+}
+body.printing-ans-only .answer-sheet .print-page-header { display: block; }
