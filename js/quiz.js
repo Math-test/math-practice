@@ -662,7 +662,8 @@ function renderAnswerSheet(questions, topicLabel, levelLabel, dateStr) {
       }
     } else {
       const _ip = q.sym ? `x ${q.sym} ` : (q.answerPrefix && /[<>≤≥]$/.test(q.answerPrefix) ? `${q.answerPrefix} ` : '');
-      val = _ip + (q.type === 'fraction' ? `\\(${fracToLatex(q.answer)}\\)` : q.type === 'text' ? String(q.answer) : q.type === 'sci' ? `\\(${q.sciCoef} \\times 10^{${q.sciExp}}\\)` : dStr(q.answer));
+      const _tv = String(q.answer);
+      val = _ip + (q.type === 'fraction' ? `\\(${fracToLatex(q.answer)}\\)` : q.type === 'text' ? (_tv.includes('\\') ? `\\(${_tv}\\)` : _tv) : q.type === 'sci' ? `\\(${q.sciCoef} \\times 10^{${q.sciExp}}\\)` : dStr(q.answer));
     }
     return `<div class="ans-item"><span class="ans-num">${idx + 1}.</span><span class="ans-val">${val}</span></div>`;
   }
@@ -821,7 +822,7 @@ function checkAnswers() {
       else if (q.type === 'poly') correctStr = `\\(${polyToLatex(q.polyA2,q.polyA1,q.polyA0)}\\)`;
       else if (q.type === 'linear2') correctStr = `\\(${linear2ToLatex(q.linA,q.linB,q.linC)}\\)`;
       else if (q.type === 'sci') correctStr = `\\(${q.sciCoef} \\times 10^{${q.sciExp}}\\)`;
-      else if (q.type === 'text') correctStr = String(q.answer);
+      else if (q.type === 'text') { const _tv2=String(q.answer); correctStr = _tv2.includes('\\')?`\\(${_tv2}\\)`:_tv2; }
       else correctStr = dStr(q.answer);
       fb.innerHTML = `<span class="fb-wrong">✗</span> <span class="fb-ans">正確：${_ip2}${correctStr}</span>`;
     }
