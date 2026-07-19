@@ -26,6 +26,18 @@ function makeStub(name) {
   };
 }
 
+// Shuffle-queue picker — ensures all N cases appear before any repeat
+function srQPick(arr, q) {
+  if (q.length === 0) {
+    const idx = arr.map((_,i) => i);
+    for (let i = idx.length-1; i > 0; i--) {
+      const j = srRandInt(0, i); [idx[i], idx[j]] = [idx[j], idx[i]];
+    }
+    q.push(...idx);
+  }
+  return arr[q.pop()];
+}
+
 // 分數字串格式化（如 -3/2, 5, 0）
 function _srFracStr(num, den) {
   if (num === 0) return '0';
@@ -740,13 +752,13 @@ function _b1Exp(level) {
         [3, 27, 2,1, 9],    // a^3=27 → a^2=9
         [4, 81, 3,1, 27],   // a^4=81 → a^3=27
       ];
-      const [gE,gV,fN,fD,fV] = tbl[srRandInt(0,tbl.length-1)];
+      const [gE,gV,fN,fD,fV] = srQPick(tbl, _b1ExpM3Q);
       const findStr = fD===1 ? `${fN}` : `\\frac{${fN}}{${fD}}`;
       return { question:`若 \\(a > 0\\)，\\(a^{${gE}} = ${gV}\\)，求 \\(a^{${findStr}}\\)`, answer:fV, type:'number', answerPrefix:'' };
     } else if (t === 4) {
       // a^{-1}+b^{-1} = (a+b)/(ab)
       const pairs = [[2,3],[2,4],[3,6],[2,6],[4,6],[3,4]];
-      const [a,b] = pairs[srRandInt(0, pairs.length-1)];
+      const [a,b] = srQPick(pairs, _b1ExpM4Q);
       const g = srGcd(a+b, a*b);
       const sn = (a+b)/g, sd = (a*b)/g;
       return { question:`\\(${a}^{-1} + ${b}^{-1}\\) ＝ ？（格式：p/q）`, answer:`${sn}/${sd}`, type:'text', answerPrefix:'' };
@@ -756,7 +768,7 @@ function _b1Exp(level) {
         [2,3,2,3,72],[2,3,3,2,108],[2,5,2,3,200],
         [2,4,3,2,256],[2,3,2,2,36],[2,5,2,2,100],
       ];
-      const [a,b,p,q,ans] = tbl[srRandInt(0,tbl.length-1)];
+      const [a,b,p,q,ans] = srQPick(tbl, _b1ExpM5Q);
       return {
         question:`\\(\\left(${a}^{\\frac{1}{${p}}} \\times ${b}^{\\frac{1}{${q}}}\\right)^{${p*q}}\\) ＝ ？`,
         answer:ans, type:'number', answerPrefix:''
@@ -767,7 +779,7 @@ function _b1Exp(level) {
         [4,2,3,2,64],[8,3,2,2,16],[27,3,2,2,81],
         [16,4,3,2,64],[32,5,2,3,64],
       ];
-      const [a,p,q,r,ans] = tbl[srRandInt(0,tbl.length-1)];
+      const [a,p,q,r,ans] = srQPick(tbl, _b1ExpM6Q);
       return {
         question:`\\(\\left\\{\\left[${a}^{\\frac{1}{${p}}}\\right]^{${q}}\\right\\}^{${r}}\\) ＝ ？`,
         answer:ans, type:'number', answerPrefix:''
@@ -813,7 +825,7 @@ function _b1Exp(level) {
         [`16^{\\frac{3}{8}} \\times 16^{\\frac{3}{8}} \\div 16^{\\frac{1}{4}}`, 4],
         [`27^{\\frac{5}{6}} \\times 27^{\\frac{1}{6}} \\div 27^{\\frac{2}{3}}`, 3],
       ];
-      const [qm9,ansm9] = tbl9m[srRandInt(0,tbl9m.length-1)];
+      const [qm9,ansm9] = srQPick(tbl9m, _b1ExpM9Q);
       return { question:`\\(${qm9}\\) ＝ ？`, answer:ansm9, type:'number', answerPrefix:'' };
     } else {
       // 兩組不同底相加減：a^m × a^{-n} OP b^p × b^{-q}（t=10）
@@ -868,8 +880,7 @@ function _b1Exp(level) {
         [3,32,6,5,4,  2,27,4,3,9,   1],  // a^(6/5)=4, b^(4/3)=9 → 4+9=13
         [3,16,3,2,4,  4,32,8,5,4,   1],  // a^(3/2)=4, b^(8/5)=4 → 4+4=8
       ];
-      const row = tbl[srRandInt(0,tbl.length-1)];
-      const [aGE,aGV,aFN,aFD,aFV, bGE,bGV,bFN,bFD,bFV, sign] = row;
+      const [aGE,aGV,aFN,aFD,aFV, bGE,bGV,bFN,bFD,bFV, sign] = srQPick(tbl, _b1ExpH2Q);
       const aFS = aFD===1 ? `${aFN}` : `\\frac{${aFN}}{${aFD}}`;
       const bFS = bFD===1 ? `${bFN}` : `\\frac{${bFN}}{${bFD}}`;
       const op = sign===1 ? '+' : '-';
@@ -908,7 +919,7 @@ function _b1Exp(level) {
         [3,2, 2,1,3, 1,2,2, 162],  // {[3^2×2^{-1}]^3×(3^{-1}×2^2)^2} = 3^4×2 = 162
         [2,3, 3,1,2, 1,2,1, 32],   // {[2^3×3^{-1}]^2×(2^{-1}×3^2)^1} = 2^5 = 32
       ];
-      const [a,b,r,s,m,tt,u,n,ans] = tbl[srRandInt(0,tbl.length-1)];
+      const [a,b,r,s,m,tt,u,n,ans] = srQPick(tbl, _b1ExpH5Q);
       return {
         question:`\\(\\left\\{\\left[${a}^{${r}} \\times ${b}^{-${s}}\\right]^{${m}} \\times \\left(${a}^{-${tt}} \\times ${b}^{${u}}\\right)^{${n}}\\right\\}\\) ＝ ？`,
         answer:ans, type:'number', answerPrefix:''
@@ -918,7 +929,7 @@ function _b1Exp(level) {
       const tbl = [
         [2,2,1,2,64],[2,2,1,3,512],[2,3,1,2,256],[2,3,2,1,128],[2,2,2,1,32],
       ];
-      const [a,p,n,m,ans] = tbl[srRandInt(0,tbl.length-1)];
+      const [a,p,n,m,ans] = srQPick(tbl, _b1ExpH6Q);
       return {
         question:`\\(\\left[\\left(${a}^{\\frac{1}{${p}}} \\times ${a}^{${n}}\\right)^{${m}}\\right]^{${p}}\\) ＝ ？`,
         answer:ans, type:'number', answerPrefix:''
@@ -969,7 +980,7 @@ function _b1Exp(level) {
         [`27^{\\frac{1}{3}} \\times 27^{\\frac{2}{3}} \\times 27^{\\frac{2}{3}} \\div 27^{\\frac{4}{3}}`, 3],
         [`32^{\\frac{2}{5}} \\times 32^{\\frac{2}{5}} \\times 32^{\\frac{1}{5}} \\div 32^{\\frac{2}{5}}`, 8],
       ];
-      const [qh9,ansh9] = tbl9h[srRandInt(0,tbl9h.length-1)];
+      const [qh9,ansh9] = srQPick(tbl9h, _b1ExpH9Q);
       return { question:`\\(${qh9}\\) ＝ ？`, answer:ansh9, type:'number', answerPrefix:'' };
     } else if (t === 10) {
       // 整數底 × 分數底 加減（分數答案）— 整數底部份與 (p/q)^{-n} 相加減
@@ -983,7 +994,7 @@ function _b1Exp(level) {
         [`2^{4} \\times 2^{-2} - \\left(\\dfrac{3}{2}\\right)^{-2}`, '32/9'],   // 4-4/9=32/9
         [`3^{4} \\times 3^{-2} - \\left(\\dfrac{3}{2}\\right)^{-2}`, '77/9'],   // 9-4/9=77/9... wait 9=81/9, 81/9-4/9=77/9 ✓
       ];
-      const [qMix,ansMix] = tblMix[srRandInt(0,tblMix.length-1)];
+      const [qMix,ansMix] = srQPick(tblMix, _b1ExpH10Q);
       return { question:`\\(${qMix}\\) ＝ ？（格式：p/q）`, answer:ansMix, type:'text', answerPrefix:'' };
     }
   }
@@ -1022,7 +1033,7 @@ function _b1Log(level) {
         [4,25,2],[8,125,3],[2,5000,4],[20,50,3],
         [0.2,500,2],[4,2500,4],[40,25,3],[0.5,200,2],[5,200,3],
       ];
-      const [a,b,ans] = pairs[srRandInt(0,pairs.length-1)];
+      const [a,b,ans] = srQPick(pairs, _b1LogB2Q);
       return { question:`\\(\\log ${a} + \\log ${b}\\) ＝ ？`, answer:ans, type:'number', answerPrefix:'' };
 
     } else if (t === 3) {
@@ -1031,7 +1042,7 @@ function _b1Log(level) {
         [1000,10,2],[100,0.1,3],[10000,100,2],
         [1000,0.01,5],[10,0.001,4],[100000,1000,2],
       ];
-      const [a,b,ans] = pairs[srRandInt(0,pairs.length-1)];
+      const [a,b,ans] = srQPick(pairs, _b1LogB3Q);
       return { question:`\\(\\log ${a} - \\log ${b}\\) ＝ ？`, answer:ans, type:'number', answerPrefix:'' };
 
     } else if (t === 4) {
@@ -1051,7 +1062,7 @@ function _b1Log(level) {
         { N:'18',  a:L2+2*L3 },
         { N:'12',  a:2*L2+L3 },
       ];
-      const c = cases[srRandInt(0,cases.length-1)];
+      const c = srQPick(cases, _b1LogB5Q);
       return {
         question:`已知 \\(\\log 2 \\approx ${L2},\\ \\log 3 \\approx ${L3}\\)，求 \\(\\log ${c.N}\\)（四位小數）`,
         answer:c.a.toFixed(4), type:'text', answerPrefix:''
@@ -1070,7 +1081,7 @@ function _b1Log(level) {
         {a:4,n:2,x:25},{a:5,n:2,x:20},{a:25,n:2,x:4},
         {a:2,n:3,x:500},{a:5,n:3,x:200},{a:4,n:3,x:250},
       ];
-      const c = cases[srRandInt(0,cases.length-1)];
+      const c = srQPick(cases, _b1LogB7Q);
       return { question:`\\(\\log(${c.a}x) = ${c.n}\\)，求 \\(x\\)`, answer:c.x, type:'number', answerPrefix:'x' };
     }
 
@@ -1091,7 +1102,7 @@ function _b1Log(level) {
         { N:'72',   a:3*L2+2*L3 },
         { N:'0.6',  a:L2+L3-1 },
       ];
-      const c = cases[srRandInt(0,cases.length-1)];
+      const c = srQPick(cases, _b1LogM0Q);
       return {
         question:`已知 \\(\\log 2 \\approx ${L2},\\ \\log 3 \\approx ${L3}\\)，求 \\(\\log ${c.N}\\)（四位小數）`,
         answer:c.a.toFixed(4), type:'text', answerPrefix:''
@@ -1109,7 +1120,7 @@ function _b1Log(level) {
         { q:`\\log 5 + \\log 2 + \\log 10`,          ans:2 },
         { q:`4\\log 2 + 4\\log 5`,                   ans:4 },
       ];
-      const c = cases[srRandInt(0,cases.length-1)];
+      const c = srQPick(cases, _b1LogM1Q);
       return { question:`計算 \\(${c.q}\\)`, answer:c.ans, type:'number', answerPrefix:'' };
 
     } else if (t === 2) {
@@ -1124,7 +1135,7 @@ function _b1Log(level) {
         { a:1,b:0,n:3,x:1000 },
         { a:2,b:-4,n:1,x:7 },
       ];
-      const c = cases[srRandInt(0,cases.length-1)];
+      const c = srQPick(cases, _b1LogM2Q);
       let qStr;
       if (c.a===1 && c.b===0) {
         qStr = `\\log x = ${c.n}`;
@@ -1148,7 +1159,7 @@ function _b1Log(level) {
         { str:`\\log \\sqrt{6}`,        a:(L2+L3)/2 },
         { str:`\\log \\dfrac{4}{27}`,   a:2*L2-3*L3 },
       ];
-      const c = cases[srRandInt(0,cases.length-1)];
+      const c = srQPick(cases, _b1LogM3Q);
       return {
         question:`已知 \\(\\log 2 \\approx ${L2},\\ \\log 3 \\approx ${L3}\\)，求 \\(${c.str}\\)（四位小數）`,
         answer:c.a.toFixed(4), type:'text', answerPrefix:''
@@ -1163,7 +1174,7 @@ function _b1Log(level) {
         { q:`\\log\\left[\\dfrac{8 \\times 125}{10}\\right]`,     ans:2 },
         { q:`\\log\\left[\\dfrac{(2 \\times 5)^5}{10^2}\\right]`, ans:3 },
       ];
-      const c5 = cases5[srRandInt(0,cases5.length-1)];
+      const c5 = srQPick(cases5, _b1LogM4Q);
       return { question:`計算 \\(${c5.q}\\)`, answer:c5.ans, type:'number', answerPrefix:'' };
 
     } else if (t === 5) {
@@ -1206,7 +1217,7 @@ function _b1Log(level) {
         { q:`10^{\\log 5} + \\log 10 - \\log 100`,     ans:4  },
         { q:`10^{\\log 7} - \\log 100 + \\log 1000`,   ans:8  },
       ];
-      const c9L = cases9L[srRandInt(0,cases9L.length-1)];
+      const c9L = srQPick(cases9L, _b1LogM7Q);
       return { question:`計算 \\(${c9L.q}\\)`, answer:c9L.ans, type:'number', answerPrefix:'' };
     }
 
@@ -1227,7 +1238,7 @@ function _b1Log(level) {
         { base:5, n:10,  logGiven:'\\log 5 \\approx 0.6990', logVal:10*0.699, digits:7 },
         { base:5, n:20,  logGiven:'\\log 5 \\approx 0.6990', logVal:20*0.699, digits:14 },
       ];
-      const c = cases[srRandInt(0,cases.length-1)];
+      const c = srQPick(cases, _b1LogH0Q);
       return {
         question:`已知 \\(${c.logGiven}\\)，問 \\(${c.base}^{${c.n}}\\) 是幾位數？`,
         answer:c.digits, type:'number', answerPrefix:''
@@ -1245,7 +1256,7 @@ function _b1Log(level) {
         { base:5, n:5,   logGiven:'\\log 5 \\approx 0.6990', frac:0.495, leading:3 },
         { base:5, n:10,  logGiven:'\\log 5 \\approx 0.6990', frac:0.990, leading:9 },
       ];
-      const c = cases[srRandInt(0,cases.length-1)];
+      const c = srQPick(cases, _b1LogH1Q);
       return {
         question:`已知 \\(${c.logGiven}\\)，求 \\(${c.base}^{${c.n}}\\) 的最高位數字（即首位數字）`,
         answer:c.leading, type:'number', answerPrefix:''
@@ -1263,7 +1274,7 @@ function _b1Log(level) {
         { base:'0.2',  n:5,   logGiven:'\\log 2 \\approx 0.3010', pos:4 },
         { base:'0.2',  n:10,  logGiven:'\\log 2 \\approx 0.3010', pos:7 },
       ];
-      const c = cases[srRandInt(0,cases.length-1)];
+      const c = srQPick(cases, _b1LogH2Q);
       return {
         question:`已知 \\(${c.logGiven}\\)，\\(${c.base}^{${c.n}}\\) 的小數點後第幾位才出現非零數字？`,
         answer:c.pos, type:'number', answerPrefix:''
@@ -1278,7 +1289,7 @@ function _b1Log(level) {
         { expr:'6^{10}', logExpr:'10\\times(\\log 2+\\log 3)',                       logVal:10*(L2+L3),   digits:Math.floor(10*(L2+L3))+1 },
         { expr:'6^{15}', logExpr:'15\\times 0.7781',                                 logVal:15*(L2+L3),   digits:Math.floor(15*(L2+L3))+1 },
       ];
-      const c = cases[srRandInt(0,cases.length-1)];
+      const c = srQPick(cases, _b1LogH3Q);
       return {
         question:`已知 \\(\\log 2 \\approx ${L2},\\ \\log 3 \\approx ${L3}\\)，問 \\(${c.expr}\\) 是幾位數？`,
         answer:c.digits, type:'number', answerPrefix:''
@@ -1294,7 +1305,7 @@ function _b1Log(level) {
         { base:3, n:20,  logGiven:'\\log 3 \\approx 0.4771', k:9 },
         { base:5, n:10,  logGiven:'\\log 5 \\approx 0.6990', k:6 },
       ];
-      const cH4 = casesH4[srRandInt(0,casesH4.length-1)];
+      const cH4 = srQPick(casesH4, _b1LogH4Q);
       return {
         question:`已知 \\(${cH4.logGiven}\\)，將 \\(${cH4.base}^{${cH4.n}}\\) 表示為 \\(A \\times 10^k\\)（\\(1 \\le A < 10\\)），求 \\(k\\)`,
         answer:cH4.k, type:'number', answerPrefix:'k'
@@ -1750,7 +1761,7 @@ function _b1AmGm(level) {
         { k:6,  ans:'2/3', tp:'text'   },
         { k:12, ans:'1/3', tp:'text'   },
       ];
-      const e1 = cases1[srRandInt(0, cases1.length-1)];
+      const e1 = srQPick(cases1, _b1AmGmM1Q);
       return {
         question:`設 \\(a > 0,\\ b > 0,\\ a + b = ${e1.k}\\)，則 \\(\\dfrac{1}{a} + \\dfrac{1}{b}\\) 的最小值為何？`,
         answer:e1.ans, type:e1.tp, answerPrefix:''
@@ -1840,7 +1851,7 @@ function _b1AmGm(level) {
       { a:2, b:8, k:8,  ans:1,     tp:'number' },
       { a:1, b:9, k:6,  ans:1,     tp:'number' },
     ];
-    const eH0 = casesH0[srRandInt(0, casesH0.length-1)];
+    const eH0 = srQPick(casesH0, _b1AmGmH0Q);
     const xPH0 = eH0.a === 1 ? 'x' : `${eH0.a}x`;
     const yPH0 = eH0.b === 1 ? 'y' : `${eH0.b}y`;
     return {
@@ -1860,7 +1871,7 @@ function _b1AmGm(level) {
       { a:1, b:25, k:4,  ans:20 },
       { a:4, b:9,  k:4,  ans:24 },
     ];
-    const eH1 = casesH1[srRandInt(0, casesH1.length-1)];
+    const eH1 = srQPick(casesH1, _b1AmGmH1Q);
     const xPH1 = eH1.a === 1 ? 'x' : `${eH1.a}x`;
     const yPH1 = eH1.b === 1 ? 'y' : `${eH1.b}y`;
     return {
@@ -1997,6 +2008,15 @@ function _b1AmGm(level) {
 let _b1LineDistBisQ = [];   // shuffle queue — prevents bisector repeats within a quiz
 let _b1LineDistAPBQ = [];   // shuffle queue — AP:BP ratio cases (medium t=2)
 let _b1LineDistDQ   = [];   // shuffle queue — irrational parallel distance cases (medium t=3)
+// b1-exp shuffle queues
+let _b1ExpM3Q = []; let _b1ExpM4Q = []; let _b1ExpM5Q = []; let _b1ExpM6Q = []; let _b1ExpM9Q = [];
+let _b1ExpH2Q = []; let _b1ExpH5Q = []; let _b1ExpH6Q = []; let _b1ExpH9Q = []; let _b1ExpH10Q= [];
+// b1-log shuffle queues
+let _b1LogB2Q = []; let _b1LogB3Q = []; let _b1LogB5Q = []; let _b1LogB7Q = [];
+let _b1LogM0Q = []; let _b1LogM1Q = []; let _b1LogM2Q = []; let _b1LogM3Q = []; let _b1LogM4Q = []; let _b1LogM7Q = [];
+let _b1LogH0Q = []; let _b1LogH1Q = []; let _b1LogH2Q = []; let _b1LogH3Q = []; let _b1LogH4Q = [];
+// b1-amgm shuffle queues
+let _b1AmGmM1Q = []; let _b1AmGmH0Q = []; let _b1AmGmH1Q = [];
 
 function genB1LineDist(level, _n) {
   for (let _i = 0; _i < 40; _i++) {
