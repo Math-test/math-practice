@@ -1372,41 +1372,103 @@ function _7aSciUnitConv() {
   };
 }
 
+function _7aSciCompare() {
+  // 標準式 d1.f1 × 10^n1  vs  非標準式 0.d2f2 × 10^(n1+1)（= d2.f2 × 10^n1）
+  const n1 = randInt(3, 6);
+  const d1 = randInt(1, 9), f1 = randInt(0, 9);
+  const d2 = randInt(1, 9), f2 = randInt(0, 9);
+  if (d1 * 10 + f1 === d2 * 10 + f2) return null;
+  const ans = (d1 * 10 + f1 > d2 * 10 + f2) ? '>' : '<';
+  return {
+    question: `比較大小：\\(${d1}.${f1}\\times 10^{${n1}}\\) 【 】 \\(0.${d2}${f2}\\times 10^{${n1+1}}\\)（填 &gt; 或 &lt;）`,
+    answer: ans,
+    type: 'text'
+  };
+}
+
+function _7aSciPlaceVal() {
+  const d = randInt(1, 9);
+  const numDigits = randInt(5, 7);
+  const p1_idx = randInt(0, numDigits - 3);         // 左邊出現位置（索引自左起）
+  const p2_idx = randInt(p1_idx + 2, numDigits - 1); // 右邊，間距≥2確保比值≥100
+  const exp1 = numDigits - 1 - p1_idx;  // 左邊的位值指數（自右起 0-indexed）
+  const exp2 = numDigits - 1 - p2_idx;
+  const ratio = Math.pow(10, exp1 - exp2);
+  const digits = [];
+  for (let i = 0; i < numDigits; i++) {
+    if (i === p1_idx || i === p2_idx) {
+      digits.push(d);
+    } else {
+      let r;
+      do { r = (i === 0) ? randInt(1, 9) : randInt(0, 9); } while (r === d);
+      digits.push(r);
+    }
+  }
+  return {
+    question: `在 ${digits.join('')} 中，左邊的 ${d} 是右邊的 ${d} 的幾倍？`,
+    answer: ratio,
+    type: 'number'
+  };
+}
+
 function _7aSci(level) {
   if (level === 'basic') {
-    const [coef, exp, std] = pick(_SCI_POS);
-    return randInt(0,1) === 0
-      ? { question:`\\(${coef} \\times 10^{${exp}}\\)`, answer: std, type:'number' }
-      : { question:`\\(${std} = ${coef} \\times 10^x\\)`, answer: exp, type:'number', answerPrefix:'x' };
+    const t = randInt(0, 3);
+    if (t === 0) {
+      // 原有：正指數科學記號 ↔ 標準形式互換
+      const [coef, exp, std] = pick(_SCI_POS);
+      return randInt(0, 1) === 0
+        ? { question: `\\(${coef}\\times 10^{${exp}}\\)`, answer: std, type: 'number' }
+        : { question: `\\(${std} = ${coef}\\times 10^x\\)`, answer: exp, type: 'number', answerPrefix: 'x' };
+    } else if (t === 1) {
+      // 幾位數：給k位數，求指數a
+      const coef = pick(['1.2','2.5','3.4','4.6','5.64','6.3','7.5','8.1','9.2']);
+      const k = randInt(4, 8);
+      return { question: `已知 \\(a\\) 為正整數，若 \\(${coef}\\times 10^a\\) 乘開後是 ${k} 位數`, answer: k - 1, type: 'number', answerPrefix: 'a' };
+    } else if (t === 2) {
+      // 幾位數：給指數n，問是幾位數
+      const coef = pick(['1.2','2.5','3.4','4.6','5.6','6.3','7.5','8.1','9.2']);
+      const n = randInt(3, 7);
+      return { question: `若 \\(A = ${coef}\\times 10^{${n}}\\)，則 \\(A\\) 展開後是幾位數？`, answer: n + 1, type: 'number' };
+    } else {
+      // 末尾有幾個0（係數有1位非零小數，末位補零數 = n-1）
+      const coef = pick(['1.2','2.4','3.6','4.2','5.4','6.3','7.5','8.1','9.2']);
+      const n = randInt(3, 7);
+      return { question: `若 \\(A = ${coef}\\times 10^{${n}}\\)，則 \\(A\\) 展開後末尾共有幾個 0？`, answer: n - 1, type: 'number' };
+    }
   } else if (level === 'hard') {
-    // 困難：乘法完整科學記號 / 除法完整科學記號 / 單位換算（各佔1/3）
+    // 困難：乘法完整科學記號 / 除法完整科學記號 / 單位換算
     const t = randInt(0, 2);
     if (t === 0) {
       const entry = pick(_SCI_MULT_FULL);
-      return {
-        question: `\\((${entry.c1} \\times 10^{${entry.e1}}) \\times (${entry.c2} \\times 10^{${entry.e2}})\\) = ？（寫出完整科學記號）`,
-        type: 'sci',
-        sciCoef: parseFloat(entry.rc),
-        sciExp: entry.re
-      };
+      return { question: `\\((${entry.c1}\\times 10^{${entry.e1}})\\times(${entry.c2}\\times 10^{${entry.e2}})\\) = ？（寫出完整科學記號）`, type: 'sci', sciCoef: parseFloat(entry.rc), sciExp: entry.re };
     } else if (t === 1) {
       const entry = pick(_SCI_DIV_FULL);
-      return {
-        question: `\\((${entry.c1} \\times 10^{${entry.e1}}) \\div (${entry.c2} \\times 10^{${entry.e2}})\\) = ？（寫出完整科學記號）`,
-        type: 'sci',
-        sciCoef: parseFloat(entry.rc),
-        sciExp: entry.re
-      };
+      return { question: `\\((${entry.c1}\\times 10^{${entry.e1}})\\div(${entry.c2}\\times 10^{${entry.e2}})\\) = ？（寫出完整科學記號）`, type: 'sci', sciCoef: parseFloat(entry.rc), sciExp: entry.re };
     } else {
       return _7aSciUnitConv();
     }
   } else {
-    // 中等：負指數 / 單位換算（各佔1/2）
-    if (randInt(0,1) === 0) {
+    // 中等：5 types
+    const t = randInt(0, 4);
+    if (t === 0) {
+      // 原有：負指數求x
       const [std_str, coef_str, neg_exp] = pick(_SCI_NEG);
-      return { question:`\\(${std_str} = ${coef_str} \\times 10^x\\)`, answer: -neg_exp, type:'number', answerPrefix:'x' };
-    } else {
+      return { question: `\\(${std_str} = ${coef_str}\\times 10^x\\)`, answer: -neg_exp, type: 'number', answerPrefix: 'x' };
+    } else if (t === 1) {
+      // 原有：單位換算
       return _7aSciUnitConv();
+    } else if (t === 2) {
+      // 比較大小：標準式 vs 非標準式
+      return _7aSciCompare();
+    } else if (t === 3) {
+      // 末尾有幾個0（係數有2位非零小數，末位補零數 = n-2）
+      const coef = pick(['1.23','2.45','3.46','4.12','5.64','6.72','7.35','8.14','9.21']);
+      const n = randInt(5, 10);
+      return { question: `若 \\(A = ${coef}\\times 10^{${n}}\\)，則 \\(A\\) 展開後末尾共有幾個 0？`, answer: n - 2, type: 'number' };
+    } else {
+      // 位值倍數
+      return _7aSciPlaceVal();
     }
   }
 }
