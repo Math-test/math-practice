@@ -1783,18 +1783,20 @@ function _7aEqn(level) {
   if (level === 'basic') {
     const t = randInt(0, 2);
     if (t===0) {
-      // x + b = c
-      const x=randInt(-10,10), b=randInt(-10,10), c=x+b;
+      // x + b = c，b≠0 避免直接給 x=c
+      const x=randInt(-10,10), b=rnzInt(-10,10), c=x+b;
       const lhs = _polyStr([{c:1,v:'x'},{c:b,v:''}]);
       return { question:`解方程式 \\(${lhs} = ${c}\\)`, answer:frac(x), type:'fraction', answerPrefix:'x' };
     } else if (t===1) {
-      // ax = b（整數答案）
-      const a=rnzInt(-8,8), x=rnzInt(-8,8);
-      const b=a*x;
+      // ax = b，|a|≥2 避免直接給 x=b
+      let a=rnzInt(-8,8);
+      if (Math.abs(a)===1) return null;
+      const x=rnzInt(-8,8), b=a*x;
       return { question:`解方程式 \\(${_ec(a)}x = ${b}\\)`, answer:frac(x), type:'fraction', answerPrefix:'x' };
     } else {
-      // ax + b = c（整數答案）
+      // ax + b = c，排除 a=1,b=0 的情況
       const a=rnzInt(-6,6), x=randInt(-8,8), b=randInt(-8,8), c=a*x+b;
+      if (a===1 && b===0) return null;
       const lhs = _polyStr([{c:a,v:'x'},{c:b,v:''}]);
       return { question:`解方程式 \\(${lhs} = ${c}\\)`, answer:frac(x), type:'fraction', answerPrefix:'x' };
     }
