@@ -2017,6 +2017,7 @@ let _b1LogM0Q = []; let _b1LogM1Q = []; let _b1LogM2Q = []; let _b1LogM3Q = []; 
 let _b1LogH0Q = []; let _b1LogH1Q = []; let _b1LogH2Q = []; let _b1LogH3Q = []; let _b1LogH4Q = [];
 // b1-amgm shuffle queues
 let _b1AmGmM1Q = []; let _b1AmGmH0Q = []; let _b1AmGmH1Q = [];
+let _b1DivPtQ  = [];
 
 function genB1LineDist(level, _n) {
   for (let _i = 0; _i < 40; _i++) {
@@ -2476,6 +2477,78 @@ function genB1LineApp(level, _n) {
   return sub(level, _n);
 }
 
+// ── b1-div-pt：分點公式 ──────────────────────────────────────────
+// P 在線段 AB 上，AP:PB = m:n  →  P = (n·A + m·B) / (m+n)
+const _b1DivPtRatios = [
+  [1,2],[2,1],[1,3],[3,1],[2,3],[3,2],
+  [1,4],[4,1],[3,4],[4,3],[2,5],[5,2],[3,5],[5,3]
+];
+function genB1DivPt(level) {
+  const [m, n] = srQPick(_b1DivPtRatios, _b1DivPtQ);
+  const s = m + n;
+  for (let i = 0; i < 30; i++) { const q = _b1DivPt(level, m, n, s); if (q) return q; }
+  return _b1DivPt('basic', 1, 2, 3);
+}
+function _b1DivPt(level, m, n, s) {
+  if (level === 'basic') {
+    // 確保 P 坐標為整數：先選 P，再推 B
+    const Px = srRandInt(-6, 6), Py = srRandInt(-6, 6);
+    const xA = srRandInt(-8, 8), yA = srRandInt(-8, 8);
+    const xBNum = Px * s - n * xA;
+    if (xBNum % m !== 0) return null;
+    const xB = xBNum / m;
+    if (Math.abs(xB) > 15) return null;
+    const yBNum = Py * s - n * yA;
+    if (yBNum % m !== 0) return null;
+    const yB = yBNum / m;
+    if (Math.abs(yB) > 15) return null;
+    if (xA === xB && yA === yB) return null;
+    const askX = srRandInt(0, 1) === 0;
+    if (askX) {
+      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 x 坐標`, answer: Px, type: 'number' };
+    } else {
+      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 y 坐標`, answer: Py, type: 'number' };
+    }
+  } else if (level === 'medium') {
+    const xA = srRandInt(-12, 12), yA = srRandInt(-12, 12);
+    const xB = srRandInt(-12, 12), yB = srRandInt(-12, 12);
+    if (xA === xB && yA === yB) return null;
+    const askX = srRandInt(0, 1) === 0;
+    if (askX) {
+      const PxN = n * xA + m * xB;
+      if (PxN % s === 0) {
+        return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 x 坐標`, answer: PxN / s, type: 'number' };
+      }
+      const g = srGcd(Math.abs(PxN), s);
+      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 x 坐標`, answer: {num: PxN / g, den: s / g}, type: 'fraction' };
+    } else {
+      const PyN = n * yA + m * yB;
+      if (PyN % s === 0) {
+        return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 y 坐標`, answer: PyN / s, type: 'number' };
+      }
+      const g = srGcd(Math.abs(PyN), s);
+      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 y 坐標`, answer: {num: PyN / g, den: s / g}, type: 'fraction' };
+    }
+  } else {
+    // 困難：保證分數答案（非整數）
+    const xA = srRandInt(-15, 15), yA = srRandInt(-15, 15);
+    const xB = srRandInt(-15, 15), yB = srRandInt(-15, 15);
+    if (xA === xB && yA === yB) return null;
+    const askX = srRandInt(0, 1) === 0;
+    if (askX) {
+      const PxN = n * xA + m * xB;
+      if (PxN % s === 0) return null; // 跳過整數答案
+      const g = srGcd(Math.abs(PxN), s);
+      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 x 坐標`, answer: {num: PxN / g, den: s / g}, type: 'fraction' };
+    } else {
+      const PyN = n * yA + m * yB;
+      if (PyN % s === 0) return null;
+      const g = srGcd(Math.abs(PyN), s);
+      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 y 坐標`, answer: {num: PyN / g, den: s / g}, type: 'fraction' };
+    }
+  }
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  輸出表
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2493,4 +2566,5 @@ const SR_GENERATORS = {
   'b1-line-sys':     genB1LineSys,
   'b1-line-ineq':    genB1LineIneq,
   'b1-line-app':     genB1LineApp,
+  'b1-div-pt':       genB1DivPt,
 };

@@ -3215,6 +3215,277 @@ function _8aMulForm(level) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+//  八上 ▸ 和的平方公式（識別：a²+2ab+b² → (a+b)²）
+// ═══════════════════════════════════════════════════════════════════
+function gen8aSqSum(level) {
+  for (let i = 0; i < 30; i++) { const q = _8aSqSum(level); if (q) return q; }
+  return _8aSqSum('basic');
+}
+function _8aSqSum(level) {
+  if (level === 'basic') {
+    const t = randInt(0, 2);
+    if (t === 0) {
+      // 小整數
+      const a = randInt(1, 7), b = randInt(1, 7);
+      return { question: `計算 \\(${a}^2+2\\times${a}\\times${b}+${b}^2\\)`, answer: (a+b)*(a+b), type: 'number' };
+    } else if (t === 1) {
+      // 整數和為 10
+      const a = randInt(1, 9), b = 10 - a;
+      return { question: `計算 \\(${a}^2+2\\times${a}\\times${b}+${b}^2\\)`, answer: 100, type: 'number' };
+    } else {
+      // 小數和為 1（十分位）
+      const a = randInt(1, 9), b = 10 - a;
+      const aS = `0.${a}`, bS = `0.${b}`;
+      return { question: `計算 \\((${aS})^2+2\\times${aS}\\times${bS}+(${bS})^2\\)`, answer: 1, type: 'number' };
+    }
+  } else if (level === 'medium') {
+    const t = randInt(0, 2);
+    if (t === 0) {
+      // 兩位數和為 100
+      const a = randInt(11, 89), b = 100 - a;
+      return { question: `計算 \\(${a}^2+2\\times${a}\\times${b}+${b}^2\\)`, answer: 10000, type: 'number' };
+    } else if (t === 1) {
+      // 整數和為 50、200 或 500
+      const base = pick([50, 200, 500]);
+      const lo = Math.floor(base * 0.2), hi = Math.floor(base * 0.8);
+      const a = randInt(lo, hi), b = base - a;
+      return { question: `計算 \\(${a}^2+2\\times${a}\\times${b}+${b}^2\\)`, answer: base * base, type: 'number' };
+    } else {
+      // 分數和為 1：p/q + (q-p)/q = 1
+      const q = pick([3, 4, 5, 6]);
+      const p = randInt(1, q - 1);
+      if (_gcd(p, q) !== 1) return null;
+      const r = q - p;
+      const f1 = `\\dfrac{${p}}{${q}}`, f2 = `\\dfrac{${r}}{${q}}`;
+      return { question: `計算 \\(\\left(${f1}\\right)^2+2\\times${f1}\\times${f2}+\\left(${f2}\\right)^2\\)`, answer: 1, type: 'number' };
+    }
+  } else {
+    // 困難
+    const t = randInt(0, 2);
+    if (t === 0) {
+      // 三位數和為 1000
+      const a = randInt(101, 899), b = 1000 - a;
+      return { question: `計算 \\(${a}^2+2\\times${a}\\times${b}+${b}^2\\)`, answer: 1000000, type: 'number' };
+    } else if (t === 1) {
+      // 小數和為 10（如 2.3+7.7）
+      const dec = randInt(1, 9), w1 = randInt(0, 8);
+      const a = w1 + dec / 10;
+      const b = (9 - w1) + (10 - dec) / 10; // = 10 - a
+      const aS = a.toFixed(1), bS = b.toFixed(1);
+      return { question: `計算 \\((${aS})^2+2\\times${aS}\\times${bS}+(${bS})^2\\)`, answer: 100, type: 'number' };
+    } else {
+      // 分數和不為整數
+      const cases = [
+        {a:[1,2],b:[1,3]}, // 5/6 → 25/36
+        {a:[1,2],b:[1,4]}, // 3/4 → 9/16
+        {a:[1,3],b:[1,6]}, // 1/2 → 1/4
+        {a:[2,3],b:[1,6]}, // 5/6 → 25/36
+        {a:[2,5],b:[1,5]}, // 3/5 → 9/25
+        {a:[1,4],b:[1,6]}, // 5/12 → 25/144
+        {a:[3,5],b:[1,5]}, // 4/5 → 16/25
+      ];
+      const c = cases[randInt(0, cases.length - 1)];
+      const [n1, d1] = c.a, [n2, d2] = c.b;
+      const sn = n1 * d2 + n2 * d1, sd = d1 * d2;
+      const g = _gcd(sn, sd);
+      const rn = sn / g, rd = sd / g;
+      const ansN = rn * rn, ansD = rd * rd;
+      const ag = _gcd(ansN, ansD);
+      const f1 = `\\dfrac{${n1}}{${d1}}`, f2 = `\\dfrac{${n2}}{${d2}}`;
+      if (ansD / ag === 1) {
+        return { question: `計算 \\(\\left(${f1}\\right)^2+2\\times${f1}\\times${f2}+\\left(${f2}\\right)^2\\)`, answer: ansN / ag, type: 'number' };
+      }
+      return { question: `計算 \\(\\left(${f1}\\right)^2+2\\times${f1}\\times${f2}+\\left(${f2}\\right)^2\\)`, answer: {num: ansN / ag, den: ansD / ag}, type: 'fraction' };
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  八上 ▸ 差的平方公式（識別：a²−2ab+b² → (a−b)²）
+// ═══════════════════════════════════════════════════════════════════
+function gen8aSqDiff(level) {
+  for (let i = 0; i < 30; i++) { const q = _8aSqDiff(level); if (q) return q; }
+  return _8aSqDiff('basic');
+}
+function _8aSqDiff(level) {
+  if (level === 'basic') {
+    const t = randInt(0, 2);
+    if (t === 0) {
+      // 小整數差
+      const d = randInt(1, 5), b = randInt(1, 8);
+      const a = b + d;
+      return { question: `計算 \\(${a}^2-2\\times${a}\\times${b}+${b}^2\\)`, answer: d * d, type: 'number' };
+    } else if (t === 1) {
+      // 整數差為 10
+      const b = randInt(1, 9), a = b + 10;
+      return { question: `計算 \\(${a}^2-2\\times${a}\\times${b}+${b}^2\\)`, answer: 100, type: 'number' };
+    } else {
+      // 小數，相同小數部分（差為整數）
+      const dec = randInt(1, 9);
+      const w1 = randInt(2, 9), w2 = randInt(0, w1 - 2);
+      const a = w1 + dec / 10, b = w2 + dec / 10;
+      const diff = w1 - w2;
+      const aS = a.toFixed(1), bS = b.toFixed(1);
+      return { question: `計算 \\((${aS})^2-2\\times${aS}\\times${bS}+(${bS})^2\\)`, answer: diff * diff, type: 'number' };
+    }
+  } else if (level === 'medium') {
+    const t = randInt(0, 2);
+    if (t === 0) {
+      // 兩位數，差為整十
+      const diff = pick([10, 20, 30, 50]);
+      const b = randInt(5, 70), a = b + diff;
+      if (a > 999) return null;
+      return { question: `計算 \\(${a}^2-2\\times${a}\\times${b}+${b}^2\\)`, answer: diff * diff, type: 'number' };
+    } else if (t === 1) {
+      // 較大整數，差為整百
+      const diff = pick([100, 200, 500]);
+      const b = randInt(50, 500), a = b + diff;
+      return { question: `計算 \\(${a}^2-2\\times${a}\\times${b}+${b}^2\\)`, answer: diff * diff, type: 'number' };
+    } else {
+      // 分數，差為 1（同分母）
+      const cases = [
+        {p:4,r:1,q:3},{p:5,r:1,q:4},{p:7,r:2,q:5},
+        {p:5,r:2,q:3},{p:7,r:3,q:4},{p:3,r:1,q:2},
+        {p:8,r:3,q:5},{p:7,r:1,q:6}
+      ];
+      const c = cases[randInt(0, cases.length - 1)];
+      const {p, r, q: qv} = c;
+      const f1 = `\\dfrac{${p}}{${qv}}`, f2 = `\\dfrac{${r}}{${qv}}`;
+      return { question: `計算 \\(\\left(${f1}\\right)^2-2\\times${f1}\\times${f2}+\\left(${f2}\\right)^2\\)`, answer: 1, type: 'number' };
+    }
+  } else {
+    // 困難
+    const t = randInt(0, 2);
+    if (t === 0) {
+      // 三位數，大差值
+      const diff = pick([100, 200, 300, 500]);
+      const b = randInt(1, 7) * 100 + randInt(0, 99), a = b + diff;
+      return { question: `計算 \\(${a}^2-2\\times${a}\\times${b}+${b}^2\\)`, answer: diff * diff, type: 'number' };
+    } else if (t === 1) {
+      // 小數，差為整數（如 8.3−5.3=3）
+      const dec = randInt(1, 9);
+      const diff = randInt(2, 8), w2 = randInt(0, 8);
+      const a = (w2 + diff) + dec / 10, b = w2 + dec / 10;
+      const aS = a.toFixed(1), bS = b.toFixed(1);
+      return { question: `計算 \\((${aS})^2-2\\times${aS}\\times${bS}+(${bS})^2\\)`, answer: diff * diff, type: 'number' };
+    } else {
+      // 分數差不為整數
+      const cases = [
+        {a:[5,6],b:[1,6]},{a:[3,4],b:[1,4]},{a:[5,6],b:[1,3]},
+        {a:[7,6],b:[2,3]},{a:[2,3],b:[1,6]},{a:[4,5],b:[1,5]},
+      ];
+      const c = cases[randInt(0, cases.length - 1)];
+      const [n1, d1] = c.a, [n2, d2] = c.b;
+      const diffN = n1 * d2 - n2 * d1, diffD = d1 * d2;
+      if (diffN <= 0) return null;
+      const g = _gcd(diffN, diffD);
+      const rn = diffN / g, rd = diffD / g;
+      const ansN = rn * rn, ansD = rd * rd;
+      const ag = _gcd(ansN, ansD);
+      const f1 = `\\dfrac{${n1}}{${d1}}`, f2 = `\\dfrac{${n2}}{${d2}}`;
+      if (ansD / ag === 1) {
+        return { question: `計算 \\(\\left(${f1}\\right)^2-2\\times${f1}\\times${f2}+\\left(${f2}\\right)^2\\)`, answer: ansN / ag, type: 'number' };
+      }
+      return { question: `計算 \\(\\left(${f1}\\right)^2-2\\times${f1}\\times${f2}+\\left(${f2}\\right)^2\\)`, answer: {num: ansN / ag, den: ansD / ag}, type: 'fraction' };
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  八上 ▸ 平方差公式（識別：(a+b)(a-b) → a²−b²）
+// ═══════════════════════════════════════════════════════════════════
+function gen8aDiffSq(level) {
+  for (let i = 0; i < 30; i++) { const q = _8aDiffSq(level); if (q) return q; }
+  return _8aDiffSq('basic');
+}
+function _8aDiffSq(level) {
+  if (level === 'basic') {
+    const t = randInt(0, 2);
+    if (t === 0) {
+      // (10+d)(10-d)
+      const d = randInt(1, 4), a = 10 + d, b = 10 - d;
+      return { question: `利用平方差公式計算 \\(${a}\\times${b}\\)`, answer: a * b, type: 'number' };
+    } else if (t === 1) {
+      // a²−b² 小整數
+      const a = randInt(4, 10), b = randInt(1, a - 2);
+      return { question: `計算 \\(${a}^2-${b}^2\\)`, answer: a * a - b * b, type: 'number' };
+    } else {
+      // 小數：(base+d)(base-d)，d 為 0.x
+      const base = randInt(2, 8);
+      const dN = randInt(1, 4); // d = dN/10
+      const a = base + dN / 10, b = base - dN / 10;
+      const aS = a.toFixed(1), bS = b.toFixed(1);
+      const ans = Math.round((base * base * 100 - dN * dN)) / 100;
+      return { question: `利用平方差公式計算 \\(${aS}\\times${bS}\\)`, answer: ans, type: 'number' };
+    }
+  } else if (level === 'medium') {
+    const t = randInt(0, 2);
+    if (t === 0) {
+      // (base+d)(base-d)，base 為整十
+      const base = pick([20,30,40,50,60,70,80,90,100]);
+      const d = randInt(1, Math.min(base - 1, 9));
+      const a = base + d, b = base - d;
+      return { question: `利用平方差公式計算 \\(${a}\\times${b}\\)`, answer: a * b, type: 'number' };
+    } else if (t === 1) {
+      // a²−b² 兩位數
+      const a = randInt(21, 99), d = randInt(1, 19);
+      const b = a - d;
+      if (b < 1) return null;
+      return { question: `計算 \\(${a}^2-${b}^2\\)`, answer: a * a - b * b, type: 'number' };
+    } else {
+      // 分數平方差，同分母
+      const cases = [
+        {n1:3,d1:2,n2:1,d2:2},{n1:5,d1:3,n2:1,d2:3},
+        {n1:7,d1:4,n2:1,d2:4},{n1:5,d1:4,n2:1,d2:4},
+        {n1:4,d1:3,n2:1,d2:3},{n1:7,d1:5,n2:2,d2:5},
+      ];
+      const c = cases[randInt(0, cases.length - 1)];
+      const {n1, d1, n2, d2} = c;
+      const ansN = n1 * n1 - n2 * n2;
+      const ansD = d1 * d1;
+      const g = _gcd(ansN, ansD);
+      const f1 = `\\left(\\dfrac{${n1}}{${d1}}\\right)`, f2 = `\\left(\\dfrac{${n2}}{${d2}}\\right)`;
+      if (ansD / g === 1) {
+        return { question: `計算 \\(${f1}^2-${f2}^2\\)`, answer: ansN / g, type: 'number' };
+      }
+      return { question: `計算 \\(${f1}^2-${f2}^2\\)`, answer: {num: ansN / g, den: ansD / g}, type: 'fraction' };
+    }
+  } else {
+    // 困難
+    const t = randInt(0, 2);
+    if (t === 0) {
+      // (base+d)(base-d)，base 大
+      const base = pick([200,300,400,500,600,700,800,900,1000]);
+      const d = randInt(1, 50), a = base + d, b = base - d;
+      return { question: `利用平方差公式計算 \\(${a}\\times${b}\\)`, answer: a * b, type: 'number' };
+    } else if (t === 1) {
+      // 小數，base 為 10/20/50
+      const base = pick([10, 20, 50]);
+      const dN = randInt(1, 9);
+      const a = base + dN / 10, b = base - dN / 10;
+      const aS = a.toFixed(1), bS = b.toFixed(1);
+      const ans = Math.round(base * base * 100 - dN * dN) / 100;
+      return { question: `利用平方差公式計算 \\(${aS}\\times${bS}\\)`, answer: ans, type: 'number' };
+    } else {
+      // (p/q + r/s)(p/q - r/s) = (p/q)²-(r/s)²
+      const fracs = [[1,2],[1,3],[2,3],[1,4],[3,4],[1,5],[2,5],[3,5]];
+      const [n1, d1] = fracs[randInt(0, fracs.length - 1)];
+      const [n2, d2] = fracs[randInt(0, fracs.length - 1)];
+      const ansN = n1 * n1 * d2 * d2 - n2 * n2 * d1 * d1;
+      const ansD = d1 * d1 * d2 * d2;
+      if (ansN <= 0) return null;
+      const g = _gcd(ansN, ansD);
+      const rn = ansN / g, rd = ansD / g;
+      const f1 = `\\dfrac{${n1}}{${d1}}`, f2 = `\\dfrac{${n2}}{${d2}}`;
+      if (rd === 1) {
+        return { question: `利用平方差公式計算 \\(\\left(${f1}+${f2}\\right)\\left(${f1}-${f2}\\right)\\)`, answer: rn, type: 'number' };
+      }
+      return { question: `利用平方差公式計算 \\(\\left(${f1}+${f2}\\right)\\left(${f1}-${f2}\\right)\\)`, answer: {num: rn, den: rd}, type: 'fraction' };
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
 //  八上 ▸ 多項式加法與減法
 // ═══════════════════════════════════════════════════════════════════
 function gen8aPolyAdd(level) {
@@ -6581,6 +6852,9 @@ const JR_GENERATORS = {
   '7b-stat':      gen7bStat,
   // 八上
   '8a-mulform':     gen8aMulForm,
+  '8a-sq-sum':      gen8aSqSum,
+  '8a-sq-diff':     gen8aSqDiff,
+  '8a-diff-sq':     gen8aDiffSq,
   '8a-poly-add':    gen8aPolyAdd,
   '8a-poly-mul':    gen8aPolyMul,
   '8a-poly-mix':    gen8aPolyMix,

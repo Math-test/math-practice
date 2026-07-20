@@ -59,8 +59,8 @@
 <script src="js/fraction-gen.js?v=2"></script>
 <script src="js/decimal-gen.js?v=2"></script>
 <script src="js/elementary-gen.js?v=2"></script>
-<script src="js/junior-gen.js?v=124"></script>
-<script src="js/senior-gen.js?v=30"></script>
+<script src="js/junior-gen.js?v=125"></script>
+<script src="js/senior-gen.js?v=31"></script>
 <script src="js/quiz.js?v=66"></script>
 
 <script>
@@ -100,7 +100,10 @@
         '7b-invprop':'反比',
         '7b-ineq':'一元一次不等式',
         '7b-stat':'統計',
-        '8a-mulform':'乘法公式',
+        '8a-mulform': '乘法公式',
+        '8a-sq-sum':  '和的平方公式',
+        '8a-sq-diff': '差的平方公式',
+        '8a-diff-sq': '平方差公式',
         '8a-poly-add':'多項式加法與減法',
         '8a-poly-mul':'多項式乘法與除法',
         '8a-poly-mix':'多項式四則運算',
@@ -144,6 +147,7 @@
         'b1-line-sys':'聯立方程式的幾何意義',
         'b1-line-ineq':'二元一次不等式',
         'b1-line-app':'直線方程式的應用',
+        'b1-div-pt':  '分點公式',
       }[t] || t))
       .join('、');
     const levelLabel = {'basic':'基礎','medium':'中等','mixed':'基礎＋中等','hard':'困難'}[params.level] || '';
