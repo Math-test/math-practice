@@ -2478,20 +2478,31 @@ function genB1LineApp(level, _n) {
 }
 
 // ── b1-div-pt：分點公式 ──────────────────────────────────────────
-// P 在線段 AB 上，AP:PB = m:n  →  P = (n·A + m·B) / (m+n)
+// 內分：P = (n·A + m·B) / (m+n)     AP:PB = m:n，P 在 AB 間
+// 外分：P = (m·B - n·A) / (m-n)     AP:PB = m:n，P 在 AB 外
 const _b1DivPtRatios = [
   [1,2],[2,1],[1,3],[3,1],[2,3],[3,2],
   [1,4],[4,1],[3,4],[4,3],[2,5],[5,2],[3,5],[5,3]
 ];
+
+// 將 num/den 化簡成 {answer, type}，保持分母正
+function _srDivPtFrac(num, den) {
+  if (den < 0) { num = -num; den = -den; }
+  const g = srGcd(Math.abs(num), den);
+  if (den / g === 1) return { answer: num / g, type: 'number' };
+  return { answer: {num: num / g, den: den / g}, type: 'fraction' };
+}
+
 function genB1DivPt(level) {
   const [m, n] = srQPick(_b1DivPtRatios, _b1DivPtQ);
-  const s = m + n;
-  for (let i = 0; i < 30; i++) { const q = _b1DivPt(level, m, n, s); if (q) return q; }
-  return _b1DivPt('basic', 1, 2, 3);
+  const s = m + n;   // 內分分母
+  const d = m - n;   // 外分分母（≠ 0，因 m≠n）
+  for (let i = 0; i < 30; i++) { const q = _b1DivPt(level, m, n, s, d); if (q) return q; }
+  return _b1DivPt('basic', 1, 2, 3, -1);
 }
-function _b1DivPt(level, m, n, s) {
+function _b1DivPt(level, m, n, s, d) {
   if (level === 'basic') {
-    // 確保 P 坐標為整數：先選 P，再推 B
+    // 內分，整數 P；先選 P 再推 B，確保整數坐標
     const Px = srRandInt(-6, 6), Py = srRandInt(-6, 6);
     const xA = srRandInt(-8, 8), yA = srRandInt(-8, 8);
     const xBNum = Px * s - n * xA;
@@ -2503,49 +2514,53 @@ function _b1DivPt(level, m, n, s) {
     const yB = yBNum / m;
     if (Math.abs(yB) > 15) return null;
     if (xA === xB && yA === yB) return null;
+    const askBoth = srRandInt(0, 1) === 0;
+    if (askBoth) {
+      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 為 AB 之內分點且 AP:PB = ${m}:${n}，求 P 的坐標`, answer: `(${Px},${Py})`, type: 'text' };
+    }
     const askX = srRandInt(0, 1) === 0;
     if (askX) {
-      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 x 坐標`, answer: Px, type: 'number' };
+      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 為 AB 之內分點且 AP:PB = ${m}:${n}，求 P 的 x 坐標`, answer: Px, type: 'number' };
     } else {
-      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 y 坐標`, answer: Py, type: 'number' };
+      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 為 AB 之內分點且 AP:PB = ${m}:${n}，求 P 的 y 坐標`, answer: Py, type: 'number' };
     }
   } else if (level === 'medium') {
+    // 內分或外分，答案可為整數或分數
+    const isExt = srRandInt(0, 1) === 0;
+    const denom = isExt ? d : s;
+    const ptDesc = isExt ? `P 為 AB 之外分點且 AP:PB = ${m}:${n}` : `P 為 AB 之內分點且 AP:PB = ${m}:${n}`;
     const xA = srRandInt(-12, 12), yA = srRandInt(-12, 12);
     const xB = srRandInt(-12, 12), yB = srRandInt(-12, 12);
     if (xA === xB && yA === yB) return null;
+    const PxN = isExt ? (m * xB - n * xA) : (n * xA + m * xB);
+    const PyN = isExt ? (m * yB - n * yA) : (n * yA + m * yB);
     const askX = srRandInt(0, 1) === 0;
-    if (askX) {
-      const PxN = n * xA + m * xB;
-      if (PxN % s === 0) {
-        return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 x 坐標`, answer: PxN / s, type: 'number' };
-      }
-      const g = srGcd(Math.abs(PxN), s);
-      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 x 坐標`, answer: {num: PxN / g, den: s / g}, type: 'fraction' };
-    } else {
-      const PyN = n * yA + m * yB;
-      if (PyN % s === 0) {
-        return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 y 坐標`, answer: PyN / s, type: 'number' };
-      }
-      const g = srGcd(Math.abs(PyN), s);
-      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 y 坐標`, answer: {num: PyN / g, den: s / g}, type: 'fraction' };
-    }
+    const {answer, type} = _srDivPtFrac(askX ? PxN : PyN, denom);
+    return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，${ptDesc}，求 P 的 ${askX?'x':'y'} 坐標`, answer, type };
   } else {
-    // 困難：保證分數答案（非整數）
+    // 困難：內分或外分；兩坐標皆整數時求完整坐標 (x,y)；否則求分數坐標
+    const isExt = srRandInt(0, 1) === 0;
+    const denom = isExt ? d : s;
+    const ptDesc = isExt ? `P 為 AB 之外分點且 AP:PB = ${m}:${n}` : `P 為 AB 之內分點且 AP:PB = ${m}:${n}`;
     const xA = srRandInt(-15, 15), yA = srRandInt(-15, 15);
     const xB = srRandInt(-15, 15), yB = srRandInt(-15, 15);
     if (xA === xB && yA === yB) return null;
-    const askX = srRandInt(0, 1) === 0;
-    if (askX) {
-      const PxN = n * xA + m * xB;
-      if (PxN % s === 0) return null; // 跳過整數答案
-      const g = srGcd(Math.abs(PxN), s);
-      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 x 坐標`, answer: {num: PxN / g, den: s / g}, type: 'fraction' };
-    } else {
-      const PyN = n * yA + m * yB;
-      if (PyN % s === 0) return null;
-      const g = srGcd(Math.abs(PyN), s);
-      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，P 在線段 AB 上且 AP:PB = ${m}:${n}，求 P 的 y 坐標`, answer: {num: PyN / g, den: s / g}, type: 'fraction' };
+    const PxN = isExt ? (m * xB - n * xA) : (n * xA + m * xB);
+    const PyN = isExt ? (m * yB - n * yA) : (n * yA + m * yB);
+    const PxInt = PxN % denom === 0;
+    const PyInt = PyN % denom === 0;
+    if (PxInt && PyInt) {
+      // 兩坐標皆整數 → 求完整坐標 (x,y)
+      return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，${ptDesc}，求 P 的坐標`, answer: `(${PxN/denom},${PyN/denom})`, type: 'text' };
     }
+    // 至少一坐標為分數 → 求分數坐標
+    let askX;
+    if (!PxInt && PyInt)  askX = true;   // 只有 Px 是分數
+    else if (PxInt && !PyInt) askX = false; // 只有 Py 是分數
+    else askX = srRandInt(0, 1) === 0;    // 兩者皆分數，隨機
+    const {answer, type} = _srDivPtFrac(askX ? PxN : PyN, denom);
+    if (type === 'number') return null;   // 跳過整數（重試）
+    return { question: `已知 A(${xA},${yA})、B(${xB},${yB})，${ptDesc}，求 P 的 ${askX?'x':'y'} 坐標`, answer, type };
   }
 }
 

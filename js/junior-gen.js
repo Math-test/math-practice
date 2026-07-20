@@ -3239,7 +3239,7 @@ function _8aSqSum(level) {
       return { question: `計算 \\((${aS})^2+2\\times${aS}\\times${bS}+(${bS})^2\\)`, answer: 1, type: 'number' };
     }
   } else if (level === 'medium') {
-    const t = randInt(0, 2);
+    const t = randInt(0, 3);
     if (t === 0) {
       // 兩位數和為 100
       const a = randInt(11, 89), b = 100 - a;
@@ -3250,7 +3250,7 @@ function _8aSqSum(level) {
       const lo = Math.floor(base * 0.2), hi = Math.floor(base * 0.8);
       const a = randInt(lo, hi), b = base - a;
       return { question: `計算 \\(${a}^2+2\\times${a}\\times${b}+${b}^2\\)`, answer: base * base, type: 'number' };
-    } else {
+    } else if (t === 2) {
       // 分數和為 1：p/q + (q-p)/q = 1
       const q = pick([3, 4, 5, 6]);
       const p = randInt(1, q - 1);
@@ -3258,10 +3258,17 @@ function _8aSqSum(level) {
       const r = q - p;
       const f1 = `\\dfrac{${p}}{${q}}`, f2 = `\\dfrac{${r}}{${q}}`;
       return { question: `計算 \\(\\left(${f1}\\right)^2+2\\times${f1}\\times${f2}+\\left(${f2}\\right)^2\\)`, answer: 1, type: 'number' };
+    } else {
+      // 給 a+b, ab → 求 a²+b²=(a+b)²-2ab
+      const sv = randInt(3, 10);
+      const maxP = Math.floor((sv * sv - 1) / 4);
+      if (maxP < 1) return null;
+      const p = randInt(1, maxP);
+      return { question: `若 \\(a+b=${sv}\\)，\\(ab=${p}\\)，求 \\(a^2+b^2\\) 的值`, answer: sv * sv - 2 * p, type: 'number' };
     }
   } else {
     // 困難
-    const t = randInt(0, 2);
+    const t = randInt(0, 3);
     if (t === 0) {
       // 三位數和為 1000
       const a = randInt(101, 899), b = 1000 - a;
@@ -3273,7 +3280,7 @@ function _8aSqSum(level) {
       const b = (9 - w1) + (10 - dec) / 10; // = 10 - a
       const aS = a.toFixed(1), bS = b.toFixed(1);
       return { question: `計算 \\((${aS})^2+2\\times${aS}\\times${bS}+(${bS})^2\\)`, answer: 100, type: 'number' };
-    } else {
+    } else if (t === 2) {
       // 分數和不為整數
       const cases = [
         {a:[1,2],b:[1,3]}, // 5/6 → 25/36
@@ -3296,6 +3303,11 @@ function _8aSqSum(level) {
         return { question: `計算 \\(\\left(${f1}\\right)^2+2\\times${f1}\\times${f2}+\\left(${f2}\\right)^2\\)`, answer: ansN / ag, type: 'number' };
       }
       return { question: `計算 \\(\\left(${f1}\\right)^2+2\\times${f1}\\times${f2}+\\left(${f2}\\right)^2\\)`, answer: {num: ansN / ag, den: ansD / ag}, type: 'fraction' };
+    } else {
+      // 給 a²+b², ab → 求 (a+b)²=(a²+b²)+2ab
+      const p = randInt(1, 8);
+      const A = randInt(2 * p + 2, 2 * p + 30);
+      return { question: `若 \\(a^2+b^2=${A}\\)，\\(ab=${p}\\)，求 \\((a+b)^2\\) 的值`, answer: A + 2 * p, type: 'number' };
     }
   }
 }
@@ -3329,7 +3341,7 @@ function _8aSqDiff(level) {
       return { question: `計算 \\((${aS})^2-2\\times${aS}\\times${bS}+(${bS})^2\\)`, answer: diff * diff, type: 'number' };
     }
   } else if (level === 'medium') {
-    const t = randInt(0, 2);
+    const t = randInt(0, 3);
     if (t === 0) {
       // 兩位數，差為整十
       const diff = pick([10, 20, 30, 50]);
@@ -3341,7 +3353,7 @@ function _8aSqDiff(level) {
       const diff = pick([100, 200, 500]);
       const b = randInt(50, 500), a = b + diff;
       return { question: `計算 \\(${a}^2-2\\times${a}\\times${b}+${b}^2\\)`, answer: diff * diff, type: 'number' };
-    } else {
+    } else if (t === 2) {
       // 分數，差為 1（同分母）
       const cases = [
         {p:4,r:1,q:3},{p:5,r:1,q:4},{p:7,r:2,q:5},
@@ -3352,10 +3364,14 @@ function _8aSqDiff(level) {
       const {p, r, q: qv} = c;
       const f1 = `\\dfrac{${p}}{${qv}}`, f2 = `\\dfrac{${r}}{${qv}}`;
       return { question: `計算 \\(\\left(${f1}\\right)^2-2\\times${f1}\\times${f2}+\\left(${f2}\\right)^2\\)`, answer: 1, type: 'number' };
+    } else {
+      // 給 a-b, ab → 求 a²+b²=(a-b)²+2ab
+      const dv = randInt(1, 7), p = randInt(1, 8);
+      return { question: `若 \\(a-b=${dv}\\)，\\(ab=${p}\\)，求 \\(a^2+b^2\\) 的值`, answer: dv * dv + 2 * p, type: 'number' };
     }
   } else {
     // 困難
-    const t = randInt(0, 2);
+    const t = randInt(0, 3);
     if (t === 0) {
       // 三位數，大差值
       const diff = pick([100, 200, 300, 500]);
@@ -3368,7 +3384,7 @@ function _8aSqDiff(level) {
       const a = (w2 + diff) + dec / 10, b = w2 + dec / 10;
       const aS = a.toFixed(1), bS = b.toFixed(1);
       return { question: `計算 \\((${aS})^2-2\\times${aS}\\times${bS}+(${bS})^2\\)`, answer: diff * diff, type: 'number' };
-    } else {
+    } else if (t === 2) {
       // 分數差不為整數
       const cases = [
         {a:[5,6],b:[1,6]},{a:[3,4],b:[1,4]},{a:[5,6],b:[1,3]},
@@ -3387,6 +3403,15 @@ function _8aSqDiff(level) {
         return { question: `計算 \\(\\left(${f1}\\right)^2-2\\times${f1}\\times${f2}+\\left(${f2}\\right)^2\\)`, answer: ansN / ag, type: 'number' };
       }
       return { question: `計算 \\(\\left(${f1}\\right)^2-2\\times${f1}\\times${f2}+\\left(${f2}\\right)^2\\)`, answer: {num: ansN / ag, den: ansD / ag}, type: 'fraction' };
+    } else {
+      // 給 a+b, ab → 求 (a-b)²=(a+b)²-4ab
+      const sv = randInt(3, 12);
+      const maxP = Math.floor((sv * sv - 1) / 4);
+      if (maxP < 1) return null;
+      const p = randInt(1, maxP);
+      const ans = sv * sv - 4 * p;
+      if (ans <= 0) return null;
+      return { question: `若 \\(a+b=${sv}\\)，\\(ab=${p}\\)，求 \\((a-b)^2\\) 的值`, answer: ans, type: 'number' };
     }
   }
 }
