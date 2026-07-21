@@ -1051,12 +1051,38 @@ const _SCI_DIV_FULL = [
   {c1:'2.8',e1:5,c2:'7.0',e2:3,rc:'4.0',re:1},
 ];
 
+// ─── GCD/LCM 輔助 ─────────────────────────────────────────────────
+
+function _factorList(n) {
+  const f = [];
+  for (let i = 1; i*i <= n; i++) {
+    if (n%i===0) { f.push(i); if (i!==n/i) f.push(n/i); }
+  }
+  return f.sort((a,b)=>a-b);
+}
+
+function _pfMap(n) {
+  const m = {};
+  let t = n;
+  for (let p = 2; p*p <= t; p++) {
+    while (t%p===0) { m[p]=(m[p]||0)+1; t=Math.floor(t/p); }
+  }
+  if (t>1) m[t]=(m[t]||0)+1;
+  return m;
+}
+
+function _pfLatex(m) {
+  return Object.keys(m).map(Number).sort((a,b)=>a-b)
+    .map(p => m[p]===1?`${p}`:`${p}^{${m[p]}}`)
+    .join('\\times ');
+}
+
 // ═══════════════════════════════════════════════════════════════════
 //  七上 ▸ 最大公因數與最小公倍數
 // ═══════════════════════════════════════════════════════════════════
 
 function gen7aGcdLcm(level) {
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 30; i++) {
     const q = _7aGcdLcm(level);
     if (q) return q;
   }
@@ -1065,44 +1091,216 @@ function gen7aGcdLcm(level) {
 
 function _7aGcdLcm(level) {
   if (level === 'basic') {
-    const t = randInt(0, 1);
+    const t = randInt(0, 5);
     if (t === 0) {
-      const d = pick([2,3,4,6]);
+      const d = pick([2,3,4,5,6]);
       const a = d*rp(2,6), b = d*rp(2,6);
-      if (a === b) return null;
-      return { question:`\\(${a}\\) 和 \\(${b}\\) 的最大公因數`, answer: gcd(a,b), type:'number' };
-    } else {
+      if (a===b) return null;
+      return { question:`\\(${a}\\) 和 \\(${b}\\) 的最大公因數`, answer:gcd(a,b), type:'number' };
+    } else if (t === 1) {
       const a = rp(2,10), b = rp(2,10);
-      if (a === b) return null;
+      if (a===b) return null;
       const l = lcm(a,b);
-      if (l > 100) return null;
-      return { question:`\\(${a}\\) 和 \\(${b}\\) 的最小公倍數`, answer: l, type:'number' };
-    }
-  } else if (level === 'hard') {
-    const t = randInt(0, 1);
-    if (t === 0) {
-      const d = pick([2,3,4,6]);
-      const a = d*rp(2,6), b = d*rp(2,6), c = d*rp(2,6);
-      return { question:`\\(${a}\\)、\\(${b}\\)、\\(${c}\\) 的最大公因數`, answer: gcd(gcd(a,b),c), type:'number' };
+      if (l>120) return null;
+      return { question:`\\(${a}\\) 和 \\(${b}\\) 的最小公倍數`, answer:l, type:'number' };
+    } else if (t === 2) {
+      // 三數的最大公因數
+      const d = pick([3,4,5,6]);
+      const a=d*rp(2,5), b=d*rp(2,5), c=d*rp(2,5);
+      if (a===b||b===c||a===c) return null;
+      return { question:`\\(${a}\\)、\\(${b}\\)、\\(${c}\\) 的最大公因數`, answer:gcd(gcd(a,b),c), type:'number' };
+    } else if (t === 3) {
+      // 列出所有因數
+      const cands = [6,10,14,15,21,22,26,33,34,35,38,39,46,51,55,57,58,62,65,69,74,77,82,85,86,87,91,93,95,
+                     12,18,20,28,45,50,63,75,44,52,76,92];
+      const n = pick(cands);
+      const factors = _factorList(n);
+      if (factors.length>8) return null;
+      return {
+        question:`已知 \\(${n}\\) 能被正整數 \\(a\\) 整除，所有可能的 \\(a\\) 為何？（以逗號由小到大，不加空格）`,
+        answer: factors.join(','), type:'text'
+      };
+    } else if (t === 4) {
+      // 互質篩選
+      const m = pick([12,15,18,20,24,30]);
+      const pool = [];
+      while (pool.length < 4) {
+        const x = randInt(1, 30);
+        if (!pool.includes(x) && x!==m) pool.push(x);
+      }
+      pool.sort((a,b)=>a-b);
+      const cop = pool.filter(x=>gcd(x,m)===1);
+      if (cop.length<1||cop.length>3) return null;
+      const poolStr = pool.map(x=>`\\(${x}\\)`).join('、');
+      return {
+        question:`在 ${poolStr} 四個數中，哪些數與 \\(${m}\\) 互質？（以逗號由小到大，不加空格）`,
+        answer: cop.join(','), type:'text'
+      };
     } else {
-      const a = rp(2,8), b = rp(2,8), c = rp(2,8);
-      const l = lcm(lcm(a,b),c);
-      if (l > 300) return null;
-      return { question:`\\(${a}\\)、\\(${b}\\)、\\(${c}\\) 的最小公倍數`, answer: l, type:'number' };
+      // 公倍數列表
+      const a = pick([3,4,5,6]), b = pick([4,5,6,8,10]);
+      if (a===b) return null;
+      const L = lcm(a,b);
+      if (L>60) return null;
+      const maxK = randInt(2,4);
+      const N = L*maxK;
+      const mults = [];
+      for (let k=1; k*L<=N; k++) mults.push(k*L);
+      return {
+        question:`從 \\(1\\) 到 \\(${N}\\) 中，能同時被 \\(${a}\\) 和 \\(${b}\\) 整除的數有哪些？（以逗號由小到大，不加空格）`,
+        answer: mults.join(','), type:'text'
+      };
     }
-  } else {
-    const t = randInt(0, 1);
+  } else if (level === 'medium') {
+    const t = randInt(0, 5);
     if (t === 0) {
       const d = pick([6,8,10,12,15,18]);
-      const a = d*rp(2,5), b = d*rp(2,5);
-      if (a === b) return null;
-      return { question:`\\(${a}\\) 和 \\(${b}\\) 的最大公因數`, answer: gcd(a,b), type:'number' };
+      const a=d*rp(2,5), b=d*rp(2,5);
+      if (a===b) return null;
+      return { question:`\\(${a}\\) 和 \\(${b}\\) 的最大公因數`, answer:gcd(a,b), type:'number' };
+    } else if (t === 1) {
+      const a=rp(3,15), b=rp(3,15);
+      if (a===b) return null;
+      const l=lcm(a,b);
+      if (l>300) return null;
+      return { question:`\\(${a}\\) 和 \\(${b}\\) 的最小公倍數`, answer:l, type:'number' };
+    } else if (t === 2) {
+      // 最大公因數 + 最小公倍數之和
+      const a=randInt(10,40), b=randInt(10,40);
+      if (a===b) return null;
+      const g=gcd(a,b), l=lcm(a,b);
+      if (l>1000) return null;
+      return {
+        question:`設 \\(${a}\\) 和 \\(${b}\\) 的最大公因數為 \\(a\\)，最小公倍數為 \\(b\\)，則 \\(a+b =\\)`,
+        answer: g+l, type:'number'
+      };
+    } else if (t === 3) {
+      // 公倍數個數
+      const a=pick([6,8,9,10,12]), b=pick([8,10,12,15,18,20]);
+      if (a===b) return null;
+      const L=lcm(a,b);
+      if (L>180) return null;
+      const N=L*randInt(3,8);
+      return {
+        question:`在 \\(1\\) 到 \\(${N}\\) 之間，\\(${a}\\) 和 \\(${b}\\) 的公倍數共有幾個？`,
+        answer: Math.floor(N/L), type:'number'
+      };
+    } else if (t === 4) {
+      // 質因數分解形式求 LCM 之指數和
+      const primeSets = [[2,3],[2,5],[3,5],[2,7],[3,7],[2,3,5],[2,3,7]];
+      const ps = pick(primeSets);
+      const eA = ps.map(()=>randInt(1,4));
+      const eB = ps.map(()=>randInt(1,4));
+      if (ps.every((_,i)=>eA[i]===eB[i])) return null;
+      const lcmExps = ps.map((_,i)=>Math.max(eA[i],eB[i]));
+      const expSum = lcmExps.reduce((s,e)=>s+e,0);
+      const aStr = ps.map((p,i)=>eA[i]===1?`${p}`:`${p}^{${eA[i]}}`).join('\\times ');
+      const bStr = ps.map((p,i)=>eB[i]===1?`${p}`:`${p}^{${eB[i]}}`).join('\\times ');
+      const varNames = ['x','y','z','w'];
+      const lcmStr = ps.map((p,i)=>`${p}^{${varNames[i]}}`).join('\\times ');
+      const vSumStr = varNames.slice(0,ps.length).join('+');
+      return {
+        question:`設 \\(a=${aStr}\\)，\\(b=${bStr}\\)，若 \\([a,b]=${lcmStr}\\)，則 \\(${vSumStr} =\\)`,
+        answer: expSum, type:'number'
+      };
     } else {
-      const a = rp(3,15), b = rp(3,15);
-      if (a === b) return null;
-      const l = lcm(a,b);
-      if (l > 180) return null;
-      return { question:`\\(${a}\\) 和 \\(${b}\\) 的最小公倍數`, answer: l, type:'number' };
+      // 已知 gcd 和 lcm 求某數（唯一解）
+      const m=pick([24,36,48,54,60,72,90]);
+      const n=randInt(Math.ceil(m/3),m*2);
+      if (n===m) return null;
+      const d=gcd(n,m), l=lcm(n,m);
+      if (d===1||d===m||d===n) return null;
+      if (l>600) return null;
+      const valids = _factorList(l).filter(x=>x!==m&&gcd(x,m)===d&&lcm(x,m)===l);
+      if (valids.length!==1) return null;
+      return {
+        question:`設甲為正整數，且（甲，\\(${m}\\)）\\(=${d}\\)，\\([\\)甲，\\(${m}]=${l}\\)，則甲 \\(=\\)`,
+        answer: n, type:'number'
+      };
+    }
+  } else {
+    // hard
+    const t = randInt(0, 5);
+    if (t === 0) {
+      // 四數的最小公倍數
+      const a=randInt(2,10), b=randInt(2,10), c=randInt(2,10), d=randInt(2,10);
+      const L=lcm(lcm(a,b),lcm(c,d));
+      if (L<20||L>3000) return null;
+      return { question:`求 \\([${a},\\ ${b},\\ ${c},\\ ${d}]\\)`, answer:L, type:'number' };
+    } else if (t === 1) {
+      // 公因數個數（質因數分解形式）
+      const e2a=randInt(1,4), e3a=randInt(1,4);
+      const e2b=randInt(1,4), e3b=randInt(1,4);
+      const extraP=pick([5,7,11]), extraE=randInt(1,3), which=randInt(0,1);
+      const g2=Math.min(e2a,e2b), g3=Math.min(e3a,e3b);
+      const cnt=(g2+1)*(g3+1);
+      const tA=[e2a===1?'2':`2^{${e2a}}`, e3a===1?'3':`3^{${e3a}}`];
+      const tB=[e2b===1?'2':`2^{${e2b}}`, e3b===1?'3':`3^{${e3b}}`];
+      if (which===0) tA.push(extraE===1?`${extraP}`:`${extraP}^{${extraE}}`);
+      else           tB.push(extraE===1?`${extraP}`:`${extraP}^{${extraE}}`);
+      return {
+        question:`設 \\(a=${tA.join('\\times ')}\\)，\\(b=${tB.join('\\times ')}\\)，則 \\(a\\) 與 \\(b\\) 的正公因數共有幾個？`,
+        answer: cnt, type:'number'
+      };
+    } else if (t === 2) {
+      // 求最小 a 使 [a, b, c] = L
+      const b=pick([12,15,18,20,24,28,30]);
+      const c=pick([15,18,20,24,28,30,36]);
+      const LCM_bc=lcm(b,c);
+      const k=randInt(2,5);
+      const L=LCM_bc*k;
+      if (L>1200) return null;
+      const pfL=_pfMap(L), pfB=_pfMap(b), pfC=_pfMap(c);
+      let minA=1;
+      for (const [ps,expL] of Object.entries(pfL)) {
+        const pi=parseInt(ps);
+        const expBC=Math.max(pfB[pi]||0, pfC[pi]||0);
+        if (expBC<expL) minA*=Math.pow(pi,expL);
+      }
+      if (minA===1||minA===L||minA>600) return null;
+      if (lcm(lcm(minA,b),c)!==L) return null;
+      return {
+        question:`設 \\(a\\) 為正整數，且 \\([a,${b},${c}]=${L}\\)，則 \\(a\\) 的最小值為`,
+        answer: minA, type:'number'
+      };
+    } else if (t === 3) {
+      // 容斥原理：A 或 B 的倍數個數
+      const A=pick([3,4,5,6]), B=pick([4,5,6,7,8,9,10]);
+      if (A===B) return null;
+      const L=lcm(A,B);
+      const N=pick([100,120,150,200,240,300,360,500]);
+      const cnt=Math.floor(N/A)+Math.floor(N/B)-Math.floor(N/L);
+      return {
+        question:`在 \\(1\\) 到 \\(${N}\\) 的整數中，\\(${A}\\) 或 \\(${B}\\) 的倍數共有幾個？`,
+        answer: cnt, type:'number'
+      };
+    } else if (t === 4) {
+      // [a,b] 為 (a,b) 的幾倍（質因數分解形式）
+      const e2a=randInt(1,4), e3a=randInt(1,4);
+      const e2b=randInt(1,4), e3b=randInt(1,4);
+      if (e2a===e2b&&e3a===e3b) return null;
+      const vA=Math.pow(2,e2a)*Math.pow(3,e3a);
+      const vB=Math.pow(2,e2b)*Math.pow(3,e3b);
+      const ratio=lcm(vA,vB)/gcd(vA,vB);
+      if (ratio>500) return null;
+      const aStr=[e2a===1?'2':`2^{${e2a}}`,e3a===1?'3':`3^{${e3a}}`].join('\\times ');
+      const bStr=[e2b===1?'2':`2^{${e2b}}`,e3b===1?'3':`3^{${e3b}}`].join('\\times ');
+      return {
+        question:`\\([${aStr},\\ ${bStr}]\\) 為 \\((${aStr},\\ ${bStr})\\) 的幾倍？`,
+        answer: Math.round(ratio), type:'number'
+      };
+    } else {
+      // 兩個 LCM 的 GCD
+      const pairsPool=[[6,9],[6,10],[6,15],[8,12],[8,18],[9,12],[10,15],[12,20],[15,18],[15,20],[6,27],[8,54],[10,25],[12,18]];
+      const [p1,p2]=pick(pairsPool);
+      const [q1,q2]=pick(pairsPool);
+      if (p1===q1&&p2===q2) return null;
+      const a=lcm(p1,p2), b=lcm(q1,q2);
+      if (a===b) return null;
+      return {
+        question:`若 \\(a=[${p1},${p2}]\\)，\\(b=[${q1},${q2}]\\)，則 \\((a,b)=\\)`,
+        answer: gcd(a,b), type:'number'
+      };
     }
   }
 }
@@ -3287,7 +3485,7 @@ function gen8aSqSum(level) {
 }
 function _8aSqSum(level) {
   if (level === 'basic') {
-    const t = randInt(0, 2);
+    const t = randInt(0, 4);
     if (t === 0) {
       // 小整數
       const a = randInt(1, 7), b = randInt(1, 7);
@@ -3296,14 +3494,24 @@ function _8aSqSum(level) {
       // 整數和為 10
       const a = randInt(1, 9), b = 10 - a;
       return { question: `計算 \\(${a}^2+2\\times${a}\\times${b}+${b}^2\\)`, answer: 100, type: 'number' };
-    } else {
+    } else if (t === 2) {
       // 小數和為 1（十分位）
       const a = randInt(1, 9), b = 10 - a;
       const aS = `0.${a}`, bS = `0.${b}`;
       return { question: `計算 \\((${aS})^2+2\\times${aS}\\times${bS}+(${bS})^2\\)`, answer: 1, type: 'number' };
+    } else if (t === 3) {
+      // 辨認交叉項：若(a+b)²=a²+k+b²，則k=2ab
+      const a = randInt(2, 9), b = randInt(2, 9);
+      return { question: `若 \\((${a}+${b})^2=${a}^2+k+${b}^2\\)，則 \\(k=\\)`, answer: 2*a*b, type: 'number' };
+    } else {
+      // 利用和的平方公式計算大數平方
+      const base = pick([10,20,30,40,50,60,70,80,90,100,200]);
+      const d = randInt(1, 9);
+      const n = base + d;
+      return { question: `利用和的平方公式計算 \\(${n}^2\\)`, answer: n*n, type: 'number' };
     }
   } else if (level === 'medium') {
-    const t = randInt(0, 3);
+    const t = randInt(0, 6);
     if (t === 0) {
       // 兩位數和為 100
       const a = randInt(11, 89), b = 100 - a;
@@ -3322,17 +3530,32 @@ function _8aSqSum(level) {
       const r = q - p;
       const f1 = `\\dfrac{${p}}{${q}}`, f2 = `\\dfrac{${r}}{${q}}`;
       return { question: `計算 \\(\\left(${f1}\\right)^2+2\\times${f1}\\times${f2}+\\left(${f2}\\right)^2\\)`, answer: 1, type: 'number' };
-    } else {
+    } else if (t === 3) {
       // 給 a+b, ab → 求 a²+b²=(a+b)²-2ab
       const sv = randInt(3, 10);
       const maxP = Math.floor((sv * sv - 1) / 4);
       if (maxP < 1) return null;
       const p = randInt(1, maxP);
       return { question: `若 \\(a+b=${sv}\\)，\\(ab=${p}\\)，求 \\(a^2+b^2\\) 的值`, answer: sv * sv - 2 * p, type: 'number' };
+    } else if (t === 4) {
+      // 大於(n.d)²的最小整數
+      const n = randInt(2, 9), d = randInt(1, 9);
+      const sq = (n + d/10) * (n + d/10);
+      return { question: `大於 \\((${n}.${d})^2\\) 的最小整數為`, answer: Math.floor(sq) + 1, type: 'number' };
+    } else if (t === 5) {
+      // 若N²=base²+A，求A：A=2*base*d+d²
+      const base = pick([100,200,300,500,1000,2000]);
+      const d = randInt(1, 9);
+      const N = base + d;
+      return { question: `若 \\(${N}^2=${base}^2+A\\)，則 \\(A=\\)`, answer: N*N - base*base, type: 'number' };
+    } else {
+      // 若a²=p, b²=q, ab=r，求(a+b)²=p+2r+q
+      const a = randInt(2, 9), b = randInt(2, 9);
+      return { question: `若 \\(a^2=${a*a}\\)，\\(b^2=${b*b}\\)，\\(ab=${a*b}\\)，則 \\((a+b)^2=\\)`, answer: (a+b)*(a+b), type: 'number' };
     }
   } else {
     // 困難
-    const t = randInt(0, 3);
+    const t = randInt(0, 5);
     if (t === 0) {
       // 三位數和為 1000
       const a = randInt(101, 899), b = 1000 - a;
@@ -3341,19 +3564,14 @@ function _8aSqSum(level) {
       // 小數和為 10（如 2.3+7.7）
       const dec = randInt(1, 9), w1 = randInt(0, 8);
       const a = w1 + dec / 10;
-      const b = (9 - w1) + (10 - dec) / 10; // = 10 - a
+      const b = (9 - w1) + (10 - dec) / 10;
       const aS = a.toFixed(1), bS = b.toFixed(1);
       return { question: `計算 \\((${aS})^2+2\\times${aS}\\times${bS}+(${bS})^2\\)`, answer: 100, type: 'number' };
     } else if (t === 2) {
       // 分數和不為整數
       const cases = [
-        {a:[1,2],b:[1,3]}, // 5/6 → 25/36
-        {a:[1,2],b:[1,4]}, // 3/4 → 9/16
-        {a:[1,3],b:[1,6]}, // 1/2 → 1/4
-        {a:[2,3],b:[1,6]}, // 5/6 → 25/36
-        {a:[2,5],b:[1,5]}, // 3/5 → 9/25
-        {a:[1,4],b:[1,6]}, // 5/12 → 25/144
-        {a:[3,5],b:[1,5]}, // 4/5 → 16/25
+        {a:[1,2],b:[1,3]},{a:[1,2],b:[1,4]},{a:[1,3],b:[1,6]},
+        {a:[2,3],b:[1,6]},{a:[2,5],b:[1,5]},{a:[1,4],b:[1,6]},{a:[3,5],b:[1,5]},
       ];
       const c = cases[randInt(0, cases.length - 1)];
       const [n1, d1] = c.a, [n2, d2] = c.b;
@@ -3367,11 +3585,42 @@ function _8aSqSum(level) {
         return { question: `計算 \\(\\left(${f1}\\right)^2+2\\times${f1}\\times${f2}+\\left(${f2}\\right)^2\\)`, answer: ansN / ag, type: 'number' };
       }
       return { question: `計算 \\(\\left(${f1}\\right)^2+2\\times${f1}\\times${f2}+\\left(${f2}\\right)^2\\)`, answer: {num: ansN / ag, den: ansD / ag}, type: 'fraction' };
-    } else {
+    } else if (t === 3) {
       // 給 a²+b², ab → 求 (a+b)²=(a²+b²)+2ab
       const p = randInt(1, 8);
       const A = randInt(2 * p + 2, 2 * p + 30);
       return { question: `若 \\(a^2+b^2=${A}\\)，\\(ab=${p}\\)，求 \\((a+b)^2\\) 的值`, answer: A + 2 * p, type: 'number' };
+    } else if (t === 4) {
+      // 已知a>0, a-1/a=k(分數)，求a+1/a：(a+1/a)²=(a-1/a)²+4
+      const cases = [
+        {kn:3,kd:2,an:5,ad:2},{kn:8,kd:3,an:10,ad:3},
+        {kn:15,kd:4,an:17,ad:4},{kn:7,kd:12,an:25,ad:12},
+      ];
+      const c = pick(cases);
+      return {
+        question: `已知 \\(a>0\\)，且 \\(a-\\dfrac{1}{a}=\\dfrac{${c.kn}}{${c.kd}}\\)，則 \\(a+\\dfrac{1}{a}=\\)`,
+        answer: {num: c.an, den: c.ad}, type: 'fraction'
+      };
+    } else {
+      // 大小比較：識別平方公式
+      const base = pick([500, 1000, 2000]);
+      const d = randInt(2, 9);
+      const hi = base + d, lo = base - d;
+      const exprs = [
+        `(${hi})^2-2\\times${hi}\\times${d}+${d}^2`,
+        `${base}^2-${d}^2`,
+        `(${lo})^2+2\\times${lo}\\times${d}+${d}^2`,
+      ];
+      const varNames = ['a','b','c'];
+      const order = [0,1,2];
+      for (let i=2; i>=1; i--) { const j=randInt(0,i); [order[i],order[j]]=[order[j],order[i]]; }
+      const smallVarIdx = order.indexOf(1);
+      const smallVar = varNames[smallVarIdx];
+      const bigVars = varNames.filter((_,i)=>i!==smallVarIdx).join('=');
+      return {
+        question: `設 \\(a=${exprs[order[0]]}\\)，\\(b=${exprs[order[1]]}\\)，\\(c=${exprs[order[2]]}\\)，則 \\(a\\)、\\(b\\)、\\(c\\) 大小關係為`,
+        answer: `${bigVars}>${smallVar}`, type: 'text'
+      };
     }
   }
 }
@@ -3501,14 +3750,14 @@ function _8aDiffSq(level) {
     } else {
       // 小數：(base+d)(base-d)，d 為 0.x
       const base = randInt(2, 8);
-      const dN = randInt(1, 4); // d = dN/10
+      const dN = randInt(1, 4);
       const a = base + dN / 10, b = base - dN / 10;
       const aS = a.toFixed(1), bS = b.toFixed(1);
       const ans = Math.round((base * base * 100 - dN * dN)) / 100;
       return { question: `利用平方差公式計算 \\(${aS}\\times${bS}\\)`, answer: ans, type: 'number' };
     }
   } else if (level === 'medium') {
-    const t = randInt(0, 2);
+    const t = randInt(0, 5);
     if (t === 0) {
       // (base+d)(base-d)，base 為整十
       const base = pick([20,30,40,50,60,70,80,90,100]);
@@ -3521,7 +3770,7 @@ function _8aDiffSq(level) {
       const b = a - d;
       if (b < 1) return null;
       return { question: `計算 \\(${a}^2-${b}^2\\)`, answer: a * a - b * b, type: 'number' };
-    } else {
+    } else if (t === 2) {
       // 分數平方差，同分母
       const cases = [
         {n1:3,d1:2,n2:1,d2:2},{n1:5,d1:3,n2:1,d2:3},
@@ -3538,10 +3787,29 @@ function _8aDiffSq(level) {
         return { question: `計算 \\(${f1}^2-${f2}^2\\)`, answer: ansN / g, type: 'number' };
       }
       return { question: `計算 \\(${f1}^2-${f2}^2\\)`, answer: {num: ansN / g, den: ansD / g}, type: 'fraction' };
+    } else if (t === 3) {
+      // 若N²=m+1，求m=(N+1)(N-1)
+      const N = pick([29,39,49,69,79,89,99,199,299,399,499,999]);
+      return { question: `若 \\(${N}^2=m+1\\)，求 \\(m\\) 的值`, answer: N*N - 1, type: 'number' };
+    } else if (t === 4) {
+      // 若a²-b²=k×c，其中k=a+b，求c=a-b
+      const kSum = pick([100, 200, 500, 1000]);
+      const diff = randInt(2, Math.floor(kSum / 5));
+      if ((kSum + diff) % 2 !== 0) return null;
+      const a = (kSum + diff) / 2, b = (kSum - diff) / 2;
+      if (b <= 0) return null;
+      return { question: `若 \\(${a}^2-${b}^2=${kSum}\\times c\\)，則 \\(c=\\)`, answer: diff, type: 'number' };
+    } else {
+      // 計算 1/N + (N+1)(N-1)/N = N²/N = N
+      const N = pick([5,6,7,8,9,10,11,12,15,20,50,100]);
+      return {
+        question: `計算 \\(\\dfrac{1}{${N}}+\\dfrac{${N+1}\\times${N-1}}{${N}}\\)`,
+        answer: N, type: 'number'
+      };
     }
   } else {
     // 困難
-    const t = randInt(0, 2);
+    const t = randInt(0, 5);
     if (t === 0) {
       // (base+d)(base-d)，base 大
       const base = pick([200,300,400,500,600,700,800,900,1000]);
@@ -3555,7 +3823,7 @@ function _8aDiffSq(level) {
       const aS = a.toFixed(1), bS = b.toFixed(1);
       const ans = Math.round(base * base * 100 - dN * dN) / 100;
       return { question: `利用平方差公式計算 \\(${aS}\\times${bS}\\)`, answer: ans, type: 'number' };
-    } else {
+    } else if (t === 2) {
       // (p/q + r/s)(p/q - r/s) = (p/q)²-(r/s)²
       const fracs = [[1,2],[1,3],[2,3],[1,4],[3,4],[1,5],[2,5],[3,5]];
       const [n1, d1] = fracs[randInt(0, fracs.length - 1)];
@@ -3570,6 +3838,38 @@ function _8aDiffSq(level) {
         return { question: `利用平方差公式計算 \\(\\left(${f1}+${f2}\\right)\\left(${f1}-${f2}\\right)\\)`, answer: rn, type: 'number' };
       }
       return { question: `利用平方差公式計算 \\(\\left(${f1}+${f2}\\right)\\left(${f1}-${f2}\\right)\\)`, answer: {num: rn, den: rd}, type: 'fraction' };
+    } else if (t === 3) {
+      // 帶分數乘積：(N+r/s)(N-r/s) = N²-(r/s)²
+      const N = pick([10,20,30,40,50,60,100]);
+      const r = randInt(1, 3), s = pick([3,4,5,6,7,8]);
+      if (_gcd(r, s) !== 1 || r >= s) return null;
+      const ansN = N*N*s*s - r*r, ansD = s*s;
+      const ag = _gcd(ansN, ansD);
+      const mWhole = N - 1, mFrac = s - r;
+      return {
+        question: `計算 \\(${N}\\dfrac{${r}}{${s}}\\times${mWhole}\\dfrac{${mFrac}}{${s}}\\)`,
+        answer: {num: ansN/ag, den: ansD/ag}, type: 'fraction'
+      };
+    } else if (t === 4) {
+      // (a²-b²)/(a²-2ab+b²) = (a+b)/(a-b)（分數）
+      const diff = randInt(2, 30);
+      const b = randInt(20, 200);
+      const a = b + diff;
+      const sumVal = a + b;
+      const g = _gcd(sumVal, diff);
+      const rn = sumVal / g, rd = diff / g;
+      if (rd === 1) {
+        return { question: `計算 \\(\\dfrac{${a}^2-${b}^2}{${a}^2-${2*a}\\times${b}+${b}^2}\\)`, answer: rn, type: 'number' };
+      }
+      return { question: `計算 \\(\\dfrac{${a}^2-${b}^2}{${a}^2-${2*a}\\times${b}+${b}^2}\\)`, answer: {num: rn, den: rd}, type: 'fraction' };
+    } else {
+      // (N²-N-6)/(A²-B²)，分子=(N-3)(N+2)，分母=(N-3)×5，答=(N+2)/5
+      const N = pick([98, 198, 298, 498, 998]);
+      const A = (N + 2) / 2, B = (N - 8) / 2;
+      return {
+        question: `計算 \\(\\dfrac{${N}^2-${N}-6}{${A}^2-${B}^2}\\)`,
+        answer: (N + 2) / 5, type: 'number'
+      };
     }
   }
 }
