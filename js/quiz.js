@@ -527,14 +527,20 @@ function renderQuiz(questions, params) {
   const hasJrNum = params.topics.some(t => JR_NUM_TOPICS.includes(t));
   const CRIT_ANSWERS = ['SSS','SAS','ASA','AAS','RHS'];
   const CONG_ANSWERS = ['全等','不全等'];
+  const QUAD_LABELS  = ['第一象限','第二象限','第三象限','第四象限','x軸','y軸','X軸','Y軸'];
   const hasTextCrit = questions.some(q => q.type === 'text' && CRIT_ANSWERS.includes(String(q.answer)));
   const hasTextCong = questions.some(q => q.type === 'text' && CONG_ANSWERS.includes(String(q.answer)));
+  const hasTextQuad = questions.some(q =>
+    (q.type === 'text' && QUAD_LABELS.some(l => l.toUpperCase() === String(q.answer).toUpperCase())) ||
+    (q.answerParts && q.answerParts.some(p => p.type === 'text' && QUAD_LABELS.some(l => l.toUpperCase() === String(p.answer).toUpperCase())))
+  );
   let hintParts = [];
   if (hasFrac)     hintParts.push('分數：<code>3/4</code>　帶分數：<code>1 3/4</code>　負分數：<code>-3/4</code>　整數：<code>2</code>');
   if (hasDec)      hintParts.push('小數：<code>1.25</code>');
   if (hasNum)      hintParts.push('填數字：<code>12</code>　含小數：<code>78.5</code>');
   if (hasJrInt && !hasFrac) hintParts.push('填整數（可為負數）：<code>-12</code>　<code>8</code>');
   if (hasJrNum)    hintParts.push('填數字（指數可為負整數）：<code>5</code>　<code>-3</code>　<code>32000</code>');
+  if (hasTextQuad) hintParts.push('象限：填 <code>第一象限</code>、<code>第二象限</code>、<code>第三象限</code>、<code>第四象限</code>；坐標軸：填 <code>x軸</code> 或 <code>y軸</code>');
   if (hasTextCrit) hintParts.push('全等性質：填 <code>SSS</code>、<code>SAS</code>、<code>ASA</code>、<code>AAS</code>、<code>RHS</code>');
   if (hasTextCong) hintParts.push('全等判斷：填 <code>全等</code> 或 <code>不全等</code>（亦可填一定全等、不一定全等）');
   document.getElementById('format-hint').innerHTML =
@@ -589,7 +595,7 @@ function renderQuiz(questions, params) {
           `<span class="q-eq">${p.prefix} =</span>` +
           `<input class="${p.type==='poly'?'q-input q-input-rad':'q-input'}" type="text" id="ans-${idx}-${pi}"` +
           ` autocomplete="off" autocorrect="off" spellcheck="false"` +
-          ` placeholder="${p.type === 'fraction' ? '例：3/4' : p.type === 'poly' ? '如：x^2+3x-2' : '填數字'}">`
+          ` placeholder="${p.type === 'fraction' ? '例：3/4' : p.type === 'poly' ? '如：x^2+3x-2' : p.type === 'text' ? '填文字' : '填數字'}">`
         ).join('');
       }
       row.innerHTML = `
@@ -748,6 +754,10 @@ function checkAnswers() {
             const _feq2 = (a,b) => Math.abs(a-b) < 1e-9;
             ok = up !== null && _feq2(up.a2,p.answer.a2) && _feq2(up.a1,p.answer.a1) && _feq2(up.a0,p.answer.a0);
           }
+          else if (p.type === 'text') {
+            const norm = s => s.trim().replace(/一定/g,'').toUpperCase();
+            ok = norm(v) === norm(String(p.answer));
+          }
           else { const un = parseDecimal(v); ok = un !== null && decEq(un, p.answer); }
         }
         if (!ok) allCorrect = false;
@@ -776,7 +786,7 @@ function checkAnswers() {
           ansStr = `(${dStr(q.answerParts[0].answer)}, ${dStr(q.answerParts[1].answer)})`;
         } else {
           ansStr = q.answerParts.map(p => {
-            const v = p.type === 'fraction' ? `\\(${fracToLatex(p.answer)}\\)` : p.type === 'poly' ? `\\(${polyToLatex(p.answer.a2,p.answer.a1,p.answer.a0)}\\)` : dStr(p.answer);
+            const v = p.type === 'fraction' ? `\\(${fracToLatex(p.answer)}\\)` : p.type === 'poly' ? `\\(${polyToLatex(p.answer.a2,p.answer.a1,p.answer.a0)}\\)` : p.type === 'text' ? String(p.answer) : dStr(p.answer);
             return `${p.prefix} = ${v}`;
           }).join('，');
         }

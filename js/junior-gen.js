@@ -2557,27 +2557,62 @@ function gen7bCoord(level) {
 function _7bCoord(level) {
   const nz = ()=>pick([-4,-3,-2,-1,1,2,3,4]);
   const quadrant = (x,y) => x>0&&y>0?1 : x<0&&y>0?2 : x<0&&y<0?3 : 4;
+  const quadText = (x,y) => ['第一象限','第二象限','第三象限','第四象限'][quadrant(x,y)-1];
   const coord = (x,y) => ({
     coordAnswer: true,
     answerParts: [{ answer:x, type:'number' }, { answer:y, type:'number' }]
   });
 
   if (level==='basic') {
-    if (randInt(0,1)===0) {
+    const t=randInt(0,3);
+    if(t===0){
       // 象限判斷
       const x=nz(), y=nz();
       const g=_makeSVG({pts:[{x,y,label:'A'}], size:180});
       return { question:`點 \\(A(${x},\\,${y})\\) 在第幾象限？`, answer:quadrant(x,y), type:'number', graph:g };
-    } else {
+    }
+    if(t===1){
       // 讀座標：寫出完整 (x, y)
       const x=randInt(-4,4), y=randInt(-4,4);
       const g=_makeSVG({pts:[{x,y,label:'A'}], size:180});
       return { question:`根據右圖，寫出點 A 的座標`, ...coord(x,y), graph:g };
     }
+    if(t===2){
+      // 點到兩軸的距離
+      const x=rnzInt(-6,6), y=rnzInt(-6,6);
+      return {
+        question:`坐標平面上，點 \\(A(${x},\\,${y})\\)，到 \\(x\\) 軸的距離與到 \\(y\\) 軸的距離各為多少個單位長？`,
+        answerParts:[
+          {prefix:'到x軸', answer:Math.abs(y), type:'number'},
+          {prefix:'到y軸', answer:Math.abs(x), type:'number'}
+        ]
+      };
+    }
+    // t===3：三點象限/軸判斷（包含在坐標軸上的點）
+    const LABS=['A','B','C'];
+    const genPt=()=>{
+      const r=randInt(0,2);
+      if(r===0){ const x=rnzInt(-5,5),y=rnzInt(-5,5); return {x,y,ans:quadText(x,y)}; }
+      if(r===1){ const x=rnzInt(-5,5); return {x,y:0,ans:'x軸'}; }
+      const y=rnzInt(-5,5); return {x:0,y,ans:'y軸'};
+    };
+    const pts3=[]; let tries3=0;
+    while(pts3.length<3&&tries3<60){
+      tries3++;
+      const p=genPt();
+      if(!pts3.some(q=>q.x===p.x&&q.y===p.y)) pts3.push(p);
+    }
+    if(pts3.length<3) return null;
+    const ptStr=pts3.map((p,i)=>`\\(${LABS[i]}(${p.x},\\,${p.y})\\)`).join('、');
+    return {
+      question:`坐標平面上，${ptStr}，各點分別在哪一象限或坐標軸上？`,
+      answerParts:pts3.map((p,i)=>({prefix:LABS[i], answer:p.ans, type:'text'}))
+    };
+
   } else if (level==='medium') {
-    const t=randInt(0,2);
-    if (t===0) {
-      // 兩點，寫出其中一點的完整座標（座標範圍加大）
+    const t=randInt(0,5);
+    if(t===0){
+      // 兩點，寫出其中一點的完整座標
       const x1=pick([-5,-4,-3,-2,-1,1,2,3,4,5]), y1=pick([-5,-4,-3,-2,-1,1,2,3,4,5]);
       let x2, y2;
       do { x2=randInt(-5,5); y2=randInt(-5,5); } while(x1===x2&&y1===y2);
@@ -2585,38 +2620,80 @@ function _7bCoord(level) {
       const g=_makeSVG({pts:[{x:x1,y:y1,label:'A'},{x:x2,y:y2,label:'B',color:'#2E7D32'}], size:180});
       const qx=askA?x1:x2, qy=askA?y1:y2;
       return { question:`根據右圖，寫出點 ${askA?'A':'B'} 的座標`, ...coord(qx,qy), graph:g };
-    } else if (t===1) {
+    }
+    if(t===1){
       // 象限判斷（帶圖）
       const x=pick([-5,-4,-3,-2,-1,1,2,3,4,5]), y=pick([-5,-4,-3,-2,-1,1,2,3,4,5]);
       const g=_makeSVG({pts:[{x,y,label:'P'}], size:180});
       return { question:`根據右圖，點 P 在第幾象限？`, answer:quadrant(x,y), type:'number', graph:g };
-    } else {
-      // 中點公式：給 A、B，求中點 M 座標
+    }
+    if(t===2){
+      // 中點公式
       const x1=randInt(-6,6), y1=randInt(-6,6);
       const x2=randInt(-6,6), y2=randInt(-6,6);
-      if((x1+x2)%2!==0||(y1+y2)%2!==0) return null; // 確保中點為整數
+      if((x1+x2)%2!==0||(y1+y2)%2!==0) return null;
       const mx=(x1+x2)/2, my=(y1+y2)/2;
       const g=_makeSVG({pts:[{x:x1,y:y1,label:'A'},{x:x2,y:y2,label:'B',color:'#2E7D32'},{x:mx,y:my,label:'M',color:'#e07000'}], size:200});
       return { question:`\\(A(${x1},\\,${y1})\\)，\\(B(${x2},\\,${y2})\\)，求線段 \\(AB\\) 的中點 \\(M\\) 座標`,
                ...coord(mx,my), graph:g };
     }
+    if(t===3){
+      // x軸上與某點相距d的點（求兩個x座標）
+      const px=randInt(-6,6), d=randInt(2,8);
+      return {
+        question:`在 \\(x\\) 軸上，與點 \\((${px},\\,0)\\) 相距 \\(${d}\\) 個單位長的點有哪些？（由小到大填入 \\(x\\) 座標）`,
+        answerParts:[
+          {prefix:'x₁', answer:px-d, type:'number'},
+          {prefix:'x₂', answer:px+d, type:'number'}
+        ]
+      };
+    }
+    if(t===4){
+      // 矩形第四頂點（知三點求第四點）
+      const x1=randInt(-4,3), y1=randInt(-4,3);
+      const dx=randInt(1,5), dy=randInt(1,5);
+      if(Math.abs(x1+dx)>6||Math.abs(y1+dy)>6) return null;
+      const allPts=[
+        {x:x1,y:y1,l:'A'},{x:x1+dx,y:y1,l:'B'},
+        {x:x1+dx,y:y1+dy,l:'C'},{x:x1,y:y1+dy,l:'D'}
+      ];
+      const hidIdx=randInt(0,3);
+      const givenPts=allPts.filter((_,i)=>i!==hidIdx);
+      const hidden=allPts[hidIdx];
+      const pStr=givenPts.map(p=>`\\(${p.l}(${p.x},\\,${p.y})\\)`).join('、');
+      return {
+        question:`坐標平面上，${pStr} 三點圍成一長方形，求第四頂點 \\(${hidden.l}\\) 的座標`,
+        coordAnswer:true,
+        answerParts:[{answer:hidden.x, type:'number'},{answer:hidden.y, type:'number'}]
+      };
+    }
+    // t===5：P(x,b)在某象限且到兩軸距離相等，求b
+    const scenarios=[
+      {x:randInt(2,8), quad:'第四象限', sign:-1},
+      {x:-randInt(2,8), quad:'第二象限', sign:-1},
+      {x:randInt(2,8), quad:'第一象限', sign:1},
+    ];
+    const sc=pick(scenarios);
+    const b=sc.sign*Math.abs(sc.x);
+    return {
+      question:`有一點 \\(P(${sc.x},\\,b)\\) 在${sc.quad}，且到 \\(x\\) 軸的距離與到 \\(y\\) 軸的距離相等，求 \\(b\\)`,
+      answer:b, type:'number', answerPrefix:'\\(b\\)'
+    };
+
   } else {
-    // hard：三點讀座標（t=0）、中點求端點（t=1）、三角形面積（t=2）
-    const t=randInt(0,2);
+    // hard
+    const t=randInt(0,4);
     if(t===0){
-      const pts3 = [];
-      const labels = ['A','B','C'];
-      const colors = ['#C62828','#2E7D32','#7B1FA2'];
-      while(pts3.length < 3) {
+      const pts3=[]; const labels=['A','B','C']; const colors=['#C62828','#2E7D32','#7B1FA2'];
+      while(pts3.length<3){
         const x=pick([-5,-4,-3,-2,-1,1,2,3,4,5]), y=pick([-5,-4,-3,-2,-1,1,2,3,4,5]);
         if(!pts3.some(p=>p.x===x&&p.y===y)) pts3.push({x,y});
       }
-      const ask = randInt(0,2);
-      const g=_makeSVG({ pts: pts3.map((p,i)=>({...p, label:labels[i], color:colors[i]})), size:200 });
-      return { question:`根據右圖，寫出點 ${labels[ask]} 的座標`, ...coord(pts3[ask].x, pts3[ask].y), graph:g };
+      const ask=randInt(0,2);
+      const g=_makeSVG({pts:pts3.map((p,i)=>({...p,label:labels[i],color:colors[i]})), size:200});
+      return { question:`根據右圖，寫出點 ${labels[ask]} 的座標`, ...coord(pts3[ask].x,pts3[ask].y), graph:g };
     }
     if(t===1){
-      // 已知 A 端點和中點 M，求另一端點 B（確保 B 在圖範圍內）
       const x1=randInt(-4,4), y1=randInt(-4,4);
       const mx=randInt(-3,3), my=randInt(-3,3);
       const x2=2*mx-x1, y2=2*my-y1;
@@ -2625,24 +2702,50 @@ function _7bCoord(level) {
       return { question:`線段 \\(AB\\) 的中點 \\(M(${mx},\\,${my})\\)，已知 \\(A(${x1},\\,${y1})\\)，求 \\(B\\) 的座標`,
                ...coord(x2,y2), graph:g };
     }
-    // t===2：三角形面積（底高法，底為水平線段）
-    const y0=randInt(-3,3);
-    const xa=pick([-4,-3,-2,-1]), xb=pick([1,2,3,4]);
-    const base=xb-xa;
-    const yc=randInt(-4,4);
-    if(yc===y0) return null;
-    const height=Math.abs(yc-y0);
-    const area2=base*height;
-    if(area2%2!==0||area2<4||area2>24) return null;
-    const area=area2/2;
-    const xc=randInt(-3,3);
-    const g=_makeSVG({
-      pts:[{x:xa,y:y0,label:'A'},{x:xb,y:y0,label:'B',color:'#2E7D32'},{x:xc,y:yc,label:'C',color:'#7B1FA2'}],
-      segs:[{x1:xa,y1:y0,x2:xb,y2:y0},{x1:xb,y1:y0,x2:xc,y2:yc},{x1:xc,y1:yc,x2:xa,y2:y0}],
-      size:200
-    });
-    return { question:`三角形 \\(ABC\\)，\\(A(${xa},\\,${y0})\\)、\\(B(${xb},\\,${y0})\\)、\\(C(${xc},\\,${yc})\\)，求面積`,
-             answer:area, type:'number', graph:g, answerPrefix:'面積' };
+    if(t===2){
+      const y0=randInt(-3,3);
+      const xa=pick([-4,-3,-2,-1]), xb=pick([1,2,3,4]);
+      const base=xb-xa;
+      const yc=randInt(-4,4);
+      if(yc===y0) return null;
+      const height=Math.abs(yc-y0);
+      const area2=base*height;
+      if(area2%2!==0||area2<4||area2>24) return null;
+      const area=area2/2;
+      const xc=randInt(-3,3);
+      const g=_makeSVG({
+        pts:[{x:xa,y:y0,label:'A'},{x:xb,y:y0,label:'B',color:'#2E7D32'},{x:xc,y:yc,label:'C',color:'#7B1FA2'}],
+        segs:[{x1:xa,y1:y0,x2:xb,y2:y0},{x1:xb,y1:y0,x2:xc,y2:yc},{x1:xc,y1:yc,x2:xa,y2:y0}],
+        size:200
+      });
+      return { question:`三角形 \\(ABC\\)，\\(A(${xa},\\,${y0})\\)、\\(B(${xb},\\,${y0})\\)、\\(C(${xc},\\,${yc})\\)，求面積`,
+               answer:area, type:'number', graph:g, answerPrefix:'面積' };
+    }
+    if(t===3){
+      // 點的平移後到某軸的距離
+      const ax=randInt(-5,5), ay=randInt(-5,5);
+      const dx=rnzInt(-4,4), dy=rnzInt(-4,4);
+      const bx=ax+dx, by=ay+dy;
+      const dxLab=dx>0?`向右移 \\(${dx}\\) 個單位`:`向左移 \\(${-dx}\\) 個單位`;
+      const dyLab=dy>0?`，再向上移 \\(${dy}\\) 個單位`:`，再向下移 \\(${-dy}\\) 個單位`;
+      const askX=randInt(0,1)===0;
+      return {
+        question:`坐標平面上，點 \\(A(${ax},\\,${ay})\\) ${dxLab}${dyLab}後，到達點 \\(B\\)，求 \\(B\\) 到 \\(${askX?'y':'x'}\\) 軸的距離`,
+        answer:askX?Math.abs(bx):Math.abs(by), type:'number', answerPrefix:`到${askX?'y':'x'}軸距離`
+      };
+    }
+    // t===4：已知象限和|a|,|b|求座標
+    const m=randInt(2,8), n=randInt(2,8);
+    if(m===n) return null;
+    const quad=randInt(1,4);
+    const sigX=(quad===1||quad===4)?1:-1;
+    const sigY=(quad===1||quad===2)?1:-1;
+    const quadStr=['第一象限','第二象限','第三象限','第四象限'][quad-1];
+    return {
+      question:`點 \\(A(a,\\,b)\\) 在${quadStr}，且 \\(|a|=${m}\\)、\\(|b|=${n}\\)，求 \\(A\\) 的座標`,
+      coordAnswer:true,
+      answerParts:[{answer:sigX*m, type:'number'},{answer:sigY*n, type:'number'}]
+    };
   }
 }
 
@@ -2656,71 +2759,201 @@ function gen7bLinePic(level) {
 
 function _7bLinePic(level) {
   if (level==='basic') {
-    // y=ax+b，隨機求 x 或 y（係數加大）
-    const a=rnzInt(-5,5), b=randInt(-6,6);
-    const askY=randInt(0,1)===0;
-    const rhs=_polyStr([{c:a,v:'x'},{c:b,v:''}]);
-    if (askY) {
-      const xVal=randInt(-5,5);
-      const yVal=a*xVal+b;
-      if(Math.abs(yVal)>15) return null;
-      return { question:`直線 \\(y=${rhs}\\)，當 \\(x=${xVal}\\) 時`,
-               answer:yVal, type:'number', answerPrefix:'y' };
-    } else {
-      // 求 x：y = ax+b → x = (yAsk-b)/a
-      const yAsk=randInt(-6,6);
-      const num=yAsk-b;
-      if(num%a!==0) return null;
-      const xAns=num/a;
-      if(Math.abs(xAns)>6) return null;
-      return { question:`直線 \\(y=${rhs}\\)，當 \\(y=${yAsk}\\) 時`,
-               answer:xAns, type:'number', answerPrefix:'x' };
+    const t=randInt(0,2);
+    if(t===0){
+      // y=ax+b，求 x 或 y
+      const a=rnzInt(-5,5), b=randInt(-6,6);
+      const askY=randInt(0,1)===0;
+      const rhs=_polyStr([{c:a,v:'x'},{c:b,v:''}]);
+      if(askY){
+        const xVal=randInt(-5,5);
+        const yVal=a*xVal+b;
+        if(Math.abs(yVal)>15) return null;
+        return { question:`直線 \\(y=${rhs}\\)，當 \\(x=${xVal}\\) 時`, answer:yVal, type:'number', answerPrefix:'y' };
+      } else {
+        const yAsk=randInt(-6,6);
+        const num=yAsk-b;
+        if(num%a!==0) return null;
+        const xAns=num/a;
+        if(Math.abs(xAns)>6) return null;
+        return { question:`直線 \\(y=${rhs}\\)，當 \\(y=${yAsk}\\) 時`, answer:xAns, type:'number', answerPrefix:'x' };
+      }
     }
+    if(t===1){
+      // 點在直線上求係數a（y=ax+b形式）
+      const b=randInt(-6,6);
+      const px=rnzInt(-4,4), py=randInt(-8,8);
+      if((py-b)%px!==0) return null;
+      const a=(py-b)/px;
+      if(Math.abs(a)>6||a===0) return null;
+      const bStr=b>0?`+${b}`:b<0?String(b):'';
+      return {
+        question:`點 \\((${px},\\,${py})\\) 在直線 \\(y=ax${bStr}\\) 的圖形上，求 \\(a\\)`,
+        answer:a, type:'number', answerPrefix:'\\(a\\)'
+      };
+    }
+    // t===2：兩點求y=ax+b的a和b
+    const a=rnzInt(-3,3), b=randInt(-6,6);
+    const x1=randInt(-4,-1), x2=x1+randInt(2,5);
+    const y1=a*x1+b, y2=a*x2+b;
+    return {
+      question:`通過點 \\((${x1},\\,${y1})\\) 和 \\((${x2},\\,${y2})\\) 的直線方程式為 \\(y=ax+b\\)，求 \\(a\\) 和 \\(b\\)`,
+      answerParts:[
+        {prefix:'a', answer:a, type:'number'},
+        {prefix:'b', answer:b, type:'number'}
+      ]
+    };
 
   } else if (level==='medium') {
-    // ax+by=c，隨機求 x 或 y（整數答案，係數加大）
-    const askY=randInt(0,1)===0;
-    if (askY) {
-      const a=rnzInt(-5,5), b=pick([2,3,4,-2,-3,-4]);
-      const xVal=rnzInt(-4,4), yVal=rnzInt(-5,5);
-      const c=a*xVal+b*yVal;
-      const xAsk=rnzInt(-4,4);
-      const yNum=c-a*xAsk;
-      if(yNum%b!==0) return null;
-      const yAns=yNum/b;
-      if(Math.abs(yAns)>8) return null;
-      return { question:`直線 \\(${_eqLine(a,b,c)}\\)，當 \\(x=${xAsk}\\) 時`,
-               answer:yAns, type:'number', answerPrefix:'y' };
-    } else {
-      // 求 x：ax+by=c → x=(c-b*yAsk)/a
-      const a=pick([2,3,4,-2,-3,-4]), b=rnzInt(-5,5);
-      const xVal=rnzInt(-5,5), yVal=rnzInt(-4,4);
-      const c=a*xVal+b*yVal;
-      const yAsk=rnzInt(-4,4);
-      const xNum=c-b*yAsk;
-      if(xNum%a!==0) return null;
-      const xAns=xNum/a;
-      if(Math.abs(xAns)>7) return null;
-      return { question:`直線 \\(${_eqLine(a,b,c)}\\)，當 \\(y=${yAsk}\\) 時`,
-               answer:xAns, type:'number', answerPrefix:'x' };
+    const t=randInt(0,4);
+    if(t===0){
+      // ax+by=c，求 x 或 y
+      const askY=randInt(0,1)===0;
+      if(askY){
+        const a=rnzInt(-5,5), b=pick([2,3,4,-2,-3,-4]);
+        const xVal=rnzInt(-4,4), yVal=rnzInt(-5,5);
+        const c=a*xVal+b*yVal;
+        const xAsk=rnzInt(-4,4);
+        const yNum=c-a*xAsk;
+        if(yNum%b!==0) return null;
+        const yAns=yNum/b;
+        if(Math.abs(yAns)>8) return null;
+        return { question:`直線 \\(${_eqLine(a,b,c)}\\)，當 \\(x=${xAsk}\\) 時`, answer:yAns, type:'number', answerPrefix:'y' };
+      } else {
+        const a=pick([2,3,4,-2,-3,-4]), b=rnzInt(-5,5);
+        const xVal=rnzInt(-5,5), yVal=rnzInt(-4,4);
+        const c=a*xVal+b*yVal;
+        const yAsk=rnzInt(-4,4);
+        const xNum=c-b*yAsk;
+        if(xNum%a!==0) return null;
+        const xAns=xNum/a;
+        if(Math.abs(xAns)>7) return null;
+        return { question:`直線 \\(${_eqLine(a,b,c)}\\)，當 \\(y=${yAsk}\\) 時`, answer:xAns, type:'number', answerPrefix:'x' };
+      }
     }
+    if(t===1){
+      // 直線y=ax+b不通過第幾象限（a>0,b>0→Q4; a>0,b<0→Q2; a<0,b>0→Q3; a<0,b<0→Q1）
+      const cases=[
+        {sa:1,sb:1,missing:4},{sa:1,sb:-1,missing:2},
+        {sa:-1,sb:1,missing:3},{sa:-1,sb:-1,missing:1}
+      ];
+      const {sa,sb,missing}=pick(cases);
+      const am=sa*randInt(1,4), bm=sb*randInt(1,8);
+      const rhs=_polyStr([{c:am,v:'x'},{c:bm,v:''}]);
+      return {
+        question:`直線 \\(y=${rhs}\\) 的圖形不通過第幾象限？（填 1、2、3 或 4）`,
+        answer:missing, type:'number', answerPrefix:'第'
+      };
+    }
+    if(t===2){
+      // ax+by=1通過兩點，求a和b
+      const a=rnzInt(-3,3), b=rnzInt(-3,3);
+      if(a===0||b===0) return null;
+      const pts=[];
+      for(let x=-6;x<=6;x++){
+        const rem=1-a*x;
+        if(rem%b===0){const y=rem/b; if(Math.abs(y)<=8) pts.push({x,y});}
+      }
+      if(pts.length<2) return null;
+      const i1=randInt(0,pts.length-1);
+      let i2; do{i2=randInt(0,pts.length-1);}while(i2===i1);
+      const [p1,p2]=[pts[i1],pts[i2]];
+      if(p1.x*p2.y-p2.x*p1.y===0) return null;
+      return {
+        question:`直線 \\(ax+by=1\\) 通過點 \\((${p1.x},\\,${p1.y})\\) 和 \\((${p2.x},\\,${p2.y})\\)，求 \\(a\\) 和 \\(b\\)`,
+        answerParts:[
+          {prefix:'a', answer:a, type:'number'},
+          {prefix:'b', answer:b, type:'number'}
+        ]
+      };
+    }
+    if(t===3){
+      // 直線y=ax+b向左/右移k個單位後的新y截距
+      const a=rnzInt(-3,3), b=randInt(-6,6);
+      const isRight=randInt(0,1)===0;
+      const k=randInt(1,4);
+      const newB=isRight?b-a*k:b+a*k;
+      if(newB===b) return null;
+      const dir=isRight?`向右移 \\(${k}\\) 個單位`:`向左移 \\(${k}\\) 個單位`;
+      const rhs=_polyStr([{c:a,v:'x'},{c:b,v:''}]);
+      return {
+        question:`將直線 \\(y=${rhs}\\) 的圖形${dir}後，新直線的 \\(y\\) 截距為`,
+        answer:newB, type:'number', answerPrefix:'y截距'
+      };
+    }
+    // t===4：x=ay+b形式，通過兩點求a和b
+    const a=rnzInt(-3,3), b=randInt(-6,6);
+    const y1=randInt(-4,4), y2=y1+rnzInt(2,4);
+    const x1=a*y1+b, x2=a*y2+b;
+    return {
+      question:`方程式 \\(x=ay+b\\) 的圖形通過點 \\((${x1},\\,${y1})\\) 和 \\((${x2},\\,${y2})\\)，求 \\(a\\) 和 \\(b\\)`,
+      answerParts:[
+        {prefix:'a', answer:a, type:'number'},
+        {prefix:'b', answer:b, type:'number'}
+      ]
+    };
 
   } else {
-    // hard：兩直線交點座標（大係數）
-    const x0=rnzInt(-5,5), y0=rnzInt(-5,5);
-    const a1=rnzInt(-8,8), b1=pick([2,3,4,5,-2,-3,-4,-5]);
-    const c1=a1*x0+b1*y0;
-    let a2, b2, c2, tries=0;
-    do {
-      a2=rnzInt(-8,8); b2=pick([2,3,4,5,-2,-3,-4,-5]);
-      c2=a2*x0+b2*y0;
-      tries++;
-    } while(a1*b2===a2*b1 && tries<20);
-    if(a1*b2===a2*b1) return null;
+    // hard
+    const t=randInt(0,3);
+    if(t===0){
+      // 兩直線交點座標（大係數）
+      const x0=rnzInt(-5,5), y0=rnzInt(-5,5);
+      const a1=rnzInt(-8,8), b1=pick([2,3,4,5,-2,-3,-4,-5]);
+      const c1=a1*x0+b1*y0;
+      let a2, b2, c2, tries=0;
+      do {
+        a2=rnzInt(-8,8); b2=pick([2,3,4,5,-2,-3,-4,-5]);
+        c2=a2*x0+b2*y0;
+        tries++;
+      } while(a1*b2===a2*b1 && tries<20);
+      if(a1*b2===a2*b1) return null;
+      return {
+        question:`求兩直線 \\(${_eqLine(a1,b1,c1)}\\) 與 \\(${_eqLine(a2,b2,c2)}\\) 的交點座標`,
+        coordAnswer:true,
+        answerParts:[{answer:x0, type:'number'},{answer:y0, type:'number'}]
+      };
+    }
+    if(t===1){
+      // 點在ax+by=c上求係數（大數字）
+      const b=rnzInt(-5,5), px=rnzInt(-5,5), py=rnzInt(-5,5);
+      if(px===0||b===0) return null;
+      const a=rnzInt(-5,5);
+      if(a===0) return null;
+      const c=a*px+b*py;
+      const bStr=b>0?`+${b}`:String(b);
+      return {
+        question:`坐標平面上，點 \\((${px},\\,${py})\\) 在直線 \\(ax${bStr}y=${c}\\) 的圖形上，求 \\(a\\)`,
+        answer:a, type:'number', answerPrefix:'\\(a\\)'
+      };
+    }
+    if(t===2){
+      // y=ax+b與兩軸圍成的△面積 (area=|a|*bMult²/2, b=a*bMult)
+      const a=rnzInt(-4,4);
+      const bMult=pick([-4,-3,-2,2,3,4]);
+      const b=a*bMult;
+      if(b===0) return null;
+      const area=Math.abs(a)*bMult*bMult/2;
+      if(!Number.isInteger(area)||area>20||area<1) return null;
+      const rhs=_polyStr([{c:a,v:'x'},{c:b,v:''}]);
+      return {
+        question:`直線 \\(y=${rhs}\\) 與 \\(x\\) 軸、\\(y\\) 軸圍成的三角形面積為`,
+        answer:area, type:'number', answerPrefix:'面積'
+      };
+    }
+    // t===3：2x+ay=N不通過第二象限且與兩軸圍成面積=S，求a
+    // x-int=N/2>0, y-int=N/a<0(a<0), area=N²/(4|a|)=S → |a|=N²/(4S)
+    const validSets=[
+      {N:4,S:2,aMag:2},{N:4,S:4,aMag:1},
+      {N:6,S:3,aMag:3},{N:6,S:9,aMag:1},
+      {N:8,S:4,aMag:4},{N:8,S:8,aMag:2},
+      {N:10,S:5,aMag:5},
+      {N:12,S:4,aMag:9},{N:12,S:6,aMag:6},{N:12,S:9,aMag:4},{N:12,S:12,aMag:3}
+    ];
+    const {N,S,aMag}=pick(validSets);
     return {
-      question:`求兩直線 \\(${_eqLine(a1,b1,c1)}\\) 與 \\(${_eqLine(a2,b2,c2)}\\) 的交點座標`,
-      coordAnswer: true,
-      answerParts: [{ answer:x0, type:'number' }, { answer:y0, type:'number' }]
+      question:`若直線 \\(2x+ay=${N}\\) 的圖形不通過第二象限，且與兩軸圍成的面積為 \\(${S}\\) 平方單位，求 \\(a\\)`,
+      answer:-aMag, type:'number', answerPrefix:'\\(a\\)'
     };
   }
 }
