@@ -799,7 +799,7 @@ function gen7aIntAbs(level) {
 
 function _7aIntAbs(level) {
   if (level === 'basic') {
-    const t = randInt(0, 3);
+    const t = randInt(0, 5);
     if (t === 0) {
       const a = rnzInt(-20, 20), b = rnzInt(-20, 20);
       return { question:`\\(\\left|${a}\\right| + \\left|${b}\\right|\\) ＝ ？`,
@@ -813,16 +813,29 @@ function _7aIntAbs(level) {
       const a = rnzInt(-10, 10), b = rnzInt(-10, 10);
       return { question:`\\(\\left|${a}\\right| \\times \\left|${b}\\right|\\) ＝ ？`,
                answer: Math.abs(a) * Math.abs(b), type:'number' };
-    } else {
+    } else if (t === 3) {
       const bv = pick([2,3,4,5,6]);
       const ans = rp(1, 8);
       const av = bv * ans;
       const sa = randInt(0,1)===0 ? 1 : -1, sb = randInt(0,1)===0 ? 1 : -1;
       return { question:`\\(\\left|${sa*av}\\right| \\div \\left|${sb*bv}\\right|\\) ＝ ？`,
                answer: ans, type:'number' };
+    } else if (t === 4) {
+      // |a + b| 正負相加（絕對值內有算式）
+      const pa = rp(1, 15), pb = rp(1, 15);
+      const [a, b] = randInt(0,1) === 0 ? [pa, -pb] : [-pa, pb];
+      if (a + b === 0) return null;
+      return { question:`\\(\\left|${ni(a)} + ${ni(b)}\\right|\\) ＝ ？`,
+               answer: Math.abs(a + b), type:'number' };
+    } else {
+      // |a - b| 兩正整數相減（絕對值內有算式）
+      const a = rp(1, 20), b = rp(1, 20);
+      if (a === b) return null;
+      return { question:`\\(\\left|${a} - ${b}\\right|\\) ＝ ？`,
+               answer: Math.abs(a - b), type:'number' };
     }
   } else if (level === 'hard') {
-    const t = randInt(0, 2);
+    const t = randInt(0, 4);
     if (t === 0) {
       // |a| × |b| + |c| × |d|（雙積相加）
       const a = rnzInt(-10,10), b = rnzInt(-10,10), c = rnzInt(-10,10), d = rnzInt(-10,10);
@@ -839,15 +852,33 @@ function _7aIntAbs(level) {
       if (num % c !== 0) return null;
       return { question:`\\(\\left|${sa*a} - ${b}\\right| \\div \\left|${sc*c}\\right|\\) ＝ ？`,
                answer: num / c, type:'number' };
-    } else {
+    } else if (t === 2) {
       // |a| × |b| × |c|
       const a = rnzInt(-8,8), b = rnzInt(-8,8), c = rnzInt(-6,6);
       if (c === 0) return null;
       return { question:`\\(\\left|${a}\\right| \\times \\left|${b}\\right| \\times \\left|${c}\\right|\\) ＝ ？`,
                answer: Math.abs(a)*Math.abs(b)*Math.abs(c), type:'number' };
+    } else if (t === 3) {
+      // |a + b| × |c - d|（兩個含算式的絕對值相乘）
+      const pa = rp(1, 10), pb = rp(1, 10);
+      const [a, b] = randInt(0,1) === 0 ? [pa, -pb] : [-pa, pb];
+      const c = rp(1, 15), d = rp(1, 15);
+      if (a + b === 0 || c === d) return null;
+      const ans = Math.abs(a + b) * Math.abs(c - d);
+      if (ans > 300) return null;
+      return { question:`\\(\\left|${ni(a)} + ${ni(b)}\\right| \\times \\left|${c} - ${d}\\right|\\) ＝ ？`,
+               answer: ans, type:'number' };
+    } else {
+      // |a × b + c|（乘加在絕對值內）
+      const a = rnzInt(-6, 6), b = rnzInt(-6, 6);
+      const c = rnzInt(-20, 20);
+      const inner = a * b + c;
+      if (inner === 0) return null;
+      return { question:`\\(\\left|${ni(a)} \\times ${ni(b)} + ${ni(c)}\\right|\\) ＝ ？`,
+               answer: Math.abs(inner), type:'number' };
     }
   } else {
-    const t = randInt(0, 2);
+    const t = randInt(0, 4);
     if (t === 0) {
       const a = rnzInt(-10, 10), b = rnzInt(-10, 10), c = rnzInt(-20, 20);
       return { question:`\\(\\left|${a}\\right| \\times \\left|${b}\\right| + ${ni(c)}\\) ＝ ？`,
@@ -856,11 +887,26 @@ function _7aIntAbs(level) {
       const a = rnzInt(-10, 10), b = rnzInt(-10, 10), c = rnzInt(-20, 20);
       return { question:`\\(\\left|${a}\\right| \\times \\left|${b}\\right| - \\left|${c}\\right|\\) ＝ ？`,
                answer: Math.abs(a)*Math.abs(b) - Math.abs(c), type:'number' };
-    } else {
+    } else if (t === 2) {
       const a = rnzInt(-10, 10), b = rnzInt(-10, 10), c = rnzInt(-8, 8);
       if (c === 0) return null;
       return { question:`\\((\\left|${a}\\right| + \\left|${b}\\right|) \\times ${ni(c)}\\) ＝ ？`,
                answer: (Math.abs(a)+Math.abs(b))*c, type:'number' };
+    } else if (t === 3) {
+      // |a + b| + c（絕對值內有加法算式）
+      const pa = rp(1, 12), pb = rp(1, 12);
+      const [a, b] = randInt(0,1) === 0 ? [pa, -pb] : [-pa, pb];
+      if (a + b === 0) return null;
+      const c = rnzInt(-15, 15);
+      return { question:`\\(\\left|${ni(a)} + ${ni(b)}\\right| + ${ni(c)}\\) ＝ ？`,
+               answer: Math.abs(a + b) + c, type:'number' };
+    } else {
+      // |a - b| × c（絕對值內有減法算式）
+      const a = rp(1, 15), b = rp(1, 15);
+      if (a === b) return null;
+      const c = rnzInt(-8, 8);
+      return { question:`\\(\\left|${a} - ${b}\\right| \\times ${ni(c)}\\) ＝ ？`,
+               answer: Math.abs(a - b) * c, type:'number' };
     }
   }
 }
@@ -888,54 +934,84 @@ function _7aFracAbs(level) {
   const af2 = frac(Math.abs(f2.num), f2.den);
 
   if (level === 'basic') {
-    const t = randInt(0, 2);
+    const t = randInt(0, 3);
     if (t === 0) {
       const ans = fadd(af1, af2);
-      if (ans.den === 1) return null; // 篩掉整數結果
+      if (ans.den === 1) return null;
       return { question:`\\(\\left|${nfFirst(f1)}\\right| + \\left|${nfFirst(f2)}\\right|\\) ＝ ？`,
                answer: ans, type:'fraction' };
     } else if (t === 1) {
-      // 確保結果 ≥ 0 且非零
       const [big, sm] = af1.num * af2.den >= af2.num * af1.den ? [f1, f2] : [f2, f1];
       const abig = frac(Math.abs(big.num), big.den), asm = frac(Math.abs(sm.num), sm.den);
       const ans = fsub(abig, asm);
-      if (ans.num === 0) return null; // 篩掉結果為 0
+      if (ans.num === 0) return null;
       return { question:`\\(\\left|${nfFirst(big)}\\right| - \\left|${nfFirst(sm)}\\right|\\) ＝ ？`,
                answer: ans, type:'fraction' };
-    } else {
+    } else if (t === 2) {
       const ans = fmul(af1, af2);
       if (ans.den > 60 || ans.den === 1) return null;
       return { question:`\\(\\left|${nfFirst(f1)}\\right| \\times \\left|${nfFirst(f2)}\\right|\\) ＝ ？`,
                answer: ans, type:'fraction' };
+    } else {
+      // |f1 + f2|（絕對值內有加法，正負相消）
+      if (f1.num * f2.num >= 0) return null; // 需要異號才有意義
+      const inner = fadd(f1, f2);
+      const ans = frac(Math.abs(inner.num), inner.den);
+      if (ans.num === 0 || ans.den > 60 || ans.den === 1) return null;
+      return { question:`\\(\\left|${nfFirst(f1)} + ${nfTerm(f2)}\\right|\\) ＝ ？`,
+               answer: ans, type:'fraction' };
     }
   } else if (level === 'hard') {
-    // |a/b| × |c/d| - |e/f| × |g/h|（雙積絕對值相減）
+    const t = randInt(0, 1);
     const d3=pick([2,3,4,5,6]), n3=rp(1,d3-1);
     const d4=pick([2,3,4,5,6]), n4=rp(1,d4-1);
     const f3=frac(randInt(0,1)===0 ? n3 : -n3, d3);
     const f4=frac(randInt(0,1)===0 ? n4 : -n4, d4);
     const af3=frac(Math.abs(f3.num), f3.den), af4=frac(Math.abs(f4.num), f4.den);
-    const ans = fsub(fmul(af1,af2), fmul(af3,af4));
-    if (ans.den > 60 || ans.den === 1) return null; // 篩掉整數（含0）
-    return { question:`\\(\\left|${nfFirst(f1)}\\right| \\times \\left|${nfFirst(f2)}\\right| - \\left|${nfFirst(f3)}\\right| \\times \\left|${nfFirst(f4)}\\right|\\) ＝ ？`,
-             answer: ans, type:'fraction' };
+    if (t === 0) {
+      // |a/b| × |c/d| - |e/f| × |g/h|（雙積絕對值相減）
+      const ans = fsub(fmul(af1,af2), fmul(af3,af4));
+      if (ans.den > 60 || ans.den === 1) return null;
+      return { question:`\\(\\left|${nfFirst(f1)}\\right| \\times \\left|${nfFirst(f2)}\\right| - \\left|${nfFirst(f3)}\\right| \\times \\left|${nfFirst(f4)}\\right|\\) ＝ ？`,
+               answer: ans, type:'fraction' };
+    } else {
+      // |f3 + f4| × |f1| × |f2|（絕對值內有加法，再乘積）
+      if (f3.num * f4.num >= 0) return null;
+      const inner = fadd(f3, f4);
+      const absInner = frac(Math.abs(inner.num), inner.den);
+      if (absInner.num === 0) return null;
+      const ans = fmul(fmul(absInner, af1), af2);
+      if (ans.den > 60 || ans.den === 1) return null;
+      return { question:`\\(\\left|${nfFirst(f3)} + ${nfTerm(f4)}\\right| \\times \\left|${nfFirst(f1)}\\right| \\times \\left|${nfFirst(f2)}\\right|\\) ＝ ？`,
+               answer: ans, type:'fraction' };
+    }
   } else {
     const d3 = pick([2,3,4,5,6]);
     const n3 = rp(1, d3-1);
     const f3 = frac(randInt(0,1)===0 ? n3 : -n3, d3);
     const af3 = frac(Math.abs(f3.num), f3.den);
-    const t = randInt(0, 1);
+    const t = randInt(0, 2);
     if (t === 0) {
       // |a/b| × |c/d| + |e/f|
       const ans = fadd(fmul(af1, af2), af3);
       if (ans.den > 60 || ans.den === 1) return null;
       return { question:`\\(\\left|${nfFirst(f1)}\\right| \\times \\left|${nfFirst(f2)}\\right| + \\left|${nfFirst(f3)}\\right|\\) ＝ ？`,
                answer: ans, type:'fraction' };
-    } else {
+    } else if (t === 1) {
       // (|a/b| + |c/d|) × |e/f|
       const ans = fmul(fadd(af1, af2), af3);
       if (ans.den > 60 || ans.den === 1) return null;
       return { question:`\\((\\left|${nfFirst(f1)}\\right| + \\left|${nfFirst(f2)}\\right|) \\times \\left|${nfFirst(f3)}\\right|\\) ＝ ？`,
+               answer: ans, type:'fraction' };
+    } else {
+      // |f1 + f2| + |f3|（絕對值內有加法算式）
+      if (f1.num * f2.num >= 0) return null;
+      const inner = fadd(f1, f2);
+      const absInner = frac(Math.abs(inner.num), inner.den);
+      if (absInner.num === 0) return null;
+      const ans = fadd(absInner, af3);
+      if (ans.den > 60 || ans.den === 1) return null;
+      return { question:`\\(\\left|${nfFirst(f1)} + ${nfTerm(f2)}\\right| + \\left|${nfFirst(f3)}\\right|\\) ＝ ？`,
                answer: ans, type:'fraction' };
     }
   }
@@ -1418,30 +1494,20 @@ function _7aExp(level) {
       return { question:`\\(\\dfrac{${a}^{${m}}}{${a}^{${n}}} = ${a}^x\\)`, answer: m-n, type:'number', answerPrefix:'x' };
     }
   } else if (level === 'medium') {
-    const t = randInt(0, 6);
+    const t = randInt(0, 3);
     if (t === 0) {
-      // 求指數：(a^m)^n = a^x
-      const a = pick([2,3,4,5]);
-      const m = rp(2,4), n = rp(2,4);
-      return { question:`\\((${a}^{${m}})^{${n}} = ${a}^x\\)`, answer: m*n, type:'number', answerPrefix:'x' };
-    } else if (t === 1) {
-      // 求指數：(a^m × a^n)^p = a^x
-      const a = pick([2,3,5]);
-      const m = rp(1,4), n = rp(1,4), p = rp(2,3);
-      return { question:`\\((${a}^{${m}} \\times ${a}^{${n}})^{${p}} = ${a}^x\\)`, answer: (m+n)*p, type:'number', answerPrefix:'x' };
-    } else if (t === 2) {
       // 求值：a^m × a^n（先用指數律合併再求值）
       const a = pick([2,3,4]);
       const m = rp(1,3), n = rp(1,3);
       if (m+n > 6) return null;
       return { question:`\\(${a}^{${m}} \\times ${a}^{${n}}\\)`, answer: Math.pow(a,m+n), type:'number' };
-    } else if (t === 3) {
+    } else if (t === 1) {
       // 求值：(a^m)^n（先用冪次律再求值）
       const a = pick([2,3]);
       const m = rp(2,3), n = rp(2,3);
       if (Math.pow(a,m*n) > 1000) return null;
       return { question:`\\((${a}^{${m}})^{${n}}\\)`, answer: Math.pow(a,m*n), type:'number' };
-    } else if (t === 4) {
+    } else if (t === 2) {
       // 求底數：a^n = k，求 a
       const a = pick([2,3,4,5]);
       const n = pick([2,3]);
@@ -1450,18 +1516,11 @@ function _7aExp(level) {
         ? `正整數 \\(a\\) 滿足 \\(a^{2} = ${k}\\)`
         : `\\(a^{${n}} = ${k}\\)`;
       return { question:q, answer:a, type:'number', answerPrefix:'a' };
-    } else if (t === 5) {
+    } else {
       // 分數形式求指數：(a^m)^n / a^p = a^x
       const a = pick([2,3,5]);
       const m = rp(2,3), n = rp(2,3), p = rp(1, m*n-1);
       return { question:`\\(\\dfrac{(${a}^{${m}})^{${n}}}{${a}^{${p}}} = ${a}^x\\)`, answer: m*n-p, type:'number', answerPrefix:'x' };
-    } else {
-      // 分數求值：(a^m × a^n) / a^p
-      const a = pick([2,3,4]);
-      const m = rp(2,4), n = rp(1,3), p = rp(1, m+n-1);
-      const x = m+n-p;
-      if (Math.pow(a,x) > 512) return null;
-      return { question:`\\(\\dfrac{${a}^{${m}} \\times ${a}^{${n}}}{${a}^{${p}}}\\)`, answer: Math.pow(a,x), type:'number' };
     }
   } else {
     // hard
