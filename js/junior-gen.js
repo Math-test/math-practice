@@ -3900,7 +3900,7 @@ function _7bIneq(level) {
   const rf=(n,d)=>{if(!d)return null;const g=_gcd(Math.abs(n),Math.abs(d));let rv=n/g,dv=d/g;return dv<0?{n:-rv,d:-dv}:{n:rv,d:dv};};
 
   if (level==='basic') {
-    const t=randInt(0,1);
+    const t=randInt(0,3);
     if (t===0) {
       // ax + b [sym] c，答案為整數
       const a=rnzInt(-5,5), b=randInt(-8,8), x0=randInt(-8,8);
@@ -3910,7 +3910,7 @@ function _7bIneq(level) {
       const lhs=_polyStr([{c:a,v:'x'},{c:b,v:''}]);
       return { question:`解不等式 \\(${lhs} ${ltx[origSym]} ${c}\\)`,
                answer:frac(x0), type:'fraction', sym:resultSym };
-    } else {
+    } else if (t===1) {
       // ax+b [sym] cx+d，整數答案（兩側均有 x，基礎移項）
       const a=rnzInt(-4,4), b=randInt(-6,6), c=rnzInt(-4,4), x0=randInt(-5,5);
       if (a===c) return null;
@@ -3922,9 +3922,53 @@ function _7bIneq(level) {
       const rhs=_polyStr([{c:c,v:'x'},{c:d,v:''}]);
       return { question:`解不等式 \\(${lhs} ${ltx[origSym]} ${rhs}\\)`,
                answer:frac(x0), type:'fraction', sym:resultSym };
+    } else if (t===2) {
+      // 三角形面積不等式，求 x 最小/最大整數值
+      const fixed=pick([8,10,12,14,16,18,20]);
+      const av=pick([2,3,4]), bh=rp(1,5);
+      const x0=rp(1,5);
+      const thresh=fixed*(av*x0+bh)/2;
+      if(!Number.isInteger(thresh)||thresh<8||thresh>120) return null;
+      const dirGt=randInt(0,1)===0; // true: 面積>thresh → x>x0 → 最小整數 x0+1
+      const ans=dirGt?x0+1:x0-1;
+      if(ans<=0) return null;
+      const symStr=dirGt?'大於':'小於';
+      const kindStr=dirGt?'最小':'最大';
+      const vExpr=`${av===1?'':av}x+${bh}`;
+      const useBaseX=randInt(0,1)===0; // x在底(true)或高(false)
+      const baseStr=useBaseX?`\\(${vExpr}\\) 公分`:`${fixed} 公分`;
+      const htStr=useBaseX?`${fixed} 公分`:`\\(${vExpr}\\) 公分`;
+      return {
+        question:`有一個三角形的底長為 ${baseStr}，高為 ${htStr}，欲使這三角形面積${symStr} ${thresh} 平方公分，則 \\(x\\) 的${kindStr}整數值為`,
+        answer:ans, type:'number'
+      };
+    } else if (t===3) {
+      const sub=randInt(0,1);
+      if(sub===0) {
+        // 存錢文字題：現有savings，每天存daily，至少存幾天
+        const savings=pick([200,300,450,500,600]);
+        const daily=pick([10,15,20,25,30,50]);
+        const minDays=pick([10,12,15,18,20,25]);
+        const r=rp(1,daily-1);
+        const target=savings+daily*minDays-r;
+        if(target<=savings||target>5000) return null;
+        return {
+          question:`小明現有儲蓄 ${savings} 元，每天存零用錢 ${daily} 元，計劃購買一件定價 ${target} 元的商品，則至少需要再存幾天才能買到？`,
+          answer:minDays, type:'number'
+        };
+      } else {
+        // 停車場文字題：最多停幾小時
+        const fee=pick([20,25,30,40,50,60]);
+        const hours=rp(3,8);
+        const total=fee*hours;
+        return {
+          question:`停車場每小時收費 ${fee} 元（不足一小時以一小時計），小明共付停車費 ${total} 元，則他最多停了幾小時？`,
+          answer:hours, type:'number'
+        };
+      }
     }
   } else if (level==='medium') {
-    const t=randInt(0,3);
+    const t=randInt(0,7);
     if (t===0) {
       // ax+b [sym] cx+d，答案可為分數
       const a=rnzInt(-7,7), b=randInt(-10,10), c=rnzInt(-7,7), d=randInt(-10,10);
@@ -3977,8 +4021,8 @@ function _7bIneq(level) {
       const lhsC=a===0?'':(a>0?` + ${a}`:` - ${-a}`);
       return { question:`解不等式 \\(${lhsX}${lhsC} ${ltx[origSym]} ${b}\\)`,
                answer:frac(xR.n,xR.d), type:'fraction', sym:origSym };
-    } else {
-      // t===4: 給解求參數 a（不等式 px+q ≤ ax+r 的解為 x≥k，求a）
+    } else if (t===4) {
+      // 給解求參數 a（不等式 px+q ≤ ax+r 的解為 x≥k，求a）
       const pm=randInt(1,3);                        // LHS 係數 p
       const kv=pick([-6,-5,-4,-3,-2,-1,1,2,3,4,5,6]); // 給定的解端點 k
       const mv=randInt(-4,-1);                       // p-a = m < 0
@@ -3989,9 +4033,76 @@ function _7bIneq(level) {
       if(Math.abs(rv)>18) return null;
       const lhsM=_polyStr([{c:pm,v:'x'},{c:qv,v:''}]);
       const rhsM=(rv===0?'ax':rv>0?`ax+${rv}`:`ax${rv}`);
-      const kvStr=kv>=0?String(kv):String(kv);
+      const kvStr=String(kv);
       return { question:`不等式 \\(${lhsM} \\leq ${rhsM}\\) 的解為 \\(x \\geq ${kvStr}\\)，則 \\(a\\) 的值為`,
                answer:av, type:'number', answerPrefix:'\\(a\\)' };
+    } else if (t===5) {
+      // 梯形面積不等式，下列哪個數是解（四選一）
+      const at5=rp(2,6), ht5=pick([2,3,4,6]);
+      const x0=rp(6,14);
+      const thresh5=(at5+x0)*ht5/2;
+      if(!Number.isInteger(thresh5)) return null;
+      const correctVal=x0-rp(1,3);
+      if(correctVal<=0) return null;
+      const w1=x0+rp(2,4), w2=x0+rp(5,7), w3=x0+rp(8,11);
+      const pos5=randInt(0,3);
+      const opts5=[w1,w2,w3];
+      opts5.splice(pos5,0,correctVal);
+      const letters5=['A','B','C','D'];
+      const optStr5=letters5.map((l,i)=>`（${l}）${opts5[i]}`).join('');
+      return {
+        question:`一梯形的上底是 ${at5} 公分，下底為 \\(x\\) 公分，高為 ${ht5} 公分，面積不大於 ${thresh5} 平方公分。下列哪一數為使此不等式成立的解？${optStr5}`,
+        answer:letters5[pos5], type:'text', answerPrefix:'選'
+      };
+    } else if (t===6) {
+      const sub6=randInt(0,1);
+      if(sub6===0) {
+        // 銀行單利存款，本利和≥目標，求最少幾個月
+        const principal=pick([10000,20000,30000,50000]);
+        const ratePct=pick([0.5,1,1.5,2]);
+        const ratio=pick([1.2,1.3,1.4,1.5]);
+        const target=Math.round(principal*ratio/1000)*1000;
+        if(target<=principal) return null;
+        const xMin=(target/principal-1)*100/ratePct;
+        const ans6=Math.ceil(xMin);
+        if(ans6<=1||ans6>200) return null;
+        if(principal*(1+ratePct/100*(ans6-1))>=target) return null;
+        return {
+          question:`銀行存款單利月利率 ${ratePct}%，若現在存入 ${principal} 元，則至少須經過幾個月後，本利和才能達到 ${target} 元？`,
+          answer:ans6, type:'number'
+        };
+      } else {
+        // 年齡應用：幾年後子年齡超過父年齡一半
+        const childAge=pick([8,10,12,14,15,16]);
+        const ageDiff=pick([20,22,24,25,26,28,30]);
+        const parentAge=childAge+ageDiff;
+        // childAge+x > (parentAge+x)/2 → x > parentAge-2*childAge
+        const boundary=parentAge-2*childAge;
+        if(boundary<=0||boundary>20) return null;
+        const pair=pick([['父親','兒子'],['媽媽','女兒'],['爸爸','女兒']]);
+        return {
+          question:`${pair[0]}今年 ${parentAge} 歲，${pair[1]}今年 ${childAge} 歲，至少再過幾年後，${pair[1]}的年齡才會超過${pair[0]}年齡的一半？`,
+          answer:boundary+1, type:'number'
+        };
+      }
+    } else if (t===7) {
+      // 一元一次不等式的最大/最小整數解（邊界為非整數）
+      const a=rnzInt(-5,5), b=randInt(-8,8), c=rnzInt(-5,5), d=randInt(-8,8);
+      if(a===c) return null;
+      const num=d-b, den=a-c;
+      if(Number.isInteger(num/den)) return null; // 整數邊界跳過
+      const xBound=num/den;
+      if(Math.abs(xBound)>12) return null;
+      const origSym=pick(allSyms);
+      const resultSym=(a-c)>0?origSym:flip[origSym];
+      const intAns=(resultSym==='>'||resultSym==='≥')?Math.ceil(xBound):Math.floor(xBound);
+      const kindStr=(resultSym==='>'||resultSym==='≥')?'最小':'最大';
+      const lhs7=_polyStr([{c:a,v:'x'},{c:b,v:''}]);
+      const rhs7=_polyStr([{c:c,v:'x'},{c:d,v:''}]);
+      return {
+        question:`一元一次不等式 \\(${lhs7} ${ltx[origSym]} ${rhs7}\\) 的${kindStr}整數解為`,
+        answer:intAns, type:'number'
+      };
     }
   } else { // hard
     const t=randInt(0,5);
