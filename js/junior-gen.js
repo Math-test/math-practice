@@ -1893,6 +1893,286 @@ function _7aExpArith(level) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+//  七上 ▸ 整數指數律（指數律 + 科學記號 + 整數四則）
+// ═══════════════════════════════════════════════════════════════════
+
+function _7aIntExpArith(level) {
+  const pw = (a, n) => Math.pow(a, n);
+  if (level === 'basic') {
+    const t = randInt(0, 3);
+    if (t === 0) {
+      const a = pick([2,3,4,5,6,7,8]), m = rp(2,3);
+      const b = pick([2,3,4,5,6,7]), n = rp(2,3);
+      const c = pick([2,3,4,5,6]), p = rp(2,3);
+      const val = pw(a,m) + pw(b,n) - pw(c,p);
+      if (val <= 0 || val > 600) return null;
+      return { question:`\\(${a}^{${m}} + ${b}^{${n}} - ${c}^{${p}}\\)`, answer:val, type:'number' };
+    } else if (t === 1) {
+      const a = pick([2,3,4,5,6]), m = rp(2,3);
+      const b = rp(2,20);
+      const c = pick([2,3,4,5,6]);
+      const val = (pw(a,m) + b) * c;
+      if (val > 700) return null;
+      return { question:`\\((${a}^{${m}} + ${b}) \\times ${c}\\)`, answer:val, type:'number' };
+    } else if (t === 2) {
+      const a = pick([2,3,4,5,6]);
+      const b = pick([3,4,5,6,7,8]), n = rp(2,3);
+      const c = pick([2,3,4,5,6]), m = rp(2,3);
+      const inner = pw(b,n) - pw(c,m);
+      if (inner <= 0 || inner * a > 700) return null;
+      return { question:`\\(${a} \\times (${b}^{${n}} - ${c}^{${m}})\\)`, answer:inner*a, type:'number' };
+    } else {
+      const a = pick([2,3,4,5,6]), m = rp(2,3);
+      const b = pick([2,3,4,5,6]), n = rp(2,3);
+      const c = pick([2,3,4,5,6,7,8,9]), p = rp(2,3);
+      const val = pw(a,m)*pw(b,n) + pw(c,p);
+      if (val > 700) return null;
+      return { question:`\\(${a}^{${m}} \\times ${b}^{${n}} + ${c}^{${p}}\\)`, answer:val, type:'number' };
+    }
+  } else if (level === 'medium') {
+    const t = randInt(0, 3);
+    if (t === 0) {
+      const d = pick([2,3,4,5,6]), p = rp(2,3);
+      const c = rp(2,15);
+      const inner = c + pw(d,p);
+      const b = pick([4,5,6,7,8,9,10,11,12]), n = rp(2,3);
+      const mid = pw(b,n) - inner;
+      if (mid <= 0) return null;
+      const a = pick([2,3,4,5,6]);
+      if (mid * a > 900) return null;
+      return { question:`\\(${a} \\times \\left[${b}^{${n}} - (${c} + ${d}^{${p}})\\right]\\)`, answer:mid*a, type:'number' };
+    } else if (t === 1) {
+      const a = pick([3,4,5,6,7,8,9]), m = rp(2,3);
+      const b = pick([3,4,5,6,7,8,9]), n = rp(2,3);
+      const c = pick([2,3,4,5,6]);
+      const d = pick([2,3,4,5,6]), p = rp(2,3);
+      const val = pw(a,m) + pw(b,n) - c * pw(d,p);
+      if (val <= 0 || val > 900) return null;
+      return { question:`\\(\\left[${a}^{${m}} + ${b}^{${n}}\\right] - ${c} \\times ${d}^{${p}}\\)`, answer:val, type:'number' };
+    } else if (t === 2) {
+      const a = pick([3,4,5,6,7,8,9,10]), m = rp(2,3);
+      const b = rp(2, Math.min(pw(a,m)-1, 30));
+      const d = pick([2,3,4,5,6,7]), n = rp(2,3);
+      const c = rp(2,20);
+      const val = (pw(a,m) - b) * (c + pw(d,n));
+      if (val <= 0 || val > 900) return null;
+      return { question:`\\((${a}^{${m}} - ${b}) \\times (${c} + ${d}^{${n}})\\)`, answer:val, type:'number' };
+    } else {
+      const b = pick([3,4,5,6,7,8,9,10]), n = rp(2,3);
+      const c = rp(2, Math.min(pw(b,n)-1, 30));
+      const a = pick([2,3,4,5,6,7]), m = rp(2,3);
+      const d = pick([2,3,4,5,6,7,8,9,10,11,12]), p = rp(2,3);
+      const val = pw(a,m) * (pw(b,n) - c) + pw(d,p);
+      if (val <= 0 || val > 900) return null;
+      return { question:`\\(${a}^{${m}} \\times \\left[${b}^{${n}} - ${c}\\right] + ${d}^{${p}}\\)`, answer:val, type:'number' };
+    }
+  } else {
+    const t = randInt(0, 3);
+    if (t === 0) {
+      const b = pick([2,3,4,5,6,7,8]), n = rp(2,3);
+      const c = pick([2,3,4,5,6,7,8]), p = rp(2,3);
+      const inner = pw(b,n) + pw(c,p);
+      const a = pick([5,6,7,8,9,10,11,12,13,14]), m = rp(2,3);
+      if (pw(a,m) <= inner) return null;
+      const d = pick([2,3,4,5,6]);
+      const val = (pw(a,m) - inner) * d;
+      if (val <= 0 || val > 1200) return null;
+      return {
+        question:`\\(\\left\\{${a}^{${m}} - \\left[${b}^{${n}} + ${c}^{${p}}\\right]\\right\\} \\times ${d}\\)`,
+        answer:val, type:'number'
+      };
+    } else if (t === 1) {
+      const d = pick([3,4,5,6,7,8,9]), p = rp(2,3);
+      const e = pick([2,3,4,5,6,7]), q = rp(2,3);
+      if (pw(d,p) <= pw(e,q)) return null;
+      const innerR = pw(d,p) - pw(e,q);
+      const b = pick([2,3,4,5,6,7,8,9]), m = rp(2,3);
+      const c = pick([2,3,4,5,6,7,8]), n = rp(2,3);
+      const innerL = pw(b,m) + pw(c,n);
+      if (innerL <= innerR) return null;
+      const a = pick([2,3,4,5,6]);
+      const val = a * (innerL - innerR);
+      if (val <= 0 || val > 1200) return null;
+      return {
+        question:`\\(${a} \\times \\left\\{\\left[${b}^{${m}} + ${c}^{${n}}\\right] - (${d}^{${p}} - ${e}^{${q}})\\right\\}\\)`,
+        answer:val, type:'number'
+      };
+    } else if (t === 2) {
+      const c = pick([2,3,4,5,6,7]), n = rp(2,3);
+      const a = pick([4,5,6,7,8,9,10,11,12]), m = rp(2,3);
+      const maxB = Math.max(pw(a,m) - pw(c,n) - 1, 1);
+      const b = rp(2, Math.min(maxB, 30));
+      const innerA = pw(a,m) - b - pw(c,n);
+      if (innerA <= 0) return null;
+      const d = pick([2,3,4,5,6,7,8,9]), p = rp(2,3);
+      const e = rp(2,20);
+      const val = innerA * (pw(d,p) + e);
+      if (val <= 0 || val > 1200) return null;
+      return {
+        question:`\\(\\left[${a}^{${m}} - (${b} + ${c}^{${n}})\\right] \\times (${d}^{${p}} + ${e})\\)`,
+        answer:val, type:'number'
+      };
+    } else {
+      const b = pick([3,4,5,6,7,8,9,10,11,12]), n = rp(2,3);
+      const c = rp(2, Math.min(pw(b,n)-1, 30));
+      const a = pick([2,3,4,5,6,7,8]), m = rp(2,3);
+      const d = pick([2,3,4,5,6,7,8,9,10,11,12]), p = rp(2,3);
+      const val = pw(a,m) * (pw(b,n) - c) + pw(d,p);
+      if (val <= 0 || val > 1200) return null;
+      return {
+        question:`\\(\\left\\{${a}^{${m}} \\times \\left[${b}^{${n}} - ${c}\\right]\\right\\} + ${d}^{${p}}\\)`,
+        answer:val, type:'number'
+      };
+    }
+  }
+}
+
+function gen7aIntExp(level) {
+  for (let i = 0; i < 30; i++) {
+    const r = randInt(0, 2);
+    let q;
+    if (r === 0) {
+      q = _7aExp(level);
+      if (q) { q.inlineAnswer = true; return q; }
+    } else if (r === 1) {
+      q = _7aSci(level);
+      if (q) return q;
+    } else {
+      q = _7aIntExpArith(level);
+      if (q) { q.inlineAnswer = true; return q; }
+    }
+  }
+  const q = _7aExp('basic');
+  if (q) q.inlineAnswer = true;
+  return q;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  七上 ▸ 分數指數律
+// ═══════════════════════════════════════════════════════════════════
+
+function _7aFracExp(level) {
+  function xgcd(a, b) { return b === 0 ? Math.abs(a) : xgcd(b, a % b); }
+  function fStr(n, d) {
+    const g = xgcd(Math.abs(n), d);
+    const sn = n/g, sd = d/g;
+    return sd === 1 ? `${sn}` : `${sn}/${sd}`;
+  }
+  function fAdd(n1,d1,n2,d2) { return [n1*d2+n2*d1, d1*d2]; }
+  function fSub(n1,d1,n2,d2) { return [n1*d2-n2*d1, d1*d2]; }
+  function fMul(n1,d1,n2,d2) { return [n1*n2, d1*d2]; }
+  const pw = (a, n) => Math.pow(a, n);
+
+  if (level === 'basic') {
+    const t = randInt(0, 1);
+    if (t === 0) {
+      const a = pick([2,3,4,5,6,7,8,9,10,11,12]), n = rp(2,3);
+      const den = pw(a,n);
+      if (den > 1500) return null;
+      return {
+        question:`\\(\\left(\\dfrac{1}{${a}}\\right)^{${n}}\\) ＝ ？（格式：1/8）`,
+        answer:`1/${den}`, type:'text', answerPrefix:''
+      };
+    } else {
+      const pairs = [[1,2],[1,3],[2,3],[1,4],[3,4],[1,5],[2,5]];
+      const [a,b] = pick(pairs);
+      const n = rp(2,3);
+      const aFrac = a===1?`\\dfrac{1}{${b}}`:`\\dfrac{${a}}{${b}}`;
+      return {
+        question:`\\(\\left(${aFrac}\\right)^{${n}}\\) ＝ ？（格式：p/q）`,
+        answer: fStr(pw(a,n), pw(b,n)), type:'text', answerPrefix:''
+      };
+    }
+  } else if (level === 'medium') {
+    const t = randInt(0, 2);
+    if (t === 0) {
+      const a = pick([2,3,4,5,6,7,8,9,10,11,12]), m = rp(2,3);
+      const b = pick([2,3,4,5,6,7,8,9,10,11,12]), n = rp(2,3);
+      const d1 = pw(a,m), d2 = pw(b,n);
+      const [rn, rd] = fAdd(1, d1, 1, d2);
+      if (rd > 2000) return null;
+      return {
+        question:`\\(\\left(\\dfrac{1}{${a}}\\right)^{${m}} + \\left(\\dfrac{1}{${b}}\\right)^{${n}}\\) ＝ ？（格式：p/q）`,
+        answer: fStr(rn,rd), type:'text', answerPrefix:''
+      };
+    } else if (t === 1) {
+      const smallPairs = [[1,2],[1,3],[2,3],[1,4],[3,4],[1,5],[2,5]];
+      const [a,b] = pick(smallPairs);
+      const m = rp(2,3);
+      const c = pick([2,3,4,6,8,9,12,16,18,25,27]);
+      const rn = c * pw(a,m), rd = pw(b,m);
+      const g = xgcd(rn, rd);
+      if (rd/g > 1000) return null;
+      const aFrac = a===1?`\\dfrac{1}{${b}}`:`\\dfrac{${a}}{${b}}`;
+      return {
+        question:`\\(${c} \\times \\left(${aFrac}\\right)^{${m}}\\) ＝ ？（格式：p/q 或整數）`,
+        answer: fStr(rn,rd), type:'text', answerPrefix:''
+      };
+    } else {
+      const pairs = [[1,2],[1,3],[2,3],[1,4],[3,4],[1,5],[2,5],[3,5]];
+      const [a,b] = pick(pairs);
+      const [c,d] = pick(pairs);
+      const m = rp(2,3), n = rp(2,3);
+      const [rn, rd] = fMul(pw(a,m), pw(b,m), pw(c,n), pw(d,n));
+      if (rd > 1500 || rn === 0) return null;
+      const aFrac = a===1?`\\dfrac{1}{${b}}`:`\\dfrac{${a}}{${b}}`;
+      const cFrac = c===1?`\\dfrac{1}{${d}}`:`\\dfrac{${c}}{${d}}`;
+      return {
+        question:`\\(\\left(${aFrac}\\right)^{${m}} \\times \\left(${cFrac}\\right)^{${n}}\\) ＝ ？（格式：p/q 或整數）`,
+        answer: fStr(rn,rd), type:'text', answerPrefix:''
+      };
+    }
+  } else {
+    const t = randInt(0, 2);
+    if (t === 0) {
+      const pairs = [[2,3],[3,2],[2,5],[3,5],[5,3],[5,2],[4,3],[3,4],[7,3],[3,7],[5,4],[4,5]];
+      const [a,b] = pick(pairs);
+      const m = rp(2,3), n = rp(2,3);
+      return {
+        question:`\\(${a}^{${m}} \\div ${b}^{${n}}\\) ＝ ？（格式：p/q）`,
+        answer: fStr(pw(a,m),pw(b,n)), type:'text', answerPrefix:''
+      };
+    } else if (t === 1) {
+      const pairs = [[1,2],[1,3],[2,3],[1,4],[3,4],[1,5],[2,5],[3,5],[1,6],[1,7],[1,8],[1,9],[1,10]];
+      const [a,b] = pick(pairs);
+      const [c,d] = pick(pairs);
+      const m = rp(2,3), n = rp(2,3);
+      const n1=pw(a,m), d1=pw(b,m), n2=pw(c,n), d2=pw(d,n);
+      const op = randInt(0,1) === 0 ? '+' : '-';
+      const [rn, rd] = op==='+' ? fAdd(n1,d1,n2,d2) : fSub(n1,d1,n2,d2);
+      if (rn <= 0 || rd > 3000) return null;
+      const aFrac = a===1?`\\dfrac{1}{${b}}`:`\\dfrac{${a}}{${b}}`;
+      const cFrac = c===1?`\\dfrac{1}{${d}}`:`\\dfrac{${c}}{${d}}`;
+      return {
+        question:`\\(\\left(${aFrac}\\right)^{${m}} ${op} \\left(${cFrac}\\right)^{${n}}\\) ＝ ？（格式：p/q）`,
+        answer: fStr(rn,rd), type:'text', answerPrefix:''
+      };
+    } else {
+      const pairs = [[1,2],[2,3],[1,3],[3,4],[1,4],[2,5],[3,5],[1,5],[1,6],[1,7],[1,8],[1,9]];
+      const [a,b] = pick(pairs);
+      const [c,d] = pick(pairs);
+      const m = rp(2,3), n = rp(2,3);
+      const [rn, rd] = fMul(pw(a,m), pw(b,m), pw(c,n), pw(d,n));
+      if (rd > 3000 || rn === 0) return null;
+      const aFrac = a===1?`\\dfrac{1}{${b}}`:`\\dfrac{${a}}{${b}}`;
+      const cFrac = c===1?`\\dfrac{1}{${d}}`:`\\dfrac{${c}}{${d}}`;
+      return {
+        question:`\\(\\left(${aFrac}\\right)^{${m}} \\times \\left(${cFrac}\\right)^{${n}}\\) ＝ ？（格式：p/q 或整數）`,
+        answer: fStr(rn,rd), type:'text', answerPrefix:''
+      };
+    }
+  }
+}
+
+function gen7aFracExp(level) {
+  for (let i = 0; i < 20; i++) {
+    const q = _7aFracExp(level);
+    if (q) return q;
+  }
+  return _7aFracExp('basic');
+}
+
+// ═══════════════════════════════════════════════════════════════════
 //  七下 輔助
 // ═══════════════════════════════════════════════════════════════════
 
@@ -7450,9 +7730,8 @@ const JR_GENERATORS = {
   '7a-gcd-lcm':   gen7aGcdLcm,
   '7a-prime':     gen7aPrime,
   // 七上 指數律與科學記號
-  '7a-exp':       gen7aExp,
-  '7a-exp-arith': gen7aExpArith,
-  '7a-sci':       gen7aSci,
+  '7a-int-exp':  gen7aIntExp,
+  '7a-frac-exp': gen7aFracExp,
   // 七上 一元一次式與方程式
   '7a-poly':      gen7aPoly,
   '7a-eqn':       gen7aEqn,
