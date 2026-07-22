@@ -1611,7 +1611,7 @@ function _7aSciPlaceVal() {
 
 function _7aSci(level) {
   if (level === 'basic') {
-    const t = randInt(0, 3);
+    const t = randInt(0, 4);
     if (t === 0) {
       // 原有：正指數科學記號 ↔ 標準形式互換
       const [coef, exp, std] = pick(_SCI_POS);
@@ -1628,11 +1628,14 @@ function _7aSci(level) {
       const coef = pick(['1.2','2.5','3.4','4.6','5.6','6.3','7.5','8.1','9.2']);
       const n = randInt(3, 7);
       return { question: `若 \\(A = ${coef}\\times 10^{${n}}\\)，則 \\(A\\) 展開後是幾位數？`, answer: n + 1, type: 'number' };
-    } else {
+    } else if (t === 3) {
       // 末尾有幾個0（係數有1位非零小數，末位補零數 = n-1）
       const coef = pick(['1.2','2.4','3.6','4.2','5.4','6.3','7.5','8.1','9.2']);
       const n = randInt(3, 7);
       return { question: `若 \\(A = ${coef}\\times 10^{${n}}\\)，則 \\(A\\) 展開後末尾共有幾個 0？`, answer: n - 1, type: 'number' };
+    } else {
+      // 比較大小
+      return _7aSciCompare();
     }
   } else if (level === 'hard') {
     // 困難：乘法完整科學記號 / 除法完整科學記號 / 單位換算
