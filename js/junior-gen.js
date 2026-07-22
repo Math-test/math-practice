@@ -3323,8 +3323,8 @@ function _7bRatio(level) {
     const p=rnzInt(1,8), q=rnzInt(1,8), k=rnzInt(2,6);
     if(p===q) return null; // 避免出現 k:k 型等比
     const c=p*k, d=q*k;
-    const t=randInt(0,6);
-    // t=5: a:b=p:q，求比值 a/b（即 p/q 的分數）
+    const t=randInt(0,8);
+    // t=5: a:b=p:q，求比值 a/b
     if(t===5){
       const pa=randInt(1,8),qa=randInt(1,8);
       if(pa===qa) return null;
@@ -3335,6 +3335,29 @@ function _7bRatio(level) {
       const pa=randInt(1,7),qa=randInt(1,7),ka=randInt(2,8);
       if(pa===qa) return null;
       return {question:`\\(a:b=${pa}:${qa}\\)，\\(a=${pa*ka}\\)，求 \\(b\\)`,answer:qa*ka,type:'number',answerPrefix:'\\(b\\)'};
+    }
+    // t=7: 化簡分數比
+    if(t===7){
+      const p1=pick([2,3,4,5,6]), q1=pick([2,3,4,5,6].filter(v=>v!==p1));
+      const a2=rp(1,p1-1), b2=rp(1,q1-1);
+      if(_gcd(a2,p1)!==1||_gcd(b2,q1)!==1) return null;
+      const L=p1*q1/_gcd(p1,q1);
+      const A2=a2*(L/p1), B2=b2*(L/q1);
+      const gAB=_gcd(A2,B2);
+      const rA=A2/gAB, rB=B2/gAB;
+      if(rA===rB||rA>30||rB>30) return null;
+      return {question:`化簡 \\(\\dfrac{${a2}}{${p1}}:\\dfrac{${b2}}{${q1}}\\) ＝ ？（請填最簡整數比）`,answer:`${rA}:${rB}`,type:'text',answerPrefix:'最簡整數比'};
+    }
+    // t=8: 速率比
+    if(t===8){
+      const T1=rp(1,4), D1=rp(2,15), T2=rp(1,4), D2=rp(2,15);
+      if(D1*T2===D2*T1) return null;
+      const AN=D1*T2, AD=D2*T1;
+      const gv=_gcd(AN,AD);
+      const rV1=AN/gv, rV2=AD/gv;
+      if(rV1>30||rV2>30) return null;
+      const names=pick([['甲','乙'],['小明','小華'],['阿東','阿西']]);
+      return {question:`${names[0]}每 ${T1} 小時走 ${D1} 公里，${names[1]}每 ${T2} 小時走 ${D2} 公里，則${names[0]}的速率：${names[1]}的速率 ＝ ？（請填最簡整數比）`,answer:`${rV1}:${rV2}`,type:'text',answerPrefix:'速率比'};
     }
     if (t < 4) {
       const cases=[
@@ -3354,7 +3377,7 @@ function _7bRatio(level) {
     return { question:`比例式 \\(x:\\frac{${fp1}}{${fq1}}=${r}:${s}\\)，求 \\(x\\)`,
              answer:frac(xNum2/gx2,xDen2/gx2), type:'fraction', answerPrefix:'x' };
   } else if (level==='medium') {
-    const mt=randInt(0,2);
+    const mt=randInt(0,5);
     if(mt===2){
       // a:b=p:q，求 a/(a+b) 的分數值
       const pa=randInt(1,8),qa=randInt(1,8);
@@ -3372,29 +3395,142 @@ function _7bRatio(level) {
       return { question:`比例式 \\((${inner}):${c}=${d}:${e}\\)，求 \\(x\\)`,
                answer:frac(xR.n,xR.d), type:'fraction', answerPrefix:'x' };
     }
-    // mt===1: (ax+b):(p/q) = c:d
-    const fq=pick([2,3,4,5,6]), fp=pick([1,2,3,4,5].filter(v=>_gcd(v,fq)===1));
-    const c=rnzInt(1,15), d=rnzInt(1,12);
-    const a=rnzInt(1,10), b=randInt(-12,12);
-    const rhs=rf(c*fp, fq*d);
-    const xR=rf(rhs.n - b*rhs.d, a*rhs.d);
-    if (xR.d>8||Math.abs(xR.n)>24) return null;
-    const inner=_polyStr([{c:a,v:'x'},{c:b,v:''}]);
-    return { question:`比例式 \\((${inner}):\\frac{${fp}}{${fq}}=${c}:${d}\\)，求 \\(x\\)`,
-             answer:frac(xR.n,xR.d), type:'fraction', answerPrefix:'x' };
+    if (mt===1) {
+      // (ax+b):(p/q) = c:d
+      const fq=pick([2,3,4,5,6]), fp=pick([1,2,3,4,5].filter(v=>_gcd(v,fq)===1));
+      const c=rnzInt(1,15), d=rnzInt(1,12);
+      const a=rnzInt(1,10), b=randInt(-12,12);
+      const rhs=rf(c*fp, fq*d);
+      const xR=rf(rhs.n - b*rhs.d, a*rhs.d);
+      if (xR.d>8||Math.abs(xR.n)>24) return null;
+      const inner=_polyStr([{c:a,v:'x'},{c:b,v:''}]);
+      return { question:`比例式 \\((${inner}):\\frac{${fp}}{${fq}}=${c}:${d}\\)，求 \\(x\\)`,
+               answer:frac(xR.n,xR.d), type:'fraction', answerPrefix:'x' };
+    }
+    if (mt===3) {
+      // 代數比值：若 (c1a+d1b):(c2a+d2b) 的比值為 P/Q，求 (e1a+f1b):(e2a+f2b) 的比值
+      const p3=rp(1,6), q3=rp(1,6);
+      if(_gcd(p3,q3)!==1) return null;
+      const c1=rp(1,6),d1=rp(1,6),c2=rp(1,6),d2=rp(1,6);
+      if(c1*d2===c2*d1) return null;
+      const e1=rp(1,6),f1=rp(1,6),e2=rp(1,6),f2=rp(1,6);
+      if(e1*f2===e2*f1) return null;
+      const gN=c1*p3+d1*q3, gD=c2*p3+d2*q3;
+      const aN=e1*p3+f1*q3, aD=e2*p3+f2*q3;
+      if(gD===0||aD===0) return null;
+      const gg3=_gcd(gN,gD), ga3=_gcd(aN,aD);
+      const GN=gN/gg3, GD=gD/gg3, AN3=aN/ga3, AD3=aD/ga3;
+      if(GN>30||GD>20||AN3>60||AD3>30) return null;
+      const gStr=GD===1?`${GN}`:`\\dfrac{${GN}}{${GD}}`;
+      const abExpr=(c,d)=>`(${c===1?'':c}a+${d===1?'':d}b)`;
+      return {question:`若 \\(ab\\neq 0\\)，且 \\(${abExpr(c1,d1)}:${abExpr(c2,d2)}\\) 的比值為 \\(${gStr}\\)，則 \\(${abExpr(e1,f1)}:${abExpr(e2,f2)}\\) 的比值為`,answer:frac(AN3,AD3),type:'fraction',answerPrefix:'比值'};
+    }
+    if (mt===4) {
+      // 地圖比例尺距離（km）
+      const N4=pick([100000,200000,300000,500000,1000000]);
+      const D4=rp(1,50);
+      const actual4=D4*N4/100000;
+      if(!Number.isInteger(actual4)||actual4<1||actual4>1000) return null;
+      return {question:`在以 \\(1:${N4}\\) 的比例尺縮小的地圖上，甲、乙兩地距離為 ${D4} 公分，則甲、乙兩地實際距離為多少公里？`,answer:actual4,type:'number'};
+    }
+    // mt===5: (a+b):b=P:Q 且 a+b=S → 求 a,b
+    const P5=rp(2,8), Q5=rp(1,P5-1);
+    if(_gcd(P5,Q5)!==1) return null;
+    const S5=pick([12,15,16,18,20,24,25,28,30,36,40]);
+    if(S5%(P5)!==0) return null; // S must be divisible by P (since a+b=S, b=S*Q/P)
+    const b5=S5*Q5/P5;
+    if(!Number.isInteger(b5)||b5<1) return null;
+    const a5=S5-b5;
+    return {question:`若 \\((a+b):b=${P5}:${Q5}\\)，且 \\(a+b=${S5}\\)，求 \\(a\\) 與 \\(b\\) 的值`,
+      answerParts:[{prefix:'a',answer:a5,type:'number'},{prefix:'b',answer:b5,type:'number'}]};
   } else {
-    // (ax+b):(cx+d)=p:q，大係數，答案可為分數
-    const p=rnzInt(1,12), q=rnzInt(1,12), a=rnzInt(1,10), c=rnzInt(1,10);
-    if(p===q) return null; // 避免 k:k 等比
-    const b=randInt(-12,12), d=randInt(-12,12);
-    const coef=q*a-p*c;
-    if (coef===0) return null;
-    const xR=rf(p*d-q*b, coef);
-    if (xR.d>8||Math.abs(xR.n)>24) return null;
-    const lhs=_polyStr([{c:a,v:'x'},{c:b,v:''}]);
-    const rhs=_polyStr([{c:c,v:'x'},{c:d,v:''}]);
-    return { question:`比例式 \\((${lhs}):(${rhs})=${p}:${q}\\)，求 \\(x\\)`,
-             answer:frac(xR.n,xR.d), type:'fraction', answerPrefix:'x' };
+    // hard
+    const ht=randInt(0,5);
+    if(ht===0){
+      // (ax+b):(cx+d)=p:q，大係數，答案可為分數
+      const p=rnzInt(1,12), q=rnzInt(1,12), a=rnzInt(1,10), c=rnzInt(1,10);
+      if(p===q) return null;
+      const b=randInt(-12,12), d=randInt(-12,12);
+      const coef=q*a-p*c;
+      if (coef===0) return null;
+      const xR=rf(p*d-q*b, coef);
+      if (xR.d>8||Math.abs(xR.n)>24) return null;
+      const lhs=_polyStr([{c:a,v:'x'},{c:b,v:''}]);
+      const rhs=_polyStr([{c:c,v:'x'},{c:d,v:''}]);
+      return { question:`比例式 \\((${lhs}):(${rhs})=${p}:${q}\\)，求 \\(x\\)`,
+               answer:frac(xR.n,xR.d), type:'fraction', answerPrefix:'x' };
+    }
+    if(ht===1){
+      // 年齡比：現在 P:Q，N年後 Pp:Qp，求年齡差
+      const P=rp(2,6), Q=rp(1,P-1);
+      if(_gcd(P,Q)!==1) return null;
+      const N=pick([2,4,5,6,8,10]);
+      const Pp=rp(2,8), Qp=rp(1,Pp-1);
+      if(_gcd(Pp,Qp)!==1) return null;
+      const denom1=Qp*P-Pp*Q, numer1=N*(Pp-Qp);
+      if(denom1<=0||numer1<=0) return null;
+      if(numer1%denom1!==0) return null;
+      const k1=numer1/denom1;
+      if(k1<1||k1>15) return null;
+      const fa=P*k1, sa=Q*k1;
+      if(fa>75||sa<3) return null;
+      return {question:`若父子兩人現在的年齡比為 \\(${P}:${Q}\\)，${N} 年後父子年齡比為 \\(${Pp}:${Qp}\\)，則父子兩人年齡相差多少歲？`,answer:(P-Q)*k1,type:'number'};
+    }
+    if(ht===2){
+      // 繩子按比例剪成兩段，分別圍成正方形，求面積比值
+      const pp=rp(1,9), qp=rp(1,9);
+      if(pp===qp) return null;
+      const gPQ=_gcd(pp,qp), rP=pp/gPQ, rQ=qp/gPQ;
+      const aA2=rP*rP, aB2=rQ*rQ;
+      const gA2=_gcd(aA2,aB2), rAA=aA2/gA2, rBB=aB2/gA2;
+      if(rAA>100||rBB>100) return null;
+      const L=pick([80,100,120,160,200]);
+      return {question:`一繩長為 ${L} 公分，若按 \\(${rP}:${rQ}\\) 的比例剪成兩段後，再將此兩段繩子分別圍成正方形，則大、小兩正方形面積的比值為`,answer:frac(rAA,rBB),type:'fraction',answerPrefix:'面積比值'};
+    }
+    if(ht===3){
+      // 比例分配（三項）
+      const total3=pick([80,90,100,108,120,126,130,140,150]);
+      const fixed3=pick([10,12,15,17,18,20,23,25]);
+      const rem3=total3-fixed3;
+      if(rem3<10) return null;
+      const pp3=rp(2,8), qq3=rp(1,pp3-1);
+      if(_gcd(pp3,qq3)!==1) return null;
+      if(rem3%(pp3+qq3)!==0) return null;
+      const unit3=rem3/(pp3+qq3);
+      const typeA3=unit3*pp3;
+      const thingsA=['甲類','A型','快速球','伸卡球','數學課本'];
+      const thingsB=['乙類','B型','變速球','曲球','英語字典'];
+      const thingsC=['丙類','C型','滑球','指叉球','自然課本'];
+      const idx=randInt(0,2);
+      const [tA,tB,tC]=[thingsA[idx],thingsB[idx],thingsC[idx]];
+      return {question:`某批物品共 ${total3} 件，其中 ${tC} 有 ${fixed3} 件，且 ${tA} 與 ${tB} 的數量比為 \\(${pp3}:${qq3}\\)，則 ${tA} 共有多少件？`,answer:typeA3,type:'number'};
+    }
+    if(ht===4){
+      // 大小正方形邊長比 p:q，大邊增 a%，小邊減 b%，求新面積比值
+      const pp4=rp(2,6), qq4=rp(1,pp4-1);
+      if(_gcd(pp4,qq4)!==1) return null;
+      const incPct=pick([20,25,50]), decPct=pick([20,25]);
+      const newP=pp4*(100+incPct), newQ=qq4*(100-decPct);
+      const g4=_gcd(newP,newQ);
+      const rNP=newP/g4, rNQ=newQ/g4;
+      const areaN=rNP*rNP, areaD=rNQ*rNQ;
+      const gA4=_gcd(areaN,areaD);
+      const rAN=areaN/gA4, rAD=areaD/gA4;
+      if(rAN>500||rAD>500) return null;
+      return {
+        question:`若大小兩正方形的邊長比為 \\(${pp4}:${qq4}\\)，今將大正方形邊長增加原邊長的 \\(${incPct}\\%\\)，小正方形的邊長減少原邊長的 \\(${decPct}\\%\\)，則增減後大小兩正方形面積比值為`,
+        answerParts:[
+          {prefix:'邊長比',answer:`${rNP}:${rNQ}`,type:'text'},
+          {prefix:'面積比值',answer:frac(rAN,rAD),type:'fraction'}
+        ]
+      };
+    }
+    // ht===5: 地圖面積比例尺
+    const N5=pick([500,600,800,1000,1200,1500,2000]);
+    const A5=rp(1,25);
+    const actual5=A5*N5*N5/1000000;
+    if(!Number.isInteger(actual5)||actual5<1||actual5>200) return null;
+    return {question:`在以 \\(1:${N5}\\) 的比例尺縮小的地圖上，面積為 ${A5} 平方公分的土地，實際的面積是多少公畝？（1 公畝 ＝ 100 平方公尺）`,answer:actual5,type:'number'};
   }
 }
 
@@ -3407,8 +3543,8 @@ function gen7bDirProp(level) {
 }
 function _7bDirProp(level) {
   if (level==='basic') {
-    const t=randInt(0,2);
-    if (t < 2) {
+    const t=randInt(0,5);
+    if (t===0||t===1) {
       const k=rnzInt(1,8), x1=rnzInt(1,6), y1=k*x1;
       if (t===0) {
         const x2=rnzInt(1,8);
@@ -3420,19 +3556,51 @@ function _7bDirProp(level) {
                  answer:frac(y2/k), type:'fraction', answerPrefix:'x' };
       }
     }
-    // t===2：k 為整數，x1 為分數，y1 為整數，求 y2
-    const kBase=pick([2,3,4,5,6]), xd=pick([2,3]);
-    const kInt=kBase*xd; // k is multiple of xd so y1 is integer
-    const xn=rnzInt(1,5);
-    const y1v=kInt*xn/xd; // = kBase*xn (整數)
-    if (y1v>40) return null;
-    const x2=rnzInt(1,8);
-    const y2v=kInt*x2;
-    if (y2v>80) return null;
-    return { question:`\\(y\\) 與 \\(x\\) 成正比，當 \\(x=\\frac{${xn}}{${xd}}\\) 時 \\(y=${y1v}\\)，求 \\(x=${x2}\\) 時的 \\(y\\) 值`,
-             answer:frac(y2v), type:'fraction', answerPrefix:'y' };
+    if(t===2){
+      // k 為整數，x1 為分數，y1 為整數，求 y2
+      const kBase=pick([2,3,4,5,6]), xd=pick([2,3]);
+      const kInt=kBase*xd;
+      const xn=rnzInt(1,5);
+      const y1v=kInt*xn/xd;
+      if (y1v>40) return null;
+      const x2=rnzInt(1,8);
+      const y2v=kInt*x2;
+      if (y2v>80) return null;
+      return { question:`\\(y\\) 與 \\(x\\) 成正比，當 \\(x=\\frac{${xn}}{${xd}}\\) 時 \\(y=${y1v}\\)，求 \\(x=${x2}\\) 時的 \\(y\\) 值`,
+               answer:frac(y2v), type:'fraction', answerPrefix:'y' };
+    }
+    if(t===3){
+      // 判斷是否成正比（y=kx → 是；y=kx+b, b≠0 → 否）
+      const k=rp(1,8), b=rp(1,10);
+      if(randInt(0,1)===0){
+        return {question:`若 \\(y=${k}x\\)，則 \\(y\\) 與 \\(x\\) 是否成正比？（填「是」或「否」）`,answer:'是',type:'text',answerPrefix:'是否成正比'};
+      } else {
+        return {question:`若 \\(y=${k}x+${b}\\)，則 \\(y\\) 與 \\(x\\) 是否成正比？（填「是」或「否」）`,answer:'否',type:'text',answerPrefix:'是否成正比'};
+      }
+    }
+    if(t===4){
+      // 速率應用（y=vx），給x求y或給y求x
+      const v=pick([10,15,20,25,30,40,50,60,80,100]);
+      const ctxs=[
+        [`某飛行物時速 ${v} 公里，設飛行 \\(x\\) 小時共飛了 \\(y\\) 公里`,`飛行`],
+        [`小明騎腳踏車每小時 ${v} 公里，設騎了 \\(x\\) 小時共走了 \\(y\\) 公里`,`騎車`],
+        [`某車以時速 ${v} 公里行駛，設行駛 \\(x\\) 小時走了 \\(y\\) 公里`,`行駛`]
+      ];
+      const [ctxDesc]=pick(ctxs);
+      if(randInt(0,1)===0){
+        const x2=rp(1,8);
+        return {question:`${ctxDesc}，求 \\(x=${x2}\\) 時的 \\(y\\) 值`,answer:frac(v*x2),type:'fraction',answerPrefix:'y'};
+      } else {
+        const y2=v*rp(1,10);
+        return {question:`${ctxDesc}，求 \\(y=${y2}\\) 時的 \\(x\\) 值`,answer:frac(y2/v),type:'fraction',answerPrefix:'x'};
+      }
+    }
+    // t===5: 正比與關係式判斷（給出 xy 表，問比例常數k）
+    const k5=rp(2,10), x5=rp(1,8);
+    return {question:`已知 \\(y\\) 與 \\(x\\) 成正比，當 \\(x=${x5}\\) 時 \\(y=${k5*x5}\\)，求正比常數 \\(k\\)`,answer:frac(k5),type:'fraction',answerPrefix:'k'};
   } else if (level==='medium') {
-    if (randInt(0,1)===0) {
+    const dmt=randInt(0,3);
+    if (dmt===0) {
       // k = kp/kq（分數），整數 x2，y2 可能為分數，大係數
       const kq=pick([2,3,4,5,6]), kp=rnzInt(1,12);
       const x1=rnzInt(1,8)*kq, y1=kp*x1/kq;
@@ -3442,7 +3610,8 @@ function _7bDirProp(level) {
       if (yd>8||Math.abs(yn)>40) return null;
       return { question:`\\(y\\) 與 \\(x\\) 成正比，當 \\(x=${x1}\\) 時 \\(y=${y1}\\)，求 \\(x=${x2}\\) 時的 \\(y\\) 值`,
                answer:frac(yn,yd), type:'fraction', answerPrefix:'y' };
-    } else {
+    }
+    if (dmt===1) {
       // k = kp/kq（分數），分數 x2，大係數
       const kq=pick([2,3,4,5,6]), kp=rnzInt(1,10);
       if (_gcd(kp,kq)!==1) return null;
@@ -3454,22 +3623,74 @@ function _7bDirProp(level) {
       return { question:`\\(y\\) 與 \\(x\\) 成正比，當 \\(x=${x1}\\) 時 \\(y=${y1}\\)，求 \\(x=\\frac{${x2n}}{${x2d}}\\) 時的 \\(y\\) 值`,
                answer:frac(yn/g,yd/g), type:'fraction', answerPrefix:'y' };
     }
-  } else {
-    // hard：求比例常數 k，或大分數 x 求 y
-    const kq=pick([2,3,4,5,6]), kp=rnzInt(1,12);
-    const g0=_gcd(kp,kq);
-    const x1=rnzInt(1,10)*kq, y1=kp*x1/kq;
-    if (randInt(0,1)===0) {
-      return { question:`\\(y\\) 與 \\(x\\) 成正比，當 \\(x=${x1}\\) 時 \\(y=${y1}\\)，求正比常數 \\(k\\)`,
-               answer:frac(kp/g0,kq/g0), type:'fraction', answerPrefix:'k' };
-    } else {
-      const xn2=rnzInt(1,12), xd2=pick([2,3,4,5,6]);
-      const yn2=kp*xn2, yd2=kq*xd2;
-      const gy=_gcd(yn2,yd2);
-      if (yd2/gy>10||yn2/gy>40) return null;
-      return { question:`\\(y\\) 與 \\(x\\) 成正比，當 \\(x=${x1}\\) 時 \\(y=${y1}\\)，求 \\(x=\\frac{${xn2}}{${xd2}}\\) 時的 \\(y\\) 值`,
-               answer:frac(yn2/gy,yd2/gy), type:'fraction', answerPrefix:'y' };
+    if (dmt===2) {
+      // 速率/距離/價格正比應用
+      const v=pick([15,20,25,30,40,50,60,80,100]);
+      const contexts=[
+        {story:`某飛行物時速 ${v} 公里，設飛行 \\(x\\) 小時共飛了 \\(y\\) 公里`,k:v,xunit:'小時',yunit:'公里'},
+        {story:`一輛車以時速 ${v} 公里行駛，設行駛 \\(x\\) 小時共走了 \\(y\\) 公里`,k:v,xunit:'小時',yunit:'公里'},
+        {story:`某商品每件 ${v} 元，設買 \\(x\\) 件共需 \\(y\\) 元`,k:v,xunit:'件',yunit:'元'}
+      ];
+      const ctx=pick(contexts);
+      const x2=rp(1,12);
+      if(randInt(0,1)===0){
+        return {question:`${ctx.story}，求 \\(x=${x2}\\) 時的 \\(y\\) 值`,answer:frac(ctx.k*x2),type:'fraction',answerPrefix:'y'};
+      } else {
+        const y2=ctx.k*rp(1,15);
+        return {question:`${ctx.story}，求 \\(y=${y2}\\) 時的 \\(x\\) 值`,answer:frac(y2/ctx.k),type:'fraction',answerPrefix:'x'};
+      }
     }
+    // dmt===3: x:y=p:q 且 ax+by=c → 求 x+y 或 x 或 y
+    const pr=rp(1,6), qr=rp(1,6);
+    if(_gcd(pr,qr)!==1) return null;
+    const ar=rp(1,5), br=rp(1,5);
+    const total_coef=ar*pr+br*qr;
+    const cc=pick([total_coef*2, total_coef*3, total_coef*4, total_coef*5].filter(v=>v<200));
+    if(!cc) return null;
+    const t_r=cc/total_coef;
+    const xv=pr*t_r, yv=qr*t_r;
+    if(!Number.isInteger(xv)||!Number.isInteger(yv)) return null;
+    const ask=randInt(0,2);
+    if(ask===0) return {question:`若 \\(x:y=${pr}:${qr}\\)，且 \\(${ar}x+${br}y=${cc}\\)，求 \\(x+y\\)`,answer:xv+yv,type:'number'};
+    if(ask===1) return {question:`若 \\(x:y=${pr}:${qr}\\)，且 \\(${ar}x+${br}y=${cc}\\)，求 \\(x\\)`,answer:xv,type:'number'};
+    return {question:`若 \\(x:y=${pr}:${qr}\\)，且 \\(${ar}x+${br}y=${cc}\\)，求 \\(y\\)`,answer:yv,type:'number'};
+  } else {
+    // hard：求比例常數 k，大分數 x 求 y，或應用
+    const dht=randInt(0,2);
+    if(dht===0){
+      const kq=pick([2,3,4,5,6]), kp=rnzInt(1,12);
+      const g0=_gcd(kp,kq);
+      const x1=rnzInt(1,10)*kq, y1=kp*x1/kq;
+      if (randInt(0,1)===0) {
+        return { question:`\\(y\\) 與 \\(x\\) 成正比，當 \\(x=${x1}\\) 時 \\(y=${y1}\\)，求正比常數 \\(k\\)`,
+                 answer:frac(kp/g0,kq/g0), type:'fraction', answerPrefix:'k' };
+      } else {
+        const xn2=rnzInt(1,12), xd2=pick([2,3,4,5,6]);
+        const yn2=kp*xn2, yd2=kq*xd2;
+        const gy=_gcd(yn2,yd2);
+        if (yd2/gy>10||yn2/gy>40) return null;
+        return { question:`\\(y\\) 與 \\(x\\) 成正比，當 \\(x=${x1}\\) 時 \\(y=${y1}\\)，求 \\(x=\\frac{${xn2}}{${xd2}}\\) 時的 \\(y\\) 值`,
+                 answer:frac(yn2/gy,yd2/gy), type:'fraction', answerPrefix:'y' };
+      }
+    }
+    if(dht===1){
+      // 速率比 → 完成同份工作時間比
+      const d1h=rp(1,6), t1h=rp(1,4);
+      const d2h=rp(1,6), t2h=rp(1,4);
+      if(d1h*t2h===d2h*t1h) return null;
+      const rAN2=d2h*t1h, rAD2=d1h*t2h;
+      const g2=_gcd(rAN2,rAD2);
+      const names2=pick([['甲','乙'],['阿甘','阿東'],['小丁','小毛']]);
+      return {question:`已知${names2[0]}、${names2[1]}兩人解題的速度比為 \\(${d1h*t2h}:${d2h*t1h}\\)，今${names2[0]}、${names2[1]}兩人各作同一份試卷，則他們完成的作答時間比為`,answer:`${rAN2/g2}:${rAD2/g2}`,type:'text',answerPrefix:'時間比'};
+    }
+    // dht===2: 正比應用（一元方程式情境，如彈簧）
+    const base2=rp(5,15)*2;
+    const weight1=rp(3,10)*10, ext1=rp(1,5);
+    const weight2=pick([weight1*2, weight1*3, weight1*4, Math.round(weight1*1.5)].filter(v=>Number.isInteger(ext1*v/weight1)));
+    if(!weight2) return null;
+    const ext2=ext1*weight2/weight1;
+    if(!Number.isInteger(ext2)) return null;
+    return {question:`一彈簧原長為 ${base2} 公分，秤重 ${weight1} 公克物體時，彈簧長度變為 ${base2+ext1} 公分；若在彈性限度內，改秤 ${weight2} 公克的物體時，彈簧長度變為多少公分？`,answer:base2+ext2,type:'number'};
   }
 }
 
@@ -3482,8 +3703,8 @@ function gen7bInvProp(level) {
 }
 function _7bInvProp(level) {
   if (level==='basic') {
-    const t=randInt(0,2);
-    if (t < 2) {
+    const t=randInt(0,4);
+    if (t===0||t===1) {
       // k = x1*y1，找能整除 k 的 x2，y2 為整數
       const x1=rnzInt(1,8), y1=rnzInt(1,8), k=x1*y1;
       const cands=[];
@@ -3499,17 +3720,46 @@ function _7bInvProp(level) {
                  answer:frac(x2), type:'fraction', answerPrefix:'x' };
       }
     }
-    // t===2：x1 為分數，y1 為整數，k = x1*y1，找整數 x2，y2 可能為分數
-    const xd=pick([2,3]), xn=rnzInt(1,5), y1v=rnzInt(2,8);
-    const kn=xn*y1v, kd=xd; // k = xn*y1v/xd
-    const x2=rnzInt(2,8);
-    const y2n=kn, y2d=kd*x2;
-    const gy=_gcd(y2n,y2d);
-    if (y2d/gy>6||y2n/gy>24) return null;
-    return { question:`\\(y\\) 與 \\(x\\) 成反比，當 \\(x=\\frac{${xn}}{${xd}}\\) 時 \\(y=${y1v}\\)，求 \\(x=${x2}\\) 時的 \\(y\\) 值`,
-             answer:frac(y2n/gy,y2d/gy), type:'fraction', answerPrefix:'y' };
+    if(t===2){
+      // x1 為分數，y1 為整數
+      const xd=pick([2,3]), xn=rnzInt(1,5), y1v=rnzInt(2,8);
+      const kn=xn*y1v, kd=xd;
+      const x2=rnzInt(2,8);
+      const y2n=kn, y2d=kd*x2;
+      const gy=_gcd(y2n,y2d);
+      if (y2d/gy>6||y2n/gy>24) return null;
+      return { question:`\\(y\\) 與 \\(x\\) 成反比，當 \\(x=\\frac{${xn}}{${xd}}\\) 時 \\(y=${y1v}\\)，求 \\(x=${x2}\\) 時的 \\(y\\) 值`,
+               answer:frac(y2n/gy,y2d/gy), type:'fraction', answerPrefix:'y' };
+    }
+    if(t===3){
+      // 水缸排水應用（xy=k）
+      const vol=pick([100,120,150,200,240,300]);
+      const rate1=pick([5,6,8,10,12,15,20,25]);
+      const time1=vol/rate1;
+      if(!Number.isInteger(time1)) return null;
+      const rate2=pick([5,6,8,10,12,15,20,25,30,40].filter(v=>v!==rate1&&vol%v===0));
+      if(!rate2) return null;
+      const time2=vol/rate2;
+      return {question:`設水缸內有 ${vol} 公升的水，利用一水管每分鐘排水 ${rate1} 公升，需 ${time1} 分鐘可將水缸的水排完。若改用每分鐘排水 ${rate2} 公升的水管，需幾分鐘排完？`,answer:time2,type:'number'};
+    }
+    // t===4: 判斷是否成反比（50% 是，50% 否）
+    const kb=rp(2,12);
+    const jt=randInt(0,3);
+    if(jt===0){
+      return {question:`若 \\(xy=${kb}\\)，則 \\(y\\) 與 \\(x\\) 是否成反比？（填「是」或「否」）`,answer:'是',type:'text',answerPrefix:'是否成反比'};
+    } else if(jt===1){
+      const cc=rp(1,8);
+      return {question:`若 \\(xy=${cc}\\)（\\(x\\neq 0\\)），則 \\(y\\) 與 \\(x\\) 是否成反比？（填「是」或「否」）`,answer:'是',type:'text',answerPrefix:'是否成反比'};
+    } else if(jt===2){
+      const kc=rp(1,8), bc=rp(1,6);
+      return {question:`若 \\(x+y=${kc}\\)，則 \\(y\\) 與 \\(x\\) 是否成反比？（填「是」或「否」）`,answer:'否',type:'text',answerPrefix:'是否成反比'};
+    } else {
+      const kc2=rp(1,8);
+      return {question:`若 \\(y=\\dfrac{${kc2}}{x^2}\\)，則 \\(y\\) 與 \\(x\\) 是否成反比？（填「是」或「否」）`,answer:'否',type:'text',answerPrefix:'是否成反比'};
+    }
   } else if (level==='medium') {
-    if (randInt(0,1)===0) {
+    const imt=randInt(0,3);
+    if (imt===0) {
       // 整數 x1,y1；整數 x2，y2 可能為分數，大係數
       const x1=rnzInt(1,10), y1=rnzInt(1,10), k=x1*y1;
       const x2=rnzInt(2,20);
@@ -3518,7 +3768,8 @@ function _7bInvProp(level) {
       if (yd>8||yn>48) return null;
       return { question:`\\(y\\) 與 \\(x\\) 成反比，當 \\(x=${x1}\\) 時 \\(y=${y1}\\)，求 \\(x=${x2}\\) 時的 \\(y\\) 值`,
                answer:frac(yn,yd), type:'fraction', answerPrefix:'y' };
-    } else {
+    }
+    if (imt===1) {
       // 整數 x1,y1；分數 x2，大係數
       const x1=rnzInt(1,10), y1=rnzInt(1,10), k=x1*y1;
       const x2n=rnzInt(1,10), x2d=pick([2,3,4,5]);
@@ -3528,21 +3779,73 @@ function _7bInvProp(level) {
       return { question:`\\(y\\) 與 \\(x\\) 成反比，當 \\(x=${x1}\\) 時 \\(y=${y1}\\)，求 \\(x=\\frac{${x2n}}{${x2d}}\\) 時的 \\(y\\) 值`,
                answer:frac(y2n/gy,y2d/gy), type:'fraction', answerPrefix:'y' };
     }
-  } else {
-    // hard：求 k，或大分數 x 求 y
-    const x1=rnzInt(1,12), y1=rnzInt(1,12), k=x1*y1;
-    if (randInt(0,1)===0) {
-      return { question:`\\(y\\) 與 \\(x\\) 成反比，當 \\(x=${x1}\\) 時 \\(y=${y1}\\)，求反比常數 \\(k\\)`,
-               answer:frac(k), type:'fraction', answerPrefix:'k' };
-    } else {
-      const xn2=rnzInt(1,12), xd2=pick([2,3,4,5,6]);
-      const g=_gcd(k*xd2, xn2);
-      const yn=k*xd2/g, yd=xn2/g;
-      if (yd>10||yn>48) return null;
-      return { question:`\\(y\\) 與 \\(x\\) 成反比，當 \\(x=${x1}\\) 時 \\(y=${y1}\\)，求 \\(x=\\frac{${xn2}}{${xd2}}\\) 時的 \\(y\\) 值`,
-               answer:frac(yn,yd), type:'fraction', answerPrefix:'y' };
+    if (imt===2) {
+      // 工程問題（人×天=工作量）
+      const n1=rp(5,20), d1=pick([10,12,15,16,18,20,24,25,30]);
+      const saved=pick([2,4,5,6,8,10]);
+      const newD=d1-saved;
+      if(newD<=0) return null;
+      const kw=n1*d1;
+      if(kw%newD!==0) return null;
+      const n2=kw/newD;
+      if(n2<=n1||n2>150) return null;
+      return {question:`有一工程 ${n1} 人合作，${d1} 日完工，若要提早 ${saved} 日完工，則須增加工人多少人？`,answer:n2-n1,type:'number'};
     }
+    // imt===3: (y+a)與(x+b)成反比
+    const ia=rp(1,5), ib=rp(1,5);
+    const ix1=rp(2,8), iy1=rp(2,12);
+    const ik=(iy1+ia)*(ix1+ib);
+    const ix2=pick([1,2,3,4,5,6,8,10,12].filter(v=>v!==ix1&&(ik%(v+ib))===0));
+    if(!ix2) return null;
+    const iy2=(ik/(ix2+ib))-ia;
+    if(iy2===0||iy2<-ia+1) return null;
+    return {question:`若 \\((y+${ia})\\) 與 \\((x+${ib})\\) 成反比，且 \\(x=${ix1}\\) 時 \\(y=${iy1}\\)，求 \\(x=${ix2}\\) 時的 \\(y\\) 值`,answer:frac(iy2),type:'fraction',answerPrefix:'y'};
+  } else {
+    // hard
+    const iht=randInt(0,2);
+    if(iht===0){
+      // 求 k，或大分數 x 求 y
+      const x1=rnzInt(1,12), y1=rnzInt(1,12), k=x1*y1;
+      if (randInt(0,1)===0) {
+        return { question:`\\(y\\) 與 \\(x\\) 成反比，當 \\(x=${x1}\\) 時 \\(y=${y1}\\)，求反比常數 \\(k\\)`,
+                 answer:frac(k), type:'fraction', answerPrefix:'k' };
+      } else {
+        const xn2=rnzInt(1,12), xd2=pick([2,3,4,5,6]);
+        const g=_gcd(k*xd2, xn2);
+        const yn=k*xd2/g, yd=xn2/g;
+        if (yd>10||yn>48) return null;
+        return { question:`\\(y\\) 與 \\(x\\) 成反比，當 \\(x=${x1}\\) 時 \\(y=${y1}\\)，求 \\(x=\\frac{${xn2}}{${xd2}}\\) 時的 \\(y\\) 值`,
+                 answer:frac(yn,yd), type:'fraction', answerPrefix:'y' };
+      }
+    }
+    if(iht===1){
+      // x 減少 r% 時，y 變為原來的幾倍
+      const r=pick([20,25,40,50]);
+      const fN=100, fD=100-r;
+      const gf=_gcd(fN,fD);
+      return {question:`設 \\(y\\) 與 \\(x\\) 成反比，當 \\(x\\) 值減少 \\(${r}\\%\\) 時，\\(y\\) 變為原來的多少倍？`,answer:frac(fN/gf,fD/gf),type:'fraction',answerPrefix:'倍數'};
+    }
+    // iht===2: x与y成反比，y与z成反比 → z与x成正比
+    const hx0=rp(2,8), hy0=rp(1,8), hz0=rp(1,8);
+    const hx2=pick([1,2,3,4,5,6,8,10].filter(v=>v!==hx0));
+    if(!hx2) return null;
+    const hz2n=hz0*hx2, hz2d=hx0;
+    const ghz=_gcd(hz2n,hz2d);
+    const HZN=hz2n/ghz, HZD=hz2d/ghz;
+    if(HZD>8||HZN>30) return null;
+    return {question:`若設 \\(x\\) 與 \\(y\\) 成反比，\\(y\\) 與 \\(z\\) 成反比，且 \\(x=${hx0}\\) 時 \\(y=${hy0}\\)，\\(z=${hz0}\\)，則 \\(x=${hx2}\\) 時，\\(z\\) ＝ ？`,answer:frac(HZN,HZD),type:'fraction',answerPrefix:'z'};
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  七下 ▸ 正比與反比（合併，各出一半）
+// ═══════════════════════════════════════════════════════════════════
+function gen7bProp(level) {
+  for (let i=0;i<30;i++) {
+    const q = randInt(0,1)===0 ? _7bDirProp(level) : _7bInvProp(level);
+    if (q) return q;
+  }
+  return _7bDirProp('basic');
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -7812,6 +8115,7 @@ const JR_GENERATORS = {
   '7b-chain':     gen7bChain,
   // 七下 比例
   '7b-ratio':     gen7bRatio,
+  '7b-prop':      gen7bProp,
   '7b-dirprop':   gen7bDirProp,
   '7b-invprop':   gen7bInvProp,
   // 七下 不等式/統計
