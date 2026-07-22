@@ -1454,62 +1454,66 @@ function _7aExp(level) {
     const t = randInt(0, 6);
     if (t === 0) {
       // 求值：a^n
-      const base = pick([2,3,4,5,-2,-3]);
-      const n = rp(2, 4);
+      const base = pick([2,3,4,5,6,7,-2,-3,-4,-5]);
+      const n = rp(2, 5);
       const val = Math.pow(base, n);
+      if (Math.abs(val) > 1500) return null;
       const bStr = base < 0 ? `(${base})` : `${base}`;
       return { question:`\\(${bStr}^{${n}}\\)`, answer: val, type:'number' };
     } else if (t === 1) {
       // 求指數：a^m × a^n = a^x
-      const a = pick([2,3,4,5]);
-      const m = rp(1,5), n = rp(1,5);
+      const a = pick([2,3,4,5,6,7,8,9,10]);
+      const m = rp(1,8), n = rp(1,8);
       return { question:`\\(${a}^{${m}} \\times ${a}^{${n}} = ${a}^x\\)`, answer: m+n, type:'number', answerPrefix:'x' };
     } else if (t === 2) {
       // 求指數：a^m ÷ a^n = a^x
-      const a = pick([2,3,4,5]);
-      const n = rp(1,4), m = n + rp(1,4);
+      const a = pick([2,3,4,5,6,7,8,9,10]);
+      const n = rp(1,6), m = n + rp(1,6);
       return { question:`\\(${a}^{${m}} \\div ${a}^{${n}} = ${a}^x\\)`, answer: m-n, type:'number', answerPrefix:'x' };
     } else if (t === 3) {
       // 四則：a^m + b^n，求值
-      const a = pick([2,3,4,5]), m = rp(2,3);
-      const b = pick([2,3,4,5]), n = rp(2,3);
-      return { question:`\\(${a}^{${m}} + ${b}^{${n}}\\)`, answer: Math.pow(a,m)+Math.pow(b,n), type:'number' };
+      const a = pick([2,3,4,5,6,7,8,9,10]), m = rp(2,4);
+      const b = pick([2,3,4,5,6,7,8,9,10]), n = rp(2,4);
+      const val = Math.pow(a,m) + Math.pow(b,n);
+      if (val > 1500) return null;
+      return { question:`\\(${a}^{${m}} + ${b}^{${n}}\\)`, answer: val, type:'number' };
     } else if (t === 4) {
       // 四則：a^m - b^n，求值（正）
-      const a = pick([2,3,4,5]), m = rp(2,3);
-      const b = pick([2,3,4,5]), n = rp(2,3);
+      const a = pick([2,3,4,5,6,7,8,9,10]), m = rp(2,4);
+      const b = pick([2,3,4,5,6,7,8,9,10]), n = rp(2,4);
       const am = Math.pow(a,m), bn = Math.pow(b,n);
-      if (am <= bn) return null;
+      if (am <= bn || am > 1500) return null;
       return { question:`\\(${a}^{${m}} - ${b}^{${n}}\\)`, answer: am-bn, type:'number' };
     } else if (t === 5) {
       // 分數求值：a^m / a^n（化簡後求值）
-      const a = pick([2,3,4,5]);
-      const d = rp(1,3), num_e = d + rp(1,3);
-      if (Math.pow(a, num_e - d) > 256) return null;
+      const a = pick([2,3,4,5,6,7]);
+      const d = rp(1,4), num_e = d + rp(1,4);
+      if (Math.pow(a, num_e - d) > 1024) return null;
       return { question:`\\(\\dfrac{${a}^{${num_e}}}{${a}^{${d}}}\\)`, answer: Math.pow(a, num_e-d), type:'number' };
     } else {
       // 分數求指數：a^m / a^n = a^x
-      const a = pick([2,3,4,5]);
-      const n = rp(1,4), m = n + rp(1,5);
+      const a = pick([2,3,4,5,6,7,8,9,10]);
+      const n = rp(1,6), m = n + rp(1,8);
       return { question:`\\(\\dfrac{${a}^{${m}}}{${a}^{${n}}} = ${a}^x\\)`, answer: m-n, type:'number', answerPrefix:'x' };
     }
   } else if (level === 'medium') {
     const t = randInt(0, 3);
     if (t === 0) {
       // 求值：a^m × a^n（先用指數律合併再求值）
-      const a = pick([2,3,4]);
-      const m = rp(1,3), n = rp(1,3);
-      if (m+n > 6) return null;
+      const a = pick([2,3,4,5,6]);
+      const m = rp(1,4), n = rp(1,4);
+      if (m+n > 8) return null;
+      if (Math.pow(a, m+n) > 1500) return null;
       return { question:`\\(${a}^{${m}} \\times ${a}^{${n}}\\)`, answer: Math.pow(a,m+n), type:'number' };
     } else if (t === 1) {
       // 求值：(a^m)^n（先用冪次律再求值）
-      const a = pick([2,3]);
+      const a = pick([2,3,4]);
       const m = rp(2,3), n = rp(2,3);
-      if (Math.pow(a,m*n) > 1000) return null;
+      if (Math.pow(a,m*n) > 1500) return null;
       return { question:`\\((${a}^{${m}})^{${n}}\\)`, answer: Math.pow(a,m*n), type:'number' };
     } else if (t === 2) {
       // 求底數：a^n = k，求 a
-      const a = pick([2,3,4,5]);
+      const a = pick([2,3,4,5,6,7,8,9,10,11,12]);
       const n = pick([2,3]);
       const k = Math.pow(a, n);
       const q = n === 2
@@ -1518,8 +1522,8 @@ function _7aExp(level) {
       return { question:q, answer:a, type:'number', answerPrefix:'a' };
     } else {
       // 分數形式求指數：(a^m)^n / a^p = a^x
-      const a = pick([2,3,5]);
-      const m = rp(2,3), n = rp(2,3), p = rp(1, m*n-1);
+      const a = pick([2,3,4,5,6,7,8,9,10]);
+      const m = rp(2,4), n = rp(2,4), p = rp(1, m*n-1);
       return { question:`\\(\\dfrac{(${a}^{${m}})^{${n}}}{${a}^{${p}}} = ${a}^x\\)`, answer: m*n-p, type:'number', answerPrefix:'x' };
     }
   } else {
@@ -1527,58 +1531,58 @@ function _7aExp(level) {
     const t = randInt(0, 7);
     if (t === 0) {
       // 求指數：a^m × a^n ÷ a^p = a^x
-      const a = pick([2,3,5]);
-      const m = rp(2,5), n = rp(1,4), p = rp(1,m+n-1);
+      const a = pick([2,3,4,5,6,7,8,9,10]);
+      const m = rp(2,8), n = rp(1,6), p = rp(1,m+n-1);
       return { question:`\\(${a}^{${m}} \\times ${a}^{${n}} \\div ${a}^{${p}} = ${a}^x\\)`, answer: m+n-p, type:'number', answerPrefix:'x' };
     } else if (t === 1) {
       // 求指數：(a^m ÷ a^n)^p = a^x
-      const a = pick([2,3,5]);
-      const n = rp(1,3), extra = rp(1,3), m = n+extra, p = rp(2,4);
+      const a = pick([2,3,4,5,6,7,8,9,10]);
+      const n = rp(1,5), extra = rp(1,5), m = n+extra, p = rp(2,5);
       return { question:`\\((${a}^{${m}} \\div ${a}^{${n}})^{${p}} = ${a}^x\\)`, answer: (m-n)*p, type:'number', answerPrefix:'x' };
     } else if (t === 2) {
       // 求值：a^m × a^n ÷ a^p（應用律後求值）
-      const a = pick([2,3]);
-      const m = rp(2,4), n = rp(1,3), p = rp(1,m+n-1);
+      const a = pick([2,3,4]);
+      const m = rp(2,5), n = rp(1,4), p = rp(1,m+n-1);
       const x = m+n-p;
-      if (Math.pow(a,x) > 512) return null;
+      if (Math.pow(a,x) > 1024) return null;
       return { question:`\\(${a}^{${m}} \\times ${a}^{${n}} \\div ${a}^{${p}}\\)`, answer: Math.pow(a,x), type:'number' };
     } else if (t === 3) {
       // 四則：a^m × b^n - c^p，求值
-      const a = pick([2,3]), m = rp(2,3);
-      const b = pick([2,3,4]), n = rp(2,3);
-      const c = pick([2,3,5]), p = rp(2,3);
+      const a = pick([2,3,4]), m = rp(2,4);
+      const b = pick([2,3,4,5]), n = rp(2,3);
+      const c = pick([2,3,4,5,6]), p = rp(2,3);
       const val = Math.pow(a,m)*Math.pow(b,n) - Math.pow(c,p);
-      if (val <= 0 || val > 600) return null;
+      if (val <= 0 || val > 1200) return null;
       return { question:`\\(${a}^{${m}} \\times ${b}^{${n}} - ${c}^{${p}}\\)`, answer: val, type:'number' };
     } else if (t === 4) {
       // 求底數（帶係數）：k × a^n = val，求 a
-      const a = pick([2,3,4]);
+      const a = pick([2,3,4,5,6]);
       const n = pick([2,3]);
-      const k = pick([2,3,4,5]);
+      const k = pick([2,3,4,5,6,7,8,9,10]);
       const val = k * Math.pow(a, n);
       return { question:`\\(${k} \\times a^{${n}} = ${val}\\)`, answer:a, type:'number', answerPrefix:'a' };
     } else if (t === 5) {
       // 複雜分數求指數：(a^m × a^n) / (a^p)^q = a^x
-      const a = pick([2,3,5]);
-      const m = rp(2,4), n = rp(1,3), p = rp(1,3), q = rp(2,3);
+      const a = pick([2,3,4,5,6,7,8,9,10]);
+      const m = rp(2,6), n = rp(1,4), p = rp(1,4), q = rp(2,4);
       const x = m+n-p*q;
       if (x <= 0) return null;
       return { question:`\\(\\dfrac{${a}^{${m}} \\times ${a}^{${n}}}{(${a}^{${p}})^{${q}}} = ${a}^x\\)`, answer: x, type:'number', answerPrefix:'x' };
     } else if (t === 6) {
-      // 因式加法求值：a^m + k × a^(m-1) = a^(m-1)(a + k)
-      const a = pick([2,3,4]);
-      const m = rp(2,4);
-      const k = pick([2,3,4,5]);
+      // 因式加法求值：a^m + k × a^(m-1)
+      const a = pick([2,3,4,5,6]);
+      const m = rp(2,5);
+      const k = pick([2,3,4,5,6,7,8,9,10]);
       if (m < 2) return null;
       const val = Math.pow(a,m) + k * Math.pow(a,m-1);
-      if (val > 1000) return null;
+      if (val > 1500) return null;
       return { question:`\\(${a}^{${m}} + ${k} \\times ${a}^{${m-1}}\\)`, answer: val, type:'number' };
     } else {
       // 分數求值（含冪次律）：(a^m)^n / a^p
-      const a = pick([2,3]);
+      const a = pick([2,3,4]);
       const m = rp(2,3), n = rp(2,3), p = rp(1, m*n-1);
       const x = m*n-p;
-      if (Math.pow(a,x) > 512) return null;
+      if (Math.pow(a,x) > 1024) return null;
       return { question:`\\(\\dfrac{(${a}^{${m}})^{${n}}}{${a}^{${p}}}\\)`, answer: Math.pow(a,x), type:'number' };
     }
   }
