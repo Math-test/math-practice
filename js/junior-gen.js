@@ -2752,6 +2752,7 @@ function gen7bPoly(level) {
 }
 
 function _7bPoly(level) {
+  // ── 二元一次式 helpers ──────────────────────────────────────────────
   function e2(a, b)    { return _polyStr([{c:a,v:'x'},{c:b,v:'y'}]); }
   function e3(a, b, c) { return _polyStr([{c:a,v:'x'},{c:b,v:'y'},{c:c,v:''}]); }
   function coef1(k) { return k===1 ? '' : k===-1 ? '-' : `${k}`; }
@@ -2759,17 +2760,77 @@ function _7bPoly(level) {
   function coef2(m) { return Math.abs(m)===1 ? '' : `${Math.abs(m)}`; }
   function l2(a, b, c) { return { type:'linear2', linA:a, linB:b, linC:c }; }
 
+  // ── 一元多項式 helpers ──────────────────────────────────────────────
+  // ps(a2,a1,a0): descending order LaTeX string (for embedding in questions)
+  function ps(a2,a1,a0) {
+    const t=[];
+    if(a2!==0){const ab=Math.abs(a2);t.push({s:a2>0?1:-1,v:ab===1?'x^2':`${ab}x^2`});}
+    if(a1!==0){const ab=Math.abs(a1);t.push({s:a1>0?1:-1,v:ab===1?'x':`${ab}x`});}
+    if(a0!==0){t.push({s:a0>0?1:-1,v:`${Math.abs(a0)}`});}
+    if(!t.length) return '0';
+    return t.map((e,i)=>(i===0?(e.s<0?'-':'')+e.v:(e.s<0?'-':'+')+e.v)).join('');
+  }
+  // ps3(a3,a2,a1,a0): cubic
+  function ps3(a3,a2,a1,a0) {
+    const t=[];
+    if(a3!==0){const ab=Math.abs(a3);t.push({s:a3>0?1:-1,v:ab===1?'x^3':`${ab}x^3`});}
+    if(a2!==0){const ab=Math.abs(a2);t.push({s:a2>0?1:-1,v:ab===1?'x^2':`${ab}x^2`});}
+    if(a1!==0){const ab=Math.abs(a1);t.push({s:a1>0?1:-1,v:ab===1?'x':`${ab}x`});}
+    if(a0!==0){t.push({s:a0>0?1:-1,v:`${Math.abs(a0)}`});}
+    if(!t.length) return '0';
+    return t.map((e,i)=>(i===0?(e.s<0?'-':'')+e.v:(e.s<0?'-':'+')+e.v)).join('');
+  }
+  // poly(q, a2, a1, a0): return a type:'poly' question object
+  function poly(q,a2,a1,a0){return{question:q,type:'poly',polyA2:a2,polyA1:a1,polyA0:a0};}
+  // append: format second polynomial for display (add leading + if positive)
+  function apd(str){ return str.startsWith('-')?str:'+'+str; }
+
   if (level === 'basic') {
-    // (ax+by) ± (dx+ey)
-    const a=randInt(-5,5), b=randInt(-5,5), d=randInt(-5,5), e=randInt(-5,5);
-    if (a===0 && d===0) return null;
-    if (b===0 && e===0) return null;
-    const sub = randInt(0,1)===0;
-    const rx = sub ? a-d : a+d, ry = sub ? b-e : b+e;
-    const expr1 = e2(a,b), expr2 = e2(d,e);
-    return { question:`化簡 \\(${expr1} ${sub?'-':'+'} (${expr2})\\)`, ...l2(rx,ry,0) };
+    const tB = randInt(0,3);
+    if (tB === 0) {
+      // (ax+by) ± (dx+ey)
+      const a=randInt(-5,5), b=randInt(-5,5), d=randInt(-5,5), e=randInt(-5,5);
+      if (a===0 && d===0) return null;
+      if (b===0 && e===0) return null;
+      const sub = randInt(0,1)===0;
+      const rx = sub ? a-d : a+d, ry = sub ? b-e : b+e;
+      return { question:`化簡 \\(${e2(a,b)} ${sub?'-':'+'} (${e2(d,e)})\\)`, ...l2(rx,ry,0) };
+
+    } else if (tB === 1) {
+      // 常數多項式求 a+b+c：(a−p)x²+(b+q)x+(c−r) 是常數多項式且常數項=0
+      const p=rp(1,8), q=rnzInt(-8,8), r=rp(1,8);
+      const qStr = q>0?`b+${q}`:`b${q}`;
+      return {
+        question:`設 \\(a\\)、\\(b\\)、\\(c\\) 皆是常數，且 \\((a-${p})x^2+(${qStr})x+(c-${r})\\) 是常數多項式，且常數項為 \\(0\\)，則 \\(a+b+c=\\)`,
+        answer: p-q+r, type:'number'
+      };
+
+    } else if (tB === 2) {
+      // 化簡 P−[(Q)−(R)] 求某次項係數
+      const a2=rnzInt(-3,3),a1=randInt(-5,5),a0=randInt(-5,5);
+      const b2=rnzInt(-3,3),b1=randInt(-5,5),b0=randInt(-5,5);
+      const c2=rnzInt(-3,3),c1=randInt(-5,5),c0=randInt(-5,5);
+      const r2=a2-b2+c2, r1=a1-b1+c1;
+      if(r2===0&&r1===0) return null;
+      const askDeg = (r2!==0&&(r1===0||randInt(0,1)===0)) ? 2 : 1;
+      const degStr = askDeg===2?'二次項':'一次項';
+      return {
+        question:`化簡 \\((${ps(a2,a1,a0)})-[(${ps(b2,b1,b0)})-(${ps(c2,c1,c0)})]\\)，其${degStr}係數為`,
+        answer: askDeg===2?r2:r1, type:'number'
+      };
+
+    } else {
+      // 已知 P−A=Q，求 A（一次多項式）
+      const a1=rnzInt(-5,5), a0=randInt(-8,8);
+      const b1=rnzInt(-5,5), b0=randInt(-8,8);
+      const rA1=a1-b1, rA0=a0-b0;
+      if(rA1===0) return null;
+      return poly(`若 \\((${ps(0,a1,a0)})-A=${ps(0,b1,b0)}\\)，則多項式 \\(A=\\)`, 0, rA1, rA0);
+    }
+
   } else if (level === 'medium') {
-    if (randInt(0,1)===0) {
+    const tM = randInt(0,5);
+    if (tM === 0) {
       // k(ax+by) ± m(dx+ey)（中等係數）
       const k=rnzInt(-8,8), a=randInt(-8,8), b=randInt(-8,8);
       const m=rnzInt(-8,8), d=randInt(-8,8), e=randInt(-8,8);
@@ -2777,8 +2838,9 @@ function _7bPoly(level) {
       if (b===0 && e===0) return null;
       const rx=k*a+m*d, ry=k*b+m*e;
       return { question:`化簡 \\(${coef1(k)}(${e2(a,b)}) ${sign2(m)} ${coef2(m)}(${e2(d,e)})\\)`, ...l2(rx,ry,0) };
-    } else {
-      // (p1/q1)(ax+by) ± (p2/q2)(dx+ey)，答案為整數，較大乘數
+
+    } else if (tM === 1) {
+      // (p1/q1)(ax+by) ± (p2/q2)(dx+ey)，答案為整數
       const q1=pick([2,3,4,5,6]), p1=pick([1,2,3,4,5].filter(v=>_gcd(v,q1)===1));
       const q2=pick([2,3,4,5,6]), p2=pick([1,2,3,4,5].filter(v=>_gcd(v,q2)===1));
       const s=pick([1,-1]);
@@ -2789,9 +2851,66 @@ function _7bPoly(level) {
       const rx=p1*(a/q1)+s*p2*(d/q2), ry=p1*(b/q1)+s*p2*(e/q2);
       const fco=(pv,qv)=>`\\frac{${pv}}{${qv}}`;
       return { question:`化簡 \\(${fco(p1,q1)}(${e2(a,b)}) ${s>0?'+':'-'} ${fco(p2,q2)}(${e2(d,e)})\\)`, ...l2(rx,ry,0) };
+
+    } else if (tM === 2) {
+      // 幾次多項式條件求 a（一元）
+      const sub2 = randInt(0,1);
+      if (sub2 === 0) {
+        // (a-k)x³ + rest 是二次多項式，求 a
+        const k=rnzInt(-5,5), p2=rnzInt(-4,4); if(p2===0) return null;
+        const p1=randInt(-4,4), p0=randInt(-4,4);
+        const kDisp = k===0?'a':k>0?`(a-${k})`:`(a+${-k})`;
+        const rest=ps(p2,p1,p0); const restStr=rest==='0'?'':apd(rest);
+        return { question:`若 \\(${kDisp}x^3${restStr}\\) 是二次多項式，則 \\(a=\\)`, answer:k, type:'number' };
+      } else {
+        // P₁+P₂ 為常數多項式，求 a+b（P₁含參數 a,b）
+        // ax³-bx²+C₁ 與 Dx³+Ex²+C₂ 相加為常數多項式 → a=-D, b=E
+        const D=rnzInt(-4,4), E=rp(1,4); // E>0 保證 -bx² 合理顯示
+        const C1=randInt(-8,8), C2=randInt(-8,8);
+        const C1str = C1===0?'':C1>0?`+${C1}`:String(C1);
+        return {
+          question:`若多項式 \\(ax^3-bx^2${C1str}\\) 與 \\(${ps3(D,E,0,C2)}\\) 相加後為常數多項式，則 \\(a+b=\\)`,
+          answer: -D+E, type:'number'
+        };
+      }
+
+    } else if (tM === 3) {
+      // 各項係數和：Q(1)
+      const a2=rnzInt(-5,5), a1=randInt(-6,6), a0=randInt(-8,8);
+      return {
+        question:`有一多項式 \\(Q=${ps(a2,a1,a0)}\\)，則 \\(Q\\) 的各項係數和為`,
+        answer: a2+a1+a0, type:'number'
+      };
+
+    } else if (tM === 4) {
+      // 分數係數化簡：P₁(x)/q₁ ± P₂(x)/q₂（分數答案）
+      const q1=pick([2,3,4,6]), q2=pick([2,3,4,6].filter(q=>q!==q1));
+      const s4=pick([1,-1]);
+      const a2=randInt(-4,4),a1=randInt(-5,5),a0=randInt(-6,6);
+      const b2=randInt(-4,4),b1=randInt(-5,5),b0=randInt(-6,6);
+      const rA2=a2/q1+s4*b2/q2, rA1=a1/q1+s4*b1/q2, rA0=a0/q1+s4*b0/q2;
+      if([rA2,rA1,rA0].every(v=>Number.isInteger(v))) return null;
+      if([rA2,rA1,rA0].every(v=>Math.abs(v)<1e-9)) return null;
+      return poly(
+        `化簡多項式 \\(\\dfrac{${ps(a2,a1,a0)}}{${q1}} ${s4>0?'+':'-'} \\dfrac{${ps(b2,b1,b0)}}{${q2}}\\)`,
+        rA2, rA1, rA0
+      );
+
+    } else {
+      // (k−u)x²+v·x−m 是一次多項式，求 k 和 m（answerParts）
+      const u=rp(2,6), v=rnzInt(-6,6);
+      const vStr = v===0?'':(v===1?'+x':v===-1?'-x':v>0?`+${v}x`:`${v}x`);
+      return {
+        question:`若 \\((k-${u})x^2${vStr}-m\\) 是 \\(x\\) 的一次多項式，則`,
+        answerParts:[
+          {prefix:'\\(k\\)', answer:u, type:'number'},
+          {prefix:'\\(m\\)', answer:'任意數', type:'text'}
+        ]
+      };
     }
+
   } else {
-    const t = randInt(0,2);
+    const t = randInt(0,5);
     if (t === 0) {
       // k(ax+by+c) ± m(dx+ey+f)（大係數），含常數項
       const k=rnzInt(-10,10), a=randInt(-10,10), b=randInt(-10,10), c=randInt(-10,10);
@@ -2800,8 +2919,9 @@ function _7bPoly(level) {
       if (b===0 && e===0) return null;
       const rx=k*a+m*d, ry=k*b+m*e, rc=k*c+m*f;
       return { question:`化簡 \\(${coef1(k)}(${e3(a,b,c)}) ${sign2(m)} ${coef2(m)}(${e3(d,e,f)})\\)`, ...l2(rx,ry,rc) };
+
     } else if (t === 1) {
-      // (p1/q1)(ax+by) ± (p2/q2)(dx+ey)，答案為整數，大乘數（無常數項避免分數答案）
+      // (p1/q1)(ax+by) ± (p2/q2)(dx+ey)，答案為整數，大乘數
       const q1=pick([2,3,4,5,6]), p1=pick([1,2,3,4,5].filter(v=>_gcd(v,q1)===1));
       const q2=pick([2,3,4,5,6]), p2=pick([1,2,3,4,5].filter(v=>_gcd(v,q2)===1));
       const s=pick([1,-1]);
@@ -2812,15 +2932,69 @@ function _7bPoly(level) {
       const rx=p1*(a/q1)+s*p2*(d/q2), ry=p1*(b/q1)+s*p2*(e/q2);
       const fco=(pv,qv)=>`\\frac{${pv}}{${qv}}`;
       return { question:`化簡 \\(${fco(p1,q1)}(${e2(a,b)}) ${s>0?'+':'-'} ${fco(p2,q2)}(${e2(d,e)})\\)`, ...l2(rx,ry,0) };
-    } else {
+
+    } else if (t === 2) {
       // 括號展開化簡 k × {a(Ax+By+C) - [m(Dx+Ey+F)]}
       const k=pick([-4,-3,-2,2,3,4]);
       const a=rp(2,5), A=rnzInt(-5,5), B=rnzInt(-5,5), C=randInt(-6,6);
       const m=rp(2,5), D=rnzInt(-5,5), E=rnzInt(-5,5), F=randInt(-6,6);
       const rx=k*(a*A-m*D), ry=k*(a*B-m*E), rc=k*(a*C-m*F);
       if (rx===0 && ry===0) return null;
-      const inner1=e3(A,B,C), inner2=e3(D,E,F);
-      return { question:`展開化簡 \\(${ni(k)} \\times \\left\\{${a}(${inner1}) - \\left[${m}(${inner2})\\right]\\right\\}\\)`, ...l2(rx,ry,rc) };
+      return { question:`展開化簡 \\(${ni(k)} \\times \\left\\{${a}(${e3(A,B,C)}) - \\left[${m}(${e3(D,E,F)})\\right]\\right\\}\\)`, ...l2(rx,ry,rc) };
+
+    } else if (t === 3) {
+      // 三多項式 A、B、C 組合運算（一元二次）
+      const A2=rnzInt(-4,4),A1=randInt(-5,5),A0=randInt(-6,6);
+      const B2=rnzInt(-4,4),B1=randInt(-5,5),B0=randInt(-6,6);
+      const C2=rnzInt(-4,4),C1=randInt(-5,5),C0=randInt(-6,6);
+      const op3=pick([1,-1]);
+      const r2=A2-B2-op3*C2, r1=A1-B1-op3*C1, r0=A0-B0-op3*C0;
+      if(r2===0&&r1===0&&r0===0) return null;
+      const opStr=op3>0?'+':'-';
+      return poly(
+        `若 \\(A\\)、\\(B\\)、\\(C\\) 皆為 \\(x\\) 的多項式，且 \\(A=${ps(A2,A1,A0)}\\)，\\(B=${ps(B2,B1,B0)}\\)，\\(C=${ps(C2,C1,C0)}\\)，則 \\(A-(B${opStr}C)=\\)`,
+        r2, r1, r0
+      );
+
+    } else if (t === 4) {
+      // 已知 A+B=P，A−B=Q，求 cA−dB
+      const A2=rnzInt(-3,3),A1=randInt(-4,4),A0=randInt(-5,5);
+      const B2=rnzInt(-3,3),B1=randInt(-4,4),B0=randInt(-5,5);
+      if(A2===B2&&A1===B1&&A0===B0) return null;
+      const P2=A2+B2,P1=A1+B1,P0=A0+B0;
+      const Q2=A2-B2,Q1=A1-B1,Q0=A0-B0;
+      const [c4,d4]=pick([[2,3],[3,5],[2,5],[4,3]]);
+      const R2=c4*A2-d4*B2,R1=c4*A1-d4*B1,R0=c4*A0-d4*B0;
+      if(R2===0&&R1===0&&R0===0) return null;
+      return poly(
+        `有兩個多項式 \\(A\\)、\\(B\\)，若 \\(A+B=${ps(P2,P1,P0)}\\)，\\(A-B=${ps(Q2,Q1,Q0)}\\)，則 \\(${c4}A-${d4}B=\\)`,
+        R2, R1, R0
+      );
+
+    } else {
+      // 同類項求 x+y：已知兩單項式為同類項，解指數方程組
+      // M1: a^(α·x+β·y+γ) · b^(δ−y)   M2: a^(ζ·x+η) · b^(θ·x−y)
+      // b方程: δ−y = θ·x−y → δ = θ·x → x = δ/θ
+      // a方程: α·x+β·y+γ = ζ·x+η → (α−ζ)·x+β·y = η−γ → solve y
+      const theta=pick([2,3]), xSol=pick([-2,-1,1,2,3]);
+      const delta=theta*xSol;
+      const alpha=pick([2,3,4]), zeta=alpha-pick([1,2]); if(zeta<=0) return null;
+      const beta=pick([1,-1]), gamma=randInt(-3,3);
+      const ySol=pick([-4,-3,-2,-1,1,2,3,4]);
+      const eta=(alpha-zeta)*xSol+beta*ySol+gamma;
+      if(Math.abs(eta)>12) return null;
+      const coefA1=pick([2,3,4,5,6]);
+      // M1 exponents
+      const aexp1 = (alpha===1?'':''+alpha)+'x'+(beta===1?'+':'-')+'y'+(gamma===0?'':(gamma>0?`+${gamma}`:String(gamma)));
+      const bexp1 = delta===0?'-y':(delta>0?`${delta}-y`:`${delta}-y`);
+      // M2 exponents
+      const aexp2 = (zeta===1?'':''+zeta)+'x'+(eta===0?'':(eta>0?`+${eta}`:String(eta)));
+      const bexp2 = (theta===1?'':''+theta)+'x-y';
+      const fracCoef2 = pick(['\\dfrac{1}{2}','\\dfrac{1}{3}','\\dfrac{1}{4}','\\dfrac{1}{5}']);
+      return {
+        question:`如果 \\(${coefA1}a^{${aexp1}}b^{${bexp1}}\\) 與 \\(${fracCoef2}a^{${aexp2}}b^{${bexp2}}\\) 是同類項，則 \\(x+y=\\)`,
+        answer: xSol+ySol, type:'number'
+      };
     }
   }
 }
