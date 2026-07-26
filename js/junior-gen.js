@@ -4218,7 +4218,7 @@ function _7bStat(level) {
   const shuf=(a)=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
 
   if (level==='basic') {
-    const t=randInt(0,3);
+    const t=randInt(0,5);
     if (t===0) {
       // 眾數（唯一）
       const mode=randInt(2,12);
@@ -4241,16 +4241,49 @@ function _7bStat(level) {
       if (last<1||last>20) return null;
       data.push(last);
       return { question:`資料：\\(${shuf(data).join(',\\;')}\\)，求算術平均數`, answer:mean, type:'number', answerPrefix:'平均數' };
-    } else {
+    } else if (t===3) {
       // 次數分配：求合計人數
       const lbs=pick([['音樂','體育','美術'],['游泳','籃球','跑步'],['科學','語文','數學'],['甲組','乙組','丙組']]);
       const fs=lbs.map(()=>randInt(3,12));
       const tot=fs.reduce((a,b)=>a+b,0);
       const desc=lbs.map((n,i)=>`${n} \\(${fs[i]}\\) 人`).join('，');
       return { question:`某興趣調查：${desc}，求合計人數`, answer:tot, type:'number', answerPrefix:'合計' };
+    } else if (t===4) {
+      // 加入一個數後眾數不變（mode×3次 ＞ 其他任何值）
+      const domain4=pick(['體重','成績']);
+      const lo4=domain4==='體重'?42:35, hi4=domain4==='體重'?98:98;
+      const unit4=domain4==='體重'?'公斤':'分';
+      const mode4=randInt(lo4+5,hi4-5);
+      const second4=mode4+pick([3,5,7,-3,-5,-7]);
+      if(second4<lo4||second4>hi4) return null;
+      const n4=pick([8,9,10]);
+      const nSingle=n4-5;
+      const pool4=[];
+      for(let v=lo4;v<=hi4;v++){if(v!==mode4&&v!==second4)pool4.push(v);}
+      const singles4=shuf(pool4).slice(0,nSingle);
+      const baseData4=shuf([mode4,mode4,mode4,second4,second4,...singles4]);
+      const addVal4=randInt(0,1)===0?mode4:pick(singles4);
+      return {
+        question:`某隊共有 ${n4} 位隊員，其${domain4}（單位：${unit4}）分別為 ${baseData4.join('、')}，今日新加入一位${domain4}為 ${addVal4} ${unit4} 的隊員，則此時全隊隊員${domain4}的眾數為`,
+        answer:mode4, type:'number', answerPrefix:'眾數'
+      };
+    } else if (t===5) {
+      // 次數分配折線圖的點坐標（x=組中點，y=次數）
+      const lo5=pick([40,50,60,70,80,90,140,150,160,170,180]);
+      const hi5=lo5+10;
+      const mid5=lo5+5;
+      const freq5=rp(3,15);
+      const topic5=pick([['身高','公分'],['體重','公斤'],['成績','分']]);
+      return {
+        question:`某班級${topic5[0]}在 ${lo5}～${hi5} ${topic5[1]} 的學生有 ${freq5} 人，在繪製次數分配折線圖時，代表該組的點坐標（\\(x\\) 坐標為組中點，\\(y\\) 坐標為次數）為`,
+        answerParts:[
+          {prefix:'x坐標', answer:mid5, type:'number'},
+          {prefix:'y坐標', answer:freq5, type:'number'}
+        ]
+      };
     }
   } else if (level==='medium') {
-    const t=randInt(0,3);
+    const t=randInt(0,7);
     if (t===0) {
       // 中位數（偶數個，可能為分數）
       const n=pick([4,6]);
@@ -4277,7 +4310,7 @@ function _7bStat(level) {
       const pos=randInt(0,n-1);
       const data=[...others]; data.splice(pos,0,'x');
       return { question:`資料：\\(${data.join(',\\;')}\\)，算術平均數為 \\(${mean}\\)，求 \\(x\\)`, answer:x, type:'number', answerPrefix:'x' };
-    } else {
+    } else if (t===3) {
       // 相對次數（某組次數 / 總次數），化最簡分數
       const lbs=pick([['音樂','體育','美術'],['游泳','籃球','跑步'],['甲組','乙組','丙組']]);
       const fs=lbs.map(()=>randInt(3,10));
@@ -4287,9 +4320,79 @@ function _7bStat(level) {
       const desc=lbs.map((n,i)=>`${n} \\(${fs[i]}\\) 人`).join('，');
       return { question:`某調查：${desc}，求${lbs[idx]}的相對次數（化最簡分數）`,
         answer:frac(fs[idx]/g,tot/g), type:'fraction', answerPrefix:'相對次數' };
+    } else if (t===4) {
+      // 兩組加權平均（已知各組人數和平均，求整體平均）
+      const [gA,gB]=pick([['男生','女生'],['甲班','乙班'],['A組','B組']]);
+      const totalM=pick([25,30,35,40,45,50]);
+      const meanM=randInt(50,80);
+      const nA=pick([10,12,15,18,20]);
+      const nB=totalM-nA;
+      if(nB<5) return null;
+      const meanA=randInt(meanM+3,meanM+18);
+      const meanB=(totalM*meanM-nA*meanA)/nB;
+      if(!Number.isInteger(meanB)||meanB<30||meanB>90||meanB===meanA) return null;
+      const domainM=pick(['體重','成績']);
+      const unitM=domainM==='體重'?'公斤':'分';
+      return {
+        question:`某班${gA}有 ${nA} 人，${gB}有 ${nB} 人，${gA}的平均${domainM}為 ${meanA} ${unitM}，${gB}的平均${domainM}為 ${meanB} ${unitM}，則全班的平均${domainM}為`,
+        answer:meanM, type:'number', answerPrefix:'平均'+domainM
+      };
+    } else if (t===5) {
+      // 剔除一數後平均數變化，求剔除之數
+      const n5=pick([20,25,30,40,50,51,60]);
+      const mean5=randInt(50,80);
+      const deltaNum=pick([-3,-2,-1,1,2,3,-1,1]); // Δ = deltaNum/2
+      if((n5-1)*deltaNum%2!==0) return null; // 確保 removed 為整數
+      const removed5=mean5-(n5-1)*deltaNum/2;
+      const mean5b=mean5-deltaNum/2;
+      if(removed5<1||removed5>250||removed5===mean5) return null;
+      if(mean5b<30||mean5b>120) return null;
+      const mean5bStr=Number.isInteger(mean5b)?String(mean5b):mean5b.toFixed(1);
+      return {
+        question:`設有 ${n5} 個數值之平均數為 ${mean5}，剔除一數後，剩餘 ${n5-1} 個數值的平均數為 ${mean5bStr}，則所剔除之數為`,
+        answer:removed5, type:'number'
+      };
+    } else if (t===6) {
+      // 中位數＋眾數同時求（answerParts）
+      const n6=pick([8,9,10]);
+      const domain6=pick(['體重','成績']);
+      const lo6=domain6==='體重'?35:30, hi6=domain6==='體重'?95:95;
+      const unit6=domain6==='體重'?'公斤':'分';
+      const mode6=randInt(lo6+5,hi6-5);
+      const modeCount=pick([2,3]);
+      const pool6=[];
+      for(let v=lo6;v<=hi6;v++)if(v!==mode6)pool6.push(v);
+      const others6=shuf(pool6).slice(0,n6-modeCount);
+      const data6=shuf([...Array(modeCount).fill(mode6),...others6]);
+      const sorted6=[...data6].sort((a,b)=>a-b);
+      let medN6,medD6;
+      if(n6%2===1){medN6=sorted6[Math.floor(n6/2)];medD6=1;}
+      else{const s=sorted6[n6/2-1]+sorted6[n6/2];const g6=_gcd(s,2);medN6=s/g6;medD6=2/g6;}
+      return {
+        question:`某班 ${n6} 位同學的${domain6}（單位：${unit6}）資料為 ${data6.join('、')}，求中位數與眾數`,
+        answerParts:[
+          {prefix:'中位數', answer:frac(medN6,medD6), type:'fraction'},
+          {prefix:'眾數', answer:mode6, type:'number'}
+        ]
+      };
+    } else if (t===7) {
+      // 百分比加權平均（及格/不及格）
+      const failPct=pick([20,25,30,40]);
+      const passPct=100-failPct;
+      const failAvg7=randInt(35,60);
+      const passAvg7=randInt(65,90);
+      if(failAvg7>=passAvg7) return null;
+      const overallNum7=failPct*failAvg7+passPct*passAvg7;
+      if(overallNum7%100!==0) return null;
+      const overall7=overallNum7/100;
+      const subject7=pick(['英語','數學','國語','理化']);
+      return {
+        question:`某班${subject7}測驗有 ${failPct}% 不及格，不及格的平均分數為 ${failAvg7} 分，而及格者的平均分數為 ${passAvg7} 分，則全班成績的平均數為`,
+        answer:overall7, type:'number', answerPrefix:'平均數'
+      };
     }
   } else {
-    const tH=randInt(0,2);
+    const tH=randInt(0,5);
     if (tH===0) {
       // 加入新數後的新平均數（可能為分數）
       const n=pick([4,5]);
@@ -4308,7 +4411,7 @@ function _7bStat(level) {
       const sumP=v1*f1+v2*f2+v3*f3;
       const g=_gcd(sumP,total);
       return { question:`某資料：\\(${v1}\\) 出現 \\(${f1}\\) 次，\\(${v2}\\) 出現 \\(${f2}\\) 次，\\(${v3}\\) 出現 \\(${f3}\\) 次，求算術平均數`, answer:frac(sumP/g,total/g), type:'fraction', answerPrefix:'平均數' };
-    } else {
+    } else if (tH===2) {
       // 列聯表 2×2（兩類喜好調查）
       const [sA,sB]=pick([['數學','國文'],['音樂','體育'],['游泳','跑步'],['科學','藝術']]);
       const a=randInt(3,12),b=randInt(3,12),c=randInt(3,12),d=randInt(3,12);
@@ -4323,6 +4426,58 @@ function _7bStat(level) {
       const [qStr,ansVal]=asks[askType];
       return { question:`某班調查對${sA}和${sB}的喜好：兩者都喜歡 \\(${a}\\) 人，只喜歡${sA}有 \\(${b}\\) 人，只喜歡${sB}有 \\(${c}\\) 人，兩者都不喜歡 \\(${d}\\) 人；${qStr}？`,
         answer:ansVal, type:'number' };
+    } else if (tH===3) {
+      // 三段分組加權平均
+      const totalH3=pick([30,40,50,60]);
+      const n1H=pick([5,8,10,12]);
+      const n2H=pick([10,12,15,18,20]);
+      const n3H=totalH3-n1H-n2H;
+      if(n3H<5||n3H>25) return null;
+      const avg1H=randInt(60,85), avg2H=randInt(65,90), avg3H=randInt(55,80);
+      if(avg1H===avg2H||avg2H===avg3H||avg1H===avg3H) return null;
+      const totalSumH3=n1H*avg1H+n2H*avg2H+n3H*avg3H;
+      if(totalSumH3%totalH3!==0) return null;
+      const overallH3=totalSumH3/totalH3;
+      return {
+        question:`某班共有 ${totalH3} 位同學，第 1 號到第 ${n1H} 號的數學平均分數為 ${avg1H} 分，第 ${n1H+1} 號到第 ${n1H+n2H} 號的數學平均分數為 ${avg2H} 分，第 ${n1H+n2H+1} 號到第 ${totalH3} 號的數學平均分數為 ${avg3H} 分，則全班的數學平均分數為`,
+        answer:overallH3, type:'number', answerPrefix:'平均分數'
+      };
+    } else if (tH===4) {
+      // 誤讀一數後求正確平均數
+      const nH4=pick([20,25,30,40,50]);
+      const wrongAvgH=randInt(60,110);
+      const corrH=pick([-4,-3,-2,-1,1,2,3,4]);
+      const correctH=randInt(50,150);
+      const wrongH=correctH-corrH*nH4;
+      if(wrongH<1||wrongH>400||wrongH===correctH) return null;
+      const realAvgH=wrongAvgH+corrH;
+      if(realAvgH<30||realAvgH>150) return null;
+      return {
+        question:`在求 ${nH4} 個數值資料的平均數時，粗心地將 ${correctH} 看成 ${wrongH}，結果算得其平均為 ${wrongAvgH}，其實正確的平均數應為`,
+        answer:realAvgH, type:'number', answerPrefix:'平均數'
+      };
+    } else if (tH===5) {
+      // 逆推各組人數（已知各組avg和整體avg+總人數）
+      const [gH1,gH2]=pick([['男生','女生'],['甲組','乙組']]);
+      const totalH5=pick([30,35,40,45,50]);
+      const meanH5=randInt(52,78);
+      const meanH1=randInt(meanH5+3,meanH5+15);
+      const meanH2=randInt(meanH5-15,meanH5-3);
+      if(meanH2<30) return null;
+      const numH5=totalH5*(meanH5-meanH2);
+      const denH5=meanH1-meanH2;
+      if(numH5%denH5!==0) return null;
+      const nH1=numH5/denH5, nH2=totalH5-nH1;
+      if(nH1<=0||nH2<=0||!Number.isInteger(nH1)) return null;
+      const domainH5=pick(['體重','成績']);
+      const unitH5=domainH5==='體重'?'公斤':'分';
+      return {
+        question:`某班共有 ${totalH5} 人，全班${domainH5}的平均數為 ${meanH5} ${unitH5}。已知${gH1}的平均${domainH5}為 ${meanH1} ${unitH5}，${gH2}的平均${domainH5}為 ${meanH2} ${unitH5}，則${gH1}有多少人？${gH2}有多少人？`,
+        answerParts:[
+          {prefix:gH1, answer:nH1, type:'number'},
+          {prefix:gH2, answer:nH2, type:'number'}
+        ]
+      };
     }
   }
 }
