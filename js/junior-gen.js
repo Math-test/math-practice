@@ -1032,6 +1032,23 @@ function _isPrime(n) {
   for (let i = 2; i * i <= n; i++) if (n % i === 0) return false;
   return true;
 }
+function _pfList(n) {
+  const r = []; let t = n;
+  for (let p = 2; p * p <= t; p++) {
+    if (t % p === 0) { let e = 0; while (t % p === 0) { e++; t = Math.floor(t/p); } r.push({p,e}); }
+  }
+  if (t > 1) r.push({p:t, e:1});
+  return r;
+}
+function _pfStr(n) { return _pfList(n).map(({p,e})=>e===1?`${p}`:`${p}^${e}`).join('x'); }
+function _pfLatex(n){ return _pfList(n).map(({p,e})=>e===1?`${p}`:`${p}^{${e}}`).join('\\times'); }
+function _pfExpandedStr(n) {
+  const factors = [];
+  for (const {p,e} of _pfList(n)) { for (let i=0;i<e;i++) factors.push(p); }
+  return factors.join('x');
+}
+function _distinctPFC(n) { return _pfList(n).length; }
+function _sumPF(n) { return _pfList(n).reduce((s,{p})=>s+p, 0); }
 
 // ─── 科學記號對照表（全使用整數或有限小數，避免浮點誤差）─────────
 const _SCI_POS = [
@@ -1394,45 +1411,197 @@ function gen7aPrime(level) {
 }
 
 function _7aPrime(level) {
+  // ── 基礎 ──────────────────────────────────────────────────────────
   if (level === 'basic') {
-    const t = randInt(0, 2);
+    const t = randInt(0, 3);
+
     if (t === 0) {
-      const n = rp(2, 36);
-      return { question:`\\(${n}\\) 的正因數共有幾個？`, answer: _factorCount(n), type:'number' };
-    } else if (t === 1) {
-      const n = rp(4, 50);
-      return { question:`\\(${n}\\) 的最小質因數是多少？`, answer: _smallestPF(n), type:'number' };
-    } else {
-      const pool = [2,3,5,7,11,13,4,6,8,9,10,12,14,15,16,18];
-      const n = pick(pool);
-      return { question:`\\(${n}\\) 是質數嗎？（是填 \\(1\\)，否填 \\(0\\)）`, answer: _isPrime(n)?1:0, type:'number' };
+      // 標準分解式（text）
+      const PRIMES = [2,3,5,7,11,13];
+      let n = 0, tries = 0;
+      while ((n < 50 || n > 3000 || _isPrime(n)) && tries < 40) {
+        const np = randInt(2, 3);
+        const ps = [...PRIMES]; let chosen = [];
+        for (let i = 0; i < np; i++) { const j = randInt(0, ps.length-1); chosen.push(ps.splice(j,1)[0]); }
+        chosen.sort((a,b)=>a-b);
+        n = chosen.reduce((acc,p) => acc * Math.pow(p, randInt(1,3)), 1);
+        tries++;
+      }
+      if (n < 50 || n > 500 || _isPrime(n)) n = 180;
+      return {
+        question: `將 \\(${n}\\) 分解成所有質因數的乘積（用 x 代替 \\(\\times\\)，如 2x2x2x3x5x5）`,
+        answer: _pfExpandedStr(n), type: 'text', answerPrefix: '',
+      };
     }
-  } else if (level === 'hard') {
-    const t = randInt(0, 1);
-    if (t === 0) {
-      const n = rp(2, 60);
-      let sum = 0;
-      for (let i = 1; i <= n; i++) if (n % i === 0) sum += i;
-      return { question:`\\(${n}\\) 的所有正因數之和`, answer: sum, type:'number' };
-    } else {
-      const n = rp(10, 90);
-      let largest = 1, temp = n;
-      for (let p = 2; p <= temp; p++) { while (temp%p===0) { largest=p; temp=Math.floor(temp/p); } }
-      return { question:`\\(${n}\\) 的最大質因數是多少？`, answer: largest, type:'number' };
+
+    if (t === 1) {
+      // 相異質因數個數
+      let n;
+      do { n = rp(12, 250); } while (_isPrime(n) || _distinctPFC(n) < 2);
+      return { question:`\\(${n}\\) 共有幾個相異的質因數？`, answer: _distinctPFC(n), type:'number' };
     }
-  } else {
-    const t = randInt(0, 1);
-    if (t === 0) {
-      const a = rp(1, 4);
-      const odd = pick([1,3,5,7,9,11,15]);
-      const n = Math.pow(2,a) * odd;
-      if (n > 100) return null;
-      return { question:`\\(${n}\\) 的質因數分解中，2 的指數為何？`, answer: a, type:'number' };
-    } else {
-      const n = rp(10, 64);
-      return { question:`\\(${n}\\) 的正因數共有幾個？`, answer: _factorCount(n), type:'number' };
+
+    if (t === 2) {
+      // 缺位數字（11的倍數，四位數 A□CD）→ 唯一解
+      let A, C, D, blank, tries = 0;
+      do {
+        A = randInt(1, 9); C = randInt(0, 9); D = randInt(0, 9);
+        blank = (((A + C - D) % 11) + 11) % 11;
+        tries++;
+      } while (blank > 9 && tries < 30);
+      if (blank > 9) return null;
+      return {
+        question: `有一個四位數 \\(${A}\\square${C}${D}\\) 是 11 的倍數，則 \\(\\square=\\)`,
+        answer: blank, type: 'number', answerPrefix: '\\(\\square\\)',
+      };
     }
+
+    // t === 3: 正因數個數
+    let n;
+    do { n = rp(10, 150); } while (_isPrime(n));
+    return { question:`\\(${n}\\) 共有幾個正因數？`, answer: _factorCount(n), type:'number' };
   }
+
+  // ── 中等 ──────────────────────────────────────────────────────────
+  if (level === 'medium') {
+    const t = randInt(0, 3);
+
+    if (t === 0) {
+      // 缺位（整除複合條件）— 固定題池
+      const pool = [
+        {q:'已知四位數 \\(8\\square41\\) 是 \\(21\\) 的倍數，則 \\(\\square=\\)', ans:8},
+        {q:'已知四位數 \\(\\square36\\square\\) 為 2 的倍數也是 3 的倍數（同一數字），則 \\(\\square=\\)', ans:6},
+        {q:'已知五位數 \\(2\\square583\\) 是 11 的倍數，則 \\(\\square=\\)', ans:2},
+        {q:'已知五位數 \\(2726\\square\\) 是 6 的倍數，則 \\(\\square=\\)', ans:4},
+        {q:'已知五位數 \\(2726\\square\\) 是 11 的倍數，則 \\(\\square=\\)', ans:9},
+        {q:'已知四位數 \\(5\\square93\\) 是 11 的倍數，則 \\(\\square=\\)', ans:0},
+        {q:'有一個百位數字為 9、十位數字為 2 的三位數可被 21 整除，則此三位數為', ans:924},
+        {q:'已知四位數 \\(4\\square05\\) 是 9 的倍數，則 \\(\\square=\\)', ans:0},
+      ];
+      const item = pick(pool);
+      return { question: item.q, answer: item.ans, type:'number', answerPrefix: '' };
+    }
+
+    if (t === 1) {
+      // N的正因數中是k倍數的個數（factorCount(N/k)）
+      const cases = [
+        {N:120, k:4,  kstr:'4',  ans:8},   // 120/4=30, τ(30)=8
+        {N:180, k:9,  kstr:'9',  ans:6},   // 180/9=20, τ(20)=6
+        {N:360, k:4,  kstr:'4',  ans:12},  // 360/4=90, τ(90)=12
+        {N:240, k:8,  kstr:'8',  ans:8},   // 240/8=30, τ(30)=8
+        {N:360, k:12, kstr:'12', ans:8},   // 360/12=30, τ(30)=8
+        {N:120, k:6,  kstr:'6',  ans:6},   // 120/6=20, τ(20)=6
+        {N:240, k:12, kstr:'12', ans:6},   // 240/12=20, τ(20)=6
+        {N:180, k:6,  kstr:'6',  ans:8},   // 180/6=30, τ(30)=8
+        {N:144, k:6,  kstr:'6',  ans:8},   // 144/6=24, τ(24)=8
+        {N:504, k:9,  kstr:'9',  ans:8},   // 504=2³×3²×7, 504/9=56=2³×7, τ(56)=8
+      ];
+      const item = pick(cases);
+      return {
+        question: `設 \\(n\\) 為 \\(${item.N}\\) 的正因數，且 \\(n\\) 為 \\(${item.kstr}\\) 的倍數，則 \\(n\\) 共有幾個？`,
+        answer: item.ans, type: 'number', answerPrefix: '',
+      };
+    }
+
+    if (t === 2) {
+      // 三個相異質數條件：甲+乙=奇數，乙×丙=2×質數 → 乙=2
+      const pool = [
+        {sum:33,prod:74, a:31,b:2,c:37, ans:-8},
+        {sum:31,prod:38, a:29,b:2,c:19, ans:8},
+        {sum:43,prod:58, a:41,b:2,c:29, ans:10},
+        {sum:39,prod:46, a:37,b:2,c:23, ans:12},
+        {sum:45,prod:34, a:43,b:2,c:17, ans:24},
+        {sum:49,prod:26, a:47,b:2,c:13, ans:32},
+        {sum:55,prod:22, a:53,b:2,c:11, ans:40},
+      ];
+      const item = pick(pool);
+      return {
+        question: `已知甲、乙、丙皆為相異質數，若甲＋乙＝\\(${item.sum}\\)，乙×丙＝\\(${item.prod}\\)，則甲－乙－丙＝`,
+        answer: item.ans, type: 'number', answerPrefix: '',
+      };
+    }
+
+    // t === 3: 乘積分解成所有質因數的乘積（展開式）
+    const pairs = [
+      {expr:'119 \\times 63',  n:119*63},   // 3x3x7x7x17
+      {expr:'102 \\times 76',  n:102*76},   // 2x2x2x3x17x19
+      {expr:'84 \\times 75',   n:84*75},    // 2x2x3x3x5x5x7
+      {expr:'66 \\times 35',   n:66*35},    // 2x3x5x7x11
+      {expr:'78 \\times 91',   n:78*91},    // 2x3x7x13x13
+      {expr:'44 \\times 63',   n:44*63},    // 2x2x3x3x7x11
+      {expr:'52 \\times 99',   n:52*99},    // 2x2x3x3x11x13
+      {expr:'70 \\times 66',   n:70*66},    // 2x2x3x5x7x11
+    ];
+    const item = pick(pairs);
+    return {
+      question: `若 \\(a = ${item.expr}\\)，將 \\(a\\) 分解成所有質因數的乘積（用 x 代替 \\(\\times\\)，如 2x2x3x5x5）`,
+      answer: _pfExpandedStr(item.n), type: 'text', answerPrefix: '\\(a\\)',
+    };
+  }
+
+  // ── 困難 ──────────────────────────────────────────────────────────
+  if (level === 'hard') {
+    const t = randInt(0, 2);
+
+    if (t === 0) {
+      // 相異質因數之和
+      const pool = [
+        {n:1729, ans:39},  // 7×13×19
+        {n:1001, ans:31},  // 7×11×13
+        {n:429,  ans:27},  // 3×11×13
+        {n:273,  ans:23},  // 3×7×13
+        {n:105,  ans:15},  // 3×5×7
+        {n:221,  ans:30},  // 13×17
+        {n:455,  ans:25},  // 5×7×13
+        {n:1155, ans:26},  // 3×5×7×11
+        {n:770,  ans:25},  // 2×5×7×11
+        {n:2310, ans:28},  // 2×3×5×7×11
+        {n:1547, ans:37},  // 7×13×17
+        {n:715,  ans:29},  // 5×11×13
+      ];
+      const item = pick(pool);
+      return {
+        question: `\\(${item.n}\\) 所有相異質因數的和為`,
+        answer: item.ans, type: 'number', answerPrefix: '',
+      };
+    }
+
+    if (t === 1) {
+      // 連乘積 N×(N+1)×...×M 的相異質因數個數（即不超過M的質數個數）
+      const pool = [
+        {expr:'1\\times2\\times3\\times\\cdots\\times10', M:10, ans:4},   // 2,3,5,7
+        {expr:'1\\times2\\times3\\times\\cdots\\times15', M:15, ans:6},   // +11,13
+        {expr:'1\\times2\\times3\\times\\cdots\\times18', M:18, ans:7},   // +17
+        {expr:'1\\times2\\times3\\times\\cdots\\times20', M:20, ans:8},   // +19
+        {expr:'10\\times11\\times12\\times\\cdots\\times18', M:18, ans:7}, // same primes ≤18
+        {expr:'5\\times6\\times7\\times\\cdots\\times15', M:15, ans:6},   // 2,3,5,7,11,13
+        {expr:'10\\times11\\times12\\times\\cdots\\times20', M:20, ans:8}, // primes ≤20 present: 11,13,17,19 + 2,3,5,7 from composites = 8
+      ];
+      const item = pick(pool);
+      return {
+        question: `已知正整數 \\(a = ${item.expr}\\)，則 \\(a\\) 的相異質因數共有幾個？`,
+        answer: item.ans, type: 'number', answerPrefix: '',
+      };
+    }
+
+    // t === 2: 一組數中質數個數（含陷阱合數）
+    const pool2 = [
+      {nums:[1,2,3,29,63,91,97],    ans:4, display:'1、2、3、29、63、91、97'},
+      {nums:[2,11,51,67,77,91],     ans:3, display:'2、11、51、67、77、91'},
+      {nums:[3,7,13,21,49,97,133],  ans:4, display:'3、7、13、21、49、97、133'},
+      {nums:[2,17,51,83,119,127],   ans:4, display:'2、17、51、83、119、127'},
+      {nums:[1,3,5,35,37,121,143],  ans:3, display:'1、3、5、35、37、121、143'},
+      {nums:[2,7,23,77,87,97],      ans:4, display:'2、7、23、77、87、97'},
+      {nums:[5,11,55,91,101,143],   ans:3, display:'5、11、55、91、101、143'},
+      {nums:[2,3,13,91,143,169],    ans:3, display:'2、3、13、91、143、169'},
+    ];
+    const item2 = pick(pool2);
+    return {
+      question: `在 ${item2.display} 這幾個數中，有幾個質數？`,
+      answer: item2.ans, type: 'number', answerPrefix: '',
+    };
+  }
+  return null;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1528,7 +1697,7 @@ function _7aExp(level) {
     }
   } else {
     // hard
-    const t = randInt(0, 7);
+    const t = randInt(0, 6);
     if (t === 0) {
       // 求指數：a^m × a^n ÷ a^p = a^x
       const a = pick([2,3,4,5,6,7,8,9,10]);
@@ -1568,7 +1737,7 @@ function _7aExp(level) {
       const x = m+n-p*q;
       if (x <= 0) return null;
       return { question:`\\(\\dfrac{${a}^{${m}} \\times ${a}^{${n}}}{(${a}^{${p}})^{${q}}} = ${a}^x\\)`, answer: x, type:'number', answerPrefix:'x' };
-    } else if (t === 6) {
+    } else {
       // 因式加法求值：a^m + k × a^(m-1)
       const a = pick([2,3,4,5,6]);
       const m = rp(2,5);
@@ -1577,13 +1746,6 @@ function _7aExp(level) {
       const val = Math.pow(a,m) + k * Math.pow(a,m-1);
       if (val > 1500) return null;
       return { question:`\\(${a}^{${m}} + ${k} \\times ${a}^{${m-1}}\\)`, answer: val, type:'number' };
-    } else {
-      // 分數求值（含冪次律）：(a^m)^n / a^p
-      const a = pick([2,3,4]);
-      const m = rp(2,3), n = rp(2,3), p = rp(1, m*n-1);
-      const x = m*n-p;
-      if (Math.pow(a,x) > 1024) return null;
-      return { question:`\\(\\dfrac{(${a}^{${m}})^{${n}}}{${a}^{${p}}}\\)`, answer: Math.pow(a,x), type:'number' };
     }
   }
 }

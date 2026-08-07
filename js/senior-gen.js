@@ -641,7 +641,7 @@ function genB1Exp(level) {
 
 function _b1Exp(level) {
   if (level === 'basic') {
-    const t = srRandInt(0, 6);
+    const t = srRandInt(0, 8);
     if (t === 0) {
       // a^{-n} → 1/a^n（擴大底數池，避免重複）
       const a = [2,3,4,5,6,8][srRandInt(0,5)];
@@ -700,7 +700,7 @@ function _b1Exp(level) {
       const m = srRandInt(2,4), n = srRandInt(2,3);
       if (Math.pow(a,m*n) > 512) return null;
       return { question:`\\(\\left[(${a}^{${m}})^{${n}}\\right]\\) ＝ ？`, answer:Math.pow(a,m*n), type:'number', answerPrefix:'' };
-    } else {
+    } else if (t === 6) {
       // 大中括號：{[(a/b)^m]^n} = (b/a)^{mn}（分數底多層括號）
       const pairs = [[2,3],[3,4],[2,5],[3,5]];
       const [a,b] = pairs[srRandInt(0,pairs.length-1)];
@@ -709,9 +709,37 @@ function _b1Exp(level) {
       const rn = Math.pow(b,mn), rd = Math.pow(a,mn);
       const g = srGcd(rn,rd);
       return { question:`\\(\\left\\{\\left[\\left(\\dfrac{${a}}{${b}}\\right)^{${m}}\\right]^{${n}}\\right\\}\\) ＝ ？（格式：p/q）`, answer:`${rn/g}/${rd/g}`, type:'text', answerPrefix:'' };
+    } else if (t === 7) {
+      // 無理指數同底化簡：a^{p√k} × b^{q√k} = 整數
+      const tbl7b = [
+        ['32^{1-\\sqrt{2}} \\times 4^{\\frac{5\\sqrt{2}}{2}}', 32],
+        ['3^{2\\sqrt{3}} \\times 81^{1-\\frac{\\sqrt{3}}{2}}', 81],
+        ['8^{1-\\sqrt{2}} \\times 4^{\\frac{3\\sqrt{2}}{2}}', 8],
+        ['3^{2\\sqrt{5}} \\times 9^{1-\\sqrt{5}}', 9],
+        ['4^{\\sqrt{3}} \\times 2^{2-2\\sqrt{3}}', 4],
+        ['9^{\\sqrt{5}} \\times 27^{1-\\frac{2\\sqrt{5}}{3}}', 27],
+        ['4^{\\sqrt{5}} \\times 8^{1-\\frac{2\\sqrt{5}}{3}}', 8],
+        ['2^{\\sqrt{3}} \\times 4^{1-\\frac{\\sqrt{3}}{2}}', 4],
+      ];
+      const [q7b, a7b] = srQPick(tbl7b, _b1ExpB7Q);
+      return { question:`試化簡 \\(${q7b}\\) ＝ ？`, answer:a7b, type:'number', answerPrefix:'' };
+    } else {
+      // t===8: 三項混合含零次方、負指數
+      const tbl8b = [
+        ['(3^{-2})^{-1} + 3^{-2} \\times 3^{3} + (3^{-10})^{0}', 13],
+        ['(2^{-3})^{-1} + 2^{-2} \\times 2^{4} + (5^{-8})^{0}', 13],
+        ['(2^{-2})^{-1} + 2^{-1} \\times 2^{3} + (7^{-5})^{0}', 9],
+        ['(5^{-1})^{-1} + 3^{-2} \\times 3^{4} + (2^{-8})^{0}', 15],
+        ['(2^{-4})^{-1} + 3^{-2} \\times 3^{4} + (7^{-2})^{0}', 26],
+        ['(3^{-1})^{-1} + 2^{-2} \\times 2^{5} + (5^{-3})^{0}', 12],
+        ['(2^{-1})^{-1} + 5^{-2} \\times 5^{3} + (3^{-7})^{0}', 8],
+        ['(4^{-1})^{-1} + 2^{-3} \\times 2^{5} + (3^{-4})^{0}', 9],
+      ];
+      const [q8b, a8b] = srQPick(tbl8b, _b1ExpB8Q);
+      return { question:`計算 \\(${q8b}\\) ＝ ？`, answer:a8b, type:'number', answerPrefix:'' };
     }
   } else if (level === 'medium') {
-    const t = srRandInt(0, 10);
+    const t = srRandInt(0, 12);
     if (t === 0) {
       // a^m × a^{-n}
       const a = [2,3,4][srRandInt(0,2)];
@@ -827,8 +855,8 @@ function _b1Exp(level) {
       ];
       const [qm9,ansm9] = srQPick(tbl9m, _b1ExpM9Q);
       return { question:`\\(${qm9}\\) ＝ ？`, answer:ansm9, type:'number', answerPrefix:'' };
-    } else {
-      // 兩組不同底相加減：a^m × a^{-n} OP b^p × b^{-q}（t=10）
+    } else if (t === 10) {
+      // 兩組不同底相加減：a^m × a^{-n} OP b^p × b^{-q}
       const bases10m = [[2,3],[2,5],[3,5]];
       const [a10m,b10m] = bases10m[srRandInt(0,2)];
       const aExp = srRandInt(1,4), bExp = srRandInt(1,3);
@@ -842,10 +870,37 @@ function _b1Exp(level) {
       const opStr10m = op10m===0 ? '+' : '-';
       const qStr10m = `${a10m}^{${m1}} \\times ${a10m}^{-${n1}} ${opStr10m} ${b10m}^{${m2}} \\times ${b10m}^{-${n2}}`;
       return { question:`\\(${qStr10m}\\) ＝ ？`, answer:ans10m, type:'number', answerPrefix:'' };
+    } else if (t === 11) {
+      // a^{2x}=k → (a^x+a^{-x})/(a^{3x}+a^{-3x}) = k/(k²-k+1)
+      //          或 (a^{3x}+a^{-3x})/(a^x-a^{-x}) = (k+1)(k²-k+1)/(k(k-1))
+      const pool11m = [
+        {q:'設 \\(a>0\\)，\\(a^{2x}=3\\)，求 \\(\\dfrac{a^x+a^{-x}}{a^{3x}+a^{-3x}}\\)', ans:frac(3,7),   type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=2\\)，求 \\(\\dfrac{a^x+a^{-x}}{a^{3x}+a^{-3x}}\\)', ans:frac(2,3),   type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=4\\)，求 \\(\\dfrac{a^x+a^{-x}}{a^{3x}+a^{-3x}}\\)', ans:frac(4,13),  type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=5\\)，求 \\(\\dfrac{a^x+a^{-x}}{a^{3x}+a^{-3x}}\\)', ans:frac(5,21),  type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=3\\)，求 \\(\\dfrac{a^{3x}+a^{-3x}}{a^x-a^{-x}}\\)', ans:frac(14,3),  type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=2\\)，求 \\(\\dfrac{a^{3x}+a^{-3x}}{a^x-a^{-x}}\\)', ans:frac(9,2),   type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=4\\)，求 \\(\\dfrac{a^{3x}+a^{-3x}}{a^x-a^{-x}}\\)', ans:frac(65,12), type:'fraction'},
+      ];
+      const item11m = srQPick(pool11m, _b1ExpM11Q);
+      return { question:item11m.q, answer:item11m.ans, type:item11m.type, answerPrefix:'' };
+    } else {
+      // t===12: 等冪鏈 a^x=b^y=c^z=N，求某組合
+      const pool12m = [
+        {q:'設 \\(2^x=4^y=8^z=16\\)，求 \\(x+y-z\\)',                                          ans:frac(14,3), type:'fraction'},
+        {q:'設 \\(2^x=4^y=8^z=64\\)，求 \\(x-y+z\\)',                                          ans:5,          type:'number'},
+        {q:'設 \\(2^x=4^y=8^z=64\\)，求 \\(\\dfrac{1}{x}+\\dfrac{1}{y}+\\dfrac{1}{z}\\)',     ans:1,          type:'number'},
+        {q:'設 \\(3^x=9^y=27^z=81\\)，求 \\(\\dfrac{1}{x}+\\dfrac{1}{y}+\\dfrac{1}{z}\\)',    ans:frac(3,2),  type:'fraction'},
+        {q:'設 \\(2^x=4^y=8^z=16\\)，求 \\(\\dfrac{1}{x}+\\dfrac{1}{y}+\\dfrac{1}{z}\\)',    ans:frac(3,2),  type:'fraction'},
+        {q:'設 \\(2^x=8^y=16^z=64\\)，求 \\(x+y-z\\)',                                         ans:frac(13,2), type:'fraction'},
+        {q:'設 \\(3^x=9^y=27^z=729\\)，求 \\(x-y+z\\)',                                        ans:5,          type:'number'},
+      ];
+      const item12m = srQPick(pool12m, _b1ExpM12Q);
+      return { question:item12m.q, answer:item12m.ans, type:item12m.type, answerPrefix:'' };
     }
   } else {
     // hard
-    const t = srRandInt(0, 10);
+    const t = srRandInt(0, 12);
     if (t === 0) {
       // (a^m × a^{-n}) / (a^{-p} × a^q) 同底化簡
       const a = [2,3][srRandInt(0,1)];
@@ -996,6 +1051,34 @@ function _b1Exp(level) {
       ];
       const [qMix,ansMix] = srQPick(tblMix, _b1ExpH10Q);
       return { question:`\\(${qMix}\\) ＝ ？（格式：p/q）`, answer:ansMix, type:'text', answerPrefix:'' };
+    } else if (t === 11) {
+      // A^x=p^a, B^y=p^b, A/B=p^k → 求 m/x-n/y；或三底等冪 → (yz+xz)/xy
+      const pool11h = [
+        {q:'設 \\(21^x=9\\)，\\(567^y=81\\)，求 \\(\\dfrac{2}{x}-\\dfrac{4}{y}\\)',                                                                                                  ans:-3,           type:'number'},
+        {q:'設 \\(43^x=9\\)，\\(387^y=243\\)，求 \\(\\dfrac{2}{x}-\\dfrac{5}{y}\\)',                                                                                                  ans:-2,           type:'number'},
+        {q:'設 \\(17^x=9\\)，\\(459^y=81\\)，求 \\(\\dfrac{1}{x}-\\dfrac{2}{y}\\)',                                                                                                   ans:frac(-3,2),   type:'fraction'},
+        {q:'設 \\(7^x=9\\)，\\(63^y=81\\)，求 \\(\\dfrac{1}{x}-\\dfrac{2}{y}\\)',                                                                                                     ans:-1,           type:'number'},
+        {q:'設 \\(x,y\\) 為實數，\\((25.7)^x=1000\\)，\\((0.0257)^y=1000\\)，求 \\(\\dfrac{1}{x}-\\dfrac{1}{y}\\)',                                                                  ans:1,            type:'number'},
+        {q:'設 \\(x,y\\) 為實數，\\((257)^x=100\\)，\\((0.257)^y=100\\)，求 \\(\\dfrac{1}{x}-\\dfrac{1}{y}\\)',                                                                      ans:frac(3,2),    type:'fraction'},
+        {q:'設 \\(x,y,z\\) 均為實數且 \\(xyz\\neq 0\\)，\\(3^x=5^y=\\left(\\sqrt[3]{15}\\right)^z\\)，求 \\(\\dfrac{yz+xz}{xy}\\)',                                                  ans:3,            type:'number'},
+        {q:'設 \\(x,y,z\\) 均為實數且 \\(xyz\\neq 0\\)，\\(2^x=5^y=\\left(\\sqrt[4]{10}\\right)^z\\)，求 \\(\\dfrac{yz+xz}{xy}\\)',                                                  ans:4,            type:'number'},
+        {q:'設 \\(x,y,z\\) 均為實數且 \\(xyz\\neq 0\\)，\\(2^x=7^y=\\left(\\sqrt[3]{14}\\right)^z\\)，求 \\(\\dfrac{yz+xz}{xy}\\)',                                                  ans:3,            type:'number'},
+        {q:'設 \\(x,y,z\\) 均為實數且 \\(xyz\\neq 0\\)，\\(2^x=3^y=\\left(\\sqrt[6]{6}\\right)^z\\)，求 \\(\\dfrac{yz+xz}{xy}\\)',                                                   ans:6,            type:'number'},
+      ];
+      const item11h = srQPick(pool11h, _b1ExpH11Q);
+      return { question:item11h.q, answer:item11h.ans, type:item11h.type, answerPrefix:'' };
+    } else {
+      // t===12: 對稱函數求和 f(x)=b^x/(c+b^x)，利用 f(x)+f(1-x)=1
+      const pool12h = [
+        {q:'假設 \\(f(x)=\\dfrac{16^x}{4+16^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{6}\\right)+f\\!\\left(\\dfrac{2}{6}\\right)+f\\!\\left(\\dfrac{3}{6}\\right)+f\\!\\left(\\dfrac{4}{6}\\right)+f\\!\\left(\\dfrac{5}{6}\\right)\\)', ans:frac(5,2), type:'fraction'},
+        {q:'假設 \\(f(x)=\\dfrac{4^x}{2+4^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{6}\\right)+f\\!\\left(\\dfrac{2}{6}\\right)+\\cdots+f\\!\\left(\\dfrac{5}{6}\\right)\\)',                ans:frac(5,2), type:'fraction'},
+        {q:'假設 \\(f(x)=\\dfrac{16^x}{4+16^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{8}\\right)+f\\!\\left(\\dfrac{2}{8}\\right)+\\cdots+f\\!\\left(\\dfrac{7}{8}\\right)\\)',              ans:frac(7,2), type:'fraction'},
+        {q:'假設 \\(f(x)=\\dfrac{9^x}{3+9^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{6}\\right)+f\\!\\left(\\dfrac{2}{6}\\right)+\\cdots+f\\!\\left(\\dfrac{5}{6}\\right)\\)',                ans:frac(5,2), type:'fraction'},
+        {q:'假設 \\(f(x)=\\dfrac{25^x}{5+25^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{4}\\right)+f\\!\\left(\\dfrac{2}{4}\\right)+f\\!\\left(\\dfrac{3}{4}\\right)\\)',                      ans:frac(3,2), type:'fraction'},
+        {q:'假設 \\(f(x)=\\dfrac{4^x}{2+4^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{8}\\right)+f\\!\\left(\\dfrac{2}{8}\\right)+\\cdots+f\\!\\left(\\dfrac{7}{8}\\right)\\)',                ans:frac(7,2), type:'fraction'},
+      ];
+      const item12h = srQPick(pool12h, _b1ExpH12Q);
+      return { question:item12h.q, answer:item12h.ans, type:item12h.type, answerPrefix:'' };
     }
   }
 }
@@ -1328,7 +1411,7 @@ function _b1LFrac(p, q) {
   const g = srGcd(Math.abs(p), Math.abs(q));
   let n = p / g, d = q / g;
   if (d < 0) { n = -n; d = -d; }
-  return { n, d, str: d === 1 ? `${n}` : `${n}/${d}`, isInt: d === 1 };
+  return { n, d, str: d === 1 ? `${n}` : `${n}/${d}`, isInt: d === 1, fobj: frac(n, d) };
 }
 
 function _b1LSlpInt(m, b) {
@@ -1489,7 +1572,7 @@ function _b1Line(level) {
       const f = _b1LFrac(pNum, pDen);
       return {
         question:`直線過 \\((${x1},\\ ${y1})\\) 與 \\((${x2},\\ ${y2})\\)，求斜率`,
-        answer:f.str, type:'text', answerPrefix:'m'
+        answer:f.fobj, type:'fraction', answerPrefix:'m'
       };
     }
 
@@ -1500,7 +1583,7 @@ function _b1Line(level) {
       if (!f) return null;
       return {
         question:`直線 \\(${_b1LGen(a, b, c)}\\) 的斜率為何？`,
-        answer:f.str, type: f.isInt ? 'number' : 'text', answerPrefix:'m'
+        answer: f.isInt ? f.n : f.fobj, type: f.isInt ? 'number' : 'fraction', answerPrefix:'m'
       };
     }
 
@@ -1533,7 +1616,7 @@ function _b1Line(level) {
       if (!f) return null;
       return {
         question:`截距式 \\(\\dfrac{x}{${a}} + \\dfrac{y}{${b}} = 1\\) 的斜率為何？`,
-        answer:f.str, type: f.isInt ? 'number' : 'text', answerPrefix:'m'
+        answer: f.isInt ? f.n : f.fobj, type: f.isInt ? 'number' : 'fraction', answerPrefix:'m'
       };
     }
 
@@ -1600,7 +1683,7 @@ function _b1Line(level) {
     if (!f || f.d > 4) return null;
     return {
       question:`直線過 \\((${x1},\\ ${y1})\\) 與 \\((${x2},\\ ${y2})\\)，求 \\(y\\) 截距`,
-      answer:f.str, type: f.isInt ? 'number' : 'text', answerPrefix:''
+      answer: f.isInt ? f.n : f.fobj, type: f.isInt ? 'number' : 'fraction', answerPrefix:''
     };
   }
 
@@ -1611,7 +1694,7 @@ function _b1Line(level) {
     if (!f) return null;
     return {
       question:`直線 \\(${_b1LSlpInt(m, b)}\\) 改寫成截距式 \\(\\dfrac{x}{a} + \\dfrac{y}{b} = 1\\)，求 \\(a\\)`,
-      answer:f.str, type: f.isInt ? 'number' : 'text', answerPrefix:'a'
+      answer: f.isInt ? f.n : f.fobj, type: f.isInt ? 'number' : 'fraction', answerPrefix:'a'
     };
   }
 
@@ -1642,7 +1725,7 @@ function _b1Line(level) {
     if (!f) return null;
     return {
       question:`若直線 \\(L\\) 垂直於 \\(${_b1LSlpInt(m, b)}\\)，則 \\(L\\) 的斜率為何？`,
-      answer:f.str, type: f.isInt ? 'number' : 'text', answerPrefix:'m'
+      answer: f.isInt ? f.n : f.fobj, type: f.isInt ? 'number' : 'fraction', answerPrefix:'m'
     };
   }
 
@@ -2011,6 +2094,9 @@ let _b1LineDistDQ   = [];   // shuffle queue — irrational parallel distance ca
 // b1-exp shuffle queues
 let _b1ExpM3Q = []; let _b1ExpM4Q = []; let _b1ExpM5Q = []; let _b1ExpM6Q = []; let _b1ExpM9Q = [];
 let _b1ExpH2Q = []; let _b1ExpH5Q = []; let _b1ExpH6Q = []; let _b1ExpH9Q = []; let _b1ExpH10Q= [];
+let _b1ExpB7Q = []; let _b1ExpB8Q = [];
+let _b1ExpM11Q = []; let _b1ExpM12Q = [];
+let _b1ExpH11Q = []; let _b1ExpH12Q = [];
 // b1-log shuffle queues
 let _b1LogB2Q = []; let _b1LogB3Q = []; let _b1LogB5Q = []; let _b1LogB7Q = [];
 let _b1LogM0Q = []; let _b1LogM1Q = []; let _b1LogM2Q = []; let _b1LogM3Q = []; let _b1LogM4Q = []; let _b1LogM7Q = [];
@@ -2018,6 +2104,23 @@ let _b1LogH0Q = []; let _b1LogH1Q = []; let _b1LogH2Q = []; let _b1LogH3Q = []; 
 // b1-amgm shuffle queues
 let _b1AmGmM1Q = []; let _b1AmGmH0Q = []; let _b1AmGmH1Q = [];
 let _b1DivPtQ  = [];
+// b2-trig shuffle queues
+let _b2TrigSpecialQ = []; let _b2TrigSumQ = [];
+// b3a-arc / b3b-trig-arc shuffle queues
+let _b3ArcDegQ = []; let _b3ArcRadQ = []; let _b3ArcArcQ = []; let _b3ArcAreaQ = [];
+let _b3ArcQuadQ = []; let _b3ArcClkQ = []; let _b3ArcHardQ = []; let _b3ArcPtQ = [];
+// b3a-trig-add shuffle queues
+let _b3aAddB0Q = []; let _b3aAddB1Q = []; let _b3aAddB2Q = []; let _b3aAddB3Q = [];
+let _b3aAddM0Q = []; let _b3aAddM1Q = []; let _b3aAddM2Q = [];
+let _b3aAddH0Q = []; let _b3aAddH1Q = [];
+// b3a-trig-dbl shuffle queues
+let _b3aDblB0Q = []; let _b3aDblB1Q = []; let _b3aDblB2Q = [];
+let _b3aDblM0Q = []; let _b3aDblM1Q = []; let _b3aDblM2Q = [];
+let _b3aDblH0Q = []; let _b3aDblH1Q = [];
+// b3a-trig-graph shuffle queues
+let _b3aGrfB0Q=[]; let _b3aGrfB1Q=[]; let _b3aGrfB2Q=[]; let _b3aGrfB3Q=[]; let _b3aGrfB4Q=[]; let _b3aGrfB5Q=[];
+let _b3aGrfM0Q=[]; let _b3aGrfM1Q=[]; let _b3aGrfM2Q=[]; let _b3aGrfM3Q=[];
+let _b3aGrfH0Q=[]; let _b3aGrfH1Q=[];
 
 function genB1LineDist(level, _n) {
   for (let _i = 0; _i < 40; _i++) {
@@ -2565,6 +2668,922 @@ function _b1DivPt(level, m, n, s, d) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  第二冊 ▸ 第三章　三角比
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ── b2-trig：三角比（直角三角形邊角關係）────────────────────────
+function genB2Trig(level) {
+  for (let i = 0; i < 40; i++) { const q = _b2Trig(level); if (q) return q; }
+  return _b2Trig('basic');
+}
+
+function _b2Trig(level) {
+  // Primitive Pythagorean triples: {a=opposite, b=adjacent, c=hypotenuse}
+  const PY = [
+    {a:3,b:4,c:5},{a:4,b:3,c:5},{a:5,b:12,c:13},{a:12,b:5,c:13},
+    {a:8,b:15,c:17},{a:15,b:8,c:17},{a:7,b:24,c:25},{a:24,b:7,c:25},
+    {a:20,b:21,c:29},
+  ];
+  // coefTerm: omit leading "1" before a variable term
+  const ct = (c, v) => c === 1 ? v : `${c}${v}`;
+
+  // ── 基礎 ─────────────────────────────────────────────────────
+  if (level === 'basic') {
+    const t = srRandInt(0, 4);
+
+    if (t === 0) {
+      // 已知一三角比求另一個（Pythagorean triple）
+      const py = pick(PY); const {a, b, c} = py;
+      const ask = pick(['sin→cos','cos→sin','sin→tan','cos→tan','tan→sin','tan→cos']);
+      switch (ask) {
+        case 'sin→cos': return {question:`已知 \\(\\theta\\) 為銳角，且 \\(\\sin\\theta=\\dfrac{${a}}{${c}}\\)，則 \\(\\cos\\theta=\\)`,answer:frac(b,c),type:'fraction'};
+        case 'cos→sin': return {question:`已知 \\(\\theta\\) 為銳角，且 \\(\\cos\\theta=\\dfrac{${b}}{${c}}\\)，則 \\(\\sin\\theta=\\)`,answer:frac(a,c),type:'fraction'};
+        case 'sin→tan': return {question:`已知 \\(\\theta\\) 為銳角，且 \\(\\sin\\theta=\\dfrac{${a}}{${c}}\\)，則 \\(\\tan\\theta=\\)`,answer:frac(a,b),type:'fraction'};
+        case 'cos→tan': return {question:`已知 \\(\\theta\\) 為銳角，且 \\(\\cos\\theta=\\dfrac{${b}}{${c}}\\)，則 \\(\\tan\\theta=\\)`,answer:frac(a,b),type:'fraction'};
+        case 'tan→sin': return {question:`已知 \\(\\theta\\) 為銳角，且 \\(\\tan\\theta=\\dfrac{${a}}{${b}}\\)，則 \\(\\sin\\theta=\\)`,answer:frac(a,c),type:'fraction'};
+        case 'tan→cos': return {question:`已知 \\(\\theta\\) 為銳角，且 \\(\\tan\\theta=\\dfrac{${a}}{${b}}\\)，則 \\(\\cos\\theta=\\)`,answer:frac(b,c),type:'fraction'};
+        default: return null;
+      }
+    }
+
+    if (t === 1) {
+      // 特殊角代入計算（固定池，答案皆為分數或整數）
+      const pool = [
+        {q:'\\sqrt{3}\\,\\tan 30^\\circ+\\sqrt{2}\\,\\sin 45^\\circ+\\cos 60^\\circ',        a:frac(5,2)},
+        {q:'4\\sin 30^\\circ-\\cos 60^\\circ',                                                a:frac(3,2)},
+        {q:'2\\cos 60^\\circ+3\\sin 30^\\circ',                                               a:frac(5,2)},
+        {q:'\\sin^2 30^\\circ+\\cos^2 60^\\circ+\\tan 45^\\circ',                            a:frac(3,2)},
+        {q:'\\sin^2 30^\\circ+\\cos^2 60^\\circ',                                             a:frac(1,2)},
+        {q:'\\sin 30^\\circ\\cdot\\cos 60^\\circ+\\tan 45^\\circ',                           a:frac(5,4)},
+        {q:'2\\sin 30^\\circ\\cdot\\cos 60^\\circ',                                           a:frac(1,2)},
+        {q:'(1+2\\sin 30^\\circ+\\cos 45^\\circ)(1-\\sin 45^\\circ+2\\cos 60^\\circ)',       a:frac(7,2)},
+        {q:'\\sin^2 30^\\circ+\\cos^2 60^\\circ+\\tan 60^\\circ\\,\\cos 30^\\circ',          a:frac(2,1)},
+        {q:'\\sin 30^\\circ+\\cos 60^\\circ+\\tan 45^\\circ',                                a:frac(2,1)},
+        {q:'(\\sin 30^\\circ+\\cos 60^\\circ)^2',                                             a:frac(1,1)},
+      ];
+      const item = srQPick(pool, _b2TrigSpecialQ);
+      return {question:`求 \\(${item.q}\\) 的值`, answer:item.a, type:'fraction'};
+    }
+
+    if (t === 2) {
+      // sinθ+cosθ=p/q（銳角，p/q ∈ (1,√2)），求sinθcosθ
+      const pqs = [{p:5,q:4},{p:7,q:5},{p:4,q:3},{p:9,q:7},{p:11,q:8}];
+      const {p, q} = pick(pqs);
+      const num = p*p - q*q, den = 2*q*q;
+      const g = gcd(num, den);
+      return {
+        question: `若 \\(\\theta\\) 為銳角，且 \\(\\sin\\theta+\\cos\\theta=\\dfrac{${p}}{${q}}\\)，則 \\(\\sin\\theta\\cos\\theta=\\)`,
+        answer: frac(num/g, den/g), type: 'fraction',
+      };
+    }
+
+    if (t === 3) {
+      // tanθ=a/b，求(c1sinθ+d1cosθ)/(c2sinθ+d2cosθ)（除以cosθ法）
+      const py = pick(PY); const {a, b} = py;
+      const [c1, d1, c2, d2] = pick([[2,3,1,4],[3,1,2,5],[1,2,3,1],[4,1,2,3],[1,3,4,2]]);
+      const num = c1*a + d1*b, den = c2*a + d2*b;
+      if (den === 0) return null;
+      const g = gcd(num, den);
+      return {
+        question: `設 \\(\\theta\\) 為銳角，且 \\(\\tan\\theta=\\dfrac{${a}}{${b}}\\)，則 \\(\\dfrac{${ct(c1,'\\sin\\theta')}+${ct(d1,'\\cos\\theta')}}{${ct(c2,'\\sin\\theta')}+${ct(d2,'\\cos\\theta')}}=\\)`,
+        answer: frac(num/g, den/g), type: 'fraction',
+      };
+    }
+
+    // t === 4: sin²/cos² 配對（互補或特殊角，固定池；用 srQPick 避免重複）
+    const pool4 = [
+      {q:'\\cos^2 10^\\circ+\\cos^2 20^\\circ+\\cos^2 30^\\circ+\\cos^2 40^\\circ+\\cos^2 50^\\circ+\\cos^2 60^\\circ+\\cos^2 70^\\circ+\\cos^2 80^\\circ', a:frac(4,1)},
+      {q:'\\sin^2 10^\\circ+\\sin^2 20^\\circ+\\sin^2 30^\\circ+\\sin^2 40^\\circ+\\sin^2 50^\\circ+\\sin^2 60^\\circ+\\sin^2 70^\\circ+\\sin^2 80^\\circ', a:frac(4,1)},
+      {q:'(\\sin 17^\\circ+\\cos 17^\\circ)^2+(\\sin 73^\\circ-\\cos 73^\\circ)^2',           a:frac(2,1)},
+      {q:'(\\sin 25^\\circ+\\cos 25^\\circ)^2+(\\cos 25^\\circ-\\sin 25^\\circ)^2',           a:frac(2,1)},
+      {q:'(\\sin 40^\\circ+\\cos 40^\\circ)^2+(\\sin 40^\\circ-\\cos 40^\\circ)^2',           a:frac(2,1)},
+      {q:'(\\sin 32^\\circ+\\cos 32^\\circ)^2+(\\sin 58^\\circ-\\cos 58^\\circ)^2',           a:frac(2,1)},
+      {q:'\\cos^2 20^\\circ+\\cos^2 70^\\circ',                                               a:frac(1,1)},
+      {q:'\\sin^2 35^\\circ+\\sin^2 55^\\circ',                                               a:frac(1,1)},
+      {q:'\\sin^2 22^\\circ+\\sin^2 68^\\circ',                                               a:frac(1,1)},
+      {q:'\\cos^2 36^\\circ+\\cos^2 54^\\circ',                                               a:frac(1,1)},
+      {q:'\\cos^2 15^\\circ+\\cos^2 75^\\circ',                                               a:frac(1,1)},
+      {q:'\\sin^2 28^\\circ+\\sin^2 62^\\circ',                                               a:frac(1,1)},
+    ];
+    const ci = srQPick(pool4, _b2TrigSumQ);
+    return {question:`試求 \\(${ci.q}\\) 之值`, answer:ci.a, type:'fraction'};
+  }
+
+  // ── 中等 ─────────────────────────────────────────────────────
+  if (level === 'medium') {
+    const t = srRandInt(0, 4);
+
+    if (t === 0) {
+      // △ABC 中 AD⊥BC，垂足 D 在 BC 上，已知 AB、sinB、sinC，求 BC
+      // AD = AB·sinB；BD²=AB²-AD²；AC=AD/sinC；CD²=AC²-AD²；BC=BD+CD
+      const py1 = pick(PY), py2 = pick(PY);
+      const {a:a1, b:b1, c:c1} = py1, {a:a2, b:b2, c:c2} = py2;
+      const g = gcd(a1, a2);
+      const AB = (a2/g)*c1, BD = (a2/g)*b1;
+      const AC = (a1/g)*c2, CD = (a1/g)*b2;
+      const BC = BD + CD;
+      if (BC > 200 || BC < 4 || AB > 200) return null;
+      return {
+        question: `\\(\\triangle ABC\\) 中，\\(\\overline{AD}\\perp\\overline{BC}\\)，垂足 \\(D\\) 在 \\(\\overline{BC}\\) 上，已知 \\(\\overline{AB}=${AB}\\)，\\(\\sin B=\\dfrac{${a1}}{${c1}}\\)，\\(\\sin C=\\dfrac{${a2}}{${c2}}\\)，則 \\(\\overline{BC}=\\)`,
+        answer: BC, type: 'number',
+      };
+    }
+
+    if (t === 1) {
+      // sinθ+cosθ=p/q（銳角），求(sinθ-cosθ)²
+      const pqs = [{p:5,q:4},{p:7,q:5},{p:4,q:3},{p:9,q:7},{p:11,q:8}];
+      const {p, q} = pick(pqs);
+      const num = 2*q*q - p*p, den = q*q;
+      if (num <= 0) return null;
+      const g = gcd(num, den);
+      return {
+        question: `若 \\(\\theta\\) 為銳角，且 \\(\\sin\\theta+\\cos\\theta=\\dfrac{${p}}{${q}}\\)，則 \\((\\sin\\theta-\\cos\\theta)^2=\\)`,
+        answer: frac(num/g, den/g), type: 'fraction',
+      };
+    }
+
+    if (t === 2) {
+      // sinθcosθ=p/q（銳角），求tanθ+1/tanθ = 1/(sinθcosθ) = q/p
+      const frs = [{p:3,q:8},{p:2,q:5},{p:5,q:16},{p:3,q:10},{p:4,q:17},{p:2,q:9}];
+      const {p, q} = pick(frs);
+      const g = gcd(q, p);
+      return {
+        question: `若 \\(\\theta\\) 為銳角，且 \\(\\sin\\theta\\cos\\theta=\\dfrac{${p}}{${q}}\\)，則 \\(\\tan\\theta+\\dfrac{1}{\\tan\\theta}=\\)`,
+        answer: frac(q/g, p/g), type: 'fraction',
+      };
+    }
+
+    if (t === 3) {
+      // sinθ 與 cosθ 為 ax²-bx+k=0 的兩根（Vieta），求 k
+      // sinθ+cosθ=b/a，sinθcosθ=k/a；(b/a)²=1+2k/a → k=(b²-a²)/(2a)
+      const setups = [
+        {a:4, b:5, kn:9,  kd:8},
+        {a:3, b:4, kn:7,  kd:6},
+        {a:5, b:7, kn:12, kd:5},
+        {a:5, b:6, kn:11, kd:10},
+        {a:7, b:9, kn:16, kd:7},
+      ];
+      const {a, b, kn, kd} = pick(setups);
+      return {
+        question: `若 \\(\\sin\\theta\\) 與 \\(\\cos\\theta\\) 為方程式 \\(${a}x^2-${b}x+k=0\\) 的兩根，則 \\(k=\\)`,
+        answer: frac(kn, kd), type: 'fraction',
+      };
+    }
+
+    // t === 4: p·cosα·tanα = q → sinα = q/p（因 cosα·tanα = sinα）
+    const cases = [{p:20,q:9},{p:5,q:4},{p:13,q:5},{p:10,q:3},{p:17,q:8},{p:25,q:7}];
+    const {p, q} = pick(cases);
+    return {
+      question: `設 \\(\\alpha\\) 為銳角，若 \\(${p}\\cos\\alpha\\tan\\alpha=${q}\\)，則 \\(\\sin\\alpha=\\)`,
+      answer: frac(q, p), type: 'fraction',
+    };
+  }
+
+  // ── 困難 ─────────────────────────────────────────────────────
+  if (level === 'hard') {
+    const t = srRandInt(0, 2);
+
+    if (t === 0) {
+      // 已知(c1sinθ+d1cosθ)/(c2sinθ+d2cosθ)=p/q，求tanθ（除以cosθ解方程）
+      const py = pick(PY); const {a, b} = py;
+      const [c1, d1, c2, d2] = pick([[2,3,1,4],[3,1,2,5],[1,5,3,2],[4,1,3,2],[2,1,5,3]]);
+      const pNum = c1*a + d1*b, pDen = c2*a + d2*b;
+      const gp = gcd(pNum, pDen);
+      const p = pNum/gp, q = pDen/gp;
+      const ga = gcd(a, b);
+      return {
+        question: `設 \\(\\theta\\) 為銳角，且 \\(\\dfrac{${ct(c1,'\\sin\\theta')}+${ct(d1,'\\cos\\theta')}}{${ct(c2,'\\sin\\theta')}+${ct(d2,'\\cos\\theta')}}=\\dfrac{${p}}{${q}}\\)，則 \\(\\tan\\theta=\\)`,
+        answer: frac(a/ga, b/ga), type: 'fraction',
+      };
+    }
+
+    if (t === 1) {
+      // 矩形 ABCD，P 在 DC 上，∠DAP=α，∠CBP=β，求 tanα+tanβ=AB/AD
+      const pairs = [[3,4],[4,5],[5,3],[7,4],[5,6],[8,5],[7,3],[9,4]];
+      const [m, n] = pick(pairs);
+      const g = gcd(m, n);
+      return {
+        question: `矩形 \\(ABCD\\) 中，\\(\\overline{AB}=${m}\\)，\\(\\overline{AD}=${n}\\)，\\(P\\) 為 \\(\\overline{DC}\\) 上一點，設 \\(\\angle DAP=\\alpha\\)，\\(\\angle CBP=\\beta\\)，則 \\(\\tan\\alpha+\\tan\\beta=\\)`,
+        answer: frac(m/g, n/g), type: 'fraction',
+      };
+    }
+
+    // t === 2: 直角△ABC，∠C=90°，設∠A=θ，求tanθ+1/tanθ = c²/(a·b)
+    const py = pick(PY); const {a, b, c} = py;
+    const cSq = c*c, ab = a*b;
+    const g = gcd(cSq, ab);
+    return {
+      question: `在直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，\\(\\overline{AC}=${b}\\)，\\(\\overline{BC}=${a}\\)，設 \\(\\angle A=\\theta\\)，則 \\(\\tan\\theta+\\dfrac{1}{\\tan\\theta}=\\)`,
+      answer: frac(cSq/g, ab/g), type: 'fraction',
+    };
+  }
+  return null;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  第三冊A/B ▸ 弳度量
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ── b3a-arc / b3b-trig-arc：弳度量 ──────────────────────────────
+function genB3aArc(level) {
+  for (let i = 0; i < 40; i++) { const q = _b3Arc(level); if (q) return q; }
+  return _b3Arc('basic');
+}
+function genB3bTrigArc(level) {
+  for (let i = 0; i < 40; i++) { const q = _b3Arc(level); if (q) return q; }
+  return _b3Arc('basic');
+}
+
+function _b3Arc(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0, 3);
+
+    if (t === 0) {
+      // 度數→弳度：答案填 nπ 的分數 n/d
+      const pool = [
+        {deg:30, n:1,d:6},{deg:45, n:1,d:4},{deg:60, n:1,d:3},
+        {deg:90, n:1,d:2},{deg:120,n:2,d:3},{deg:135,n:3,d:4},
+        {deg:150,n:5,d:6},{deg:210,n:7,d:6},{deg:225,n:5,d:4},
+        {deg:240,n:4,d:3},{deg:270,n:3,d:2},{deg:300,n:5,d:3},
+        {deg:315,n:7,d:4},{deg:330,n:11,d:6},
+      ];
+      const item = srQPick(pool, _b3ArcDegQ);
+      return {
+        question: `將 \\(${item.deg}^\\circ\\) 化為弳度量，答案為 \\(\\square\\,\\pi\\)，填入分數`,
+        answer: frac(item.n, item.d), type: 'fraction', answerPrefix: '',
+      };
+    }
+
+    if (t === 1) {
+      // 弳度→度數
+      const pool = [
+        {expr:'\\dfrac{\\pi}{6}',    deg:30 },
+        {expr:'\\dfrac{\\pi}{4}',    deg:45 },
+        {expr:'\\dfrac{\\pi}{3}',    deg:60 },
+        {expr:'\\dfrac{\\pi}{2}',    deg:90 },
+        {expr:'\\dfrac{2\\pi}{3}',   deg:120},
+        {expr:'\\dfrac{3\\pi}{4}',   deg:135},
+        {expr:'\\dfrac{5\\pi}{6}',   deg:150},
+        {expr:'\\dfrac{7\\pi}{6}',   deg:210},
+        {expr:'\\dfrac{5\\pi}{4}',   deg:225},
+        {expr:'\\dfrac{4\\pi}{3}',   deg:240},
+        {expr:'\\dfrac{3\\pi}{2}',   deg:270},
+        {expr:'\\dfrac{5\\pi}{3}',   deg:300},
+        {expr:'\\dfrac{7\\pi}{4}',   deg:315},
+        {expr:'\\dfrac{11\\pi}{6}',  deg:330},
+      ];
+      const item = srQPick(pool, _b3ArcRadQ);
+      return {
+        question: `將弳度量 \\(${item.expr}\\) 化為度數（單位：°）`,
+        answer: item.deg, type: 'number', answerPrefix: '',
+      };
+    }
+
+    if (t === 2) {
+      // 扇形弧長 s = rθ（整數弳度）
+      const pool = [
+        {r:3,theta:4,s:12},{r:5,theta:2,s:10},{r:4,theta:3,s:12},
+        {r:6,theta:5,s:30},{r:2,theta:7,s:14},{r:8,theta:3,s:24},
+        {r:5,theta:6,s:30},{r:7,theta:2,s:14},{r:3,theta:5,s:15},{r:4,theta:6,s:24},
+      ];
+      const item = srQPick(pool, _b3ArcArcQ);
+      return {
+        question: `扇形的半徑 \\(r=${item.r}\\)，圓心角 \\(\\theta=${item.theta}\\) 弳，求弧長 \\(s\\)`,
+        answer: item.s, type: 'number', answerPrefix: '\\(s\\)',
+      };
+    }
+
+    // t === 3: 扇形面積 A = (1/2)r²θ
+    const pool3 = [
+      {r:2,theta:4,A:8 },{r:3,theta:2,A:9 },{r:4,theta:3,A:24},
+      {r:2,theta:6,A:12},{r:6,theta:2,A:36},{r:3,theta:6,A:27},
+      {r:5,theta:2,A:25},{r:4,theta:2,A:16},{r:2,theta:8,A:16},{r:6,theta:4,A:72},
+    ];
+    const item3 = srQPick(pool3, _b3ArcAreaQ);
+    return {
+      question: `扇形的半徑 \\(r=${item3.r}\\)，圓心角 \\(\\theta=${item3.theta}\\) 弳，求扇形面積 \\(A\\)`,
+      answer: item3.A, type: 'number', answerPrefix: '\\(A\\)',
+    };
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 2);
+
+    if (t === 0) {
+      // 第幾象限（整數弳度）
+      const pool = [
+        {N:1, q:'第一象限'},{N:2, q:'第二象限'},{N:3, q:'第二象限'},
+        {N:4, q:'第三象限'},{N:5, q:'第四象限'},{N:7, q:'第一象限'},
+        {N:8, q:'第二象限'},{N:9, q:'第二象限'},{N:10,q:'第三象限'},
+        {N:12,q:'第四象限'},{N:13,q:'第一象限'},{N:-2,q:'第三象限'},
+        {N:-4,q:'第二象限'},{N:-5,q:'第一象限'},{N:-7,q:'第四象限'},
+      ];
+      const item = srQPick(pool, _b3ArcQuadQ);
+      const nStr = item.N < 0 ? `(${item.N})` : `${item.N}`;
+      return {
+        question: `\\(${nStr}\\) 弳角在第幾象限？`,
+        answer: item.q, type: 'text', answerPrefix: '',
+      };
+    }
+
+    if (t === 1) {
+      // 時鐘問題：時針與分針夾角 = nπ/m（填分數）
+      const pool = [
+        {time:'12點20分',n:11,d:18},{time:'2點50分', n:29,d:36},
+        {time:'3點30分', n:5, d:12},{time:'1點整',   n:1, d:6 },
+        {time:'4點整',   n:2, d:3 },{time:'5點整',   n:5, d:6 },
+        {time:'3點整',   n:1, d:2 },{time:'6點30分', n:1, d:12},
+        {time:'10點10分',n:23,d:36},{time:'6點整',   n:1, d:1 },
+        {time:'2點整',   n:1, d:3 },{time:'11點30分',n:11,d:12},
+        {time:'7點30分', n:1, d:4 },{time:'1點20分', n:4, d:9 },
+      ];
+      const item = srQPick(pool, _b3ArcClkQ);
+      return {
+        question: `時鐘在 ${item.time}，時針與分針所夾的劣角（弳度）為 \\(\\square\\,\\pi\\)，填入分數`,
+        answer: frac(item.n, item.d), type: 'fraction', answerPrefix: '',
+      };
+    }
+
+    // t === 2: 扇形給 r 和 s 求 A（A = rs/2）
+    const pool2 = [
+      {r:3,s:6, A:9 },{r:5,s:10,A:25},{r:4,s:8, A:16},{r:6,s:12,A:36},
+      {r:3,s:12,A:18},{r:6,s:6, A:18},{r:8,s:8, A:32},{r:5,s:4, A:10},
+      {r:4,s:6, A:12},{r:6,s:4, A:12},
+    ];
+    const item2 = pick(pool2);
+    return {
+      question: `扇形的半徑 \\(r=${item2.r}\\)，弧長 \\(s=${item2.s}\\)，求扇形面積 \\(A\\)`,
+      answer: item2.A, type: 'number', answerPrefix: '\\(A\\)',
+    };
+  }
+
+  if (level === 'hard') {
+    const t = srRandInt(0, 1);
+
+    if (t === 0) {
+      // 給弧長 s 和面積 A，求半徑 r 與圓心角 θ（r=2A/s，θ=s/r）
+      const pool = [
+        {s:6, A:9,  r:3,theta:2},{s:10,A:25, r:5,theta:2},
+        {s:12,A:18, r:3,theta:4},{s:6, A:18, r:6,theta:1},
+        {s:8, A:32, r:8,theta:1},{s:12,A:36, r:6,theta:2},
+        {s:4, A:2,  r:1,theta:4},{s:8, A:16, r:4,theta:2},
+      ];
+      const item = srQPick(pool, _b3ArcHardQ);
+      return {
+        question: `扇形的弧長 \\(s=${item.s}\\)，面積 \\(A=${item.A}\\)，求半徑 \\(r\\) 與圓心角 \\(\\theta\\)（弳度）`,
+        answerParts: [
+          {prefix:'\\(r\\)',        answer: item.r,     type:'number'},
+          {prefix:'\\(\\theta\\)',  answer: item.theta, type:'number'},
+        ],
+      };
+    }
+
+    // t === 1: 點 P(sinN, tanN) 落在第幾象限
+    // Q1→P in Q1；Q2→P in Q4；Q3→P in Q2；Q4→P in Q3
+    const pool1 = [
+      {N:1, pq:'第一象限'},{N:2, pq:'第四象限'},{N:3, pq:'第四象限'},
+      {N:4, pq:'第二象限'},{N:5, pq:'第三象限'},{N:7, pq:'第一象限'},
+      {N:8, pq:'第四象限'},{N:9, pq:'第四象限'},{N:10,pq:'第二象限'},
+      {N:12,pq:'第三象限'},{N:13,pq:'第一象限'},
+    ];
+    const item1 = srQPick(pool1, _b3ArcPtQ);
+    return {
+      question: `設 \\(\\theta=${item1.N}\\) 弳，則點 \\(P(\\sin\\theta,\\ \\tan\\theta)\\) 在第幾象限？`,
+      answer: item1.pq, type: 'text', answerPrefix: '',
+    };
+  }
+  return null;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  第三冊A ▸ 和角公式
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ── b3a-trig-add：和角公式 ────────────────────────────────────────
+function genB3aTrigAdd(level) {
+  for (let i = 0; i < 40; i++) { const q = _b3aAdd(level); if (q) return q; }
+  return _b3aAdd('basic');
+}
+
+function _b3aAdd(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0, 3);
+
+    if (t === 0) {
+      // 直接套用和差角公式 → 有理數答案
+      const pool = [
+        {q:'\\sin17^\\circ\\cos13^\\circ+\\cos17^\\circ\\sin13^\\circ', ans:frac(1,2), tp:'fraction'},
+        {q:'\\sin40^\\circ\\cos50^\\circ+\\cos40^\\circ\\sin50^\\circ', ans:1, tp:'number'},
+        {q:'\\sin20^\\circ\\cos10^\\circ+\\cos20^\\circ\\sin10^\\circ', ans:frac(1,2), tp:'fraction'},
+        {q:'\\sin50^\\circ\\cos20^\\circ-\\cos50^\\circ\\sin20^\\circ', ans:frac(1,2), tp:'fraction'},
+        {q:'\\sin80^\\circ\\cos50^\\circ-\\cos80^\\circ\\sin50^\\circ', ans:frac(1,2), tp:'fraction'},
+        {q:'\\sin77^\\circ\\cos47^\\circ-\\cos77^\\circ\\sin47^\\circ', ans:frac(1,2), tp:'fraction'},
+        {q:'\\cos35^\\circ\\cos25^\\circ-\\sin35^\\circ\\sin25^\\circ', ans:frac(1,2), tp:'fraction'},
+        {q:'\\cos80^\\circ\\cos40^\\circ-\\sin80^\\circ\\sin40^\\circ', ans:frac(-1,2), tp:'fraction'},
+        {q:'\\cos100^\\circ\\cos80^\\circ-\\sin100^\\circ\\sin80^\\circ', ans:-1, tp:'number'},
+        {q:'\\cos70^\\circ\\cos10^\\circ+\\sin70^\\circ\\sin10^\\circ', ans:frac(1,2), tp:'fraction'},
+        {q:'\\cos130^\\circ\\cos10^\\circ+\\sin130^\\circ\\sin10^\\circ', ans:frac(-1,2), tp:'fraction'},
+      ];
+      const item = srQPick(pool, _b3aAddB0Q);
+      return { question:`試求 \\(${item.q}\\) 之值`, answer:item.ans, type:item.tp, answerPrefix:'' };
+    }
+
+    if (t === 1) {
+      // 已知 tanA、tanB → 直接計算 tan(A±B)
+      const pool = [
+        {q:'已知 \\(\\tan\\alpha=2\\)、\\(\\tan\\beta=3\\)，求 \\(\\tan(\\alpha+\\beta)\\)', ans:-1, tp:'number'},
+        {q:'已知 \\(\\tan\\alpha=3\\)、\\(\\tan\\beta=2\\)，求 \\(\\tan(\\alpha-\\beta)\\)', ans:frac(1,7), tp:'fraction'},
+        {q:'已知 \\(\\tan\\alpha=1\\)、\\(\\tan\\beta=2\\)，求 \\(\\tan(\\alpha+\\beta)\\)', ans:-3, tp:'number'},
+        {q:'已知 \\(\\tan A=4\\)、\\(\\tan B=3\\)，求 \\(\\tan(A-B)\\)', ans:frac(1,13), tp:'fraction'},
+        {q:'已知 \\(\\tan\\alpha=5\\)、\\(\\tan\\beta=2\\)，求 \\(\\tan(\\alpha-\\beta)\\)', ans:frac(3,11), tp:'fraction'},
+        {q:'已知 \\(\\tan A=4\\)、\\(\\tan B=1\\)，求 \\(\\tan(A-B)\\)', ans:frac(3,5), tp:'fraction'},
+        {q:'已知 \\(\\tan\\alpha=\\dfrac{1}{2}\\)、\\(\\tan\\beta=\\dfrac{1}{3}\\)，求 \\(\\tan(\\alpha+\\beta)\\)', ans:1, tp:'number'},
+        {q:'已知 \\(\\tan\\alpha=7\\)、\\(\\tan\\beta=2\\)，求 \\(\\tan(\\alpha-\\beta)\\)', ans:frac(1,3), tp:'fraction'},
+        {q:'已知 \\(\\tan\\alpha=5\\)、\\(\\tan\\beta=3\\)，求 \\(\\tan(\\alpha-\\beta)\\)', ans:frac(1,8), tp:'fraction'},
+      ];
+      const item = srQPick(pool, _b3aAddB1Q);
+      return { question:item.q, answer:item.ans, type:item.tp, answerPrefix:'' };
+    }
+
+    if (t === 2) {
+      // 已知 tanA+tanB 和 tanA·tanB → 求 tan(A+B) = 和/(1-積)
+      const pool = [
+        {S:'-3', P:'-1', ans:frac(-3,2), tp:'fraction'},
+        {S:'5',  P:'4',  ans:frac(-5,3), tp:'fraction'},
+        {S:'2',  P:'-3', ans:frac(1,2),  tp:'fraction'},
+        {S:'-4', P:'2',  ans:4,          tp:'number'},
+        {S:'-5', P:'3',  ans:frac(5,2),  tp:'fraction'},
+        {S:'3',  P:'-1', ans:frac(3,2),  tp:'fraction'},
+        {S:'-4', P:'-1', ans:-2,         tp:'number'},
+        {S:'6',  P:'5',  ans:frac(-3,2), tp:'fraction'},
+      ];
+      const item = srQPick(pool, _b3aAddB2Q);
+      return {
+        question:`若 \\(\\tan\\alpha+\\tan\\beta=${item.S}\\)、\\(\\tan\\alpha\\cdot\\tan\\beta=${item.P}\\)，求 \\(\\tan(\\alpha+\\beta)\\)`,
+        answer:item.ans, type:item.tp, answerPrefix:'',
+      };
+    }
+
+    // t===3: 計算含 tan 的分式 → ±1
+    const pool3 = [
+      {e:'\\dfrac{\\tan10^\\circ+\\tan35^\\circ}{1-\\tan10^\\circ\\tan35^\\circ}', ans:1},
+      {e:'\\dfrac{\\tan20^\\circ+\\tan25^\\circ}{1-\\tan20^\\circ\\tan25^\\circ}', ans:1},
+      {e:'\\dfrac{\\tan15^\\circ+\\tan30^\\circ}{1-\\tan15^\\circ\\tan30^\\circ}', ans:1},
+      {e:'\\dfrac{\\tan110^\\circ+\\tan25^\\circ}{1-\\tan110^\\circ\\tan25^\\circ}', ans:-1},
+      {e:'\\dfrac{\\tan80^\\circ+\\tan55^\\circ}{1-\\tan80^\\circ\\tan55^\\circ}', ans:-1},
+      {e:'\\dfrac{\\tan100^\\circ+\\tan35^\\circ}{1-\\tan100^\\circ\\tan35^\\circ}', ans:-1},
+      {e:'\\dfrac{\\tan154^\\circ-\\tan19^\\circ}{1+\\tan154^\\circ\\tan19^\\circ}', ans:-1},
+      {e:'\\dfrac{\\tan167^\\circ-\\tan32^\\circ}{1+\\tan167^\\circ\\tan32^\\circ}', ans:-1},
+      {e:'\\dfrac{\\tan55^\\circ-\\tan10^\\circ}{1+\\tan55^\\circ\\tan10^\\circ}', ans:1},
+    ];
+    const item3 = srQPick(pool3, _b3aAddB3Q);
+    return { question:`試求 \\(${item3.e}\\) 之值`, answer:item3.ans, type:'number', answerPrefix:'' };
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 2);
+
+    if (t === 0) {
+      // 給定 sinα/cosβ 及象限條件（畢氏三角組）→ 求 sin/cos(α±β)
+      const pool = [
+        {q:'設 \\(0^\\circ<\\alpha<90^\\circ\\)，\\(90^\\circ<\\beta<180^\\circ\\)，且 \\(\\sin\\alpha=\\dfrac{3}{5}\\)，\\(\\sin\\beta=\\dfrac{5}{13}\\)，求 \\(\\cos(\\alpha+\\beta)\\)',
+         pfx:'\\(\\cos(\\alpha+\\beta)\\)', ans:frac(-63,65), tp:'fraction'},
+        {q:'設 \\(90^\\circ<\\alpha<180^\\circ\\)，\\(0^\\circ<\\beta<90^\\circ\\)，且 \\(\\sin\\alpha=\\dfrac{5}{13}\\)，\\(\\cos\\beta=\\dfrac{3}{5}\\)，求 \\(\\sin(\\alpha-\\beta)\\)',
+         pfx:'\\(\\sin(\\alpha-\\beta)\\)', ans:frac(63,65), tp:'fraction'},
+        {q:'設 \\(0^\\circ<\\alpha<90^\\circ\\)，\\(90^\\circ<\\beta<180^\\circ\\)，且 \\(\\sin\\alpha=\\dfrac{8}{17}\\)，\\(\\sin\\beta=\\dfrac{3}{5}\\)，求 \\(\\cos(\\alpha+\\beta)\\)',
+         pfx:'\\(\\cos(\\alpha+\\beta)\\)', ans:frac(-84,85), tp:'fraction'},
+        {q:'設 \\(90^\\circ<\\alpha<180^\\circ\\)，\\(180^\\circ<\\beta<270^\\circ\\)，且 \\(\\sin\\alpha=\\dfrac{3}{5}\\)，\\(\\sin\\beta=-\\dfrac{5}{13}\\)，求 \\(\\cos(\\alpha-\\beta)\\)',
+         pfx:'\\(\\cos(\\alpha-\\beta)\\)', ans:frac(33,65), tp:'fraction'},
+        {q:'設 \\(0^\\circ<\\alpha<90^\\circ\\)，\\(180^\\circ<\\beta<270^\\circ\\)，且 \\(\\sin\\alpha=\\dfrac{5}{13}\\)，\\(\\sin\\beta=-\\dfrac{4}{5}\\)，求 \\(\\sin(\\alpha+\\beta)\\)',
+         pfx:'\\(\\sin(\\alpha+\\beta)\\)', ans:frac(-63,65), tp:'fraction'},
+        {q:'設 \\(0^\\circ<\\alpha<90^\\circ\\)，\\(0^\\circ<\\beta<90^\\circ\\)，且 \\(\\sin\\alpha=\\dfrac{3}{5}\\)，\\(\\sin\\beta=\\dfrac{5}{13}\\)，求 \\(\\sin(\\alpha+\\beta)\\)',
+         pfx:'\\(\\sin(\\alpha+\\beta)\\)', ans:frac(56,65), tp:'fraction'},
+        {q:'設 \\(0^\\circ<\\alpha<90^\\circ\\)，\\(90^\\circ<\\beta<180^\\circ\\)，且 \\(\\sin\\alpha=\\dfrac{4}{5}\\)，\\(\\sin\\beta=\\dfrac{5}{13}\\)，求 \\(\\cos(\\alpha+\\beta)\\)',
+         pfx:'\\(\\cos(\\alpha+\\beta)\\)', ans:frac(-56,65), tp:'fraction'},
+        {q:'設 \\(270^\\circ<\\alpha<360^\\circ\\)，\\(0^\\circ<\\beta<90^\\circ\\)，且 \\(\\sin\\alpha=-\\dfrac{4}{5}\\)，\\(\\sin\\beta=\\dfrac{5}{13}\\)，求 \\(\\cos(\\alpha-\\beta)\\)',
+         pfx:'\\(\\cos(\\alpha-\\beta)\\)', ans:frac(16,65), tp:'fraction'},
+      ];
+      const item = srQPick(pool, _b3aAddM0Q);
+      return { question:item.q, answer:item.ans, type:item.tp, answerPrefix:item.pfx };
+    }
+
+    if (t === 1) {
+      // △ABC 中，已知 sinA 和 cosB（畢氏三角組），求 sinC
+      const pool = [
+        {sA:'\\dfrac{5}{13}', cB:'-\\dfrac{4}{5}', ans:frac(16,65), tp:'fraction'},
+        {sA:'\\dfrac{5}{13}', cB:'-\\dfrac{3}{5}', ans:frac(33,65), tp:'fraction'},
+        {sA:'\\dfrac{8}{17}', cB:'-\\dfrac{4}{5}', ans:frac(13,85), tp:'fraction'},
+        {sA:'\\dfrac{8}{17}', cB:'-\\dfrac{3}{5}', ans:frac(36,85), tp:'fraction'},
+        {sA:'\\dfrac{3}{5}',  cB:'-\\dfrac{3}{5}', ans:frac(7,25),  tp:'fraction'},
+        {sA:'\\dfrac{7}{25}', cB:'-\\dfrac{3}{5}', ans:frac(3,5),   tp:'fraction'},
+      ];
+      const item = srQPick(pool, _b3aAddM1Q);
+      return {
+        question:`在 \\(\\triangle ABC\\) 中，\\(\\sin A=${item.sA}\\)，\\(\\cos B=${item.cB}\\)，求 \\(\\sin C\\)`,
+        answer:item.ans, type:item.tp, answerPrefix:'\\(\\sin C\\)',
+      };
+    }
+
+    // t===2: 已知 tan(α+β) 及一個 tan 值 → 求另一個
+    const pool2 = [
+      {q:'設 \\(\\tan\\beta=\\dfrac{1}{4}\\)，\\(\\tan(\\alpha+\\beta)=1\\)，求 \\(\\tan\\alpha\\)', ans:frac(3,5), tp:'fraction', pfx:'\\(\\tan\\alpha\\)'},
+      {q:'設 \\(\\tan\\beta=\\dfrac{1}{3}\\)，\\(\\tan(\\alpha+\\beta)=1\\)，求 \\(\\tan\\alpha\\)', ans:frac(1,2), tp:'fraction', pfx:'\\(\\tan\\alpha\\)'},
+      {q:'設 \\(\\tan\\alpha=3\\)，\\(\\tan(\\alpha+\\beta)=-1\\)，求 \\(\\tan\\beta\\)',            ans:2,         tp:'number',   pfx:'\\(\\tan\\beta\\)'},
+      {q:'設 \\(\\tan\\alpha=\\dfrac{1}{4}\\)，\\(\\tan(\\alpha+\\beta)=-1\\)，求 \\(\\tan\\beta\\)', ans:frac(-5,3), tp:'fraction', pfx:'\\(\\tan\\beta\\)'},
+      {q:'設 \\(\\tan\\alpha=2\\)，\\(\\tan(\\alpha-\\beta)=1\\)，求 \\(\\tan\\beta\\)',             ans:frac(1,3), tp:'fraction', pfx:'\\(\\tan\\beta\\)'},
+      {q:'設 \\(\\tan\\beta=\\dfrac{3}{4}\\)，\\(\\tan(\\alpha+\\beta)=1\\)，求 \\(\\tan\\alpha\\)', ans:frac(1,7), tp:'fraction', pfx:'\\(\\tan\\alpha\\)'},
+    ];
+    const item2 = srQPick(pool2, _b3aAddM2Q);
+    return { question:item2.q, answer:item2.ans, type:item2.tp, answerPrefix:item2.pfx };
+  }
+
+  if (level === 'hard') {
+    const t = srRandInt(0, 1);
+
+    if (t === 0) {
+      // (1±tanA)(1±tanB) 乘積 → 整數（利用 A+B=45° 或 135°）
+      const pool = [
+        {q:'(1-\\tan67^\\circ)(1-\\tan68^\\circ)',                                                      ans:2},
+        {q:'(1-\\tan53^\\circ)(1-\\tan82^\\circ)',                                                      ans:2},
+        {q:'(1+\\tan20^\\circ)(1+\\tan25^\\circ)',                                                      ans:2},
+        {q:'(1+\\tan15^\\circ)(1+\\tan30^\\circ)',                                                      ans:2},
+        {q:'(1+\\tan6^\\circ)(1+\\tan7^\\circ)(1+\\tan38^\\circ)(1+\\tan39^\\circ)',                   ans:4},
+        {q:'(1+\\tan12^\\circ)(1+\\tan33^\\circ)(1+\\tan2^\\circ)(1+\\tan43^\\circ)',                  ans:4},
+        {q:'已知 \\((1+\\tan1^\\circ)(1+\\tan2^\\circ)\\cdots(1+\\tan44^\\circ)=2^k\\)，求 \\(k\\)', ans:22, full:true},
+      ];
+      const item = srQPick(pool, _b3aAddH0Q);
+      return {
+        question: item.full ? item.q : `試求 \\(${item.q}\\) 之值`,
+        answer:item.ans, type:'number', answerPrefix:'',
+      };
+    }
+
+    // t===1: tanα、tanβ 為方程式兩根 → 利用根與係數關係求 tan 表達式
+    const pool = [
+      {q:'設 \\(\\tan\\alpha\\)、\\(\\tan\\beta\\) 是方程式 \\(x^2-4x+a=0\\) 的兩根，且 \\(\\tan(\\alpha+\\beta)=-2\\)，則 \\(a\\)', ans:3, tp:'number'},
+      {q:'設 \\(\\tan\\alpha\\)、\\(\\tan\\beta\\) 是方程式 \\(2x^2-3x-1=0\\) 的兩根，求 \\(\\dfrac{\\sin(\\alpha+\\beta)}{\\cos(\\alpha-\\beta)}\\)', ans:3, tp:'number'},
+      {q:'設 \\(\\tan\\alpha\\)、\\(\\tan\\beta\\) 是方程式 \\(x^2-3x+2=0\\) 的兩根，求 \\(\\tan(\\alpha+\\beta)\\)', ans:-3, tp:'number'},
+      {q:'設 \\(\\tan\\alpha\\)、\\(\\tan\\beta\\) 是方程式 \\(x^2-x-6=0\\) 的兩根，求 \\(\\tan(\\alpha+\\beta)\\)', ans:frac(1,7), tp:'fraction'},
+      {q:'設 \\(\\tan\\alpha\\)、\\(\\tan\\beta\\) 是方程式 \\(x^2+2x-3=0\\) 的兩根，求 \\(\\tan(\\alpha+\\beta)\\)', ans:frac(-1,2), tp:'fraction'},
+      {q:'設 \\(\\tan\\alpha\\)、\\(\\tan\\beta\\) 是方程式 \\(x^2-5x+6=0\\) 的兩根，求 \\(\\tan(\\alpha+\\beta)\\)', ans:-1, tp:'number'},
+    ];
+    const item = srQPick(pool, _b3aAddH1Q);
+    return { question:item.q, answer:item.ans, type:item.tp, answerPrefix:'' };
+  }
+
+  return null;
+}
+
+// ── b3a-trig-dbl：二倍角與半角 ────────────────────────────────────
+function genB3aTrigDbl(level) {
+  for (let i = 0; i < 40; i++) { const q = _b3aDbl(level); if (q) return q; }
+  return _b3aDbl('basic');
+}
+
+function _b3aDbl(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0, 2);
+
+    if (t === 0) {
+      // cos2θ = 1-2sin²θ 或 2cos²θ-1（有理數答案）
+      const pool = [
+        {q:'已知 \\(\\sin\\theta=\\dfrac{1}{3}\\)，求 \\(\\cos 2\\theta\\)',             ans:frac(7,9),     pfx:'\\(\\cos 2\\theta\\)'},
+        {q:'已知 \\(\\cos\\theta=\\dfrac{2}{5}\\)，求 \\(\\cos 2\\theta\\)',             ans:frac(-17,25),  pfx:'\\(\\cos 2\\theta\\)'},
+        {q:'已知 \\(\\sin\\theta=\\dfrac{3}{5}\\)，求 \\(\\cos 2\\theta\\)',             ans:frac(7,25),    pfx:'\\(\\cos 2\\theta\\)'},
+        {q:'已知 \\(\\sin\\theta=\\dfrac{4}{5}\\)，求 \\(\\cos 2\\theta\\)',             ans:frac(-7,25),   pfx:'\\(\\cos 2\\theta\\)'},
+        {q:'已知 \\(\\cos\\theta=\\dfrac{3}{5}\\)，求 \\(\\cos 2\\theta\\)',             ans:frac(-7,25),   pfx:'\\(\\cos 2\\theta\\)'},
+        {q:'已知 \\(\\cos\\theta=\\dfrac{4}{5}\\)，求 \\(\\cos 2\\theta\\)',             ans:frac(7,25),    pfx:'\\(\\cos 2\\theta\\)'},
+        {q:'已知 \\(\\sin\\theta=\\dfrac{5}{13}\\)，求 \\(\\cos 2\\theta\\)',            ans:frac(119,169), pfx:'\\(\\cos 2\\theta\\)'},
+        {q:'已知 \\(\\cos\\theta=\\dfrac{12}{13}\\)，求 \\(\\cos 2\\theta\\)',           ans:frac(119,169), pfx:'\\(\\cos 2\\theta\\)'},
+        {q:'已知 \\(\\sin\\theta=\\dfrac{12}{13}\\)，求 \\(\\cos 2\\theta\\)',           ans:frac(-119,169),pfx:'\\(\\cos 2\\theta\\)'},
+      ];
+      const item = srQPick(pool, _b3aDblB0Q);
+      return { question:item.q, answer:item.ans, type:'fraction', answerPrefix:item.pfx };
+    }
+
+    if (t === 1) {
+      // sin2θ = (sinθ±cosθ)²−1 或 1−(sinθ−cosθ)²
+      const pool = [
+        {S:'\\sin\\theta+\\cos\\theta=\\dfrac{2}{3}',  sq:true,  ans:frac(-5,9)},
+        {S:'\\sin\\theta-\\cos\\theta=\\dfrac{1}{4}',  sq:false, ans:frac(15,16)},
+        {S:'\\sin\\theta+\\cos\\theta=\\dfrac{7}{5}',  sq:true,  ans:frac(24,25)},
+        {S:'\\sin\\theta-\\cos\\theta=\\dfrac{1}{3}',  sq:false, ans:frac(8,9)},
+        {S:'\\sin\\theta+\\cos\\theta=\\dfrac{3}{4}',  sq:true,  ans:frac(-7,16)},
+        {S:'\\sin\\theta-\\cos\\theta=\\dfrac{2}{3}',  sq:false, ans:frac(5,9)},
+        {S:'\\sin\\theta+\\cos\\theta=\\dfrac{3}{5}',  sq:true,  ans:frac(-16,25)},
+        {S:'\\sin\\theta+\\cos\\theta=\\dfrac{4}{5}',  sq:true,  ans:frac(-9,25)},
+        {S:'\\sin\\theta-\\cos\\theta=-\\dfrac{1}{3}', sq:false, ans:frac(8,9)},
+      ];
+      const item = srQPick(pool, _b3aDblB1Q);
+      return {
+        question:`已知 \\(${item.S}\\)，求 \\(\\sin 2\\theta\\)`,
+        answer:item.ans, type:'fraction', answerPrefix:'\\(\\sin 2\\theta\\)',
+      };
+    }
+
+    // t===2: tan2θ（有理數答案）
+    const pool = [
+      {q:'\\theta 為第二象限角且 \\(\\cos\\theta=-\\dfrac{4}{5}\\)，求 \\(\\tan 2\\theta\\)', ans:frac(-24,7)},
+      {q:'\\theta 為第二象限角且 \\(\\cos\\theta=-\\dfrac{3}{5}\\)，求 \\(\\tan 2\\theta\\)', ans:frac(24,7)},
+      {q:'\\(90^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\sin\\theta=\\dfrac{4}{5}\\)，求 \\(\\tan 2\\theta\\)', ans:frac(24,7)},
+      {q:'已知 \\(\\sin\\theta=3\\cos\\theta\\)，求 \\(\\tan 2\\theta\\)',                    ans:frac(-3,4)},
+      {q:'已知 \\(\\sin\\theta=2\\cos\\theta\\)，求 \\(\\tan 2\\theta\\)',                    ans:frac(-4,3)},
+      {q:'已知 \\(\\sin\\theta=-2\\cos\\theta\\)，求 \\(\\tan 2\\theta\\)',                   ans:frac(4,3)},
+      {q:'已知 \\(\\sin\\theta=4\\cos\\theta\\)，求 \\(\\tan 2\\theta\\)',                    ans:frac(-8,15)},
+    ];
+    const item2 = srQPick(pool, _b3aDblB2Q);
+    return { question:item2.q, answer:item2.ans, type:'fraction', answerPrefix:'\\(\\tan 2\\theta\\)' };
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 2);
+
+    if (t === 0) {
+      // tan(θ/2) 由 cosθ 推導（有理數答案）
+      const pool = [
+        {q:'已知 \\(0^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\cos\\theta=-\\dfrac{7}{25}\\)，求 \\(\\tan\\dfrac{\\theta}{2}\\)', ans:frac(4,3)},
+        {q:'已知 \\(0^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\cos\\theta=-\\dfrac{3}{5}\\)，求 \\(\\tan\\dfrac{\\theta}{2}\\)',  ans:2},
+        {q:'已知 \\(0^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\cos\\theta=\\dfrac{3}{5}\\)，求 \\(\\tan\\dfrac{\\theta}{2}\\)',   ans:frac(1,2)},
+        {q:'已知 \\(0^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\cos\\theta=-\\dfrac{4}{5}\\)，求 \\(\\tan\\dfrac{\\theta}{2}\\)', ans:3},
+        {q:'已知 \\(0^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\cos\\theta=\\dfrac{4}{5}\\)，求 \\(\\tan\\dfrac{\\theta}{2}\\)',  ans:frac(1,3)},
+        {q:'已知 \\(0^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\cos\\theta=\\dfrac{7}{25}\\)，求 \\(\\tan\\dfrac{\\theta}{2}\\)', ans:frac(3,4)},
+        {q:'已知 \\(0^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\cos\\theta=-\\dfrac{5}{13}\\)，求 \\(\\tan\\dfrac{\\theta}{2}\\)',ans:frac(3,2)},
+      ];
+      const item = srQPick(pool, _b3aDblM0Q);
+      return { question:item.q, answer:item.ans, type:(item.ans===Math.round(item.ans)?'number':'fraction'), answerPrefix:'\\(\\tan\\dfrac{\\theta}{2}\\)' };
+    }
+
+    if (t === 1) {
+      // sinθ = k·cos(θ/2) → 求 cosθ
+      const pool = [
+        {range:'0^\\circ&lt;\\theta&lt;180^\\circ', k:'\\dfrac{8}{5}', ans:frac(-7,25)},
+        {range:'0^\\circ&lt;\\theta&lt;180^\\circ', k:'\\dfrac{6}{5}', ans:frac(7,25)},
+        {range:'0^\\circ&lt;\\theta&lt;180^\\circ', k:'\\dfrac{4}{3}', ans:frac(1,9)},
+        {range:'0^\\circ&lt;\\theta&lt;180^\\circ', k:'\\dfrac{4}{5}', ans:frac(17,25)},
+        {range:'\\pi&lt;\\theta&lt;\\dfrac{3\\pi}{2}', k:'\\dfrac{3}{2}', ans:frac(-1,8)},
+      ];
+      const item = srQPick(pool, _b3aDblM1Q);
+      return {
+        question:`設 \\(${item.range}\\)，若 \\(\\sin\\theta=${item.k}\\cos\\dfrac{\\theta}{2}\\)，求 \\(\\cos\\theta\\)`,
+        answer:item.ans, type:'fraction', answerPrefix:'\\(\\cos\\theta\\)',
+      };
+    }
+
+    // t===2: a·sin²(θ/2) + b·cos2θ = c 型 → 求 cosθ
+    const pool2 = [
+      {eq:'2\\sin^2\\dfrac{\\theta}{2}+\\cos 2\\theta=0', range:'0^\\circ&lt;\\theta&lt;90^\\circ', ans:frac(1,2)},
+      {eq:'2\\sin^2\\dfrac{\\theta}{2}+3\\cos 2\\theta=0', range:'0^\\circ&lt;\\theta&lt;90^\\circ', ans:frac(2,3)},
+      {eq:'2\\sin^2\\dfrac{\\theta}{2}+3\\cos 2\\theta=0', range:'90^\\circ&lt;\\theta&lt;180^\\circ', ans:frac(-1,2)},
+      {eq:'\\sin^2\\dfrac{\\theta}{2}-\\cos\\theta-1=0', range:null, ans:frac(-1,3)},
+      {eq:'\\sin^2\\dfrac{\\theta}{2}-2\\cos\\theta-2=0', range:null, ans:frac(-3,5)},
+      {eq:'3\\sin^2\\dfrac{\\theta}{2}-\\cos\\theta-2=0', range:null, ans:frac(-1,5)},
+      {eq:'8\\sin^2\\dfrac{\\theta}{2}-3\\cos\\theta-7=0', range:null, ans:frac(-3,7)},
+    ];
+    const item2m = srQPick(pool2, _b3aDblM2Q);
+    const rangeStr = item2m.range ? `設 \\(${item2m.range}\\)，` : '';
+    return {
+      question:`${rangeStr}已知 \\(${item2m.eq}\\)，求 \\(\\cos\\theta\\)`,
+      answer:item2m.ans, type:'fraction', answerPrefix:'\\(\\cos\\theta\\)',
+    };
+  }
+
+  if (level === 'hard') {
+    const t = srRandInt(0, 1);
+
+    if (t === 0) {
+      // cos2x 方程式求 cosx
+      const pool = [
+        {eq:'3\\cos 2x-7\\cos x=0',        range:null,                           ans:frac(-1,3)},
+        {eq:'2\\cos 2x+3\\cos x+1=0',      range:'0^\\circ&lt;x&lt;90^\\circ',        ans:frac(1,4)},
+        {eq:'2\\cos 2x-3\\cos x+1=0',      range:'90^\\circ&lt;x&lt;180^\\circ',      ans:frac(-1,4)},
+        {eq:'3\\cos 2x-\\cos x-2=0',       range:'0^\\circ&lt;x&lt;180^\\circ',       ans:frac(-5,6)},
+        {eq:'4\\cos 2x-5\\cos x+1=0',      range:'90^\\circ&lt;x&lt;180^\\circ',      ans:frac(-3,8)},
+        {eq:'3\\cos 2x-5\\cos x+2=0',      range:'0^\\circ&lt;x&lt;180^\\circ',       ans:frac(-1,6)},
+      ];
+      const item = srQPick(pool, _b3aDblH0Q);
+      const rStr = item.range ? `設 \\(${item.range}\\)，` : '';
+      return {
+        question:`${rStr}試求滿足 \\(${item.eq}\\) 的 \\(\\cos x\\) 之值`,
+        answer:item.ans, type:'fraction', answerPrefix:'\\(\\cos x\\)',
+      };
+    }
+
+    // t===1: 給定 sinx±cosx=k → 求 sin3x±cos3x；或終邊對稱於y軸
+    const pool = [
+      {q:'已知 \\(\\sin x-\\cos x=\\dfrac{1}{2}\\)，求 \\(\\sin 3x+\\cos 3x\\)', ans:frac(-5,4), pfx:'\\(\\sin 3x+\\cos 3x\\)'},
+      {q:'已知 \\(\\sin x-\\cos x=-\\dfrac{1}{2}\\)，求 \\(\\sin 3x+\\cos 3x\\)',ans:frac(5,4),  pfx:'\\(\\sin 3x+\\cos 3x\\)'},
+      {q:'已知 \\(\\sin x+\\cos x=\\dfrac{1}{2}\\)，求 \\(\\sin 3x-\\cos 3x\\)', ans:frac(-5,4), pfx:'\\(\\sin 3x-\\cos 3x\\)'},
+      {q:'已知 \\(\\sin x+\\cos x=-\\dfrac{1}{2}\\)，求 \\(\\sin 3x-\\cos 3x\\)',ans:frac(5,4),  pfx:'\\(\\sin 3x-\\cos 3x\\)'},
+      {q:'已知 \\(\\sin x-\\cos x=\\dfrac{1}{3}\\)，求 \\(\\sin 3x+\\cos 3x\\)', ans:frac(-25,27),pfx:'\\(\\sin 3x+\\cos 3x\\)'},
+      {q:'已知 \\(\\sin x-\\cos x=-\\dfrac{1}{3}\\)，求 \\(\\sin 3x+\\cos 3x\\)',ans:frac(25,27), pfx:'\\(\\sin 3x+\\cos 3x\\)'},
+      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{1}{3}\\)，求 \\(\\cos(\\alpha-\\beta)\\)', ans:frac(-7,9),  pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
+      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{2}{3}\\)，求 \\(\\cos(\\alpha-\\beta)\\)', ans:frac(-1,9),  pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
+      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{3}{5}\\)，求 \\(\\cos(\\alpha-\\beta)\\)', ans:frac(-7,25), pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
+      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{4}{5}\\)，求 \\(\\cos(\\alpha-\\beta)\\)', ans:frac(7,25),  pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
+    ];
+    const item = srQPick(pool, _b3aDblH1Q);
+    return { question:item.q, answer:item.ans, type:'fraction', answerPrefix:item.pfx };
+  }
+
+  return null;
+}
+
+// ── b3a-trig-graph：三角函數的圖形 ───────────────────────────────
+function genB3aTrigGraph(level) {
+  for (let i = 0; i < 40; i++) { const q = _b3aTrigGraph(level); if (q) return q; }
+  return _b3aTrigGraph('basic');
+}
+
+function _b3aTrigGraph(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0, 5);
+
+    if (t === 0) {
+      // 週期（答案為 □π，填分數）
+      const pool = [
+        {q:'函數 \\(y=3\\cos(2x-2)\\) 的週期為（填 \\(\\square\\,\\pi\\) 中的 \\(\\square\\)）', n:1,d:1},
+        {q:'函數 \\(y=-3\\tan\\!\\left(2x+\\dfrac{\\pi}{4}\\right)-1\\) 的週期為（填 \\(\\square\\,\\pi\\) 中的 \\(\\square\\)）', n:1,d:2},
+        {q:'函數 \\(y=\\sin\\!\\left(\\dfrac{x}{2}+\\dfrac{\\pi}{3}\\right)\\) 的週期為（填 \\(\\square\\,\\pi\\) 中的 \\(\\square\\)）', n:4,d:1},
+        {q:'函數 \\(y=3\\cos\\dfrac{x}{3}\\) 的週期為（填 \\(\\square\\,\\pi\\) 中的 \\(\\square\\)）', n:6,d:1},
+        {q:'函數 \\(y=-2\\tan\\dfrac{x}{2}\\) 的週期為（填 \\(\\square\\,\\pi\\) 中的 \\(\\square\\)）', n:2,d:1},
+        {q:'函數 \\(y=5\\sin\\!\\left(\\dfrac{3x}{2}+\\dfrac{\\pi}{4}\\right)\\) 的週期為（填 \\(\\square\\,\\pi\\) 中的 \\(\\square\\)）', n:4,d:3},
+        {q:'函數 \\(y=\\cos\\!\\left(\\dfrac{x}{4}-\\dfrac{\\pi}{3}\\right)\\) 的週期為（填 \\(\\square\\,\\pi\\) 中的 \\(\\square\\)）', n:8,d:1},
+        {q:'函數 \\(y=2\\tan\\!\\left(3x+\\dfrac{\\pi}{6}\\right)\\) 的週期為（填 \\(\\square\\,\\pi\\) 中的 \\(\\square\\)）', n:1,d:3},
+        {q:'函數 \\(y=\\sin(4x-1)+3\\) 的週期為（填 \\(\\square\\,\\pi\\) 中的 \\(\\square\\)）', n:1,d:2},
+      ];
+      const item = srQPick(pool, _b3aGrfB0Q);
+      const ans = (item.d===1) ? item.n : frac(item.n,item.d);
+      const type = (item.d===1) ? 'number' : 'fraction';
+      return { question:item.q, answer:ans, type, answerPrefix:'週期' };
+    }
+
+    if (t === 1) {
+      // 週期（純數字或分數，非π）
+      const pool = [
+        {q:'函數 \\(y=2\\tan\\!\\left(\\pi x-\\dfrac{\\pi}{6}\\right)+5\\) 的週期為', ans:1, type:'number'},
+        {q:'函數 \\(y=\\sin(2\\pi x+1)\\) 的週期為', ans:1, type:'number'},
+        {q:'求 \\(y=\\tan(3\\pi x-1)-1\\) 的週期', ans:frac(1,3), type:'fraction'},
+        {q:'函數 \\(y=4\\sin(3\\pi x-2)+1\\) 的週期為', ans:frac(2,3), type:'fraction'},
+        {q:'函數 \\(y=\\cos(4\\pi x+1)\\) 的週期為', ans:frac(1,2), type:'fraction'},
+        {q:'設函數 \\(y=-3\\tan\\!\\left(\\pi x-\\dfrac{\\pi}{6}\\right)+5\\)，則 \\(y\\) 的週期為', ans:1, type:'number'},
+      ];
+      const item = srQPick(pool, _b3aGrfB1Q);
+      return { question:item.q, answer:item.ans, type:item.type, answerPrefix:'週期' };
+    }
+
+    if (t === 2) {
+      // 最大值或最小值（整數答案）
+      const pool = [
+        {q:'函數 \\(y=3\\cos(2x-1)+2\\) 的最大值為', ans:5, pfx:'最大值'},
+        {q:'函數 \\(y=3\\cos(2x-1)+2\\) 的最小值為', ans:-1, pfx:'最小值'},
+        {q:'函數 \\(y=2\\sin\\!\\left(x+\\dfrac{\\pi}{3}\\right)-3\\) 的最大值為', ans:-1, pfx:'最大值'},
+        {q:'函數 \\(y=2\\sin\\!\\left(x+\\dfrac{\\pi}{3}\\right)-3\\) 的最小值為', ans:-5, pfx:'最小值'},
+        {q:'函數 \\(y=-2\\cos\\!\\left(3x+\\dfrac{\\pi}{4}\\right)+1\\) 的最大值為', ans:3, pfx:'最大值'},
+        {q:'函數 \\(y=-2\\cos\\!\\left(3x+\\dfrac{\\pi}{4}\\right)+1\\) 的最小值為', ans:-1, pfx:'最小值'},
+        {q:'已知函數 \\(y=4\\sin(3\\pi x-2)+1\\)，\\(y\\) 的最大值為', ans:5, pfx:'最大值'},
+        {q:'已知函數 \\(y=4\\sin(3\\pi x-2)+1\\)，\\(y\\) 的最小值為', ans:-3, pfx:'最小值'},
+        {q:'函數 \\(y=5\\sin(2x+1)-3\\) 的最大值為', ans:2, pfx:'最大值'},
+        {q:'函數 \\(y=5\\sin(2x+1)-3\\) 的最小值為', ans:-8, pfx:'最小值'},
+        {q:'函數 \\(y=-3\\cos\\!\\left(x+\\dfrac{\\pi}{3}\\right)+4\\) 的最大值為', ans:7, pfx:'最大值'},
+        {q:'函數 \\(y=-3\\cos\\!\\left(x+\\dfrac{\\pi}{3}\\right)+4\\) 的最小值為', ans:1, pfx:'最小值'},
+      ];
+      const item = srQPick(pool, _b3aGrfB2Q);
+      return { question:item.q, answer:item.ans, type:'number', answerPrefix:item.pfx };
+    }
+
+    if (t === 3) {
+      // 最大最小值乘積或和
+      const pool = [
+        {q:'已知函數 \\(y=4\\sin\\!\\left(3x+\\dfrac{\\pi}{6}\\right)+2\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M \\times m\\)', ans:-12, pfx:'\\(M\\times m\\)'},
+        {q:'函數 \\(y=3\\sin(2x+1)-1\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M+m\\)', ans:-2, pfx:'\\(M+m\\)'},
+        {q:'函數 \\(y=5\\cos(x-2)+3\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M \\times m\\)', ans:-16, pfx:'\\(M\\times m\\)'},
+        {q:'函數 \\(y=2\\sin(3x)-4\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M+m\\)', ans:-8, pfx:'\\(M+m\\)'},
+        {q:'函數 \\(y=-3\\cos(2x)+5\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M+m\\)', ans:16, pfx:'\\(M+m\\)'},
+        {q:'函數 \\(y=2\\cos(x)+3\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M \\times m\\)', ans:5, pfx:'\\(M\\times m\\)'},
+        {q:'函數 \\(y=4\\sin(3x)+1\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M+m\\)', ans:2, pfx:'\\(M+m\\)'},
+      ];
+      const item = srQPick(pool, _b3aGrfB3Q);
+      return { question:item.q, answer:item.ans, type:'number', answerPrefix:item.pfx };
+    }
+
+    if (t === 4) {
+      // 圖形通過原點 / 基本特性
+      const pool = [
+        {q:'在 \\(f(x)=\\sin x\\)、\\(g(x)=\\cos x\\) 與 \\(h(x)=\\tan x\\) 三個函數圖形中，通過原點的圖形有幾個', ans:2, type:'number', pfx:'個'},
+        {q:'在 \\(y=\\sin x\\)、\\(y=\\cos x\\)、\\(y=\\tan x\\) 三個函數中，週期為 \\(2\\pi\\) 的函數有幾個', ans:2, type:'number', pfx:'個'},
+        {q:'若 \\(0 &lt; h &lt; 2\\pi\\)，且 \\(y=\\sin(x+h)\\) 的圖形通過原點，則 \\(h\\) 的最小值為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:1, type:'number', pfx:'\\(h_{min}\\)'},
+        {q:'若 \\(0 &lt; h &lt; 2\\pi\\)，且 \\(y=\\cos(x+h)\\) 的圖形通過原點，則 \\(h\\) 的最小值為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:frac(1,2), type:'fraction', pfx:'\\(h_{min}\\)'},
+        {q:'若將 \\(y=\\sin x\\) 的圖形向左平移 \\(\\dfrac{\\pi}{6}\\) 單位，可得 \\(y=\\sin(x+h)\\) 的圖形，其中 \\(0 &lt; h &lt; 2\\pi\\)，\\(h\\) 為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:frac(1,6), type:'fraction', pfx:'\\(h\\)'},
+        {q:'若 \\(0 &lt; h &lt; 2\\pi\\)，且 \\(y=\\sin(x+h)\\) 的圖形通過原點，則 \\(h\\) 的最大值為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:2, type:'number', pfx:'\\(h_{max}\\)'},
+      ];
+      const item = srQPick(pool, _b3aGrfB4Q);
+      return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
+    }
+
+    // t===5：圖形法求解個數
+    const pool5 = [
+      {q:'方程式 \\(\\cos x = x^2 - 1\\) 的實數解個數有', ans:2},
+      {q:'方程式 \\(\\sin x = \\dfrac{x}{7\\pi}\\) 的實數解個數有', ans:15},
+      {q:'方程式 \\(\\cos x = \\dfrac{x}{7}\\) 的實數解個數有', ans:5},
+      {q:'方程式 \\(\\sin x = \\dfrac{x}{10}\\) 的實數解個數有', ans:7},
+      {q:'方程式 \\(\\cos x = \\dfrac{|x|}{8}\\) 的實數解個數有', ans:6},
+      {q:'方程式 \\(8\\cos x = x\\) 的實數解個數有', ans:5},
+      {q:'方程式 \\(\\sin x + |\\sin x| = \\dfrac{x}{4\\pi}\\) 的實數解個數有', ans:8},
+      {q:'若 \\(0 \\le x \\le 2\\pi\\)，\\(y=\\sin x\\) 的圖形與 \\(y=\\cos x\\) 的圖形有幾個交點', ans:2},
+      {q:'若 \\(0 \\le x \\le 2\\pi\\)，\\(y=3\\) 的圖形與 \\(y=\\tan x\\) 的圖形有幾個交點', ans:2},
+      {q:'設 \\(-\\pi \\le x \\le 2\\pi\\)，方程式 \\(\\tan x = 1-x\\) 的實數解個數有', ans:4},
+    ];
+    const item5 = srQPick(pool5, _b3aGrfB5Q);
+    return { question:item5.q, answer:item5.ans, type:'number', answerPrefix:'個' };
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 3);
+
+    if (t === 0) {
+      // 三角值大小比較（文字答案）
+      const pool = [
+        {q:'比較 \\(\\cos 1\\)、\\(\\cos 2\\)、\\(\\cos 3\\) 之大小關係（格式如 a>b>c）', ans:'cos1>cos2>cos3'},
+        {q:'三數 \\(a=\\sin 10^\\circ\\)、\\(b=\\cos 10^\\circ\\)、\\(c=\\sin(-10^\\circ)\\) 大小關係（格式如 b>a>c）', ans:'b>a>c'},
+        {q:'比較 \\(\\sin 1\\)、\\(\\sin 2\\)、\\(\\sin 3\\) 之大小關係（格式如 a>b>c）', ans:'sin2>sin1>sin3'},
+        {q:'三數 \\(a=\\cos 100^\\circ\\)、\\(b=\\cos 200^\\circ\\)、\\(c=\\sin 100^\\circ\\) 大小關係（格式如 c>b>a）', ans:'c>b>a'},
+        {q:'比較 \\(\\sin\\dfrac{5\\pi}{6}\\)、\\(\\cos\\dfrac{5\\pi}{6}\\)、\\(\\tan\\dfrac{5\\pi}{6}\\) 大小（格式如 a>b>c，以 sin/cos/tan 表示）', ans:'sin>tan>cos'},
+      ];
+      const item = srQPick(pool, _b3aGrfM0Q);
+      return { question:item.q, answer:item.ans, type:'text', answerPrefix:'' };
+    }
+
+    if (t === 1) {
+      // 帶約束條件的最大最小值
+      const pool = [
+        {q:'已知 \\(\\dfrac{2\\pi}{3} \\le x \\le \\dfrac{7\\pi}{6}\\)，試求 \\(f(x)=-\\cos^2 x+\\sin x+4\\) 的最小值', ans:frac(11,4), type:'fraction', pfx:'最小值'},
+        {q:'若 \\(\\dfrac{\\pi}{6} \\le x \\le \\dfrac{5\\pi}{6}\\)，函數 \\(y=2\\sin x+1\\) 的最大值為', ans:3, type:'number', pfx:'最大值'},
+        {q:'若 \\(0 \\le x \\le \\pi\\)，函數 \\(y=3\\cos x+1\\) 的最大值為', ans:4, type:'number', pfx:'最大值'},
+        {q:'若 \\(0 \\le x \\le \\pi\\)，函數 \\(y=3\\cos x+1\\) 的最小值為', ans:-2, type:'number', pfx:'最小值'},
+        {q:'若 \\(0 \\le x \\le \\pi\\)，函數 \\(y=\\cos^2 x - \\sin x\\) 的最大值為', ans:1, type:'number', pfx:'最大值'},
+        {q:'若 \\(0 \\le x \\le \\dfrac{\\pi}{2}\\)，函數 \\(f(x)=\\sin^2 x-\\sin x\\) 的最小值為', ans:frac(-1,4), type:'fraction', pfx:'最小值'},
+        {q:'若 \\(0 \\le x \\le \\dfrac{\\pi}{2}\\)，函數 \\(y=2\\sin x-1\\) 的最大值為', ans:1, type:'number', pfx:'最大值'},
+      ];
+      const item = srQPick(pool, _b3aGrfM1Q);
+      return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
+    }
+
+    if (t === 2) {
+      // 複雜圖形變換（求單一參數）
+      const pool = [
+        {q:'將函數 \\(y=\\cos x\\) 的圖形先沿垂直方向伸長為 2 倍，水平方向壓縮為 \\(\\dfrac{1}{3}\\) 倍，再向左平移 \\(\\dfrac{\\pi}{3}\\) 單位，向上平移 4 單位得 \\(y=a\\cos(bx+c)+d\\)（\\(0 &lt; c &lt; 2\\pi\\)），求 \\(a\\)', ans:2, type:'number', pfx:'\\(a\\)'},
+        {q:'將函數 \\(y=\\cos x\\) 先垂直伸長 2 倍、水平壓縮 \\(\\dfrac{1}{3}\\) 倍、左移 \\(\\dfrac{\\pi}{3}\\)、上移 4，得 \\(y=a\\cos(bx+c)+d\\)（\\(0 &lt; c &lt; 2\\pi\\)），求 \\(b\\)', ans:3, type:'number', pfx:'\\(b\\)'},
+        {q:'將函數 \\(y=\\cos x\\) 先垂直伸長 2 倍、水平壓縮 \\(\\dfrac{1}{3}\\) 倍、左移 \\(\\dfrac{\\pi}{3}\\)、上移 4，得 \\(y=a\\cos(bx+c)+d\\)（\\(0 &lt; c &lt; 2\\pi\\)），求 \\(d\\)', ans:4, type:'number', pfx:'\\(d\\)'},
+        {q:'已知 \\(y=\\cos(3x+1)\\) 的圖形以 \\(y\\) 軸為中心水平伸縮 \\(a\\) 倍再向左平移 \\(b\\) 單位可還原為 \\(y=\\cos x\\)，且 \\(a &gt; 0\\)、\\(0 &lt; b &lt; \\dfrac{\\pi}{2}\\)，求 \\(a\\)（填分數）', ans:frac(1,3), type:'fraction', pfx:'\\(a\\)'},
+        {q:'若函數 \\(y=\\sin x\\) 的圖形先沿垂直方向拉伸 3 倍得 \\(y=f_1(x)\\)，再水平壓縮為 \\(\\dfrac{1}{2}\\) 倍得 \\(y=f_2(x)\\)，則 \\(f_2(x)\\) 的振幅為', ans:3, type:'number', pfx:'振幅'},
+        {q:'將 \\(y=\\sin x\\) 每點以 \\(y\\) 軸為中心水平伸縮 3 倍得 \\(y=a\\sin bx\\)，求 \\(b\\)（填分數）', ans:frac(1,3), type:'fraction', pfx:'\\(b\\)'},
+      ];
+      const item = srQPick(pool, _b3aGrfM2Q);
+      return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
+    }
+
+    // t===3：複雜方程式交點個數
+    const pool3 = [
+      {q:'方程式 \\(2+3\\pi\\sin x = x\\) 的實數解個數有', ans:5},
+      {q:'已知 \\(0 \\le x &lt; 2\\pi\\)，兩函數 \\(y=\\tan x\\) 與直線 \\(3x+5y=15\\) 的圖形共有幾個交點', ans:3},
+      {q:'試問函數 \\(y=\\sin x\\) 的圖形和 \\(y=\\dfrac{x}{10\\pi}\\) 的圖形有幾個交點', ans:19},
+      {q:'使得方程式 \\(\\dfrac{x}{a}=\\sin x\\) 有 11 個解的正整數 \\(a\\) 共有幾個', ans:6},
+      {q:'設 \\(-\\pi \\le x \\le \\pi\\)，方程式 \\(\\sin x + \\dfrac{x}{4} = 1\\) 有幾個相異實數解', ans:2},
+      {q:'方程式 \\(\\cos x = \\dfrac{x}{7}\\) 有幾個實數解', ans:5},
+    ];
+    const item3 = srQPick(pool3, _b3aGrfM3Q);
+    return { question:item3.q, answer:item3.ans, type:'number', answerPrefix:'個' };
+  }
+
+  // hard
+  const t = srRandInt(0, 1);
+
+  if (t === 0) {
+    // 不等式求解 / 複合問題
+    const pool = [
+      {q:'若 \\(2\\sin^2 x - 3\\cos x \\le 0\\)，函數 \\(f(x)=3\\cos^2 x+4\\sin x\\)（\\(x \\in \\mathbb{R}\\)）的最大值為（填分數）', ans:frac(13,3), type:'fraction', pfx:'最大值'},
+      {q:'若 \\(0 \\le x \\le 2\\pi\\)，方程式 \\(\\cos x = -\\dfrac{1}{3}\\) 的兩實數解之和為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:2, type:'number', pfx:'兩解之和'},
+      {q:'設 \\(-\\pi \\le x \\le \\pi\\)，方程式 \\(\\tan x = 1-x\\) 的實數解個數有', ans:4, type:'number', pfx:'個'},
+      {q:'設 \\(-\\pi \\le x \\le \\pi\\)，方程式 \\(\\sin x + \\dfrac{x}{4} = 1\\) 有幾個相異實數解', ans:2, type:'number', pfx:'個'},
+      {q:'方程式 \\(\\sin x = \\dfrac{x}{4\\pi}\\) 有幾個實數解', ans:8, type:'number', pfx:'個'},
+    ];
+    const item = srQPick(pool, _b3aGrfH0Q);
+    return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
+  }
+
+  // t===1：從圖形求函數參數（a sinbx 圖形最高最低點）
+  const pool1 = [
+    {q:'已知 \\(a &gt; 0\\)、\\(b &gt; 0\\)，函數 \\(f(x)=a\\sin bx\\) 的圖形通過最高點 \\(P(3,\\,2)\\) 及最低點 \\(Q(9,\\,-2)\\)，且與直線 \\(y=-1\\) 交於 \\(A\\)、\\(B\\)、\\(C\\) 三點，求 \\(\\overline{AB}\\) 的長', ans:8, type:'number', pfx:'\\(\\overline{AB}\\)'},
+    {q:'已知 \\(a &gt; 0\\)、\\(b &gt; 0\\)，函數 \\(f(x)=a\\sin bx\\) 的圖形通過最高點 \\(P(3,\\,2)\\) 及最低點 \\(Q(9,\\,-2)\\)，求振幅 \\(a\\)', ans:2, type:'number', pfx:'\\(a\\)'},
+    {q:'已知 \\(a &gt; 0\\)、\\(b &gt; 0\\)，函數 \\(f(x)=a\\sin bx\\) 的圖形通過最高點 \\(P(3,\\,2)\\) 及最低點 \\(Q(9,\\,-2)\\)，則週期為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:4, type:'number', pfx:'週期'},
+    {q:'函數 \\(y=3\\sin bx\\)（\\(b &gt; 0\\)）圖形最高點的 \\(x\\) 坐標為 \\(\\dfrac{\\pi}{4}\\)，求 \\(b\\)', ans:2, type:'number', pfx:'\\(b\\)'},
+    {q:'函數 \\(y=a\\sin 2x\\)（\\(a &gt; 0\\)）的最高點為 \\(\\left(\\dfrac{\\pi}{4},\\,5\\right)\\)，求 \\(a\\)', ans:5, type:'number', pfx:'\\(a\\)'},
+  ];
+  const item1 = srQPick(pool1, _b3aGrfH1Q);
+  return { question:item1.q, answer:item1.ans, type:item1.type, answerPrefix:item1.pfx };
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  輸出表
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -2582,4 +3601,10 @@ const SR_GENERATORS = {
   'b1-line-ineq':    genB1LineIneq,
   'b1-line-app':     genB1LineApp,
   'b1-div-pt':       genB1DivPt,
+  'b2-trig':         genB2Trig,
+  'b3a-arc':         genB3aArc,
+  'b3a-trig-add':    genB3aTrigAdd,
+  'b3a-trig-dbl':    genB3aTrigDbl,
+  'b3a-trig-graph':  genB3aTrigGraph,
+  'b3b-trig-arc':    genB3bTrigArc,
 };

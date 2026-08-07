@@ -47,7 +47,7 @@ const TOPIC_NAMES = {
   '7a-int-abs':   '七上·整數絕對值四則',
   '7a-frac-abs':  '七上·有理數絕對值四則',
   '7a-gcd-lcm':   '七上·最大公因數與最小公倍數',
-  '7a-prime':     '七上·質數與因數',
+  '7a-prime':     '七上·質因數分解',
   '7a-int-exp':  '七上·整數指數律',
   '7a-frac-exp': '七上·分數指數律',
   // 七上 一元一次式
@@ -139,6 +139,8 @@ const TOPIC_NAMES = {
   'b2-tri-sine':   '二冊·面積公式與正餘弦定理',
   // 第三冊A（高二上‧理）
   'b3a-arc':           '三冊A·弧度量',
+  'b3a-trig-add':      '三冊A·和角公式',
+  'b3a-trig-dbl':      '三冊A·二倍角與半角',
   'b3a-trig-graph':    '三冊A·三角函數的圖形',
   'b3a-trig-formula':  '三冊A·常用的三角函數公式',
   'b3a-trig-combine':  '三冊A·正餘弦函數的疊合',
