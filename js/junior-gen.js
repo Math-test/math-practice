@@ -33,6 +33,19 @@ function rnzInt(lo, hi) {
 // 隨機取正整數
 function rp(lo, hi) { return randInt(lo, hi); }
 
+// Shuffle-queue picker（與 senior-gen.js 相同邏輯）
+function jrQPick(arr, q) {
+  if (q.length === 0) {
+    const idx = arr.map((_,i) => i);
+    for (let i = idx.length-1; i > 0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [idx[i], idx[j]] = [idx[j], idx[i]];
+    }
+    q.push(...idx);
+  }
+  return arr[q.shift()];
+}
+
 // ═══════════════════════════════════════════════════════════════════
 //  七上 ▸ 整數 ▸ 正負號概念
 // ═══════════════════════════════════════════════════════════════════
@@ -8101,55 +8114,77 @@ function _8bKite(level){
 // ═══════════════════════════════════════════════════════════════════
 //  九上 ▸ 連比
 // ═══════════════════════════════════════════════════════════════════
+let _rcBQ=[],_rcMQ=[],_rcHQ=[];
 function gen9aRatioChain(level){
-  for(let i=0;i<30;i++){const q=_9aRatioChain(level);if(q)return q;}
-  return _9aRatioChain('basic');
+  return _9aRatioChain(level);
 }
 function _9aRatioChain(level){
-  const g=(a,b)=>b===0?a:g(b,a%b);
   if(level==='basic'){
-    const t=randInt(0,1);
-    if(t===0){
-      const p=randInt(1,6),q=randInt(1,6),r=randInt(1,6),k=randInt(2,5);
-      const which=randInt(0,1);
-      if(which===0) return {question:`\\(a:b:c=${p}:${q}:${r}\\)，\\(a=${p*k}\\)，求 \\(b\\)`,answer:q*k,type:'number',answerPrefix:'\\(b\\)'};
-      return {question:`\\(a:b:c=${p}:${q}:${r}\\)，\\(b=${q*k}\\)，求 \\(c\\)`,answer:r*k,type:'number',answerPrefix:'\\(c\\)'};
-    }
-    // t===1: 三量連比求總和
-    const p=randInt(1,5),q=randInt(1,5),r=randInt(1,5),k=randInt(2,4);
-    return {question:`\\(a:b:c=${p}:${q}:${r}\\)，\\(a=${p*k}\\)，求 \\(a+b+c\\)`,answer:(p+q+r)*k,type:'number',answerPrefix:'\\(a+b+c\\)'};
+    const pool=[
+      {q:'今年祖父與父親的年齡比為 \\(3:2\\)，父親與小杰的年齡比為 \\(5:2\\)，若三人年齡和是 \\(145\\) 歲，則小杰現年多少歲？',ans:20,type:'number',pfx:'小杰年齡'},
+      {q:'設一三角形周長為 \\(176\\) 公分，三邊長分別為 \\(a\\)、\\(b\\)、\\(c\\) 公分，若 \\(a:b=4:3\\)，\\(b:c=5:3\\)，則此三角形最長邊為多少公分？',ans:80,type:'number',pfx:'最長邊'},
+      {q:'凱欣精心調製一大桶果汁 \\(60\\) 公升，其成分是檸檬汁 \\(1\\) 杯、芹菜汁 \\(2\\) 杯、紅葡萄汁 \\(3\\) 杯，則需芹菜汁多少公升？',ans:20,type:'number',pfx:'芹菜汁'},
+      {q:'有一塊含銀、銅、金的合金重 \\(10\\) 公斤，其中銅與銀的重量比為 \\(3:2\\)，銀與金的重量比為 \\(3:1\\)，則此塊合金中含有金多少公斤？',ans:frac(20,17),type:'fraction',pfx:'金的重量'},
+      {q:'已知 \\(x\\)、\\(y\\)、\\(z\\) 皆不等於 \\(0\\)，且 \\(x-3z=0\\)，\\(4y=7z\\)，則 \\(x:y:z=\\)',ans:'12:7:4',type:'text',pfx:'\\(x:y:z\\)'},
+      {q:'甲每 \\(4\\) 秒鐘投進 \\(3\\) 球，乙每 \\(3\\) 秒鐘可投進 \\(2\\) 球，丙每 \\(5\\) 秒鐘可投進 \\(4\\) 球，則甲、乙、丙三人平均各投進一球的時間比為？',ans:'16:18:15',type:'text',pfx:'時間比'},
+      {q:'洛基每 \\(100\\) 秒跑 \\(3\\) 圈操場，傑克每 \\(150\\) 秒跑 \\(4\\) 圈操場，威利每 \\(200\\) 秒跑 \\(3\\) 圈操場，則三人各跑 \\(1\\) 圈操場的時間比為？',ans:'8:9:16',type:'text',pfx:'時間比'},
+      {q:'已知 \\(x+y+z \\neq 0\\)，若 \\((x+y):(y+z):(x+z)=x:y:z\\)，則 \\(x:y:z=\\)',ans:'1:1:1',type:'text',pfx:'\\(x:y:z\\)'},
+      {q:'若 \\(5:x:3=3:2:y\\)，則 \\(x+y=\\)',ans:frac(77,15),type:'fraction',pfx:'\\(x+y\\)'},
+      {q:'若甲、乙、丙為三個面積相等的長方形，且甲的長為 \\(6\\)，乙的長為 \\(8\\)，丙的長為 \\(10\\)，則三個長方形寬的連比為？',ans:'20:15:12',type:'text',pfx:'寬的連比'},
+      {q:'在 \\(\\triangle ABC\\) 中，\\(\\angle A:\\angle B=3:2\\)，\\(\\angle B:\\angle C=1:2\\)，則 \\(\\angle A=\\)',ans:60,type:'number',pfx:'\\(\\angle A\\)（度）'},
+      {q:'已知 \\(x:y=3:2\\)，\\(y:z=6:7\\)，則 \\(x:y:z=\\)',ans:'9:6:7',type:'text',pfx:'\\(x:y:z\\)'},
+      {q:'存錢筒中有壹元硬幣 \\(a\\) 枚、伍元硬幣 \\(b\\) 枚、拾元硬幣 \\(c\\) 枚，若 \\(a:b:c=1:2:3\\)，且總共有 \\(615\\) 元，則拾元硬幣有多少枚？',ans:45,type:'number',pfx:'拾元硬幣'},
+      {q:'已知 \\(x:y=0.6:0.5\\)，\\(x:z=9:4\\)，則 \\(x:y:z=\\)',ans:'18:15:8',type:'text',pfx:'\\(x:y:z\\)'},
+    ];
+    const item=jrQPick(pool,_rcBQ);
+    return {question:item.q,answer:item.ans,type:item.type,answerPrefix:item.pfx};
   }
   if(level==='medium'){
-    const t=randInt(0,2);
-    if(t===0){
-      // a:b=p:q, b:c=r:s（通分連比）→ a:b:c = pr:qr:qs
-      const p=randInt(1,5),q=randInt(2,5),r=randInt(2,5),s=randInt(1,5);
-      const k=randInt(2,4);
-      return {question:`\\(a:b=${p}:${q}\\)，\\(b:c=${r}:${s}\\)，若 \\(a=${p*r*k}\\)，求 \\(c\\)`,answer:q*s*k,type:'number',answerPrefix:'\\(c\\)'};
-    }
-    if(t===1){
-      const p=randInt(1,5),q=randInt(1,5),r=randInt(1,6),k=randInt(2,5);
-      return {question:`\\(a:b:c=${p}:${q}:${r}\\)，\\(a+b+c=${(p+q+r)*k}\\)，求 \\(a+b\\)`,answer:(p+q)*k,type:'number',answerPrefix:'\\(a+b\\)'};
-    }
-    // t===2: 分數題型：a:b:c=p:q:r，求 a/(b+c)
-    const p=randInt(1,5),q=randInt(1,5),r=randInt(1,5);
-    return {question:`\\(a:b:c=${p}:${q}:${r}\\)，求 \\(\\dfrac{a}{b+c}\\)`,answer:frac(p,q+r),type:'fraction',answerPrefix:'\\(\\dfrac{a}{b+c}\\)'};
+    const pool=[
+      {q:'若 \\(x\\)、\\(y\\)、\\(z\\) 為正數，且 \\(x:y:z=5:6:7\\)，則 \\((x+5):(y+6):(z+7)=\\)',ans:'5:6:7',type:'text',pfx:'比值'},
+      {q:'已知 \\(a\\)、\\(b\\) 都是正整數，若 \\(a:b=4:3\\)，且 \\(a\\)、\\(b\\) 的最大公因數為 \\(5\\)，則 \\(a+b=\\)',ans:35,type:'number',pfx:'\\(a+b\\)'},
+      {q:'三角形三邊的連比為 \\(4:5:6\\)，若最小邊長是 \\(6\\) 公分，則最長邊是多少公分？',ans:9,type:'number',pfx:'最長邊'},
+      {q:'若 \\(\\dfrac{x+3}{x}=\\dfrac{y+5}{y}=\\dfrac{z+7}{z}\\)，則 \\(x:y:z=\\)',ans:'3:5:7',type:'text',pfx:'\\(x:y:z\\)'},
+      {q:'某人有十元硬幣 \\(x\\) 個、五元硬幣 \\(y\\) 個、一元硬幣 \\(z\\) 個，總金額為 \\(820\\) 元，且 \\(x:y=2:3\\)，\\(2y:z=1:1\\)，則五元硬幣有多少個？',ans:60,type:'number',pfx:'五元硬幣'},
+      {q:'設 \\(a\\)、\\(b\\) 皆不為 \\(0\\)，若 \\(3a=4b\\)，\\((b-c):c=1:2\\)，則 \\((a-2b):(b-c)=\\)',ans:'(-2):1',type:'text',pfx:'比值'},
+      {q:'西服店製作 \\(1\\) 件襯衫、\\(1\\) 條褲子、\\(1\\) 件上衣所需時間比為 \\(1:2:3\\)，且一天能做 \\(2\\) 件襯衫、\\(3\\) 條褲子、\\(4\\) 件上衣，則做 \\(14\\) 件襯衫、\\(10\\) 條褲子、\\(2\\) 件上衣，最少需幾天？',ans:2,type:'number',pfx:'天數'},
+      {q:'設 \\(a:b=\\dfrac{1}{3}:\\dfrac{1}{2}\\)，\\(5b=4c\\) 且 \\(4a-b-c=60\\)，則 \\(a+b-c+4=\\)',ans:64,type:'number',pfx:'答案'},
+      {q:'設 \\(\\dfrac{2}{ab}=\\dfrac{3}{ac}=\\dfrac{4}{bc}\\)，求 \\((a+b+c):(a-b+c)\\) 的比值為？',ans:frac(13,5),type:'fraction',pfx:'比值'},
+      {q:'若 \\(\\dfrac{2}{3}A:\\dfrac{3}{4}B=2:3\\)，且 \\(B=3C\\)，則 \\(A:B:C=\\)',ans:'9:12:4',type:'text',pfx:'\\(A:B:C\\)'},
+      {q:'已知 \\(40x=15y=6z\\)，若 \\(x:y:z=a:3:c\\)，則 \\(2a+c=\\)',ans:frac(39,4),type:'fraction',pfx:'\\(2a+c\\)'},
+      {q:'若 \\(3x+2y-z=51\\)，且 \\(\\dfrac{x}{4}=\\dfrac{y}{7}=\\dfrac{z}{9}\\)，則 \\((2x+y-1):(y+z+7)\\) 的比值為？',ans:frac(4,5),type:'fraction',pfx:'比值'},
+      {q:'已知 \\(\\triangle ABC\\) 中，\\(4\\angle A:\\angle C=12:5\\)，\\(2\\angle B:3\\angle A=8:9\\)，則 \\(\\angle C-\\angle B=\\)',ans:15,type:'number',pfx:'度數'},
+      {q:'若 \\(2x+y-8z=0\\)，\\(x-y-z=0\\)（\\(z \\neq 0\\)），則 \\(x:y:z=\\)',ans:'3:2:1',type:'text',pfx:'\\(x:y:z\\)'},
+      {q:'若 \\(xyz \\neq 0\\)，且 \\(\\dfrac{2}{xy}=\\dfrac{3}{yz}=\\dfrac{5}{zx}\\)，則 \\(x:y:z=\\)',ans:'10:6:15',type:'text',pfx:'\\(x:y:z\\)'},
+    ];
+    const item=jrQPick(pool,_rcMQ);
+    return {question:item.q,answer:item.ans,type:item.type,answerPrefix:item.pfx};
   }
   // hard
-  const t=randInt(0,2);
-  if(t===0){
-    // a:b=p:q, b:c=r:s, c:d=u:v → find a:d
-    const p=randInt(1,4),q=randInt(1,4),r=randInt(1,4),s=randInt(1,4),u=randInt(1,4),v=randInt(1,4);
-    // a:b:c = pr:qr:qs; a:b:c:d = pru:qru:qsu:qsv
-    const k=randInt(2,4);
-    return {question:`\\(a:b=${p}:${q}\\)，\\(b:c=${r}:${s}\\)，\\(c:d=${u}:${v}\\)，若 \\(a=${p*r*u*k}\\)，求 \\(d\\)`,answer:q*s*v*k,type:'number',answerPrefix:'\\(d\\)'};
-  }
-  if(t===1){
-    const p=randInt(1,5),q=randInt(1,5),r=randInt(1,5),k=randInt(2,5);
-    return {question:`\\(a:b:c=${p}:${q}:${r}\\)，\\(a+b+c=${(p+q+r)*k}\\)，求 \\(2a+b\\)`,answer:(2*p+q)*k,type:'number',answerPrefix:'\\(2a+b\\)'};
-  }
-  const p=randInt(1,5),q=randInt(2,5),r=randInt(2,5),s=randInt(1,5),k=randInt(2,4);
-  return {question:`\\(a:b=${p}:${q}\\)，\\(b:c=${r}:${s}\\)，若 \\(a+c=${(p*r+q*s)*k}\\)，求 \\(b\\)`,answer:q*r*k,type:'number',answerPrefix:'\\(b\\)'};
+  const pool=[
+    {q:'若三正整數 \\(a\\)、\\(b\\)、\\(c\\) 其比為 \\(8:12:15\\)，且其最小公倍數為 \\(360\\)，則三數中最大者為？',ans:45,type:'number',pfx:'最大值'},
+    {q:'若 \\(abc \\neq 0\\)，且 \\(5ab=6bc=7ac\\)，則 \\((a+b+c):(2a-2b+c)\\) 的比值為？',ans:6,type:'number',pfx:'比值'},
+    {q:'若 \\(abc \\neq 0\\)，且 \\(5a=4b=3c\\)，則 \\(\\dfrac{1}{a}:\\dfrac{1}{b}:\\dfrac{1}{c}=\\)',ans:'5:4:3',type:'text',pfx:'比值'},
+    {q:'酒 \\(3\\) 公斤可換茶 \\(2\\) 公斤，茶 \\(4\\) 公斤可換米 \\(9\\) 公斤，則米 \\(12\\) 公斤可換酒多少公斤？',ans:8,type:'number',pfx:'酒的重量'},
+    {q:'畢業旅行午餐，便當數量比 \\(A:B:C=7:6:3\\)，飲料數量比 \\(X:Y:Z=5:4:3\\)，且雞腿便當比珍珠紅茶多 \\(15\\) 份，請問參加旅遊的學生有多少人？',ans:720,type:'number',pfx:'人數'},
+    {q:'某飲料店「檸檬多多綠茶」每杯 \\(500\\) 毫升，其中檸檬汁：養樂多：綠茶 \\(=1:4:20\\)。若老闆準備了檸檬汁 \\(110\\) 毫升、養樂多 \\(250\\) 毫升、綠茶 \\(2200\\) 毫升，則最多可調製幾杯？',ans:3,type:'number',pfx:'杯數'},
+    {q:'村長選舉，投開票所一的甲乙丙票數比為 \\(3:2:1\\)，投開票所二的甲乙丙票數比為 \\(4:5:6\\)，且投開票所一的總票數是投開票所二的 \\(2\\) 倍，則甲、乙、丙得票數的大小關係為？',ans:'甲>乙>丙',type:'text',pfx:'大小關係'},
+    {q:'小毛、二毛、大毛三人零用錢的比為 \\(2:3:7\\)。今大毛分別給二毛、小毛各 \\(200\\) 元後，三人零用錢的比變為 \\(3:4:5\\)，則三人的零用錢共有多少元？',ans:2400,type:'number',pfx:'總金額'},
+    {q:'如圖，三個齒輪甲、乙、丙各有 \\(60\\)、\\(36\\)、\\(48\\) 齒，緊密接合同時轉動，則甲、乙、丙三齒輪同一時間轉動的圈數比為？',ans:'12:20:15',type:'text',pfx:'圈數比'},
+    {q:'若 \\(a\\)、\\(b\\)、\\(c\\) 為三正整數，\\(3a=2b\\)，\\(\\dfrac{1}{4}b=\\dfrac{1}{5}c\\)，且 \\([a,b,c]=720\\)，則 \\(a+b+c=\\)',ans:210,type:'number',pfx:'\\(a+b+c\\)'},
+    {q:'小戴走 \\(4\\) 步的距離小林走 \\(3\\) 步、小天走 \\(2\\) 步；但小戴走 \\(6\\) 步的時間小林走 \\(5\\) 步、小天走 \\(4\\) 步。則三人的速率比為？',ans:'9:10:12',type:'text',pfx:'速率比'},
+    {q:'\\(2\\) 個蘋果與 \\(6\\) 個柳丁價錢相同，\\(4\\) 個楊桃與 \\(3\\) 個蘋果價錢相同，花掉 \\(450\\) 元，菜籃中蘋果：柳丁：楊桃 \\(=2:3:1\\)，則蘋果的費用為多少元？',ans:240,type:'number',pfx:'蘋果費用'},
+    {q:'若 \\(xyz \\neq 0\\)，且 \\(x+3y+5z=0\\)，\\(2x+4y+7z=0\\)，則 \\(x:y:z=\\)',ans:'1:3:(-2)',type:'text',pfx:'\\(x:y:z\\)'},
+    {q:'\\(\\triangle ABC\\) 中，\\((\\angle A+\\angle B):(\\angle A-\\angle B):\\angle C=3:1:2\\)，則 \\(\\angle C=\\)',ans:72,type:'number',pfx:'\\(\\angle C\\)（度）'},
+    {q:'設 \\(\\dfrac{a}{b}=\\dfrac{2}{3}\\)，\\(\\dfrac{c}{d}=\\dfrac{3}{4}\\)，則 \\(\\dfrac{6ac-bd}{4bd-12ac}=\\)',ans:-1,type:'number',pfx:'比值'},
+    {q:'若 \\(a\\)、\\(b\\)、\\(c\\) 為三正整數，\\(12a=7b\\)，\\(\\dfrac{1}{2}b=\\dfrac{1}{3}c\\)，且 \\([a,b,c]=1008\\)，則 \\(a+c-b=\\)',ans:52,type:'number',pfx:'\\(a+c-b\\)'},
+    {q:'甲、乙、丙三人原有貼紙張數比為 \\(15:19:14\\)，若丙給乙 \\(6\\) 張後，比例變成 \\(5:7:4\\)，則丙原本有多少張？',ans:42,type:'number',pfx:'丙的張數'},
+    {q:'甲、乙、丙三人各用去 \\(100\\) 元後，三人餘款的比為 \\(2:3:4\\)，已知甲的餘款為 \\(168\\) 元，則三人原有的錢數總和為多少元？',ans:1056,type:'number',pfx:'總金額'},
+    {q:'若 \\(8\\) 瓶啤酒與 \\(3\\) 瓶米酒的含酒精量相同，\\(5\\) 瓶米酒與 \\(2\\) 瓶高粱酒的含酒精量也相同，三種酒各一瓶的含酒精量總和為 \\(620\\) 公克，則一瓶米酒的含酒精量為多少公克？',ans:160,type:'number',pfx:'米酒含酒精量'},
+    {q:'水果行裡蘋果：梨子 \\(=4:3\\)，梨子：奇異果 \\(=7:4\\)，若梨子與奇異果顆數和比蘋果多 \\(300\\) 顆，則蘋果有多少顆？',ans:1680,type:'number',pfx:'蘋果數量'},
+  ];
+  const item=jrQPick(pool,_rcHQ);
+  return {question:item.q,answer:item.ans,type:item.type,answerPrefix:item.pfx};
 }
 
 // ═══════════════════════════════════════════════════════════════════
