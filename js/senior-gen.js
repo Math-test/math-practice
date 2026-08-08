@@ -2121,6 +2121,10 @@ let _b3aDblH0Q = []; let _b3aDblH1Q = [];
 let _b3aGrfB0Q=[]; let _b3aGrfB1Q=[]; let _b3aGrfB2Q=[]; let _b3aGrfB3Q=[]; let _b3aGrfB4Q=[]; let _b3aGrfB5Q=[];
 let _b3aGrfM0Q=[]; let _b3aGrfM1Q=[]; let _b3aGrfM2Q=[]; let _b3aGrfM3Q=[];
 let _b3aGrfH0Q=[]; let _b3aGrfH1Q=[];
+// b3a-trig-sup shuffle queues
+let _tsupB0Q=[],_tsupB1Q=[],_tsupB2Q=[],_tsupB3Q=[],_tsupB4Q=[];
+let _tsupM0Q=[],_tsupM1Q=[],_tsupM2Q=[],_tsupM3Q=[];
+let _tsupH0Q=[],_tsupH1Q=[];
 
 function genB1LineDist(level, _n) {
   for (let _i = 0; _i < 40; _i++) {
@@ -3815,6 +3819,217 @@ function _b3aTrigGraph(level) {
   return { question:item1.q, answer:item1.ans, type:item1.type, answerPrefix:item1.pfx };
 }
 
+// ── b3a-trig-sup：三角函數的疊合 ─────────────────────────────────────
+function genB3aTrigSup(level) {
+  for (let i = 0; i < 40; i++) { const q = _b3aTrigSup(level); if (q) return q; }
+  return _b3aTrigSup('basic');
+}
+
+function _b3aTrigSup(level) {
+  // a sinx + b cosx = rL sin(x+tL) = rL cos(x+pL)
+  const PAIRS = [
+    {expr:'\\sqrt{3}\\sin x+\\cos x',                                rL:'2',          rN:2,              tL:'\\dfrac{\\pi}{6}',    pL:'-\\dfrac{\\pi}{3}'},
+    {expr:'\\sin x+\\sqrt{3}\\cos x',                                 rL:'2',          rN:2,              tL:'\\dfrac{\\pi}{3}',    pL:'-\\dfrac{\\pi}{6}'},
+    {expr:'-\\sin x+\\sqrt{3}\\cos x',                                rL:'2',          rN:2,              tL:'\\dfrac{2\\pi}{3}',   pL:'\\dfrac{\\pi}{6}'},
+    {expr:'-\\sqrt{3}\\sin x+\\cos x',                                rL:'2',          rN:2,              tL:'\\dfrac{5\\pi}{6}',   pL:'\\dfrac{\\pi}{3}'},
+    {expr:'\\sqrt{3}\\sin x-\\cos x',                                 rL:'2',          rN:2,              tL:'-\\dfrac{\\pi}{6}',   pL:'-\\dfrac{2\\pi}{3}'},
+    {expr:'\\sin x-\\sqrt{3}\\cos x',                                 rL:'2',          rN:2,              tL:'-\\dfrac{\\pi}{3}',   pL:'-\\dfrac{5\\pi}{6}'},
+    {expr:'-\\sin x-\\sqrt{3}\\cos x',                                rL:'2',          rN:2,              tL:'-\\dfrac{2\\pi}{3}',  pL:'\\dfrac{5\\pi}{6}'},
+    {expr:'-\\sqrt{3}\\sin x-\\cos x',                                rL:'2',          rN:2,              tL:'-\\dfrac{5\\pi}{6}',  pL:'\\dfrac{2\\pi}{3}'},
+    {expr:'\\sin x+\\cos x',                                          rL:'\\sqrt{2}',  rN:Math.SQRT2,     tL:'\\dfrac{\\pi}{4}',    pL:'-\\dfrac{\\pi}{4}'},
+    {expr:'-\\sin x+\\cos x',                                         rL:'\\sqrt{2}',  rN:Math.SQRT2,     tL:'\\dfrac{3\\pi}{4}',   pL:'\\dfrac{\\pi}{4}'},
+    {expr:'\\sin x-\\cos x',                                          rL:'\\sqrt{2}',  rN:Math.SQRT2,     tL:'-\\dfrac{\\pi}{4}',   pL:'-\\dfrac{3\\pi}{4}'},
+    {expr:'-\\sin x-\\cos x',                                         rL:'\\sqrt{2}',  rN:Math.SQRT2,     tL:'-\\dfrac{3\\pi}{4}',  pL:'\\dfrac{3\\pi}{4}'},
+    {expr:'2\\sqrt{3}\\sin x+2\\cos x',                               rL:'4',          rN:4,              tL:'\\dfrac{\\pi}{6}',    pL:'-\\dfrac{\\pi}{3}'},
+    {expr:'2\\sin x+2\\sqrt{3}\\cos x',                               rL:'4',          rN:4,              tL:'\\dfrac{\\pi}{3}',    pL:'-\\dfrac{\\pi}{6}'},
+    {expr:'-2\\sin x+2\\sqrt{3}\\cos x',                              rL:'4',          rN:4,              tL:'\\dfrac{2\\pi}{3}',   pL:'\\dfrac{\\pi}{6}'},
+    {expr:'2\\sin x+2\\cos x',                                        rL:'2\\sqrt{2}', rN:2*Math.SQRT2,   tL:'\\dfrac{\\pi}{4}',    pL:'-\\dfrac{\\pi}{4}'},
+    {expr:'-2\\sin x+2\\cos x',                                       rL:'2\\sqrt{2}', rN:2*Math.SQRT2,   tL:'\\dfrac{3\\pi}{4}',   pL:'\\dfrac{\\pi}{4}'},
+    {expr:'2\\sin x-2\\cos x',                                        rL:'2\\sqrt{2}', rN:2*Math.SQRT2,   tL:'-\\dfrac{\\pi}{4}',   pL:'-\\dfrac{3\\pi}{4}'},
+    {expr:'3\\sqrt{3}\\sin x+3\\cos x',                               rL:'6',          rN:6,              tL:'\\dfrac{\\pi}{6}',    pL:'-\\dfrac{\\pi}{3}'},
+    {expr:'3\\sin x+3\\cos x',                                        rL:'3\\sqrt{2}', rN:3*Math.SQRT2,   tL:'\\dfrac{\\pi}{4}',    pL:'-\\dfrac{\\pi}{4}'},
+    {expr:'4\\sin x-4\\cos x',                                        rL:'4\\sqrt{2}', rN:4*Math.SQRT2,   tL:'-\\dfrac{\\pi}{4}',   pL:'-\\dfrac{3\\pi}{4}'},
+    {expr:'4\\sin x-4\\sqrt{3}\\cos x',                               rL:'8',          rN:8,              tL:'-\\dfrac{\\pi}{3}',   pL:'-\\dfrac{5\\pi}{6}'},
+    {expr:'\\dfrac{\\sqrt{3}}{2}\\sin x-\\dfrac{1}{2}\\cos x',       rL:'1',          rN:1,              tL:'-\\dfrac{\\pi}{6}',   pL:'-\\dfrac{2\\pi}{3}'},
+    {expr:'\\dfrac{1}{2}\\sin x+\\dfrac{\\sqrt{3}}{2}\\cos x',       rL:'1',          rN:1,              tL:'\\dfrac{\\pi}{3}',    pL:'-\\dfrac{\\pi}{6}'},
+    {expr:'\\dfrac{\\sqrt{2}}{2}\\cos x-\\dfrac{\\sqrt{2}}{2}\\sin x', rL:'1',        rN:1,              tL:'\\dfrac{3\\pi}{4}',   pL:'\\dfrac{\\pi}{4}'},
+  ];
+
+  if (level === 'basic') {
+    const t = srRandInt(0, 4);
+
+    if (t === 0) {
+      const p = srQPick(PAIRS, _tsupB0Q);
+      return {
+        question:`將 \\(y=${p.expr}\\) 表示成正弦曲線 \\(y=r\\sin(x+\\theta)\\) 的形式，其中 \\(r>0\\)，\\(-\\pi<\\theta<\\pi\\)，則 \\(\\theta=\\)`,
+        answer:p.tL, type:'text', answerPrefix:'\\(\\theta\\)'
+      };
+    }
+
+    if (t === 1) {
+      const p = srQPick(PAIRS, _tsupB1Q);
+      return {
+        question:`將 \\(y=${p.expr}\\) 表示成餘弦曲線 \\(y=r\\cos(x+\\theta)\\) 的形式，其中 \\(r>0\\)，\\(-\\pi<\\theta<\\pi\\)，則 \\(\\theta=\\)`,
+        answer:p.pL, type:'text', answerPrefix:'\\(\\theta\\)'
+      };
+    }
+
+    if (t === 2) {
+      const p = srQPick(PAIRS, _tsupB2Q);
+      const isInt = Number.isInteger(p.rN);
+      return {
+        question:`函數 \\(y=${p.expr}\\) 的振幅為`,
+        answer: isInt ? p.rN : p.rL,
+        type: isInt ? 'number' : 'text',
+        answerPrefix:'振幅'
+      };
+    }
+
+    if (t === 3) {
+      const pool = [
+        {q:'函數 \\(y=\\sin x+\\cos x\\) 的週期為',                               ans:'2\\pi', type:'text'},
+        {q:'函數 \\(y=\\sqrt{3}\\sin x-\\cos x\\) 的週期為',                       ans:'2\\pi', type:'text'},
+        {q:'函數 \\(y=\\cos 2x-\\sqrt{3}\\sin 2x+7\\) 的週期為',                   ans:'\\pi',  type:'text'},
+        {q:'函數 \\(y=2\\sin 2x+2\\cos 2x\\) 的週期為',                            ans:'\\pi',  type:'text'},
+        {q:'函數 \\(y=\\sin 2x-\\cos 2x\\) 的週期為',                              ans:'\\pi',  type:'text'},
+        {q:'函數 \\(y=\\sqrt{3}\\sin 2x+\\cos 2x+3\\) 的週期為',                   ans:'\\pi',  type:'text'},
+        {q:'函數 \\(y=3\\sin x-3\\sqrt{3}\\cos x\\) 的週期為',                     ans:'2\\pi', type:'text'},
+        {q:'函數 \\(y=4\\sin x-4\\sqrt{3}\\cos x+2\\) 的週期為',                   ans:'2\\pi', type:'text'},
+      ];
+      const item = srQPick(pool, _tsupB3Q);
+      return { question:item.q, answer:item.ans, type:item.type, answerPrefix:'週期' };
+    }
+
+    if (t === 4) {
+      const p = srQPick(PAIRS, _tsupB4Q);
+      return {
+        question:`函數 \\(y=${p.expr}\\) 的最大值 \\(M\\) 與最小值 \\(m\\)，則數對 \\((M,m)=\\)`,
+        answer:`(${p.rL},-${p.rL})`, type:'text', answerPrefix:'\\((M,m)\\)'
+      };
+    }
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 3);
+
+    if (t === 0) {
+      const pool = [
+        {q:'在 \\(0\\leq x\\leq\\pi\\) 範圍內，\\(y=2\\sin x+2\\sqrt{3}\\cos x\\) 的最大值 \\(M\\) 與最小值 \\(m\\)，則數對 \\((M,m)=\\)',
+         ans:'\\left(4,-2\\sqrt{3}\\right)', type:'text', pfx:'\\((M,m)\\)'},
+        {q:'在 \\(0\\leq x\\leq 2\\pi\\) 範圍內，\\(y=4\\sin x-4\\sqrt{3}\\cos x+2\\) 的最大值為',
+         ans:10, type:'number', pfx:'最大值'},
+        {q:'函數 \\(f(x)=3\\sin x-3\\sqrt{3}\\cos x\\)，\\(0\\leq x\\leq 2\\pi\\)，\\(f(x)\\) 有最小值 \\(-6\\) 時，\\(x=\\)',
+         ans:'\\dfrac{11\\pi}{6}', type:'text', pfx:'\\(x\\)'},
+        {q:'設 \\(\\dfrac{\\pi}{6}\\leq x\\leq\\dfrac{4\\pi}{3}\\)，若函數 \\(y=\\sqrt{3}\\sin x-\\cos x\\) 的最大值為 \\(a\\)、最小值為 \\(b\\)，則 \\(a-b=\\)',
+         ans:3, type:'number', pfx:'\\(a-b\\)'},
+        {q:'在 \\(0\\leq x\\leq 2\\pi\\) 範圍內，\\(y=2\\cos\\!\\left(x-\\dfrac{\\pi}{6}\\right)+4\\sin x\\) 的最大值為',
+         ans:'2\\sqrt{7}', type:'text', pfx:'最大值'},
+        {q:'若 \\(y=\\sqrt{2}\\sin x-\\sqrt{2}\\cos x\\) 在 \\(0\\leq x\\leq 2\\pi\\) 的最大值為 \\(M\\)，最大值發生時 \\(x=\\alpha\\)，則數對 \\((M,\\alpha)=\\)',
+         ans:'\\left(2,\\dfrac{3\\pi}{4}\\right)', type:'text', pfx:'\\((M,\\alpha)\\)'},
+      ];
+      const item = srQPick(pool, _tsupM0Q);
+      return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
+    }
+
+    if (t === 1) {
+      const pool = [
+        {q:'試求 \\(y=5\\sin^2 x-4\\sin x\\cos x+3\\cos^2 x\\) 的最大值',
+         ans:'4+\\sqrt{5}', type:'text', pfx:'最大值'},
+        {q:'試求 \\(y=\\sin^2 x-4\\sin x\\cos x+3\\cos^2 x\\) 的最大值',
+         ans:'2+\\sqrt{5}', type:'text', pfx:'最大值'},
+        {q:'求 \\(y=\\cos^2 x-2\\sqrt{3}\\sin x\\cos x+3\\sin^2 x\\) 的最大值',
+         ans:4, type:'number', pfx:'最大值'},
+        {q:'求 \\(y=\\cos^2 x-2\\sqrt{3}\\sin x\\cos x+3\\sin^2 x\\) 的最小值',
+         ans:0, type:'number', pfx:'最小值'},
+        {q:'已知 \\(f(x)=\\sin^2 x-8\\sin x\\cos x-3\\cos^2 x\\) 的最大值 \\(\\alpha\\)、最小值 \\(\\beta\\)，則 \\(\\alpha+\\beta=\\)',
+         ans:-2, type:'number', pfx:'\\(\\alpha+\\beta\\)'},
+        {q:'求 \\(y=\\sin^2 x+6\\sin x\\cos x-8\\cos^2 x\\) 的最大值',
+         ans:'\\dfrac{3\\sqrt{13}-7}{2}', type:'text', pfx:'最大值'},
+        {q:'令 \\(y=2\\cos x-3\\sin x+4\\)，\\(x\\in\\mathbb{R}\\)，則 \\(y\\) 的最大值為',
+         ans:'\\sqrt{13}+4', type:'text', pfx:'最大值'},
+        {q:'令 \\(y=2\\cos x-3\\sin x+4\\)，\\(x\\in\\mathbb{R}\\)，則 \\(y\\) 的最小值為',
+         ans:'-\\sqrt{13}+4', type:'text', pfx:'最小值'},
+      ];
+      const item = srQPick(pool, _tsupM1Q);
+      return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
+    }
+
+    if (t === 2) {
+      const pool = [
+        {q:'在 \\(0\\leq x<2\\pi\\) 的範圍內，解不等式 \\(\\sin x+\\sqrt{3}\\cos x<1\\)',
+         ans:'\\dfrac{\\pi}{2}<x<\\dfrac{11\\pi}{6}', type:'text', pfx:'解'},
+        {q:'設 \\(0\\leq x\\leq\\pi\\)，則滿足不等式 \\(-1\\leq\\sqrt{3}\\sin x+\\cos x\\leq\\sqrt{3}\\) 之 \\(x\\) 的範圍為',
+         ans:'0\\leq x\\leq\\dfrac{\\pi}{6}\\text{ 或 }\\dfrac{\\pi}{2}\\leq x\\leq\\pi', type:'text', pfx:'解'},
+        {q:'若 \\(0\\leq x\\leq\\pi\\)，則不等式 \\(\\sin x-\\cos x\\geq 1\\) 的解為',
+         ans:'\\dfrac{\\pi}{2}\\leq x\\leq\\pi', type:'text', pfx:'解'},
+        {q:'在 \\(-\\dfrac{\\pi}{4}\\leq x\\leq\\dfrac{\\pi}{4}\\) 範圍內，試求不等式 \\(\\sin^2 x+2\\sin x\\cos x-\\cos^2 x\\leq -1\\) 的解',
+         ans:'-\\dfrac{\\pi}{4}\\leq x\\leq 0', type:'text', pfx:'解'},
+        {q:'設 \\(0\\leq\\theta<2\\pi\\)，且 \\(\\sin\\theta+\\sqrt{3}\\cos\\theta+1=0\\)，則 \\(\\theta=\\)',
+         ans:'\\dfrac{5\\pi}{6}\\text{ 或 }\\dfrac{3\\pi}{2}', type:'text', pfx:'\\(\\theta\\)'},
+      ];
+      const item = srQPick(pool, _tsupM2Q);
+      return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
+    }
+
+    if (t === 3) {
+      const pool = [
+        {q:'試求 \\(\\dfrac{1}{\\cos 20°}-\\dfrac{\\sqrt{3}}{\\sin 20°}\\) 的值',
+         ans:-4, type:'number', pfx:'值'},
+        {q:'試求 \\(\\dfrac{\\sqrt{3}}{\\cos 290°}+\\dfrac{1}{\\sin 250°}\\) 的值',
+         ans:4, type:'number', pfx:'值'},
+        {q:'函數 \\(f(x)=(1+\\sqrt{3}\\tan x)\\cos x\\)，\\(0\\leq x<\\dfrac{\\pi}{2}\\)，則 \\(f(x)\\) 的最大值為',
+         ans:2, type:'number', pfx:'最大值'},
+        {q:'試比較 \\(a=\\sin 10°+\\cos 10°\\)，\\(b=\\sin 20°+\\cos 20°\\)，\\(c=\\sin 30°+\\cos 30°\\)，\\(d=\\sin 40°+\\cos 40°\\)，\\(e=\\sin 50°+\\cos 50°\\) 之大小',
+         ans:'e=d>c>b>a', type:'text', pfx:'大小'},
+        {q:'設 \\(180°<A<270°\\)，且 \\(\\sin A+\\sqrt{3}\\cos A=2\\cos 2012°\\)，若 \\(A=m°\\)，則 \\(m=\\)',
+         ans:242, type:'number', pfx:'\\(m\\)'},
+        {q:'設 \\(180°<A<270°\\)，且 \\(\\sin A+\\sqrt{3}\\cos A=2\\cos 2020°\\)，若 \\(A=m°\\)，則 \\(m=\\)',
+         ans:250, type:'number', pfx:'\\(m\\)'},
+      ];
+      const item = srQPick(pool, _tsupM3Q);
+      return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
+    }
+  }
+
+  if (level === 'hard') {
+    const t = srRandInt(0, 1);
+
+    if (t === 0) {
+      const pool = [
+        {q:'已知 \\(0\\leq x\\leq\\pi\\)，設 \\(y=2\\cos\\!\\left(\\dfrac{\\pi}{3}-x\\right)-2\\cos x+1\\) 的最大值 \\(M\\)、最小值 \\(m\\)，則 \\(M+m=\\)',
+         ans:3, type:'number', pfx:'\\(M+m\\)'},
+        {q:'若 \\(f(x)=\\cos x-\\sqrt{3}\\sin x\\)，當 \\(0\\leq x\\leq\\pi\\) 時，\\(f(x)\\) 有最大值 \\(M\\)、最小值 \\(m\\)，則數對 \\((M,m)=\\)',
+         ans:'\\left(1,-2\\right)', type:'text', pfx:'\\((M,m)\\)'},
+        {q:'設 \\(\\theta\\) 為第一象限角，\\(f(\\theta)=2\\cos\\theta+3\\cos\\!\\left(\\dfrac{\\pi}{3}-\\theta\\right)\\)，則 \\(f(\\theta)\\) 的最大值為',
+         ans:'\\sqrt{19}', type:'text', pfx:'最大值'},
+        {q:'設 \\(-\\dfrac{\\pi}{2}\\leq x\\leq\\dfrac{\\pi}{2}\\)，\\(f(x)=5\\sin^2 x-2\\sin x\\cos x-\\cos^2 x\\)，求 \\(f(x)\\) 的最小值',
+         ans:'2-\\sqrt{10}', type:'text', pfx:'最小值'},
+        {q:'方程式 \\(\\sin x-3\\cos x=k\\)，在 \\(0\\leq x\\leq\\pi\\) 的範圍內，有兩個相異的實數解，求實數 \\(k\\) 的範圍',
+         ans:'3\\leq k<\\sqrt{10}', type:'text', pfx:'\\(k\\)的範圍'},
+      ];
+      const item = srQPick(pool, _tsupH0Q);
+      return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
+    }
+
+    if (t === 1) {
+      const pool = [
+        {q:'\\(x\\) 為實數，函數 \\(y=\\dfrac{3-\\sin x}{2+\\cos x}\\) 有最大值 \\(M\\)、最小值 \\(m\\)，試求數對 \\((M,m)=\\)',
+         ans:'\\left(\\dfrac{6+2\\sqrt{3}}{3},\\dfrac{6-2\\sqrt{3}}{3}\\right)', type:'text', pfx:'\\((M,m)\\)'},
+        {q:'設 \\(0<x<\\pi\\)，若 \\(\\alpha\\)、\\(\\beta\\) 為 \\(\\sqrt{3}\\sin x-\\cos x=\\sqrt{3}\\) 的兩根，則 \\(\\tan\\dfrac{\\alpha+\\beta}{2}=\\)',
+         ans:'-\\sqrt{3}', type:'text', pfx:'值'},
+        {q:'設 \\(y=a\\sin x-b\\cos x\\) 圖形的一條對稱軸方程式為 \\(x=\\dfrac{\\pi}{4}\\)，且直線 \\(L\\colon ax-by+c=0\\) 與 \\(x\\) 軸的夾角為 \\(\\theta\\)，則 \\(\\sin\\theta=\\)',
+         ans:'\\dfrac{\\sqrt{2}}{2}', type:'text', pfx:'\\(\\sin\\theta\\)'},
+        {q:'\\(a>b\\)，若 \\(a\\sin^2\\theta+(a-b)\\cos\\theta\\sin\\theta-b\\cos^2\\theta\\) 的最大值與最小值依次為 \\(2+\\sqrt{13}\\)、\\(2-\\sqrt{13}\\)，則數對 \\((a,b)=\\)',
+         ans:'(5,1)\\text{ 或 }(-1,-5)', type:'text', pfx:'\\((a,b)\\)'},
+        {q:'已知 \\(\\pi<x<\\dfrac{3\\pi}{2}\\)，且 \\(\\sqrt{3}\\cos x+\\sin x=2\\sin 2020°\\)，則 \\(x=\\)',
+         ans:'\\dfrac{13\\pi}{9}', type:'text', pfx:'\\(x\\)'},
+      ];
+      const item = srQPick(pool, _tsupH1Q);
+      return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
+    }
+  }
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  輸出表
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -3839,5 +4054,6 @@ const SR_GENERATORS = {
   'b3a-trig-add':    genB3aTrigAdd,
   'b3a-trig-dbl':    genB3aTrigDbl,
   'b3a-trig-graph':  genB3aTrigGraph,
+  'b3a-trig-sup':    genB3aTrigSup,
   'b3b-trig-arc':    genB3bTrigArc,
 };
