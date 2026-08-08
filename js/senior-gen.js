@@ -2668,6 +2668,238 @@ function _b1DivPt(level, m, n, s, d) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  第一冊 ▸ 雙重根號
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+let _b1DblB0Q=[],_b1DblB1Q=[],_b1DblB2Q=[],_b1DblB3Q=[],_b1DblB4Q=[];
+let _b1DblM0Q=[],_b1DblM1Q=[],_b1DblM2Q=[],_b1DblM3Q=[];
+let _b1DblH0Q=[],_b1DblH1Q=[];
+
+function genB1DblRad(level) {
+  for (let i=0;i<40;i++){const q=_b1DblRad(level);if(q)return q;}
+  return _b1DblRad('basic');
+}
+
+// √n = c√r  (r square-free)
+function _b1SqrtSimp(n) {
+  let c=1,r=n;
+  for (let k=Math.floor(Math.sqrt(n));k>=2;k--) {
+    if (n%(k*k)===0){c=k;r=n/(k*k);break;}
+  }
+  return {c,r};
+}
+
+// Inner LaTeX for "2√(pq)" in simplified form
+function _b1DblInnerStr(p,q) {
+  const {c,r}=_b1SqrtSimp(p*q);
+  const coeff=2*c;
+  return r===1 ? `${coeff}` : coeff===2 ? `2\\sqrt{${r}}` : `${coeff}\\sqrt{${r}}`;
+}
+
+// Build answer object for √p + sign×√q
+function _b1DblAns(p,q,sign) {
+  const sqP=Math.sqrt(p),sqQ=Math.sqrt(q);
+  const iP=Number.isInteger(sqP),iQ=Number.isInteger(sqQ);
+  if(iP&&iQ) return {answer:sqP+sign*sqQ,type:'number'};
+  if(iP)     return {type:'radical-mix',rational:sqP,radCoeff:sign,radM:q};
+  if(iQ)     return {type:'radical-mix',rational:sign*sqQ,radCoeff:1,radM:p};
+  return {type:'radical2',coeffA:1,radA:p,coeffB:sign,radB:q};
+}
+
+function _b1DblRad(level) {
+  // Pairs {p,q}: answer to √(p+q ± 2√(pq)) is √p ± √q  (p>q)
+  const PAIRS = [
+    {p:3,q:1},{p:5,q:1},{p:6,q:1},{p:7,q:1},
+    {p:4,q:3},{p:5,q:4},{p:5,q:2},{p:5,q:3},
+    {p:6,q:2},{p:7,q:2},{p:7,q:3},{p:6,q:5},
+    {p:9,q:2},{p:9,q:5},{p:9,q:7},
+  ];
+
+  if (level==='basic') {
+    const t=srRandInt(0,4);
+
+    if (t===0) {
+      const {p,q}=srQPick(PAIRS,_b1DblB0Q);
+      const mid=_b1DblInnerStr(p,q);
+      return {question:`化簡雙重根式 \\(\\sqrt{${p+q}-${mid}}\\)`,..._b1DblAns(p,q,-1)};
+    }
+    if (t===1) {
+      const {p,q}=srQPick(PAIRS,_b1DblB1Q);
+      const mid=_b1DblInnerStr(p,q);
+      return {question:`化簡雙重根式 \\(\\sqrt{${p+q}+${mid}}\\)`,..._b1DblAns(p,q,+1)};
+    }
+    if (t===2) {
+      // √(n+k√r) + √(n-k√r) = 2√p
+      const {p,q}=srQPick(PAIRS,_b1DblB2Q);
+      const mid=_b1DblInnerStr(p,q); const n=p+q;
+      const sqP=Math.sqrt(p),iP=Number.isInteger(sqP);
+      const ans=iP?{answer:2*sqP,type:'number'}:{type:'radical-mix',rational:0,radCoeff:2,radM:p};
+      return {question:`化簡 \\(\\sqrt{${n}+${mid}}+\\sqrt{${n}-${mid}}\\)`,...ans};
+    }
+    if (t===3) {
+      // √(n+k√r) − √(n-k√r) = 2√q
+      const {p,q}=srQPick(PAIRS,_b1DblB3Q);
+      const mid=_b1DblInnerStr(p,q); const n=p+q;
+      const sqQ=Math.sqrt(q),iQ=Number.isInteger(sqQ);
+      const ans=iQ?{answer:2*sqQ,type:'number'}:{type:'radical-mix',rational:0,radCoeff:2,radM:q};
+      return {question:`化簡 \\(\\sqrt{${n}+${mid}}-\\sqrt{${n}-${mid}}\\)`,...ans};
+    }
+    // t=4: 求整數部分 a
+    const IPOOL=[
+      {q:'\\sqrt{4+2\\sqrt{3}}',  a:2},
+      {q:'\\sqrt{6+2\\sqrt{5}}',  a:3},
+      {q:'\\sqrt{11+6\\sqrt{2}}', a:4},
+      {q:'\\sqrt{14+6\\sqrt{5}}', a:5},
+      {q:'\\sqrt{8+2\\sqrt{15}}', a:3},
+      {q:'\\sqrt{8+4\\sqrt{3}}',  a:3},
+      {q:'\\sqrt{9+4\\sqrt{5}}',  a:4},
+      {q:'\\sqrt{7+4\\sqrt{3}}',  a:3},
+      {q:'\\sqrt{11-6\\sqrt{2}}', a:1},
+      {q:'\\sqrt{7-4\\sqrt{3}}',  a:0},
+      {q:'\\sqrt{9-4\\sqrt{5}}',  a:0},
+    ].filter(x=>x.a>0);
+    const item=srQPick(IPOOL,_b1DblB4Q);
+    return {question:`若 \\(${item.q}\\) 的整數部分為 \\(a\\)，則 \\(a\\)`,answer:item.a,type:'number'};
+  }
+
+  if (level==='medium') {
+    const t=srRandInt(0,3);
+
+    if (t===0) {
+      // 整數/小數部分 → 計算表達式
+      const POOL=[
+        {q:'\\sqrt{11-6\\sqrt{2}}',exq:'\\dfrac{1}{b-1}+\\dfrac{1}{3-b}',
+         type:'number',answer:-2},
+        {q:'\\sqrt{4+\\sqrt{12}}',exq:'\\dfrac{1}{a+b}-\\dfrac{1}{b}',
+         type:'number',answer:-1},
+        {q:'\\sqrt{14+3\\sqrt{20}}',exq:'\\dfrac{1}{a+b-1}-\\dfrac{1}{b}',
+         type:'number',answer:-4},
+        {q:'\\sqrt{16+\\sqrt{252}}',exq:'2a+b-\\dfrac{3}{b}',
+         type:'number',answer:6},
+        {q:'\\sqrt{21-2\\sqrt{80}}',exq:'\\dfrac{4}{a+b-1}-\\dfrac{2}{b-1}',
+         type:'radical-mix',rational:7,radCoeff:3,radM:5},
+        {q:'\\sqrt{14-6\\sqrt{5}}',exq:'\\dfrac{1}{b}+a',
+         // √(14-6√5)=3-√5≈0.764, a=0 → skip
+         type:'number',answer:-999},
+        {q:'\\sqrt{9+4\\sqrt{5}}',exq:'a-b^2',
+         // √5+2≈4.236, a=4, b=√5-2. b²=(√5-2)²=9-4√5. a-b²=4-(9-4√5)=4√5-5
+         type:'radical-mix',rational:-5,radCoeff:4,radM:5},
+      ].filter(x=>!(x.type==='number'&&x.answer===-999));
+      const item=srQPick(POOL,_b1DblM0Q);
+      const q2={question:`設 \\(${item.q}\\) 的整數部分為 \\(a\\)，小數部分為 \\(b\\)，則 \\(${item.exq}=\\)`};
+      if(item.type==='number') return {...q2,answer:item.answer,type:'number'};
+      return {...q2,type:item.type,rational:item.rational,radCoeff:item.radCoeff,radM:item.radM};
+    }
+
+    if (t===1) {
+      // (√a−√b)/(√a+√b) + (√a+√b)/(√a−√b) = 2(a+b)/(a−b)
+      const POOL=[
+        {a:3,b:2,ans:10},{a:5,b:3,ans:8},{a:6,b:2,ans:4},
+        {a:7,b:3,ans:5},{a:7,b:5,ans:12},
+      ];
+      const {a,b,ans}=srQPick(POOL,_b1DblM1Q);
+      return {
+        question:`化簡 \\(\\dfrac{\\sqrt{${a}}-\\sqrt{${b}}}{\\sqrt{${a}}+\\sqrt{${b}}}+\\dfrac{\\sqrt{${a}}+\\sqrt{${b}}}{\\sqrt{${a}}-\\sqrt{${b}}}\\)`,
+        answer:ans,type:'number'
+      };
+    }
+
+    if (t===2) {
+      // 已知有理數 a,b，由含雙重根號的等式求數對 (a,b)
+      const POOL=[
+        {q:'設 \\(a,b\\) 皆為有理數，且 \\(a\\sqrt{4+2\\sqrt{3}}+b\\sqrt{7-4\\sqrt{3}}=4\\sqrt{3}+1\\)，則數對 \\((a,b)\\)',
+         ans:'(3,-1)'},
+        // a(√3+1)+b(2-√3)=4√3+1: a+2b=1, a-b=4 → b=-1,a=3
+        {q:'設 \\(a,b\\) 皆為有理數，且 \\(a\\sqrt{4+2\\sqrt{3}}+b\\sqrt{4-2\\sqrt{3}}=2+4\\sqrt{3}\\)，則數對 \\((a,b)\\)',
+         ans:'(3,1)'},
+        // a(√3+1)+b(√3-1)=4√3+2: a+b=4, a-b=2 → a=3,b=1
+        {q:'設 \\(a,b\\) 皆為有理數，且 \\(a\\sqrt{11+6\\sqrt{2}}+b\\sqrt{11-6\\sqrt{2}}=9+\\sqrt{2}\\)，則數對 \\((a,b)\\)',
+         ans:'(2,1)'},
+        // a(3+√2)+b(3-√2)=9+√2: 3(a+b)=9→a+b=3, a-b=1→a=2,b=1
+        {q:'設 \\(a,b\\) 皆為有理數，且 \\(a\\sqrt{4+2\\sqrt{3}}+b\\sqrt{4-2\\sqrt{3}}=6+2\\sqrt{3}\\)，則數對 \\((a,b)\\)',
+         ans:'(4,-2)'},
+        // a(√3+1)+b(√3-1)=2√3+6: a+b=2, a-b=6 → a=4,b=-2
+        {q:'設 \\(a,b\\) 皆為有理數，且 \\(a\\sqrt{4+2\\sqrt{3}}+b\\sqrt{4-2\\sqrt{3}}=8\\sqrt{3}\\)，則數對 \\((a,b)\\)',
+         ans:'(4,4)'},
+        // a+b=8, a-b=0 → a=b=4
+        {q:'設 \\(a,b\\) 皆為有理數，且 \\(a\\sqrt{11+6\\sqrt{2}}+b\\sqrt{11-6\\sqrt{2}}=15+\\sqrt{2}\\)，則數對 \\((a,b)\\)',
+         ans:'(3,2)'},
+        // 3(a+b)=15→a+b=5, a-b=1→a=3,b=2
+      ];
+      const item=srQPick(POOL,_b1DblM2Q);
+      return {question:`${item.q} \\(=\\)`,answer:item.ans,type:'text'};
+    }
+
+    // t=3: a=(√p+√q)/(√p-√q), b=(√p-√q)/(√p+√q)，求 aⁿ+bⁿ
+    const POOL=[
+      {p:3,q:1,n:3,ans:52},   // a+b=4,ab=1, a³+b³=64-12=52
+      {p:3,q:1,n:2,ans:14},   // a²+b²=16-2=14
+      {p:2,q:1,n:2,ans:34},   // a+b=6,ab=1, a²+b²=36-2=34
+      {p:2,q:1,n:3,ans:198},  // a³+b³=216-18=198
+      {p:5,q:4,n:2,ans:322},  // a+b=18,ab=1, a²+b²=324-2=322
+    ];
+    const {p,q,n,ans}=srQPick(POOL,_b1DblM3Q);
+    const sqP=Math.sqrt(p),sqQ=Math.sqrt(q);
+    const pStr=Number.isInteger(sqP)?`${sqP}`:`\\sqrt{${p}}`;
+    const qStr=Number.isInteger(sqQ)?`${sqQ}`:`\\sqrt{${q}}`;
+    return {
+      question:`設 \\(a=\\dfrac{${pStr}+${qStr}}{${pStr}-${qStr}}\\)，\\(b=\\dfrac{${pStr}-${qStr}}{${pStr}+${qStr}}\\)，試求 \\(a^${n}+b^${n}\\) 的值`,
+      answer:ans,type:'number'
+    };
+  }
+
+  // hard
+  const t=srRandInt(0,1);
+
+  if (t===0) {
+    const POOL=[
+      {q:'設 \\(2+\\sqrt{5}\\) 的整數部分為 \\(a\\)，純小數部分為 \\(b\\)，求 \\(a+\\dfrac{b}{1-b}\\)',
+       ans:'\\dfrac{15+\\sqrt{5}}{4}'},
+      // a=4,b=√5-2: b/(1-b)=(√5-2)/(3-√5)=(√5-1)/4, a+...=(15+√5)/4
+      {q:'設 \\(\\sqrt{5}+2\\) 的整數部分為 \\(a\\)，純小數部分為 \\(b\\)，求 \\(\\dfrac{1}{b}\\)',
+       ans:'\\sqrt{5}+2'},
+      // a=4,b=√5-2, 1/b=(√5+2)
+      {q:'設正實數 \\(x\\) 的小數部分為 \\(b\\)，若 \\(x^2=9-4\\sqrt{2}\\)，則 \\(\\dfrac{1}{b}\\)',
+       ans:'\\dfrac{\\sqrt{2}+1}{2}'},
+      // x=2√2-1≈1.828, b=2√2-2, 1/b=(√2+1)/2
+      {q:'已知 \\(\\sqrt{16+\\sqrt{252}}\\) 的整數部分為 \\(a\\)，小數部分為 \\(b\\)，試求 \\(2a+b-\\dfrac{3}{b}\\)',
+       ans:'6'},
+      // =3+√7≈5.646, a=5,b=√7-2, 2·5+(√7-2)-3/(√7-2)=6
+      {q:'若 \\(\\sqrt{11-6\\sqrt{2}}\\) 的整數部分為 \\(a\\)，小數部分為 \\(b\\)，則 \\(\\dfrac{1}{b-1}+\\dfrac{1}{3-b}\\)',
+       ans:'-2'},
+      // =3-√2≈1.586, a=1,b=2-√2, ans=-2
+    ];
+    const item=srQPick(POOL,_b1DblH0Q);
+    return {question:`${item.q} \\(=\\)`,answer:item.ans,type:'text'};
+  }
+
+  // t=1
+  const POOL=[
+    {q:'小於 \\(\\sqrt{8+\\sqrt{55}}-\\sqrt{8-\\sqrt{55}}\\) 的正整數共有',
+     ans:3,suffix:'個'},
+    // (A-B)²=16-2√9=10, A-B=√10≈3.162 → 3個
+    {q:'已知有理數 \\(x,y\\) 滿足 \\(x+\\sqrt{16-8\\sqrt{3}}=3+y\\sqrt{4+\\sqrt{12}}\\)，則 \\(x^2+y^2\\)',
+     ans:53,suffix:''},
+    // 2√3-2+x=3+y(√3+1): x-y=5,y=2,x=7, x²+y²=53
+    {q:'設 \\(a=\\dfrac{\\sqrt{3}+1}{\\sqrt{3}-1}\\)，\\(b=\\dfrac{\\sqrt{3}-1}{\\sqrt{3}+1}\\)，試求 \\(a^3+b^3\\)',
+     ans:52,suffix:''},
+    {q:'設 \\(a=\\dfrac{\\sqrt{2}+1}{\\sqrt{2}-1}\\)，\\(b=\\dfrac{\\sqrt{2}-1}{\\sqrt{2}+1}\\)，試求 \\(a^3+b^3\\)',
+     ans:198,suffix:''},
+    {q:'實數數線上 \\(A(\\sqrt{46-6\\sqrt{5}})\\)、\\(B(\\sqrt{14-6\\sqrt{5}})\\)，\\(P\\) 在數線上且 \\(\\overline{AP}:\\overline{BP}=3:1\\)，求 \\(P\\) 點座標',
+     ans:'2 或 5-3\\sqrt{5}',suffix:''},
+    // √(46-6√5)=√(45-6√5+1)=(3√5-1), √(14-6√5)=√(9-6√5+5)=(3-√5)
+    // A=3√5-1≈5.71, B=3-√5≈0.76
+    // 內分: P=(1·A+3·B)/4=(3√5-1+9-3√5)/4=8/4=2 ✓
+    // 外分3:1: P=(3·B-1·A)/2... wait AP:BP=3:1 external: P=(3B-A)/(3-1)...
+    // Actually: 外分 P=(m·B-n·A)/(m-n)... standard is AP:BP=m:n external: P=(m·x_B-n·x_A)/(m-n)
+    // =(3(3-√5)-1(3√5-1))/(3-1)=(9-3√5-3√5+1)/2=(10-6√5)/2=5-3√5 ✓
+  ];
+  const item=srQPick(POOL,_b1DblH1Q);
+  const sfx=item.suffix?`（${item.suffix}）`:'';
+  return {question:`${item.q}${sfx} \\(=\\)`,answer:item.ans,type:'text'};
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  第二冊 ▸ 第三章　三角比
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -3601,6 +3833,7 @@ const SR_GENERATORS = {
   'b1-line-ineq':    genB1LineIneq,
   'b1-line-app':     genB1LineApp,
   'b1-div-pt':       genB1DivPt,
+  'b1-dbl-rad':      genB1DblRad,
   'b2-trig':         genB2Trig,
   'b3a-arc':         genB3aArc,
   'b3a-trig-add':    genB3aTrigAdd,
