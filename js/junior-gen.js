@@ -8190,73 +8190,68 @@ function _9aRatioChain(level){
 // ═══════════════════════════════════════════════════════════════════
 //  九上 ▸ 比例線段
 // ═══════════════════════════════════════════════════════════════════
+let _psBQ=[],_psMQ=[],_psHQ=[];
 function gen9aPropSeg(level){
-  for(let i=0;i<30;i++){const q=_9aPropSeg(level);if(q)return q;}
-  return _9aPropSeg('basic');
+  return _9aPropSeg(level);
 }
 function _9aPropSeg(level){
   if(level==='basic'){
-    const t=randInt(0,2);
-    if(t===0){
-      // AD/DB = AE/EC，給三求一
-      const AD=randInt(2,10),DB=randInt(2,8),AE=randInt(2,10);
-      const EC=DB*AE/AD;
-      if(!Number.isInteger(EC)||EC<1)return null;
-      return {question:`\\(\\triangle ABC\\) 中，\\(DE//BC\\)，\\(AD=${AD}\\)，\\(DB=${DB}\\)，\\(AE=${AE}\\)，求 \\(EC\\)`,answer:EC,type:'number',answerPrefix:'\\(EC\\)'};
-    }
-    if(t===1){
-      // AD/AB = DE/BC，給三求一
-      const AD=randInt(2,8),AB=randInt(AD+2,AD+8),DE=randInt(2,8);
-      const BC=DE*AB/AD;
-      if(!Number.isInteger(BC))return null;
-      return {question:`\\(\\triangle ABC\\) 中，\\(DE//BC\\)，\\(AD=${AD}\\)，\\(AB=${AB}\\)，\\(DE=${DE}\\)，求 \\(BC\\)`,answer:BC,type:'number',answerPrefix:'\\(BC\\)'};
-    }
-    // t===2: 中點連線（DE=BC/2）
-    const BC=randInt(4,20)*2;
-    return {question:`\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 \\(AB\\)、\\(AC\\) 的中點，\\(BC=${BC}\\)，求 \\(DE\\)`,answer:BC/2,type:'number',answerPrefix:'\\(DE\\)'};
+    const pool=[
+      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{BD}=2\\overline{CD}\\)，若 \\(\\triangle ABC\\) 的面積為 \\(36\\)，則 \\(\\triangle ABD\\) 的面積為',ans:24,type:'number',pfx:'\\(\\triangle ABD\\) 面積'},
+      {q:'如圖，\\(L//M\\)，\\(\\overline{DE}=5\\)，\\(\\overline{AB}=6\\)，\\(\\overline{BC}=4\\)，則 \\(\\triangle ABE\\) 面積：\\(\\triangle BCD\\) 面積 \\(=\\)',ans:'3:2',type:'text',pfx:'面積比'},
+      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(D\\) 為 \\(\\overline{AC}\\) 中點，\\(\\overline{DG}//\\overline{AE}\\)，若 \\(\\overline{BF}:\\overline{FD}=3:4\\)，\\(\\overline{BC}=22\\)，則 \\(\\overline{CG}=\\)',ans:8,type:'number',pfx:'\\(\\overline{CG}\\)'},
+      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{AD}:\\overline{BD}=1:2\\)，\\(\\overline{AE}:\\overline{CE}=3:2\\)，若 \\(\\triangle DBE\\) 的面積為 \\(12\\)，則 \\(\\triangle ABC\\) 的面積為',ans:30,type:'number',pfx:'\\(\\triangle ABC\\) 面積'},
+      {q:'如圖，在四邊形 \\(ABCD\\) 中，\\(E\\)、\\(F\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{AD}\\) 的中點，\\(G\\)、\\(H\\) 分別為 \\(\\overline{BC}\\)、\\(\\overline{CD}\\) 的中點，若 \\(\\overline{GH}=12\\)，則 \\(\\overline{EF}+\\overline{BD}=\\)',ans:36,type:'number',pfx:'\\(\\overline{EF}+\\overline{BD}\\)'},
+      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 的中點，若 \\(\\overline{BC}=22\\)，則 \\(\\overline{DE}=\\)',ans:11,type:'number',pfx:'\\(\\overline{DE}\\)'},
+      {q:'在 \\(\\triangle ABC\\) 中，直線 \\(L\\) 分別交 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 於 \\(E\\)、\\(F\\) 兩點，若 \\(\\overline{AE}=12\\)，\\(\\overline{EB}=8\\)，\\(\\overline{AC}=30\\)，則 \\(\\overline{AF}=\\)【】，可使直線 \\(L\\) 平行 \\(\\overline{BC}\\)',ans:18,type:'number',pfx:'\\(\\overline{AF}\\)'},
+      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 的中點，\\(F\\)、\\(G\\) 分別為 \\(\\overline{AD}\\)、\\(\\overline{AE}\\) 的中點，若 \\(\\overline{BC}=36\\)，則 \\(\\overline{DE}+\\overline{FG}=\\)',ans:27,type:'number',pfx:'\\(\\overline{DE}+\\overline{FG}\\)'},
+      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，若 \\(\\overline{AD}=x-1\\)，\\(\\overline{BD}=x+1\\)，\\(\\overline{CE}=x-3\\)，\\(\\overline{AE}=3\\)，則 \\(x=\\)',ans:7,type:'number',pfx:'\\(x\\)'},
+      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 兩點在 \\(\\overline{BC}\\) 上，\\(\\triangle ABD\\) 的面積為 \\(12\\)，\\(\\overline{BD}:\\overline{DE}=\\overline{DE}:\\overline{EC}=1:2\\)，則 \\(\\triangle ACE\\) 的面積為',ans:48,type:'number',pfx:'\\(\\triangle ACE\\) 面積'},
+      {q:'如圖，\\(L_1//L_2//L_3\\)，\\(M_1\\)、\\(M_2\\) 為截線，若 \\(\\overline{AB}:\\overline{AC}=1:3\\)，\\(\\overline{DF}=24\\)，則 \\(\\overline{EF}=\\)',ans:16,type:'number',pfx:'\\(\\overline{EF}\\)'},
+      {q:'如圖，若 \\(\\triangle ABC\\) 的面積：\\(\\triangle ABD\\) 的面積 \\(=2:3\\)，已知 \\(\\overline{AC}=14\\)，則 \\(\\overline{BD}=\\)',ans:21,type:'number',pfx:'\\(\\overline{BD}\\)'},
+      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 的中點，\\(F\\) 點為 \\(\\overline{AE}\\) 的中點，若 \\(\\overline{AB}+\\overline{BE}=54\\)，\\(\\overline{AC}=24\\)，則 \\(\\triangle ADF\\) 的周長為',ans:33,type:'number',pfx:'周長'},
+      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，若 \\(\\overline{AD}=2x-1\\)，\\(\\overline{AE}=3x-9\\)，\\(\\overline{BD}=3\\)，\\(\\overline{AC}=8\\)，則 \\(\\overline{CE}=\\)',ans:2,type:'number',pfx:'\\(\\overline{CE}\\)'},
+    ];
+    const item=jrQPick(pool,_psBQ);
+    return {question:item.q,answer:item.ans,type:item.type,answerPrefix:item.pfx};
   }
   if(level==='medium'){
-    const t=randInt(0,2);
-    if(t===0){
-      // AD/DB = AE/EC 含代數，求x
-      const x=randInt(2,8),a=randInt(1,4),b=randInt(1,6),c=randInt(2,8);
-      const AD=a*x+b, DB=c;
-      const AE=randInt(2,8);
-      const EC=DB*AE/AD;
-      if(!Number.isInteger(EC))return null;
-      return {question:`\\(\\triangle ABC\\) 中，\\(DE//BC\\)，\\(AD=${a}x+${b}\\)，\\(DB=${c}\\)，\\(AE=${AE}\\)，\\(EC=${EC}\\)，求 \\(x\\)`,answer:x,type:'number',answerPrefix:'\\(x\\)'};
-    }
-    if(t===1){
-      // AD/AB = DE/BC，代數求DE或BC
-      const k=randInt(2,5),total=randInt(k+2,k*3);
-      const AD=k, AB=total;
-      const BC=randInt(4,15);
-      const DE=k*BC/total;
-      if(!Number.isInteger(DE))return null;
-      return {question:`\\(\\triangle ABC\\) 中，\\(DE//BC\\)，\\(AD=${AD}\\)，\\(AB=${AB}\\)，\\(BC=${BC}\\)，求 \\(DE\\)`,answer:DE,type:'number',answerPrefix:'\\(DE\\)'};
-    }
-    // t===2: 中點連線含代數
-    const x=randInt(2,8),a=randInt(1,3),b=randInt(1,5);
-    const DE=a*x+b;
-    return {question:`\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 \\(AB\\)、\\(AC\\) 的中點，\\(DE=${a}x+${b}\\)，若 \\(BC=${2*DE}\\)，求 \\(x\\)`,answer:x,type:'number',answerPrefix:'\\(x\\)'};
+    const pool=[
+      {q:'如圖，\\(\\overline{AD}//\\overline{EG}//\\overline{FH}//\\overline{BC}\\)，左側截線上 \\(\\overline{AE}=50\\)、\\(\\overline{EF}=100\\)、\\(\\overline{FB}=75\\)，且 \\(\\overline{DC}=180\\)，則 \\(\\overline{DG}=\\)',ans:40,type:'number',pfx:'\\(\\overline{DG}\\)'},
+      {q:'如圖，\\(\\overline{AD}//\\overline{EG}//\\overline{FH}//\\overline{BC}\\)，左側截線上 \\(\\overline{AE}=50\\)、\\(\\overline{EF}=100\\)、\\(\\overline{FB}=75\\)，且 \\(\\overline{DC}=180\\)，則 \\(\\overline{GH}=\\)',ans:80,type:'number',pfx:'\\(\\overline{GH}\\)'},
+      {q:'如圖，\\(L_1//L_2//L_3//L_4\\)，若 \\(\\overline{AB}:\\overline{BC}:\\overline{CD}=2:3:5\\)，且 \\(\\overline{EF}+\\overline{FG}+\\overline{GH}=60\\)，則 \\(\\overline{FG}=\\)',ans:18,type:'number',pfx:'\\(\\overline{FG}\\)'},
+      {q:'如圖，\\(\\overline{AD}:\\overline{CD}=2:3\\)，\\(\\overline{BP}:\\overline{PD}=1:1\\)，若 \\(\\triangle ABC\\) 面積為 \\(20\\) 平方單位，則 \\(\\triangle BPC\\) 面積為',ans:6,type:'number',pfx:'面積'},
+      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{AB}\\)，\\(\\overline{EF}//\\overline{AC}\\)，已知 \\(\\overline{AF}=3\\)，\\(\\overline{FB}=2\\)，\\(\\overline{CD}=2x+5\\)，\\(\\overline{DA}=4x-2\\)，則 \\(x=\\)',ans:2,type:'number',pfx:'\\(x\\)'},
+      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{AB}\\)，\\(\\overline{EF}//\\overline{AC}\\)，已知 \\(\\overline{AF}=3\\)，\\(\\overline{FB}=2\\)，\\(\\overline{AC}=15\\)，則 \\(\\overline{EF}=\\)',ans:6,type:'number',pfx:'\\(\\overline{EF}\\)'},
+      {q:'如圖，\\(\\overline{AD}=\\overline{EH}=6\\) cm，\\(\\triangle ABC\\) 面積 \\(=18\\) cm²，\\(\\triangle EFG\\) 面積 \\(=12\\) cm²，則 \\(\\overline{BC}:\\overline{FG}=\\)',ans:'3:2',type:'text',pfx:'比值'},
+      {q:'如圖，\\(ABCD\\) 為梯形，\\(\\overline{AD}//\\overline{BC}\\)，若 \\(\\overline{AD}=2\\) 公分，\\(\\overline{BC}=4\\) 公分，\\(\\triangle ABC\\) 面積為 \\(36\\) 平方公分，則 \\(\\triangle ACD\\) 面積為',ans:18,type:'number',pfx:'面積（平方公分）'},
+      {q:'如圖，\\(\\overline{AA\'}=3\\)，\\(\\overline{BB\'}=4\\)，\\(\\overline{AB}=2\\)，\\(\\overline{AC}=8\\)，則 \\(\\overline{CC\'}=\\)',ans:7,type:'number',pfx:'\\(\\overline{CC\'}\\)'},
+      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，圖中 \\(x-y-z=\\)',ans:frac(-14,5),type:'fraction',pfx:'\\(x-y-z\\)'},
+      {q:'如圖，\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 兩點分別在 \\(\\overline{AC}\\)、\\(\\overline{BC}\\) 上，\\(F\\)、\\(G\\) 兩點在 \\(\\overline{AB}\\) 上，\\(\\overline{DF}//\\overline{CG}\\)，\\(\\overline{CF}//\\overline{EG}\\)，若 \\(\\triangle ADF=16\\)、\\(\\triangle CDF=24\\)、\\(\\triangle BCG=65\\)，則 \\(\\overline{BE}:\\overline{EC}=\\)',ans:'13:12',type:'text',pfx:'比值'},
+      {q:'如圖，\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\)、\\(F\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{BC}\\)、\\(\\overline{AC}\\) 的中點，已知 \\(\\triangle DEF\\) 的面積為 \\(5\\)，則四邊形 \\(DBCF\\) 的面積為',ans:15,type:'number',pfx:'面積'},
+      {q:'\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 兩點分別在 \\(\\overline{AC}\\)、\\(\\overline{BD}\\) 上，\\(\\overline{AD}:\\overline{DC}=\\overline{BE}:\\overline{DE}=3:2\\)，則 \\(\\triangle BCE\\) 面積：\\(\\triangle ABC\\) 面積的比值為',ans:frac(6,25),type:'fraction',pfx:'比值'},
+      {q:'如圖，\\(\\overline{AD}//\\overline{BE}//\\overline{CF}\\)，若 \\(\\overline{AB}=4\\)，\\(\\overline{BC}=5\\)，\\(\\overline{DE}=4x-1\\)，\\(\\overline{EF}=3x+2\\)，則 \\(x=\\)',ans:frac(13,8),type:'fraction',pfx:'\\(x\\)'},
+      {q:'如圖，四邊形 \\(ABCD\\) 為矩形，\\(\\overline{AD}=3\\)，\\(\\overline{AB}=2\\)，\\(2\\overline{BE}=\\overline{EF}=\\overline{FD}\\)，則 \\(\\triangle CEF\\) 面積為',ans:frac(6,5),type:'fraction',pfx:'面積（平方單位）'},
+    ];
+    const item=jrQPick(pool,_psMQ);
+    return {question:item.q,answer:item.ans,type:item.type,answerPrefix:item.pfx};
   }
   // hard
-  const t=randInt(0,1);
-  if(t===0){
-    // 兩組比例：AD/DB=AE/EC且各含代數
-    const x=randInt(2,8),a=randInt(1,3),b=randInt(1,6),c=randInt(1,3),d=randInt(1,6);
-    const AD=a*x+b, DB=c*x+d;
-    const AE=randInt(3,12);
-    const EC=DB*AE/AD;
-    if(!Number.isInteger(EC)||EC<1)return null;
-    return {question:`\\(\\triangle ABC\\) 中，\\(DE//BC\\)，\\(AD=${a}x+${b}\\)，\\(DB=${c}x+${d}\\)，\\(\\frac{AE}{EC}=\\frac{AD}{DB}\\)，若 \\(AE=${AE}\\)，\\(EC=${EC}\\)，求 \\(x\\)`,answer:x,type:'number',answerPrefix:'\\(x\\)'};
-  }
-  const AD=randInt(2,6),total=randInt(AD+2,AD+8);
-  const DB=total-AD, DE=randInt(2,8);
-  const BC=DE*total/AD;
-  if(!Number.isInteger(BC))return null;
-  const perABC=pick([2,3,4,5])*BC;
-  return {question:`\\(\\triangle ABC\\) 中，\\(DE//BC\\)，\\(AD=${AD}\\)，\\(DB=${DB}\\)，\\(BC=${BC}\\)，若 \\(\\triangle ABC\\) 的周長為 \\(${perABC}\\)，求 \\(\\triangle ADE\\) 的周長`,answer:perABC*AD/total,type:'number',answerPrefix:'周長'};
+  const pool=[
+    {q:'如圖，\\(\\overline{FG}//\\overline{DE}//\\overline{BC}\\)，\\(\\overline{AB}=8\\)，\\(\\overline{AF}:\\overline{FD}:\\overline{DC}=1:2:3\\)，則 \\(\\overline{AG}=\\)',ans:frac(4,3),type:'fraction',pfx:'\\(\\overline{AG}\\)'},
+    {q:'如圖，\\(\\overline{FG}//\\overline{DE}//\\overline{BC}\\)，\\(\\overline{AB}=8\\)，\\(\\overline{AF}:\\overline{FD}:\\overline{DC}=1:2:3\\)，則 \\(\\overline{GE}=\\)',ans:frac(8,3),type:'fraction',pfx:'\\(\\overline{GE}\\)'},
+    {q:'如圖，\\(\\overline{QT}//\\overline{RS}\\)，\\(\\overline{PW}//\\overline{MN}\\)，\\(\\overline{SR}=3x-19\\)，\\(\\overline{TQ}=15-x\\)，\\(\\overline{TS}=1\\)，\\(\\overline{PS}=4\\)，\\(2\\overline{WN}=3\\overline{NT}\\)，\\(\\overline{MT}=y\\)，則 \\(x=\\)',ans:9,type:'number',pfx:'\\(x\\)'},
+    {q:'如圖，在 \\(\\triangle ABC\\) 中，若 \\(\\triangle ABC\\) 的面積為 \\(60\\)，\\(\\triangle ADC\\) 的面積為 \\(24\\)，則 \\(\\overline{BD}:\\overline{DC}=\\)',ans:'3:2',type:'text',pfx:'比值'},
+    {q:'如圖，已知 \\(\\overline{AD}:\\overline{DC}=4:3\\)，則 \\(\\triangle ABD\\) 面積與 \\(\\triangle ABC\\) 面積的比值為',ans:frac(4,7),type:'fraction',pfx:'比值'},
+    {q:'如圖，\\(\\triangle ABC\\) 中，\\(M\\) 是 \\(\\overline{AB}\\) 中點，在 \\(\\overline{CM}\\) 上取一點 \\(N\\) 使 \\(\\overline{CN}:\\overline{NM}=5:3\\)，且 \\(\\overline{MP}//\\overline{AN}\\)，交 \\(\\overline{BC}\\) 於 \\(P\\)，則 \\(\\overline{BP}:\\overline{BC}=\\)',ans:'3:11',type:'text',pfx:'比值'},
+    {q:'如圖，直線 \\(L\\) 為一次函數 \\(y=-\\dfrac{1}{2}x+3\\) 之圖形，\\(A(-12,\\,0)\\)，\\(\\overline{AB}\\perp x\\) 軸，且 \\(\\overline{BD}:\\overline{CD}=2:1\\)，則 \\(D\\) 點坐標為',ans:'(-4,5)',type:'text',pfx:'\\(D\\) 坐標'},
+    {q:'如圖，平行四邊形 \\(ABCD\\)，\\(E\\) 為 \\(\\overline{BD}\\) 中點，在 \\(\\overline{AD}\\) 上取一點 \\(F\\) 使 \\(\\overline{DF}=\\dfrac{1}{3}\\overline{AF}\\)，則 \\(\\triangle DEF\\) 面積：四邊形 \\(ABEF\\) 面積 \\(=\\)',ans:'1:7',type:'text',pfx:'面積比'},
+    {q:'在坐標平面上，直線 \\(L\\) 的方程式為 \\(3x-8y+24=0\\)，分別交 \\(x\\) 軸、\\(y\\) 軸於 \\(A\\)、\\(B\\)，原點 \\(O\\) 與 \\(A\\)、\\(B\\) 形成 \\(\\triangle OAB\\)，\\(C\\) 為 \\(\\overline{OA}\\) 上一點，若 \\(\\triangle ABC\\) 面積：\\(\\triangle OAB\\) 面積 \\(=1:4\\)，則直線 \\(BC\\) 的方程式為',ans:'y=\\dfrac{1}{2}x+3',type:'text',pfx:'方程式'},
+    {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，\\(\\overline{FE}//\\overline{DC}\\)，若 \\(\\overline{AF}=9\\)，\\(\\overline{FD}=15\\)，則 \\(\\overline{BD}=\\)',ans:40,type:'number',pfx:'\\(\\overline{BD}\\)'},
+    {q:'如圖，\\(\\overline{AB}//\\overline{CD}//\\overline{EF}\\)，若 \\(\\overline{AG}:\\overline{AF}=2:7\\)，\\(\\overline{AC}=6\\)，\\(\\overline{GD}=10\\)，則 \\(\\overline{AB}+\\overline{CE}=\\)',ans:29,type:'number',pfx:'\\(\\overline{AB}+\\overline{CE}\\)'},
+  ];
+  const item=jrQPick(pool,_psHQ);
+  return {question:item.q,answer:item.ans,type:item.type,answerPrefix:item.pfx};
 }
 
 // ═══════════════════════════════════════════════════════════════════
