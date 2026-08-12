@@ -402,6 +402,7 @@ function _7aIntMix(level) {
   }
 }
 
+let _fsBQ=[],_fsMQ=[],_fsHQ=[];
 // ═══════════════════════════════════════════════════════════════════
 //  七上 ▸ 有理數（含負分數）▸ 正負號概念
 // ═══════════════════════════════════════════════════════════════════
@@ -412,59 +413,57 @@ function gen7aFracSign(level) {
 }
 
 function _7aFracSign(level) {
-  const d = pick([2,3,4,5,6,8]);
-  const n = rp(1, d-1);
-  const f = frac(-n, d);  // negative proper fraction
+  const ret = it => ({question:it.q, type:it.type, answer:it.ans, answerPrefix:it.pfx});
 
-  if (level === 'basic') {
-    const t = randInt(0, 2);
-    if (t === 0) {
-      // |−a/b| = a/b
-      const ans = frac(n, d);
-      return { question:`\\(|${nfFirst(f)}|\\) ＝ ？`, answer: ans, type:'fraction' };
-    } else if (t === 1) {
-      // 相反數
-      return { question:`\\(${nfFirst(f)}\\) 的相反數是多少？`, answer: frac(n,d), type:'fraction' };
-    } else {
-      // −(−a/b) = a/b
-      return { question:`\\(-${nfFirst(f)}\\) ＝ ？`, answer: frac(n,d), type:'fraction' };
-    }
-  } else if (level === 'hard') {
-    const t = randInt(0, 1);
-    if (t === 0) {
-      // |a/b + c/d|（先加再取絕對值）
-      const d2 = pick([2,3,4,5,6]);
-      const n2 = rp(1, d2-1);
-      const sg = randInt(0,1)===0 ? 1 : -1;
-      const f2 = frac(sg * n2, d2);
-      const inner = fadd(f, f2);
-      return { question:`\\(\\left|${nfFirst(f)} + ${nfTerm(f2)}\\right|\\) ＝ ？`,
-               answer: frac(Math.abs(inner.num), inner.den), type:'fraction' };
-    } else {
-      // -(|a/b| - |c/d|)
-      const d2 = pick([2,3,4,5,6]);
-      const n2 = rp(1, d2-1);
-      const f2 = frac(-n2, d2);
-      const bigger = frac(Math.abs(f.num), f.den);
-      const smaller = frac(Math.abs(f2.num), f2.den);
-      const inner = fsub(bigger, smaller);
-      return { question:`\\(-\\left(\\left|${nfFirst(f)}\\right| - \\left|${nfFirst(f2)}\\right|\\right)\\) ＝ ？`,
-               answer: frac(-inner.num, inner.den), type:'fraction' };
-    }
-  } else {
-    const t = randInt(0, 1);
-    if (t === 0) {
-      // +(−a/b) = −a/b
-      return { question:`\\(+(${nfFirst(f)})\\) ＝ ？`, answer: f, type:'fraction' };
-    } else {
-      // |a/b| + |−a/b|
-      const d2 = pick([2,3,4,5,6]);
-      const n2 = rp(1, d2-1);
-      const f2 = frac(-n2, d2);
-      const ans = fadd(frac(n,d), frac(n2,d2));
-      return { question:`\\(|${nfFirst(f)}| + |${nfFirst(f2)}|\\) ＝ ？`, answer: ans, type:'fraction' };
-    }
+  if(level==='basic'){
+    const pool=[
+      {q:'已知 \\(a=-2\\)，\\(b=-1\\dfrac{4}{9}\\)，\\(c=-1\\dfrac{2}{3}\\)，則 \\(a\\)、\\(b\\)、\\(c\\) 的大小關係為', type:'text', ans:'b>c>a', pfx:''},
+      {q:'在括號內填入適當的數：\\(-\\dfrac{2}{18}=\\dfrac{\\square}{9}\\)，\\(\\square\\) 為', type:'number', ans:-1, pfx:'□'},
+      {q:'在括號內填入適當的數：\\(-\\dfrac{2}{18}=\\dfrac{\\square}{-27}\\)，\\(\\square\\) 為', type:'number', ans:3, pfx:'□'},
+      {q:'在括號內填入適當的數：\\(-\\dfrac{10}{25}=\\dfrac{2}{\\square}\\)，\\(\\square\\) 為', type:'number', ans:-5, pfx:'□'},
+      {q:'在括號內填入適當的數：\\(-\\dfrac{10}{25}=\\dfrac{\\square}{10}\\)，\\(\\square\\) 為', type:'number', ans:-4, pfx:'□'},
+      {q:'在括號內填入適當的數：\\(-\\dfrac{4}{9}=\\dfrac{8}{\\square}\\)，\\(\\square\\) 為', type:'number', ans:-18, pfx:'□'},
+      {q:'在括號內填入適當的數：\\(-\\dfrac{4}{9}=\\dfrac{\\square}{27}\\)，\\(\\square\\) 為', type:'number', ans:-12, pfx:'□'},
+      {q:'在括號內填入適當的數：\\(-\\dfrac{2}{5}=\\dfrac{-10}{\\square}\\)，\\(\\square\\) 為', type:'number', ans:25, pfx:'□'},
+      {q:'在括號內填入適當的數：\\(-\\dfrac{2}{5}=\\dfrac{\\square}{15}\\)，\\(\\square\\) 為', type:'number', ans:-6, pfx:'□'},
+      {q:'在括號內填入適當的數：\\(-\\dfrac{8}{32}=\\dfrac{\\square}{16}\\)，\\(\\square\\) 為', type:'number', ans:-4, pfx:'□'},
+      {q:'在括號內填入適當的數：\\(-\\dfrac{8}{32}=-\\dfrac{\\square}{4}\\)，括號內填入', type:'number', ans:1, pfx:'□'},
+      {q:'將 \\(\\dfrac{16}{12}\\) 化為最簡分數', type:'fraction', ans:frac(4,3), pfx:''},
+      {q:'將 \\(-\\dfrac{3}{15}\\) 化為最簡分數', type:'fraction', ans:frac(-1,5), pfx:''},
+      {q:'將 \\(-\\dfrac{56}{16}\\) 化為最簡分數', type:'fraction', ans:frac(-7,2), pfx:''},
+      {q:'將 \\(-\\dfrac{15}{35}\\) 化為最簡分數', type:'fraction', ans:frac(-3,7), pfx:''},
+    ];
+    return ret(jrQPick(pool,_fsBQ));
   }
+  if(level==='medium'){
+    const pool=[
+      {q:'將 \\(\\dfrac{3}{4}\\) 的分子加 \\(9\\) 後，分母應加多少才能使分數值不變？', type:'number', ans:12, pfx:'分母應加'},
+      {q:'將 \\(\\dfrac{45}{60}\\) 的分子減 \\(6\\)，則分母應減多少其值不變？', type:'number', ans:8, pfx:'分母應減'},
+      {q:'數線上有 \\(A\\)、\\(B\\)、\\(C\\)、\\(D\\) 四點，分別表示 \\(\\dfrac{2}{3}\\)、\\(\\dfrac{3}{4}\\)、\\(\\dfrac{4}{5}\\)、\\(\\dfrac{5}{6}\\)，則哪個點最靠近原點？', type:'text', ans:'A', pfx:''},
+      {q:'將 \\(1\\dfrac{4}{28}\\) 化為最簡分數（寫成假分數）', type:'fraction', ans:frac(8,7), pfx:''},
+      {q:'將 \\(-2\\dfrac{24}{32}\\) 化為最簡分數（寫成假分數）', type:'fraction', ans:frac(-11,4), pfx:''},
+      {q:'比較 \\(-\\dfrac{2}{3}\\)、\\(-\\dfrac{5}{6}\\)、\\(-\\dfrac{7}{12}\\) 的大小，最小的是', type:'text', ans:'-5/6', pfx:'最小值'},
+      {q:'比較 \\(-\\dfrac{2}{3}\\)、\\(-\\dfrac{5}{6}\\)、\\(-\\dfrac{7}{12}\\) 的大小，最大的是', type:'text', ans:'-7/12', pfx:'最大值'},
+      {q:'比較 \\(-\\dfrac{3}{2}\\)、\\(-\\dfrac{6}{5}\\)、\\(-\\dfrac{11}{10}\\) 的大小，最小的是', type:'text', ans:'-3/2', pfx:'最小值'},
+      {q:'比較 \\(-\\dfrac{3}{2}\\)、\\(-\\dfrac{6}{5}\\)、\\(-\\dfrac{11}{10}\\) 的大小，最大的是', type:'text', ans:'-11/10', pfx:'最大值'},
+      {q:'比較 \\(-\\dfrac{1}{3}\\)、\\(-\\dfrac{3}{5}\\)、\\(-\\dfrac{5}{7}\\) 的大小，最大的是', type:'text', ans:'-1/3', pfx:'最大值'},
+      {q:'比較 \\(-\\dfrac{1}{3}\\)、\\(-\\dfrac{3}{5}\\)、\\(-\\dfrac{5}{7}\\) 的大小，最小的是', type:'text', ans:'-5/7', pfx:'最小值'},
+      {q:'比較 \\(-1\\dfrac{7}{10}\\)、\\(-1\\dfrac{3}{5}\\)、\\(-1\\) 的大小，最大的是', type:'text', ans:'-1', pfx:'最大值'},
+    ];
+    return ret(jrQPick(pool,_fsMQ));
+  }
+  // hard
+  const pool=[
+    {q:'已知 \\(a=\\dfrac{6}{7}\\)，\\(b=\\dfrac{13}{14}\\)，\\(c=\\dfrac{6+13}{7+14}\\)，比較三數大小關係', type:'text', ans:'b>c>a', pfx:'大小關係'},
+    {q:'若 \\(-\\dfrac{16}{24}=\\dfrac{甲}{15}=-\\dfrac{8}{乙}\\)，則 \\(甲-乙=\\)', type:'number', ans:-22, pfx:'甲-乙'},
+    {q:'若 \\(-\\dfrac{11}{20}\\)、\\(\\dfrac{a}{60}\\)、\\(-\\dfrac{1}{2}\\) 是由小到大排列的三個數，且 \\(\\dfrac{a}{60}\\) 是最簡分數，則 \\(a=\\)', type:'number', ans:-31, pfx:'a'},
+    {q:'如果一個分數的分子為 \\(15\\)，分母加上 \\(-2\\)，則可約成 \\(\\dfrac{1}{2}\\)，那麼原分數為', type:'fraction', ans:frac(15,32), pfx:'原分數'},
+    {q:'數線上有 \\(A\\)、\\(B\\)、\\(C\\)、\\(D\\) 四點，分別表示 \\(\\dfrac{2}{3}\\)、\\(\\dfrac{3}{4}\\)、\\(\\dfrac{4}{5}\\)、\\(\\dfrac{5}{6}\\)，由大到小排列各點', type:'text', ans:'D>C>B>A', pfx:'由大到小'},
+    {q:'比較 \\(-1\\dfrac{7}{10}\\)、\\(-1\\dfrac{3}{5}\\)、\\(-1\\) 的大小，最小的是（寫成假分數）', type:'text', ans:'-17/10', pfx:'最小值'},
+    {q:'比較 \\(-1\\dfrac{7}{10}\\)、\\(-1\\dfrac{3}{5}\\)、\\(-1\\) 的大小，由大到小排列各值（寫成假分數，用 \\(>\\) 連接）', type:'text', ans:'-1>-8/5>-17/10', pfx:'由大到小'},
+    {q:'比較 \\(-\\dfrac{2}{3}\\)、\\(-\\dfrac{5}{6}\\)、\\(-\\dfrac{7}{12}\\) 的大小，由小到大排列（用 \\(<\\) 連接）', type:'text', ans:'-5/6<-2/3<-7/12', pfx:'由小到大'},
+  ];
+  return ret(jrQPick(pool,_fsHQ));
 }
 
 // ═══════════════════════════════════════════════════════════════════
