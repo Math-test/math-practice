@@ -8767,7 +8767,6 @@ const JR_GENERATORS = {
   '8a-diff-sq':     gen8aDiffSq,
   '8a-poly-add':    gen8aPolyAdd,
   '8a-poly-mul':    gen8aPolyMul,
-  '8a-poly-mix':    gen8aPolyMix,
   '8a-sqrt-basic':  gen8aSqrtBasic,
   '8a-sqrt-add':    gen8aSqrtAdd,
   '8a-sqrt-mul':    gen8aSqrtMul,
