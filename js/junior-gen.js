@@ -5371,6 +5371,7 @@ function _8aDiffSq(level) {
   }
 }
 
+let _paBQ=[],_paMQ=[],_paHQ=[];
 // ═══════════════════════════════════════════════════════════════════
 //  八上 ▸ 多項式加法與減法
 // ═══════════════════════════════════════════════════════════════════
@@ -5379,60 +5380,66 @@ function gen8aPolyAdd(level) {
   return _8aPolyAdd('basic');
 }
 function _8aPolyAdd(level) {
-  const ps=(a2,a1,a0)=>{
-    const t=[];
-    if(a2!==0){const ab=Math.abs(a2);t.push({s:a2>0?1:-1,v:ab===1?'x^2':`${ab}x^2`});}
-    if(a1!==0){const ab=Math.abs(a1);t.push({s:a1>0?1:-1,v:ab===1?'x':`${ab}x`});}
-    if(a0!==0){t.push({s:a0>0?1:-1,v:`${Math.abs(a0)}`});}
-    if(!t.length) return '0';
-    return t.map((e,i)=>(i===0?(e.s<0?'-':'')+e.v:(e.s<0?'-':'+')+e.v)).join('');
-  };
-  const poly=(q,a2,a1,a0)=>({question:q,type:'poly',polyA2:a2,polyA1:a1,polyA0:a0});
+  const ret = it => it.type==='poly'
+    ? {question:it.q, type:'poly', polyA2:it.a2, polyA1:it.a1, polyA0:it.a0}
+    : {question:it.q, type:it.type, answer:it.ans, answerPrefix:it.pfx};
 
   if(level==='basic'){
-    const a2=rnzInt(-4,4),a1=randInt(-5,5),a0=randInt(-6,6);
-    const b2=rnzInt(-4,4),b1=randInt(-5,5),b0=randInt(-6,6);
-    const add=randInt(0,1)===0, op=add?'+':'-';
-    return poly(`化簡 \\((${ps(a2,a1,a0)})${op}(${ps(b2,b1,b0)})\\)`,
-      add?a2+b2:a2-b2, add?a1+b1:a1-b1, add?a0+b0:a0-b0);
+    const pool=[
+      {q:'將 \\(x^2-[(2x^2-3x+1)-(x^2-4x+5)]-(x^2+3x-3)\\) 整理後，二次項係數為', type:'number', ans:-1, pfx:'二次項係數'},
+      {q:'若 \\(k\\) 為常數，且多項式 \\(3x^2+(k-1)x-(3k+2)\\) 各項係數的和為 \\(16\\)，求 \\(k\\) 的值', type:'number', ans:-8, pfx:'k'},
+      {q:'若 \\((7-5x)-A=-x^2-7x+7\\)，則多項式 \\(A\\) 為', type:'poly', a2:1, a1:2, a0:0},
+      {q:'\\(A\\) 為多項式，且 \\((-4x^2+6x-1)+A=x^2-3x+5\\)，則 \\(A=\\)', type:'poly', a2:5, a1:-9, a0:6},
+      {q:'化簡 \\((3x^2-5+2x)-(4x+5)+(7-2x^2+3x)\\) 並將結果依升冪排列', type:'poly', a2:1, a1:1, a0:-3},
+      {q:'計算 \\((5x^2+3x+6)+(-2x^2+4x+9)\\)', type:'poly', a2:3, a1:7, a0:15},
+      {q:'已知 \\(A=x^2+4x+3\\)，且 \\(A-B=-6x^2-5x+4\\)，則 \\(B=\\)', type:'poly', a2:7, a1:9, a0:-1},
+      {q:'已知多項式 \\(A=6x^2+x-5\\)，\\(B=-2x^2+7x-5\\)，且 \\(A+B=2C\\)，則 \\(C=\\)', type:'poly', a2:2, a1:4, a0:-5},
+      {q:'已知 \\(A\\) 為一個多項式，且 \\((3x^2-9x+13)-A=(x-2)(3x+6)+14\\)，求多項式 \\(A\\)', type:'poly', a2:0, a1:-9, a0:11},
+      {q:'若 \\((-x^2+2x-3)-A=2x^2+2x-1\\)，則多項式 \\(A=\\)', type:'poly', a2:-3, a1:0, a0:-2},
+      {q:'若多項式 \\(A\\) 和 \\(4x^2-7x+4\\) 的和為 \\(-x^2+8x-3\\)，則 \\(A=\\)', type:'poly', a2:-5, a1:15, a0:-7},
+      {q:'有兩個多項式 \\(A\\)、\\(B\\)，若 \\(A+B=2x^2+2x-1\\)，\\(A-B=2x^2-2x+1\\)，則 \\(3A-5B=\\)', type:'poly', a2:6, a1:-10, a0:5},
+      {q:'已知有一個多項式 \\(A\\) 減掉 \\(5x^2+2x-1\\) 的差為 \\(7x^2-8x-9\\)，求此多項式', type:'poly', a2:12, a1:-6, a0:-10},
+      {q:'若 \\(A\\)、\\(B\\)、\\(C\\) 皆為 \\(x\\) 的多項式，且 \\(A=x^2-6x+3\\)，\\(B=-3x^2-5\\)，\\(C=2x-1\\)，則 \\(A-(B+C)=\\)', type:'poly', a2:4, a1:-8, a0:9},
+      {q:'計算 \\((x-8)+[-x+4x^2-(3x-2x^2+4)]\\)（答案以降冪排列）', type:'poly', a2:6, a1:-3, a0:-12},
+    ];
+    return ret(jrQPick(pool,_paBQ));
   }
   if(level==='medium'){
-    const t=randInt(0,1);
-    if(t===0){
-      const a2=rnzInt(-5,5),a1=randInt(-6,6),a0=randInt(-8,8);
-      const b2=rnzInt(-5,5),b1=randInt(-6,6),b0=randInt(-8,8);
-      const add=randInt(0,1)===0, op=add?'+':'-';
-      return poly(`化簡 \\((${ps(a2,a1,a0)})${op}(${ps(b2,b1,b0)})\\)`,
-        add?a2+b2:a2-b2, add?a1+b1:a1-b1, add?a0+b0:a0-b0);
-    }
-    const a=rnzInt(-6,6),b=randInt(-8,8),c=rnzInt(-6,6),d=randInt(-8,8),e=rnzInt(-6,6),f=randInt(-8,8);
-    const s1=randInt(0,1)===0?1:-1,s2=randInt(0,1)===0?1:-1;
-    const op1=s1>0?'+':'-',op2=s2>0?'+':'-';
-    return poly(`化簡 \\((${ps(0,a,b)})${op1}(${ps(0,c,d)})${op2}(${ps(0,e,f)})\\)`,
-      0, a+s1*c+s2*e, b+s1*d+s2*f);
+    const pool=[
+      {q:'已知多項式 \\(A=ax^2-5x+6\\)、\\(B=3x^2+(2b-1)x-2\\)，且 \\(a\\)、\\(b\\) 為常數，若 \\(A+B\\) 為零次多項式，則 \\(A-B=\\)', type:'poly', a2:-6, a1:-10, a0:8},
+      {q:'若 \\((7x^2-6x+5)-(5-7x)=ax^2+bx+c\\)，則 \\(cx^2+ax+b+(x^2+2)=\\)', type:'poly', a2:1, a1:7, a0:3},
+      {q:'若多項式 \\(ax^3-bx^2+9\\) 與 \\(2x^3-3\\) 相加後為常數多項式，則 \\(a+b=\\)', type:'number', ans:-2, pfx:'a+b'},
+      {q:'將多項式 \\((5x^3+7x-9)-(-3x^3+2x^2-4)\\) 化簡後可得 \\(ax^3+bx^2+cx+d\\)，其中 \\(a\\)、\\(b\\)、\\(c\\)、\\(d\\) 為各項係數，則 \\(a-b+c-d=\\)', type:'number', ans:22, pfx:'a-b+c-d'},
+      {q:'化簡 \\((x^2+1)+(x^2+2)+\\cdots+(x^2+99)\\) 後，\\(x^2\\) 項的係數為', type:'number', ans:99, pfx:'x²項係數'},
+      {q:'化簡 \\((x^2+1)+(x^2+2)+\\cdots+(x^2+99)\\) 後，常數項為', type:'number', ans:4950, pfx:'常數項'},
+      {q:'兩個多項式進行直式減法：\\(-6x^3+ax^2-bx+19\\) 減去 \\(cx^3+8x^2+3x-d\\) 得 \\(4x^2-11\\)，則 \\(a+b+c+d=\\)', type:'number', ans:-27, pfx:'a+b+c+d'},
+      {q:'計算 \\(3(x^2+3x+5)+2(-2x+4x^2+1)-(2x^2+3x+6)\\)', type:'poly', a2:9, a1:2, a0:11},
+      {q:'計算 \\((-x^2+7x-11)+(x^3-2x-4)\\) 後，一次項係數為', type:'number', ans:5, pfx:'一次項係數'},
+      {q:'化簡 \\((4x^2+6)-(5x^2-3x-2)\\)（依升冪排列）', type:'poly', a2:-1, a1:3, a0:8},
+      {q:'有兩個多項式 \\(A\\)、\\(B\\)，若 \\(A+B=2x^2+2x-1\\)，\\(A-B=2x^2-2x+1\\)，則 \\(B=\\)', type:'poly', a2:0, a1:2, a0:-1},
+      {q:'化簡 \\(-(8x^2-2)-3x+(6x+1)\\)', type:'poly', a2:-8, a1:3, a0:3},
+      {q:'計算 \\((x^3-1)+(-4x^2+10x+4)-(7-4x^3-3x^2)\\) 後，一次項係數為', type:'number', ans:10, pfx:'一次項係數'},
+      {q:'化簡 \\(3x^2-[-3+2x^2+x-(-2x-3x^2-5)]\\)', type:'poly', a2:-2, a1:-3, a0:-2},
+      {q:'計算 \\(6x+(7x-1)-(8x^2+2)\\) 後，\\(x^2\\) 項的係數為', type:'number', ans:-8, pfx:'x²項係數'},
+    ];
+    return ret(jrQPick(pool,_paMQ));
   }
-  const t=randInt(0,2);
-  if(t===0){
-    const a2=rnzInt(-8,8),a1=randInt(-10,10),a0=randInt(-12,12);
-    const b2=rnzInt(-8,8),b1=randInt(-10,10),b0=randInt(-12,12);
-    const add=randInt(0,1)===0, op=add?'+':'-';
-    return poly(`化簡 \\((${ps(a2,a1,a0)})${op}(${ps(b2,b1,b0)})\\)`,
-      add?a2+b2:a2-b2, add?a1+b1:a1-b1, add?a0+b0:a0-b0);
-  }
-  if(t===1){
-    const a=rnzInt(-8,8),b=randInt(-12,12),c=rnzInt(-8,8),d=randInt(-12,12),e=rnzInt(-8,8),f=randInt(-12,12);
-    const s1=randInt(0,1)===0?1:-1,s2=randInt(0,1)===0?1:-1;
-    const op1=s1>0?'+':'-',op2=s2>0?'+':'-';
-    return poly(`化簡 \\((${ps(0,a,b)})${op1}(${ps(0,c,d)})${op2}(${ps(0,e,f)})\\)`,
-      0, a+s1*c+s2*e, b+s1*d+s2*f);
-  }
-  const a2=rnzInt(-6,6),a1=randInt(-8,8),a0=randInt(-10,10);
-  const b2=rnzInt(-6,6),b1=randInt(-8,8),b0=randInt(-10,10);
-  const c2=rnzInt(-6,6),c1=randInt(-8,8),c0=randInt(-10,10);
-  const s1=randInt(0,1)===0?1:-1,s2=randInt(0,1)===0?1:-1;
-  const op1=s1>0?'+':'-',op2=s2>0?'+':'-';
-  return poly(`化簡 \\((${ps(a2,a1,a0)})${op1}(${ps(b2,b1,b0)})${op2}(${ps(c2,c1,c0)})\\)`,
-    a2+s1*b2+s2*c2, a1+s1*b1+s2*c1, a0+s1*b0+s2*c0);
+  // hard
+  const pool=[
+    {q:'如圖，三角形三邊長分別為 \\((12x+3)\\)、\\((7x^2-x)\\)、\\((14x-2)\\)，則此三角形的周長為（以 \\(x\\) 的多項式表示）', type:'poly', a2:7, a1:25, a0:1},
+    {q:'利用直式計算 \\((-3x^3-7x^2+3x-5)-(2x^3-5x^2-x+1)\\) 後，各項係數總和（代入 \\(x=1\\) 驗算）為', type:'number', ans:-9, pfx:'係數總和'},
+    {q:'如果 \\(5a^{3x+y}b^{6-y}\\) 與 \\(\\dfrac{1}{4}a^{x-1}b^{3x-y}\\) 是同類項，則 \\(x+y=\\)', type:'number', ans:-3, pfx:'x+y'},
+    {q:'若 \\(ab=a-b\\)，且 \\(a\\)、\\(b\\) 皆不為零，則 \\(\\dfrac{a}{b}+\\dfrac{b}{a}-ab=\\)', type:'number', ans:2, pfx:''},
+    {q:'下列哪些式子與 \\(-5x\\) 為同類項？（A）\\(11x\\)（B）\\(-5y\\)（C）\\(x^2\\)（D）\\(\\dfrac{x}{5}\\)，答案為', type:'text', ans:'(A)(D)', pfx:''},
+    {q:'若 \\((2x^3+2x^2+8x-4)-A=-x^3+2x^2-7x+3\\)，則 \\(A\\) 的三次項係數為', type:'number', ans:3, pfx:'三次項係數'},
+    {q:'利用直式計算 \\((-3x^3-7x^2+3x-5)-(2x^3-5x^2-x+1)\\) 後，\\(x^2\\) 項係數為', type:'number', ans:-2, pfx:'x²項係數'},
+    {q:'翰翰作兩個二次多項式相減，直式如下：\\(-3x^2+ax+5\\) 減去 \\(-bx^2+0\\cdot x+3\\) 等於 \\(4x^2+\\dfrac{3}{2}x+c\\)，則 \\(b=\\)', type:'number', ans:7, pfx:'b'},
+    {q:'若 \\(A+(-3x^2+2-4x)=2x^3+6-3x\\)，則 \\(A\\) 的三次項係數為', type:'number', ans:2, pfx:'三次項係數'},
+    {q:'化簡 \\(3x^3-5+6x^2-2x-4x^3\\) 後，二次項係數為', type:'number', ans:6, pfx:'二次項係數'},
+    {q:'計算 \\(8x-\\{2x^2-[-5x-(3x^2-4)-5]\\}-(3x-11)\\) 後，\\(x^2\\) 項係數為', type:'number', ans:-5, pfx:'x²項係數'},
+    {q:'計算 \\((2x^2-5x-12)+(-3x+6-4x^2)+(4x^2-x+9)\\) 後，常數項為', type:'number', ans:3, pfx:'常數項'},
+  ];
+  return ret(jrQPick(pool,_paHQ));
 }
 
 // ═══════════════════════════════════════════════════════════════════
