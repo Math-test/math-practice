@@ -3481,99 +3481,139 @@ function _b3aDbl(level) {
     const t = srRandInt(0, 2);
 
     if (t === 0) {
-      // cos2θ = 1-2sin²θ 或 2cos²θ-1（有理數答案）
-      const pool = [
-        {q:'已知 \\(\\sin\\theta=\\dfrac{1}{3}\\)，求 \\(\\cos 2\\theta\\)',             ans:frac(7,9),     pfx:'\\(\\cos 2\\theta\\)'},
-        {q:'已知 \\(\\cos\\theta=\\dfrac{2}{5}\\)，求 \\(\\cos 2\\theta\\)',             ans:frac(-17,25),  pfx:'\\(\\cos 2\\theta\\)'},
-        {q:'已知 \\(\\sin\\theta=\\dfrac{3}{5}\\)，求 \\(\\cos 2\\theta\\)',             ans:frac(7,25),    pfx:'\\(\\cos 2\\theta\\)'},
-        {q:'已知 \\(\\sin\\theta=\\dfrac{4}{5}\\)，求 \\(\\cos 2\\theta\\)',             ans:frac(-7,25),   pfx:'\\(\\cos 2\\theta\\)'},
-        {q:'已知 \\(\\cos\\theta=\\dfrac{3}{5}\\)，求 \\(\\cos 2\\theta\\)',             ans:frac(-7,25),   pfx:'\\(\\cos 2\\theta\\)'},
-        {q:'已知 \\(\\cos\\theta=\\dfrac{4}{5}\\)，求 \\(\\cos 2\\theta\\)',             ans:frac(7,25),    pfx:'\\(\\cos 2\\theta\\)'},
-        {q:'已知 \\(\\sin\\theta=\\dfrac{5}{13}\\)，求 \\(\\cos 2\\theta\\)',            ans:frac(119,169), pfx:'\\(\\cos 2\\theta\\)'},
-        {q:'已知 \\(\\cos\\theta=\\dfrac{12}{13}\\)，求 \\(\\cos 2\\theta\\)',           ans:frac(119,169), pfx:'\\(\\cos 2\\theta\\)'},
-        {q:'已知 \\(\\sin\\theta=\\dfrac{12}{13}\\)，求 \\(\\cos 2\\theta\\)',           ans:frac(-119,169),pfx:'\\(\\cos 2\\theta\\)'},
+      // cos2θ = 1-2sin²θ 或 2cos²θ-1（動態生成）
+      // [trig, a, c, ans_num, ans_den]  cos2θ computed from sin/cos=a/c
+      const cos2pool = [
+        ['sin', 1, 3,    7,   9], ['sin', 2, 3,    1,   9],
+        ['cos', 1, 3,   -7,   9], ['cos', 2, 3,   -1,   9],
+        ['sin', 1, 4,    7,   8], ['sin', 3, 4,   -1,   8],
+        ['cos', 1, 4,   -7,   8], ['cos', 3, 4,    1,   8],
+        ['sin', 3, 5,    7,  25], ['sin', 4, 5,   -7,  25],
+        ['cos', 3, 5,   -7,  25], ['cos', 4, 5,    7,  25],
+        ['sin', 2, 5,   17,  25], ['cos', 2, 5,  -17,  25],
+        ['sin', 5,13,  119, 169], ['sin',12,13, -119, 169],
+        ['cos',12,13,  119, 169], ['cos', 5,13, -119, 169],
+        ['sin', 8,17,  161, 289], ['sin',15,17, -161, 289],
+        ['cos',15,17,  161, 289], ['cos', 8,17, -161, 289],
+        ['sin', 7,25,  527, 625], ['sin',24,25, -527, 625],
+        ['cos', 7,25, -527, 625], ['cos',24,25,  527, 625],
       ];
-      const item = srQPick(pool, _b3aDblB0Q);
-      return { question:item.q, answer:item.ans, type:'fraction', answerPrefix:item.pfx };
-    }
-
-    if (t === 1) {
-      // sin2θ = (sinθ±cosθ)²−1 或 1−(sinθ−cosθ)²
-      const pool = [
-        {S:'\\sin\\theta+\\cos\\theta=\\dfrac{2}{3}',  sq:true,  ans:frac(-5,9)},
-        {S:'\\sin\\theta-\\cos\\theta=\\dfrac{1}{4}',  sq:false, ans:frac(15,16)},
-        {S:'\\sin\\theta+\\cos\\theta=\\dfrac{7}{5}',  sq:true,  ans:frac(24,25)},
-        {S:'\\sin\\theta-\\cos\\theta=\\dfrac{1}{3}',  sq:false, ans:frac(8,9)},
-        {S:'\\sin\\theta+\\cos\\theta=\\dfrac{3}{4}',  sq:true,  ans:frac(-7,16)},
-        {S:'\\sin\\theta-\\cos\\theta=\\dfrac{2}{3}',  sq:false, ans:frac(5,9)},
-        {S:'\\sin\\theta+\\cos\\theta=\\dfrac{3}{5}',  sq:true,  ans:frac(-16,25)},
-        {S:'\\sin\\theta+\\cos\\theta=\\dfrac{4}{5}',  sq:true,  ans:frac(-9,25)},
-        {S:'\\sin\\theta-\\cos\\theta=-\\dfrac{1}{3}', sq:false, ans:frac(8,9)},
-      ];
-      const item = srQPick(pool, _b3aDblB1Q);
+      const e = pick(cos2pool);
       return {
-        question:`已知 \\(${item.S}\\)，求 \\(\\sin 2\\theta\\)`,
-        answer:item.ans, type:'fraction', answerPrefix:'\\(\\sin 2\\theta\\)',
+        question:`已知 \\(\\${e[0]}\\theta=\\dfrac{${e[1]}}{${e[2]}}\\)，求 \\(\\cos 2\\theta\\)`,
+        answer:frac(e[3],e[4]), type:'fraction', answerPrefix:'\\(\\cos 2\\theta\\)',
       };
     }
 
-    // t===2: tan2θ（有理數答案）
-    const pool = [
-      {q:'\\theta 為第二象限角且 \\(\\cos\\theta=-\\dfrac{4}{5}\\)，求 \\(\\tan 2\\theta\\)', ans:frac(-24,7)},
-      {q:'\\theta 為第二象限角且 \\(\\cos\\theta=-\\dfrac{3}{5}\\)，求 \\(\\tan 2\\theta\\)', ans:frac(24,7)},
-      {q:'\\(90^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\sin\\theta=\\dfrac{4}{5}\\)，求 \\(\\tan 2\\theta\\)', ans:frac(24,7)},
-      {q:'已知 \\(\\sin\\theta=3\\cos\\theta\\)，求 \\(\\tan 2\\theta\\)',                    ans:frac(-3,4)},
-      {q:'已知 \\(\\sin\\theta=2\\cos\\theta\\)，求 \\(\\tan 2\\theta\\)',                    ans:frac(-4,3)},
-      {q:'已知 \\(\\sin\\theta=-2\\cos\\theta\\)，求 \\(\\tan 2\\theta\\)',                   ans:frac(4,3)},
-      {q:'已知 \\(\\sin\\theta=4\\cos\\theta\\)，求 \\(\\tan 2\\theta\\)',                    ans:frac(-8,15)},
+    if (t === 1) {
+      // sin2θ = (sinθ±cosθ)²−1 或 1−(sinθ−cosθ)²（動態生成）
+      // [isSum, sign, p, q]  answer = (p²-q²)/q² for sum, (q²-p²)/q² for diff
+      const sin2pool = [
+        [true, +1,2,3], [true, +1,7,5], [true, +1,3,4], [true, +1,3,5],
+        [true, +1,4,5], [true, +1,5,4], [true, +1,4,3], [true, +1,1,2],
+        [true, +1,1,3], [true, +1,5,6], [true, +1,7,6],
+        [true, -1,2,3], [true, -1,3,4],
+        [false,+1,1,4], [false,+1,1,3], [false,+1,2,3], [false,-1,1,3],
+        [false,+1,1,2], [false,+1,3,5], [false,+1,4,5],
+        [false,-1,2,3], [false,-1,1,4],
+      ];
+      const [isSum, sg, p, q] = pick(sin2pool);
+      const sgStr = sg < 0 ? '-' : '';
+      const Sstr = isSum
+        ? `\\sin\\theta+\\cos\\theta=${sgStr}\\dfrac{${p}}{${q}}`
+        : `\\sin\\theta-\\cos\\theta=${sgStr}\\dfrac{${p}}{${q}}`;
+      const ansVal = isSum ? p*p - q*q : q*q - p*p;
+      return {
+        question:`已知 \\(${Sstr}\\)，求 \\(\\sin 2\\theta\\)`,
+        answer:frac(ansVal, q*q), type:'fraction', answerPrefix:'\\(\\sin 2\\theta\\)',
+      };
+    }
+
+    // t===2: tan2θ（動態生成）
+    if (srRandInt(0,1) === 0) {
+      // sinθ=k·cosθ 型（k 為整數）
+      const k = pick([2,3,4,5,-2,-3,-4,-5]);
+      return {
+        question:`已知 \\(\\sin\\theta=${k}\\cos\\theta\\)，求 \\(\\tan 2\\theta\\)`,
+        answer:frac(2*k, 1-k*k), type:'fraction', answerPrefix:'\\(\\tan 2\\theta\\)',
+      };
+    }
+    // 象限 + 畢氏數型
+    const tpPool = [
+      ['\\(\\theta\\) 為第二象限角且 \\(\\cos\\theta=-\\dfrac{4}{5}\\)，求 \\(\\tan 2\\theta\\)',              -24,  7],
+      ['\\(\\theta\\) 為第二象限角且 \\(\\cos\\theta=-\\dfrac{3}{5}\\)，求 \\(\\tan 2\\theta\\)',               24,  7],
+      ['\\(90^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\sin\\theta=\\dfrac{4}{5}\\)，求 \\(\\tan 2\\theta\\)', 24,  7],
+      ['\\(90^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\sin\\theta=\\dfrac{3}{5}\\)，求 \\(\\tan 2\\theta\\)',-24,  7],
+      ['\\(\\theta\\) 為第二象限角且 \\(\\cos\\theta=-\\dfrac{5}{13}\\)，求 \\(\\tan 2\\theta\\)',             120,119],
+      ['\\(\\theta\\) 為第二象限角且 \\(\\cos\\theta=-\\dfrac{12}{13}\\)，求 \\(\\tan 2\\theta\\)',           -120,119],
+      ['\\(90^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\sin\\theta=\\dfrac{5}{13}\\)，求 \\(\\tan 2\\theta\\)',-120,119],
+      ['\\(90^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\sin\\theta=\\dfrac{12}{13}\\)，求 \\(\\tan 2\\theta\\)',120,119],
+      ['\\(\\theta\\) 為第二象限角且 \\(\\cos\\theta=-\\dfrac{8}{17}\\)，求 \\(\\tan 2\\theta\\)',             240,161],
+      ['\\(\\theta\\) 為第二象限角且 \\(\\cos\\theta=-\\dfrac{15}{17}\\)，求 \\(\\tan 2\\theta\\)',           -240,161],
     ];
-    const item2 = srQPick(pool, _b3aDblB2Q);
-    return { question:item2.q, answer:item2.ans, type:'fraction', answerPrefix:'\\(\\tan 2\\theta\\)' };
+    const tp = pick(tpPool);
+    return {question:tp[0], answer:frac(tp[1],tp[2]), type:'fraction', answerPrefix:'\\(\\tan 2\\theta\\)'};
   }
 
   if (level === 'medium') {
     const t = srRandInt(0, 2);
 
     if (t === 0) {
-      // tan(θ/2) 由 cosθ 推導（有理數答案）
-      const pool = [
-        {q:'已知 \\(0^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\cos\\theta=-\\dfrac{7}{25}\\)，求 \\(\\tan\\dfrac{\\theta}{2}\\)', ans:frac(4,3)},
-        {q:'已知 \\(0^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\cos\\theta=-\\dfrac{3}{5}\\)，求 \\(\\tan\\dfrac{\\theta}{2}\\)',  ans:2},
-        {q:'已知 \\(0^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\cos\\theta=\\dfrac{3}{5}\\)，求 \\(\\tan\\dfrac{\\theta}{2}\\)',   ans:frac(1,2)},
-        {q:'已知 \\(0^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\cos\\theta=-\\dfrac{4}{5}\\)，求 \\(\\tan\\dfrac{\\theta}{2}\\)', ans:3},
-        {q:'已知 \\(0^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\cos\\theta=\\dfrac{4}{5}\\)，求 \\(\\tan\\dfrac{\\theta}{2}\\)',  ans:frac(1,3)},
-        {q:'已知 \\(0^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\cos\\theta=\\dfrac{7}{25}\\)，求 \\(\\tan\\dfrac{\\theta}{2}\\)', ans:frac(3,4)},
-        {q:'已知 \\(0^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\cos\\theta=-\\dfrac{5}{13}\\)，求 \\(\\tan\\dfrac{\\theta}{2}\\)',ans:frac(3,2)},
+      // tan(θ/2) 由 cosθ 推導（動態生成，0<θ<π）
+      // [cosSign, n, d, an, ad]  cosθ=±n/d → tan(θ/2)=an/ad
+      const tanHalfPool = [
+        [+1, 3, 5, 1, 2], [-1, 3, 5, 2, 1], [+1, 4, 5, 1, 3], [-1, 4, 5, 3, 1],
+        [+1, 5,13, 2, 3], [-1, 5,13, 3, 2], [+1,12,13, 1, 5], [-1,12,13, 5, 1],
+        [-1, 7,25, 4, 3], [+1, 7,25, 3, 4], [+1,24,25, 1, 7], [-1,24,25, 7, 1],
+        [+1, 8,17, 3, 5], [-1, 8,17, 5, 3], [+1,15,17, 1, 4], [-1,15,17, 4, 1],
+        [+1,20,29, 3, 7], [-1,20,29, 7, 3], [+1,21,29, 2, 5], [-1,21,29, 5, 2],
       ];
-      const item = srQPick(pool, _b3aDblM0Q);
-      return { question:item.q, answer:item.ans, type:(item.ans===Math.round(item.ans)?'number':'fraction'), answerPrefix:'\\(\\tan\\dfrac{\\theta}{2}\\)' };
-    }
-
-    if (t === 1) {
-      // sinθ = k·cos(θ/2) → 求 cosθ
-      const pool = [
-        {range:'0^\\circ&lt;\\theta&lt;180^\\circ', k:'\\dfrac{8}{5}', ans:frac(-7,25)},
-        {range:'0^\\circ&lt;\\theta&lt;180^\\circ', k:'\\dfrac{6}{5}', ans:frac(7,25)},
-        {range:'0^\\circ&lt;\\theta&lt;180^\\circ', k:'\\dfrac{4}{3}', ans:frac(1,9)},
-        {range:'0^\\circ&lt;\\theta&lt;180^\\circ', k:'\\dfrac{4}{5}', ans:frac(17,25)},
-        {range:'\\pi&lt;\\theta&lt;\\dfrac{3\\pi}{2}', k:'\\dfrac{3}{2}', ans:frac(-1,8)},
-      ];
-      const item = srQPick(pool, _b3aDblM1Q);
+      const [sg, n, d, an, ad] = pick(tanHalfPool);
+      const cosStr = sg > 0 ? `\\dfrac{${n}}{${d}}` : `-\\dfrac{${n}}{${d}}`;
       return {
-        question:`設 \\(${item.range}\\)，若 \\(\\sin\\theta=${item.k}\\cos\\dfrac{\\theta}{2}\\)，求 \\(\\cos\\theta\\)`,
-        answer:item.ans, type:'fraction', answerPrefix:'\\(\\cos\\theta\\)',
+        question:`已知 \\(0^\\circ&lt;\\theta&lt;180^\\circ\\) 且 \\(\\cos\\theta=${cosStr}\\)，求 \\(\\tan\\dfrac{\\theta}{2}\\)`,
+        answer:(ad===1 ? an : frac(an,ad)), type:(ad===1?'number':'fraction'), answerPrefix:'\\(\\tan\\dfrac{\\theta}{2}\\)',
       };
     }
 
-    // t===2: a·sin²(θ/2) + b·cos2θ = c 型 → 求 cosθ
+    if (t === 1) {
+      // sinθ = k·cos(θ/2) → 求 cosθ（動態生成）
+      // [p, q, range, cn, cd]  k=p/q, cosθ=cn/cd
+      const skPool = [
+        [ 6, 5,'0^\\circ&lt;\\theta&lt;180^\\circ',    7, 25],
+        [ 8, 5,'0^\\circ&lt;\\theta&lt;180^\\circ',   -7, 25],
+        [ 4, 3,'0^\\circ&lt;\\theta&lt;180^\\circ',    1,  9],
+        [ 4, 5,'0^\\circ&lt;\\theta&lt;180^\\circ',   17, 25],
+        [ 3, 2,'\\pi&lt;\\theta&lt;\\dfrac{3\\pi}{2}', -1,  8],
+        [10,13,'0^\\circ&lt;\\theta&lt;180^\\circ',  119,169],
+        [24,13,'0^\\circ&lt;\\theta&lt;180^\\circ', -119,169],
+        [16,17,'0^\\circ&lt;\\theta&lt;180^\\circ',  161,289],
+        [30,17,'0^\\circ&lt;\\theta&lt;180^\\circ', -161,289],
+      ];
+      const [p, q, range, cn, cd] = pick(skPool);
+      const kStr = q === 1 ? `${p}` : `\\dfrac{${p}}{${q}}`;
+      return {
+        question:`設 \\(${range}\\)，若 \\(\\sin\\theta=${kStr}\\cos\\dfrac{\\theta}{2}\\)，求 \\(\\cos\\theta\\)`,
+        answer:frac(cn,cd), type:'fraction', answerPrefix:'\\(\\cos\\theta\\)',
+      };
+    }
+
+    // t===2: a·sin²(θ/2) ± b·cos2θ/cosθ = c 型（擴大固定池）
     const pool2 = [
-      {eq:'2\\sin^2\\dfrac{\\theta}{2}+\\cos 2\\theta=0', range:'0^\\circ&lt;\\theta&lt;90^\\circ', ans:frac(1,2)},
-      {eq:'2\\sin^2\\dfrac{\\theta}{2}+3\\cos 2\\theta=0', range:'0^\\circ&lt;\\theta&lt;90^\\circ', ans:frac(2,3)},
-      {eq:'2\\sin^2\\dfrac{\\theta}{2}+3\\cos 2\\theta=0', range:'90^\\circ&lt;\\theta&lt;180^\\circ', ans:frac(-1,2)},
-      {eq:'\\sin^2\\dfrac{\\theta}{2}-\\cos\\theta-1=0', range:null, ans:frac(-1,3)},
-      {eq:'\\sin^2\\dfrac{\\theta}{2}-2\\cos\\theta-2=0', range:null, ans:frac(-3,5)},
-      {eq:'3\\sin^2\\dfrac{\\theta}{2}-\\cos\\theta-2=0', range:null, ans:frac(-1,5)},
-      {eq:'8\\sin^2\\dfrac{\\theta}{2}-3\\cos\\theta-7=0', range:null, ans:frac(-3,7)},
+      {eq:'2\\sin^2\\dfrac{\\theta}{2}+\\cos 2\\theta=0',        range:'0^\\circ&lt;\\theta&lt;90^\\circ',   ans:frac(1,2)},
+      {eq:'2\\sin^2\\dfrac{\\theta}{2}+3\\cos 2\\theta=0',       range:'0^\\circ&lt;\\theta&lt;90^\\circ',   ans:frac(2,3)},
+      {eq:'2\\sin^2\\dfrac{\\theta}{2}+3\\cos 2\\theta=0',       range:'90^\\circ&lt;\\theta&lt;180^\\circ', ans:frac(-1,2)},
+      {eq:'\\sin^2\\dfrac{\\theta}{2}-\\cos\\theta-1=0',          range:null,                                  ans:frac(-1,3)},
+      {eq:'\\sin^2\\dfrac{\\theta}{2}-2\\cos\\theta-2=0',         range:null,                                  ans:frac(-3,5)},
+      {eq:'3\\sin^2\\dfrac{\\theta}{2}-\\cos\\theta-2=0',         range:null,                                  ans:frac(-1,5)},
+      {eq:'8\\sin^2\\dfrac{\\theta}{2}-3\\cos\\theta-7=0',        range:null,                                  ans:frac(-3,7)},
+      {eq:'4\\sin^2\\dfrac{\\theta}{2}-2\\cos\\theta-1=0',        range:null,                                  ans:frac(1,4)},
+      {eq:'4\\sin^2\\dfrac{\\theta}{2}+7\\cos\\theta=0',          range:null,                                  ans:frac(-2,5)},
+      {eq:'\\sin^2\\dfrac{\\theta}{2}-3\\cos\\theta-3=0',         range:null,                                  ans:frac(-5,7)},
+      {eq:'4\\sin^2\\dfrac{\\theta}{2}-3\\cos\\theta-1=0',        range:null,                                  ans:frac(1,5)},
+      {eq:'6\\sin^2\\dfrac{\\theta}{2}-\\cos\\theta-4=0',         range:null,                                  ans:frac(-1,4)},
+      {eq:'5\\sin^2\\dfrac{\\theta}{2}+\\cos 2\\theta-1=0',       range:'0^\\circ&lt;\\theta&lt;90^\\circ',   ans:frac(1,4)},
+      {eq:'3\\sin^2\\dfrac{\\theta}{2}+\\cos 2\\theta-1=0',       range:'90^\\circ&lt;\\theta&lt;180^\\circ', ans:frac(-1,4)},
     ];
     const item2m = srQPick(pool2, _b3aDblM2Q);
     const rangeStr = item2m.range ? `設 \\(${item2m.range}\\)，` : '';
@@ -3587,14 +3627,17 @@ function _b3aDbl(level) {
     const t = srRandInt(0, 1);
 
     if (t === 0) {
-      // cos2x 方程式求 cosx
+      // cos2x 方程式求 cosx（擴大固定池）
       const pool = [
-        {eq:'3\\cos 2x-7\\cos x=0',        range:null,                           ans:frac(-1,3)},
-        {eq:'2\\cos 2x+3\\cos x+1=0',      range:'0^\\circ&lt;x&lt;90^\\circ',        ans:frac(1,4)},
-        {eq:'2\\cos 2x-3\\cos x+1=0',      range:'90^\\circ&lt;x&lt;180^\\circ',      ans:frac(-1,4)},
-        {eq:'3\\cos 2x-\\cos x-2=0',       range:'0^\\circ&lt;x&lt;180^\\circ',       ans:frac(-5,6)},
-        {eq:'4\\cos 2x-5\\cos x+1=0',      range:'90^\\circ&lt;x&lt;180^\\circ',      ans:frac(-3,8)},
-        {eq:'3\\cos 2x-5\\cos x+2=0',      range:'0^\\circ&lt;x&lt;180^\\circ',       ans:frac(-1,6)},
+        {eq:'3\\cos 2x-7\\cos x=0',        range:null,                                  ans:frac(-1,3)},
+        {eq:'2\\cos 2x+3\\cos x+1=0',      range:'0^\\circ&lt;x&lt;90^\\circ',         ans:frac(1,4)},
+        {eq:'2\\cos 2x-3\\cos x+1=0',      range:'90^\\circ&lt;x&lt;180^\\circ',       ans:frac(-1,4)},
+        {eq:'3\\cos 2x-\\cos x-2=0',       range:'0^\\circ&lt;x&lt;180^\\circ',        ans:frac(-5,6)},
+        {eq:'4\\cos 2x-5\\cos x+1=0',      range:'90^\\circ&lt;x&lt;180^\\circ',       ans:frac(-3,8)},
+        {eq:'3\\cos 2x-5\\cos x+2=0',      range:'0^\\circ&lt;x&lt;180^\\circ',        ans:frac(-1,6)},
+        {eq:'5\\cos 2x-3\\cos x-2=0',      range:'0^\\circ&lt;x&lt;180^\\circ',        ans:frac(-7,10)},
+        {eq:'4\\cos 2x-\\cos x-3=0',       range:'0^\\circ&lt;x&lt;180^\\circ',        ans:frac(-7,8)},
+        {eq:'6\\cos 2x-7\\cos x+1=0',      range:'0^\\circ&lt;x&lt;180^\\circ',        ans:frac(-5,12)},
       ];
       const item = srQPick(pool, _b3aDblH0Q);
       const rStr = item.range ? `設 \\(${item.range}\\)，` : '';
@@ -3604,18 +3647,26 @@ function _b3aDbl(level) {
       };
     }
 
-    // t===1: 給定 sinx±cosx=k → 求 sin3x±cos3x；或終邊對稱於y軸
+    // t===1: sinx±cosx=k → sin3x±cos3x；或終邊對稱於y軸（擴大固定池）
     const pool = [
-      {q:'已知 \\(\\sin x-\\cos x=\\dfrac{1}{2}\\)，求 \\(\\sin 3x+\\cos 3x\\)', ans:frac(-5,4), pfx:'\\(\\sin 3x+\\cos 3x\\)'},
-      {q:'已知 \\(\\sin x-\\cos x=-\\dfrac{1}{2}\\)，求 \\(\\sin 3x+\\cos 3x\\)',ans:frac(5,4),  pfx:'\\(\\sin 3x+\\cos 3x\\)'},
-      {q:'已知 \\(\\sin x+\\cos x=\\dfrac{1}{2}\\)，求 \\(\\sin 3x-\\cos 3x\\)', ans:frac(-5,4), pfx:'\\(\\sin 3x-\\cos 3x\\)'},
-      {q:'已知 \\(\\sin x+\\cos x=-\\dfrac{1}{2}\\)，求 \\(\\sin 3x-\\cos 3x\\)',ans:frac(5,4),  pfx:'\\(\\sin 3x-\\cos 3x\\)'},
-      {q:'已知 \\(\\sin x-\\cos x=\\dfrac{1}{3}\\)，求 \\(\\sin 3x+\\cos 3x\\)', ans:frac(-25,27),pfx:'\\(\\sin 3x+\\cos 3x\\)'},
-      {q:'已知 \\(\\sin x-\\cos x=-\\dfrac{1}{3}\\)，求 \\(\\sin 3x+\\cos 3x\\)',ans:frac(25,27), pfx:'\\(\\sin 3x+\\cos 3x\\)'},
-      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{1}{3}\\)，求 \\(\\cos(\\alpha-\\beta)\\)', ans:frac(-7,9),  pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
-      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{2}{3}\\)，求 \\(\\cos(\\alpha-\\beta)\\)', ans:frac(-1,9),  pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
-      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{3}{5}\\)，求 \\(\\cos(\\alpha-\\beta)\\)', ans:frac(-7,25), pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
-      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{4}{5}\\)，求 \\(\\cos(\\alpha-\\beta)\\)', ans:frac(7,25),  pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
+      {q:'已知 \\(\\sin x-\\cos x=\\dfrac{1}{2}\\)，求 \\(\\sin 3x+\\cos 3x\\)',   ans:frac(-5,4),   pfx:'\\(\\sin 3x+\\cos 3x\\)'},
+      {q:'已知 \\(\\sin x-\\cos x=-\\dfrac{1}{2}\\)，求 \\(\\sin 3x+\\cos 3x\\)',  ans:frac(5,4),    pfx:'\\(\\sin 3x+\\cos 3x\\)'},
+      {q:'已知 \\(\\sin x+\\cos x=\\dfrac{1}{2}\\)，求 \\(\\sin 3x-\\cos 3x\\)',   ans:frac(-5,4),   pfx:'\\(\\sin 3x-\\cos 3x\\)'},
+      {q:'已知 \\(\\sin x+\\cos x=-\\dfrac{1}{2}\\)，求 \\(\\sin 3x-\\cos 3x\\)',  ans:frac(5,4),    pfx:'\\(\\sin 3x-\\cos 3x\\)'},
+      {q:'已知 \\(\\sin x-\\cos x=\\dfrac{1}{3}\\)，求 \\(\\sin 3x+\\cos 3x\\)',   ans:frac(-25,27), pfx:'\\(\\sin 3x+\\cos 3x\\)'},
+      {q:'已知 \\(\\sin x-\\cos x=-\\dfrac{1}{3}\\)，求 \\(\\sin 3x+\\cos 3x\\)',  ans:frac(25,27),  pfx:'\\(\\sin 3x+\\cos 3x\\)'},
+      {q:'已知 \\(\\sin x-\\cos x=\\dfrac{1}{4}\\)，求 \\(\\sin 3x+\\cos 3x\\)',   ans:frac(-23,32), pfx:'\\(\\sin 3x+\\cos 3x\\)'},
+      {q:'已知 \\(\\sin x-\\cos x=-\\dfrac{1}{4}\\)，求 \\(\\sin 3x+\\cos 3x\\)',  ans:frac(23,32),  pfx:'\\(\\sin 3x+\\cos 3x\\)'},
+      {q:'已知 \\(\\sin x+\\cos x=\\dfrac{1}{4}\\)，求 \\(\\sin 3x-\\cos 3x\\)',   ans:frac(-23,32), pfx:'\\(\\sin 3x-\\cos 3x\\)'},
+      {q:'已知 \\(\\sin x+\\cos x=-\\dfrac{1}{4}\\)，求 \\(\\sin 3x-\\cos 3x\\)',  ans:frac(23,32),  pfx:'\\(\\sin 3x-\\cos 3x\\)'},
+      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{1}{3}\\)，求 \\(\\cos(\\alpha-\\beta)\\)',  ans:frac(-7,9),    pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
+      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{2}{3}\\)，求 \\(\\cos(\\alpha-\\beta)\\)',  ans:frac(-1,9),    pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
+      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{3}{5}\\)，求 \\(\\cos(\\alpha-\\beta)\\)',  ans:frac(-7,25),   pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
+      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{4}{5}\\)，求 \\(\\cos(\\alpha-\\beta)\\)',  ans:frac(7,25),    pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
+      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{5}{13}\\)，求 \\(\\cos(\\alpha-\\beta)\\)', ans:frac(-119,169),pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
+      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{12}{13}\\)，求 \\(\\cos(\\alpha-\\beta)\\)',ans:frac(119,169), pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
+      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{1}{4}\\)，求 \\(\\cos(\\alpha-\\beta)\\)',  ans:frac(-7,8),    pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
+      {q:'已知兩個標準位置角 \\(\\alpha\\)、\\(\\beta\\) 的終邊對稱於 \\(y\\) 軸，且 \\(\\sin\\alpha=\\dfrac{3}{4}\\)，求 \\(\\cos(\\alpha-\\beta)\\)',  ans:frac(1,8),     pfx:'\\(\\cos(\\alpha-\\beta)\\)'},
     ];
     const item = srQPick(pool, _b3aDblH1Q);
     return { question:item.q, answer:item.ans, type:'fraction', answerPrefix:item.pfx };
