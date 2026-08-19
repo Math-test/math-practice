@@ -46,6 +46,21 @@ function jrQPick(arr, q) {
   return arr[q.shift()];
 }
 
+// 只出一輪的 picker：pool 用完後回傳 null，供隨機後備使用
+function jrQPickOnce(arr, q) {
+  if (!('_s' in q)) {
+    q._s = true;
+    const idx = arr.map((_,i) => i);
+    for (let i = idx.length-1; i > 0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [idx[i],idx[j]]=[idx[j],idx[i]];
+    }
+    q.push(...idx);
+  }
+  return q.length ? arr[q.shift()] : null;
+}
+
+let _isBQ=[],_isMQ=[],_isHQ=[];
 // ═══════════════════════════════════════════════════════════════════
 //  七上 ▸ 整數 ▸ 正負號概念
 // ═══════════════════════════════════════════════════════════════════
@@ -59,7 +74,22 @@ function gen7aIntSign(level) {
 }
 
 function _7aIntSign(level) {
+  const ret = it => ({question:it.q, type:it.type, answer:it.ans, answerPrefix:it.pfx||''});
+
   if (level === 'basic') {
+    const pool = [
+      {q:'（1）\\(\\dfrac{5}{6}\\) 的相反數為【\\(\\quad\\quad\\)】（2）\\(-9\\) 的相反數為【\\(\\quad\\quad\\)】（3）\\(0.7\\) 的相反數為【\\(\\quad\\quad\\)】（4）\\(-\\dfrac{8}{5}\\) 的相反數為【\\(\\quad\\quad\\)】', type:'text', ans:'-5/6;9;-0.7;8/5', pfx:''},
+      {q:'甲存入郵局 \\(1000\\) 元用 \\(+1000\\) 元表示，則甲由郵局提取 \\(500\\) 元用【\\(\\quad\\quad\\)】元表示', type:'number', ans:-500, pfx:''},
+      {q:'最小的正整數是【\\(\\quad\\quad\\)】，最大的負整數是【\\(\\quad\\quad\\)】', type:'text', ans:'1;-1', pfx:''},
+      {q:'求下列各式的值：（1）\\(|-3|=\\)【\\(\\quad\\quad\\)】（2）\\(|0|=\\)【\\(\\quad\\quad\\)】（3）\\(|4.2|=\\)【\\(\\quad\\quad\\)】（4）\\(|-1.5|=\\)【\\(\\quad\\quad\\)】（5）\\(|-\\dfrac{3}{5}|=\\)【\\(\\quad\\quad\\)】（6）\\(|-(-32)|=\\)【\\(\\quad\\quad\\)】', type:'text', ans:'3;0;4.2;1.5;3/5;32', pfx:''},
+      {q:'籃球比賽，如果輸 \\(8\\) 分用 \\(-4\\) 分表示，則贏 \\(10\\) 分用【\\(\\quad\\quad\\)】分表示', type:'number', ans:5, pfx:''},
+      {q:'以中午 \\(12\\) 時為基準，下午 \\(5\\) 時記作 \\(+5\\) 時，那麼上午 \\(10\\) 時可以記作【\\(\\quad\\quad\\)】時', type:'number', ans:-2, pfx:''},
+      {q:'若數線上 \\(P\\) 點在原點的左方，且 \\(|P|=17\\)，則 \\(P\\) 點所代表的數為【\\(\\quad\\quad\\)】', type:'number', ans:-17, pfx:''},
+      {q:'衛生福利部統計處資料顯示，國中七年級學生平均身高 \\(156\\) 公分，以此為基準，若士洋身高 \\(161\\) 公分記為 \\(+5\\) 公分，則冠儀身高 \\(153\\) 公分，可記為【\\(\\quad\\quad\\)】公分', type:'number', ans:-3, pfx:''},
+      {q:'若體重以 \\(55\\) 公斤為基準，甲的體重為 \\(60\\) 公斤，記為 \\(+5\\)，則：（1）乙的體重為 \\(45\\) 公斤，可記為【\\(\\quad\\quad\\)】（2）丙的體重為【\\(\\quad\\quad\\)】公斤，可記為 \\(+3\\)', type:'text', ans:'-10;58', pfx:''},
+    ];
+    const item=jrQPickOnce(pool,_isBQ); if(item!==null) return ret(item);
+    // 隨機後備
     const t = randInt(0, 3);
     if (t === 0) {
       const a = -rp(1, 100);
@@ -75,6 +105,22 @@ function _7aIntSign(level) {
       return { question:`\\(-(-${a})\\) ＝ ？`, answer: a, type:'number' };
     }
   } else if (level === 'hard') {
+    const pool = [
+      {q:'試回答下列問題：（1）比 \\((-6)\\) 大的負整數有【\\(\\quad\\quad\\)】個（2）比 \\(10\\) 小的自然數有【\\(\\quad\\quad\\)】個（3）比 \\((-4)\\) 大而比 \\(5\\) 小的整數有【\\(\\quad\\quad\\)】個', type:'text', ans:'5;9;8', pfx:''},
+      {q:'若 \\(a\\) 為負整數，且 \\(|a|>6\\)，則 \\(a\\) 的最大值為【\\(\\quad\\quad\\)】', type:'number', ans:-7, pfx:'最大值'},
+      {q:'\\(|-51|\\) 的相反數＝【\\(\\quad\\quad\\)】', type:'number', ans:-51, pfx:''},
+      {q:'如果以中午 \\(12\\) 時為基準，上午 \\(10\\) 時記為 \\(-2\\)，則下午 \\(10\\) 時可記為【\\(\\quad\\quad\\)】', type:'number', ans:10, pfx:''},
+      {q:'已知甲、乙兩數互為相反數，且乙 \\(\\neq 0\\)，則 \\(\\dfrac{|甲+乙|}{|乙|}=\\)【\\(\\quad\\quad\\)】', type:'number', ans:0, pfx:''},
+      {q:'滿足 \\(2 \\leq |甲| \\leq 7\\) 的整數甲共有【\\(\\quad\\quad\\)】個', type:'number', ans:12, pfx:'個數'},
+      {q:'甲、乙兩數是正整數，絕對值小於甲數的正整數有 \\(8\\) 個，絕對值小於乙數的整數有 \\(19\\) 個，則甲數＋乙數＝【\\(\\quad\\quad\\)】', type:'number', ans:19, pfx:'甲+乙'},
+      {q:'已知甲、乙均為整數，若 \\(0-乙>0\\)，甲 \\(-\\) 乙 \\(<0\\)，則甲、乙與 \\(0\\) 的大小關係為【\\(\\quad\\quad\\)】', type:'text', ans:'甲<乙<0', pfx:''},
+      {q:'將 \\(4.2\\)、\\(-4\\)、\\(0\\)、\\(|-3\\dfrac{1}{2}|\\)、\\(-3\\) 由大到小排列', type:'text', ans:'4.2>|-3\\dfrac{1}{2}|>0>-3>-4', pfx:''},
+      {q:'如果一隻蝸牛在數線上由原點向右走 \\(4\\) 公分，記為 \\(-2\\)，則此蝸牛由原點向左走 \\(17\\) 公分，可記為【\\(\\quad\\quad\\)】', type:'number', ans:8.5, pfx:''},
+      {q:'若以單位長為 \\(2\\) 公分的數線測量一枝鉛筆的長度，鉛筆的尾端與原點切齊，若已知鉛筆長 \\(18\\) 公分，則 \\(A\\) 點所代表的數應為【\\(\\quad\\quad\\)】', type:'number', ans:-9, pfx:'A點'},
+      {q:'數線上有 \\(A(a)\\)、\\(B(b)\\) 兩點，已知 \\(B\\) 點在 \\(A\\) 點的右邊，且 \\(A\\) 點在原點和 \\(B\\) 點之間，則 \\(a\\)、\\(b\\)、\\(0\\) 的大小關係為【\\(\\quad\\quad\\)】', type:'text', ans:'0<a<b', pfx:''},
+    ];
+    const item=jrQPickOnce(pool,_isHQ); if(item!==null) return ret(item);
+    // 隨機後備
     const t = randInt(0, 3);
     if (t === 0) {
       const a = rnzInt(-100, 100), b = rnzInt(-100, 100);
@@ -98,6 +144,20 @@ function _7aIntSign(level) {
       return { question:`\\(\\left[\\left|${ni(a)} + ${ni(b)}\\right| \\times ${ni(c)} + ${ni(d)}\\right] \\div ${ni(e)}\\) ＝ ？`, answer:inner/e, type:'number' };
     }
   } else {
+    const pool = [
+      {q:'試比較 \\(-1.5\\)、\\(0\\)、\\(-1\\dfrac{2}{3}\\)、\\(3\\dfrac{1}{5}\\)、\\(2\\dfrac{2}{5}\\) 這五個數絕對值的大小為【\\(\\quad\\quad\\)】', type:'text', ans:'|3\\dfrac{1}{5}|>|2\\dfrac{2}{5}|>|-1\\dfrac{2}{3}|>|-1.5|>|0|', pfx:''},
+      {q:'已知 \\(-2\\)、\\(-4.3\\)、\\(1.8\\)、\\(-2\\dfrac{2}{3}\\) 共四個數，將此四個數由小到大依序排出順序為【\\(\\quad\\quad\\)】', type:'text', ans:'-4.3<-2\\dfrac{2}{3}<-2<1.8', pfx:''},
+      {q:'若 \\(|甲|-5=4\\)，則甲＝【\\(\\quad\\quad\\)】', type:'text', ans:'-9或9', pfx:'甲'},
+      {q:'若 \\(a<0\\)，\\(b>0\\)，且 \\(|a|=9\\)，\\(|b|=11\\)，則 \\(a+b=\\)【\\(\\quad\\quad\\)】', type:'number', ans:2, pfx:'\\(a+b\\)'},
+      {q:'已知甲、乙互為相反數，且甲、乙兩數在數線上所對應的兩點距離為 \\(12\\)，若甲數 \\(>\\) 乙數，則乙數為【\\(\\quad\\quad\\)】', type:'number', ans:-6, pfx:'乙數'},
+      {q:'如果甲數的絕對值是 \\(18\\)，則甲數為【\\(\\quad\\quad\\)】或【\\(\\quad\\quad\\)】', type:'text', ans:'18;-18', pfx:''},
+      {q:'絕對值小於或等於 \\(10\\) 的整數共有【\\(\\quad\\quad\\)】個', type:'number', ans:21, pfx:'個數'},
+      {q:'若甲、乙、丙都是整數，且 \\(|甲+2|+|乙-5|+|丙+3|=0\\)，則 \\(甲+乙-丙=\\)【\\(\\quad\\quad\\)】', type:'number', ans:6, pfx:''},
+      {q:'已知 \\(-6<甲<4\\dfrac{3}{5}\\)，且甲為整數，則符合條件的甲共有【\\(\\quad\\quad\\)】個', type:'number', ans:10, pfx:'個數'},
+      {q:'數線上有 \\(A(a)\\)、\\(B(b)\\) 兩點，\\(A\\) 點在 \\(B\\) 點的右邊，且原點 \\(O\\) 在 \\(A\\)、\\(B\\) 兩點之間，則 \\(a\\)、\\(b\\)、\\(0\\) 的大小關係為【\\(\\quad\\quad\\)】', type:'text', ans:'a>0>b', pfx:''},
+    ];
+    const item=jrQPickOnce(pool,_isMQ); if(item!==null) return ret(item);
+    // 隨機後備
     const t = randInt(0, 4);
     if (t === 0) {
       const a = rp(1, 100);
@@ -433,7 +493,11 @@ function _7aFracSign(level) {
       {q:'將 \\(-\\dfrac{56}{16}\\) 化為最簡分數', type:'fraction', ans:frac(-7,2), pfx:''},
       {q:'將 \\(-\\dfrac{15}{35}\\) 化為最簡分數', type:'fraction', ans:frac(-3,7), pfx:''},
     ];
-    return ret(jrQPick(pool,_fsBQ));
+    const item=jrQPickOnce(pool,_fsBQ); if(item!==null) return ret(item);
+    // 隨機後備：等值分數填空 / 化最簡
+    const d=pick([2,3,5,7]),n=rp(1,d-1),k=pick([2,3,4]);
+    if(randInt(0,1)===0) return {question:`在括號內填入適當的數：\\(-\\dfrac{${n}}{${d}}=\\dfrac{\\square}{${d*k}}\\)，\\(\\square\\) 為`,type:'number',answer:-n*k,answerPrefix:'□'};
+    return {question:`將 \\(-\\dfrac{${n*k}}{${d*k}}\\) 化為最簡分數`,type:'fraction',answer:frac(-n,d),answerPrefix:''};
   }
   if(level==='medium'){
     const pool=[
@@ -450,7 +514,15 @@ function _7aFracSign(level) {
       {q:'比較 \\(-\\dfrac{1}{3}\\)、\\(-\\dfrac{3}{5}\\)、\\(-\\dfrac{5}{7}\\) 的大小，最小的是', type:'text', ans:'-5/7', pfx:'最小值'},
       {q:'比較 \\(-1\\dfrac{7}{10}\\)、\\(-1\\dfrac{3}{5}\\)、\\(-1\\) 的大小，最大的是', type:'text', ans:'-1', pfx:'最大值'},
     ];
-    return ret(jrQPick(pool,_fsMQ));
+    const item=jrQPickOnce(pool,_fsMQ); if(item!==null) return ret(item);
+    // 隨機後備：比較三個負分數（質數分母確保無重複）
+    const _pp=[2,3,5,7];
+    const d1=pick(_pp),d2=pick(_pp.filter(p=>p!==d1)),d3=pick(_pp.filter(p=>p!==d1&&p!==d2));
+    const n1=rp(1,d1-1),n2=rp(1,d2-1),n3=rp(1,d3-1);
+    const vs=[{n:n1,d:d1,v:n1/d1},{n:n2,d:d2,v:n2/d2},{n:n3,d:d3,v:n3/d3}];
+    vs.sort((a,b)=>a.v-b.v);
+    if(randInt(0,1)===0) return {question:`比較 \\(-\\dfrac{${n1}}{${d1}}\\)、\\(-\\dfrac{${n2}}{${d2}}\\)、\\(-\\dfrac{${n3}}{${d3}}\\) 的大小，最大的是`,type:'text',answer:`-${vs[0].n}/${vs[0].d}`,answerPrefix:'最大值'};
+    return {question:`比較 \\(-\\dfrac{${n1}}{${d1}}\\)、\\(-\\dfrac{${n2}}{${d2}}\\)、\\(-\\dfrac{${n3}}{${d3}}\\) 的大小，最小的是`,type:'text',answer:`-${vs[2].n}/${vs[2].d}`,answerPrefix:'最小值'};
   }
   // hard
   const pool=[
@@ -463,7 +535,10 @@ function _7aFracSign(level) {
     {q:'比較 \\(-1\\dfrac{7}{10}\\)、\\(-1\\dfrac{3}{5}\\)、\\(-1\\) 的大小，由大到小排列各值（寫成假分數，用 \\(>\\) 連接）', type:'text', ans:'-1>-8/5>-17/10', pfx:'由大到小'},
     {q:'比較 \\(-\\dfrac{2}{3}\\)、\\(-\\dfrac{5}{6}\\)、\\(-\\dfrac{7}{12}\\) 的大小，由小到大排列（用 \\(<\\) 連接）', type:'text', ans:'-5/6<-2/3<-7/12', pfx:'由小到大'},
   ];
-  return ret(jrQPick(pool,_fsHQ));
+  const item=jrQPickOnce(pool,_fsHQ); if(item!==null) return ret(item);
+  // 隨機後備：三元等值分數鏈求甲-乙
+  const d=pick([4,6,8,9,10,12]),n=rp(1,d-1),m1=pick([2,3]),m2=pick([3,4,5]);
+  return {question:`若 \\(-\\dfrac{${n}}{${d}}=\\dfrac{甲}{${d*m1}}=-\\dfrac{乙}{${d*m2}}\\)，則 \\(甲-乙=\\)`,type:'number',answer:-n*m1-n*m2,answerPrefix:'甲-乙'};
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -5371,6 +5446,36 @@ function _8aDiffSq(level) {
 }
 
 let _paBQ=[],_paMQ=[],_paHQ=[];
+
+// 多項式 LaTeX 格式化（ax²+bx+c）
+function _pf8(a2,a1,a0){
+  let s='';
+  if(a2!==0){if(a2===1)s='x^2';else if(a2===-1)s='-x^2';else s=`${a2}x^2`;}
+  if(a1!==0){const ab=Math.abs(a1),t=ab===1?'x':`${ab}x`;if(s==='')s=a1<0?`-${t}`:t;else s+=a1<0?`-${t}`:`+${t}`;}
+  if(a0!==0){if(s==='')s=`${a0}`;else s+=a0<0?`${a0}`:`+${a0}`;}
+  return s||'0';
+}
+// 隨機後備：兩多項式加減，或等差常數項級數求和
+function _pa_rnd(){
+  if(randInt(0,1)===0){
+    // (x²+1)+(x²+2)+···+(x²+n)，n 從清單中隨機選取
+    const n=pick([20,25,30,40,50,60,70,80,90,99,100,120]);
+    const sumN=n*(n+1)/2;
+    if(randInt(0,1)===0)
+      return {question:`化簡 \\((x^2+1)+(x^2+2)+\\cdots+(x^2+${n})\\) 後，\\(x^2\\) 項的係數為`,type:'number',answer:n,answerPrefix:'x²項係數'};
+    return {question:`化簡 \\((x^2+1)+(x^2+2)+\\cdots+(x^2+${n})\\) 後，常數項為`,type:'number',answer:sumN,answerPrefix:'常數項'};
+  }
+  const a2=pick([-3,-2,-1,1,2,3,4]),a1=pick([-4,-3,-2,2,3,4]),a0=pick([-5,-4,-3,3,4,5]);
+  const b2=pick([-3,-2,-1,1,2,3,4]),b1=pick([-4,-3,-2,2,3,4]),b0=pick([-5,-4,-3,3,4,5]);
+  const sub=randInt(0,1),s=sub?-1:1,op=sub?'-':'+';
+  const c2=a2+s*b2,c1=a1+s*b1,c0=a0+s*b0;
+  const q=`計算 \\((${_pf8(a2,a1,a0)})${op}(${_pf8(b2,b1,b0)})\\) 後，`;
+  const t=randInt(0,2);
+  if(t===0) return {question:q+'\\(x^2\\) 項的係數為',type:'number',answer:c2,answerPrefix:'x²項係數'};
+  if(t===1) return {question:q+'一次項係數為',type:'number',answer:c1,answerPrefix:'一次項係數'};
+  return {question:q+'常數項為',type:'number',answer:c0,answerPrefix:'常數項'};
+}
+
 // ═══════════════════════════════════════════════════════════════════
 //  八上 ▸ 多項式加法與減法
 // ═══════════════════════════════════════════════════════════════════
@@ -5401,7 +5506,8 @@ function _8aPolyAdd(level) {
       {q:'若 \\(A\\)、\\(B\\)、\\(C\\) 皆為 \\(x\\) 的多項式，且 \\(A=x^2-6x+3\\)，\\(B=-3x^2-5\\)，\\(C=2x-1\\)，則 \\(A-(B+C)=\\)', type:'poly', a2:4, a1:-8, a0:9},
       {q:'計算 \\((x-8)+[-x+4x^2-(3x-2x^2+4)]\\)（答案以降冪排列）', type:'poly', a2:6, a1:-3, a0:-12},
     ];
-    return ret(jrQPick(pool,_paBQ));
+    const item=jrQPickOnce(pool,_paBQ); if(item!==null) return ret(item);
+    return _pa_rnd();
   }
   if(level==='medium'){
     const pool=[
@@ -5409,8 +5515,7 @@ function _8aPolyAdd(level) {
       {q:'若 \\((7x^2-6x+5)-(5-7x)=ax^2+bx+c\\)，則 \\(cx^2+ax+b+(x^2+2)=\\)', type:'poly', a2:1, a1:7, a0:3},
       {q:'若多項式 \\(ax^3-bx^2+9\\) 與 \\(2x^3-3\\) 相加後為常數多項式，則 \\(a+b=\\)', type:'number', ans:-2, pfx:'a+b'},
       {q:'將多項式 \\((5x^3+7x-9)-(-3x^3+2x^2-4)\\) 化簡後可得 \\(ax^3+bx^2+cx+d\\)，其中 \\(a\\)、\\(b\\)、\\(c\\)、\\(d\\) 為各項係數，則 \\(a-b+c-d=\\)', type:'number', ans:22, pfx:'a-b+c-d'},
-      {q:'化簡 \\((x^2+1)+(x^2+2)+\\cdots+(x^2+99)\\) 後，\\(x^2\\) 項的係數為', type:'number', ans:99, pfx:'x²項係數'},
-      {q:'化簡 \\((x^2+1)+(x^2+2)+\\cdots+(x^2+99)\\) 後，常數項為', type:'number', ans:4950, pfx:'常數項'},
+
       {q:'兩個多項式進行直式減法：\\(-6x^3+ax^2-bx+19\\) 減去 \\(cx^3+8x^2+3x-d\\) 得 \\(4x^2-11\\)，則 \\(a+b+c+d=\\)', type:'number', ans:-27, pfx:'a+b+c+d'},
       {q:'計算 \\(3(x^2+3x+5)+2(-2x+4x^2+1)-(2x^2+3x+6)\\)', type:'poly', a2:9, a1:2, a0:11},
       {q:'計算 \\((-x^2+7x-11)+(x^3-2x-4)\\) 後，一次項係數為', type:'number', ans:5, pfx:'一次項係數'},
@@ -5421,7 +5526,8 @@ function _8aPolyAdd(level) {
       {q:'化簡 \\(3x^2-[-3+2x^2+x-(-2x-3x^2-5)]\\)', type:'poly', a2:-2, a1:-3, a0:-2},
       {q:'計算 \\(6x+(7x-1)-(8x^2+2)\\) 後，\\(x^2\\) 項的係數為', type:'number', ans:-8, pfx:'x²項係數'},
     ];
-    return ret(jrQPick(pool,_paMQ));
+    const item=jrQPickOnce(pool,_paMQ); if(item!==null) return ret(item);
+    return _pa_rnd();
   }
   // hard
   const pool=[
@@ -5438,9 +5544,11 @@ function _8aPolyAdd(level) {
     {q:'計算 \\(8x-\\{2x^2-[-5x-(3x^2-4)-5]\\}-(3x-11)\\) 後，\\(x^2\\) 項係數為', type:'number', ans:-5, pfx:'x²項係數'},
     {q:'計算 \\((2x^2-5x-12)+(-3x+6-4x^2)+(4x^2-x+9)\\) 後，常數項為', type:'number', ans:3, pfx:'常數項'},
   ];
-  return ret(jrQPick(pool,_paHQ));
+  const item=jrQPickOnce(pool,_paHQ); if(item!==null) return ret(item);
+  return _pa_rnd();
 }
 
+let _pmBQ=[],_pmMQ=[],_pmHQ=[];
 // ═══════════════════════════════════════════════════════════════════
 //  八上 ▸ 多項式乘法與除法
 // ═══════════════════════════════════════════════════════════════════
@@ -5449,6 +5557,10 @@ function gen8aPolyMul(level) {
   return _8aPolyMul('basic');
 }
 function _8aPolyMul(level) {
+  const ret=it=>{
+    if(it.type==='poly') return {question:it.q,type:'poly',polyA2:it.a2,polyA1:it.a1,polyA0:it.a0,answerPrefix:it.pfx||''};
+    return {question:it.q,type:it.type,answer:it.ans,answerPrefix:it.pfx||''};
+  };
   const ps=(a2,a1,a0)=>{
     const t=[];
     if(a2!==0){const ab=Math.abs(a2);t.push({s:a2>0?1:-1,v:ab===1?'x^2':`${ab}x^2`});}
@@ -5469,6 +5581,20 @@ function _8aPolyMul(level) {
   const poly=(q,a2,a1,a0)=>({question:q,type:'poly',polyA2:a2,polyA1:a1,polyA0:a0});
 
   if(level==='basic'){
+    const bpool=[
+      {q:'\\(A\\) 為多項式，若 \\(\\dfrac{x^2-x-1}{A}=(x+2)+\\dfrac{5}{A}\\)，則 \\(A=\\)', type:'poly',a2:0,a1:1,a0:-3,pfx:''},
+      {q:'化簡 \\(5(x^2-2x+3)-2(3x^2-x+1)\\)', type:'poly',a2:-1,a1:-8,a0:13,pfx:''},
+      {q:'展開 \\((-4x+7)(2x-1)\\)', type:'poly',a2:-8,a1:18,a0:-7,pfx:''},
+      {q:'展開 \\((x^2+mx+n)(-4x+6)\\) 後，不含 \\(x^2\\) 與常數項，則 \\(x\\) 項係數為', type:'number',ans:9,pfx:'\\(x\\) 項係數'},
+      {q:'若多項式 \\(A=2x^2-10\\)，多項式 \\(B=-6x^2+3x+4\\)，計算多項式 \\(A-2B\\)，並將結果依降冪排列為', type:'poly',a2:14,a1:-6,a0:-18,pfx:''},
+      {q:'小智在解多項式的除法 \\(A\\div B\\) 時，不小心將題目看成 \\(A\\times B\\)，算出來的答案是 \\((-x^2+3x+18)\\)，已知多項式 \\(B\\) 為 \\((x+3)\\)，則多項式 \\(A\\) 為', type:'poly',a2:0,a1:-1,a0:6,pfx:''},
+      {q:'若多項式 \\(A\\) 除以 \\(3x+1\\)，得商式為 \\(x-2\\)，餘式為 \\(-2\\)，則多項式 \\(A=\\)', type:'poly',a2:3,a1:-5,a0:-4,pfx:''},
+      {q:'化簡 \\((2x-5)^2-[(-3x+2)(x+1)+2]\\)', type:'poly',a2:7,a1:-19,a0:21,pfx:''},
+      {q:'已知有一多項式除以 \\((x-2)\\) 得商式為 \\((2x-3)\\)，餘式為 \\(3\\)，則此多項式除以 \\((x-5)\\) 得商式為', type:'poly',a2:0,a1:2,a0:3,pfx:''},
+      {q:'計算 \\((2x^2+ax+3)(4x-5)\\)，若二次項係數為 \\(18\\)，則其 \\(x\\) 項係數為', type:'number',ans:-23,pfx:'\\(x\\) 項係數'},
+      {q:'已知 \\(x^2=14\\)，則 \\((x-3)(x+3)(x^2+9)=\\)', type:'number',ans:115,pfx:''},
+    ];
+    const bi=jrQPickOnce(bpool,_pmBQ); if(bi!==null) return ret(bi);
     if(randInt(0,1)===0){
       const k=rnzInt(-4,4),a=rnzInt(-6,6),b=randInt(-8,8);
       return poly(`展開 \\(${ni(k)}(${ps(0,a,b)})\\)`, 0, k*a, k*b);
@@ -5478,6 +5604,20 @@ function _8aPolyMul(level) {
     return poly(`化簡 \\((${ps(0,a,b)}) \\div ${k}\\)`, 0, a/k, b/k);
   }
   if(level==='medium'){
+    const mpool=[
+      {q:'若梯形的上底為 \\(2x+1\\)，下底為 \\(4x-3\\)，面積為 \\((12x^2+11x-5)\\) 平方單位，試以 \\(x\\) 的多項式表示此梯形的高為', type:'poly',a2:0,a1:4,a0:5,pfx:''},
+      {q:'多項式 \\(6x^2-10x-9\\) 除以某個多項式後，得商式為 \\(3x+1\\)，餘式為 \\(-5\\)，試求此多項式為', type:'poly',a2:0,a1:2,a0:-4,pfx:''},
+      {q:'若一個長方形的長為 \\((4x+3)\\)，面積為 \\((8x^2-6x-9)\\)，則此長方形的寬為', type:'poly',a2:0,a1:2,a0:-3,pfx:''},
+      {q:'若 \\(x(x-2)=4\\)，則 \\((x+1)^2(x-3)^2-4(x+3)(x-5)+5=\\)', type:'number',ans:50,pfx:''},
+      {q:'\\((198x^2+198x+4)(x^2+4x+198)\\) 展開式中，\\(x^2\\) 項的係數＝', type:'number',ans:40000,pfx:'\\(x^2\\)項係數'},
+      {q:'已知一多項式 \\(W\\)，如果 \\(W\\div(x+1)\\) 的餘式為 \\(1\\)，則 \\([W\\times x(x-1)]\\div(x+1)\\) 所得的餘式為', type:'number',ans:-2,pfx:'餘式'},
+      {q:'計算 \\((8x^2+2x-7)\\div 2x\\) 的商式為【\\(\\quad\\quad\\)】，餘式為【\\(\\quad\\quad\\)】', type:'text',ans:'4x+1;-7',pfx:''},
+      {q:'若已知 \\((3x+a)(bx+3)=-6x^2+11x+c\\)，則 \\(a+b+c=\\)', type:'number',ans:-6,pfx:'\\(a+b+c\\)'},
+      {q:'若 \\(\\dfrac{6x^2-19x+9}{B}=2x-3-\\dfrac{6}{B}\\)，則多項式 \\(B\\) 為', type:'poly',a2:0,a1:3,a0:-5,pfx:''},
+      {q:'若多項式 \\(A\\) 除以 \\(x-2\\)，得到商式為 \\(x-3\\)，餘式為 \\(-4\\)，則多項式 \\(A=\\)', type:'poly',a2:1,a1:-5,a0:2,pfx:''},
+      {q:'已知 \\(A\\)、\\(B\\) 均為多項式，其中 \\(B\\neq 0\\)，若 \\(A\\div B\\) 的商式為 \\(4x+5\\)，餘式為 \\(x+8\\)，則 \\(A\\div 3B\\) 得到的商式為', type:'text',ans:'(4x+5)/3',pfx:''},
+    ];
+    const mi=jrQPickOnce(mpool,_pmMQ); if(mi!==null) return ret(mi);
     const t=randInt(0,4);
     if(t===0){
       const k=rnzInt(-5,5),a=rnzInt(-6,6),b=rnzInt(-8,8);
@@ -5511,6 +5651,21 @@ function _8aPolyMul(level) {
       ]
     };
   }
+  const hpool=[
+    {q:'已知 \\((x^2+mx+n)(x^2-3x+6)\\) 展開後，\\(x^2\\) 項的係數和常數項都是 \\(0\\)，則 \\(m+n=\\)', type:'number',ans:2,pfx:'\\(m+n\\)'},
+    {q:'已知 \\(A\\) 為一多項式，且 \\(A\\cdot(x+5)=x^3+3x^2-13x-15\\)，求 \\(A\\div(x+1)\\) 得商式為【\\(\\quad\\quad\\)】，餘式為【\\(\\quad\\quad\\)】', type:'text',ans:'x-3;0',pfx:''},
+    {q:'計算 \\([(x^2+5x-2)-(-2x^2-3x+4)]\\div(x-2)\\) 的餘式為', type:'number',ans:22,pfx:'餘式'},
+    {q:'求多項式 \\((3x^2+9-5x)(4x^2-6x+7)-(-x+9x^2-4)\\) 的係數總和為', type:'number',ans:31,pfx:'係數總和'},
+    {q:'設 \\(A\\)、\\(B\\) 是整數，若 \\(\\dfrac{x^2+x+A}{x-2}=x+B\\)，則 \\(A=\\)【\\(\\quad\\quad\\)】，\\(B=\\)【\\(\\quad\\quad\\)】', type:'text',ans:'-6;3',pfx:''},
+    {q:'某多項式除 \\(x^3+x^2-7x+3\\) 得商式為 \\(x^2+3x-1\\)，餘式為 \\(1\\)，則此多項式為', type:'poly',a2:0,a1:1,a0:-2,pfx:''},
+    {q:'若多項式 \\(A\\) 除以 \\(2x-5\\) 的商式是 \\(B\\)，餘式是 \\(8\\)，又 \\(B\\) 除以 \\(4x+3\\) 的商式是 \\(x-2\\)，餘式是 \\(-7\\)，則多項式 \\(A\\) 除以 \\((2x-5)(4x+3)\\) 的商式為', type:'poly',a2:0,a1:1,a0:-2,pfx:''},
+    {q:'設 \\(A\\) 為多項式，且 \\(\\dfrac{x^2+4x-17}{A}=x-3+\\dfrac{4}{A}\\)，則多項式 \\(A=\\)', type:'poly',a2:0,a1:1,a0:7,pfx:''},
+    {q:'利用多項式的除法，\\([(ax^2+bx+c)-(-x^2+3x-2)]\\div(3x-2)\\) 後，得商式為 \\(2x-4\\)，餘式為 \\(-1\\)，則 \\(a+2b+c=\\)', type:'number',ans:-16,pfx:'\\(a+2b+c\\)'},
+    {q:'若 \\(6x^4-11x^3+Px^2+2x+Q\\) 可以被 \\(2x^2-x-1\\) 整除，則 \\(P=\\)【\\(\\quad\\quad\\)】，\\(Q=\\)【\\(\\quad\\quad\\)】', type:'text',ans:'5;-2',pfx:''},
+    {q:'若 \\((2x^3+8x^2-ax+3)\\div(2x^2-1)\\) 得餘式 \\(2x+b\\)，則 \\(a=\\)【\\(\\quad\\quad\\)】，\\(b=\\)【\\(\\quad\\quad\\)】', type:'text',ans:'-1;7',pfx:''},
+    {q:'若 \\(x\\) 是實數，且 \\(x^2+2x-5=0\\)，則 \\((x+7)(x+3)(x-1)(x-5)=\\)', type:'number',ans:-60,pfx:''},
+  ];
+  const hi=jrQPickOnce(hpool,_pmHQ); if(hi!==null) return ret(hi);
   const t=randInt(0,4);
   if(t===0){
     const a=rnzInt(-8,8),b=rnzInt(-10,10),c=rnzInt(-8,8),d=rnzInt(-10,10);
@@ -8141,6 +8296,12 @@ function _9aRatioChain(level){
       {q:'已知 \\(x:y=3:2\\)，\\(y:z=6:7\\)，則 \\(x:y:z=\\)',ans:'9:6:7',type:'text',pfx:'\\(x:y:z\\)'},
       {q:'存錢筒中有壹元硬幣 \\(a\\) 枚、伍元硬幣 \\(b\\) 枚、拾元硬幣 \\(c\\) 枚，若 \\(a:b:c=1:2:3\\)，且總共有 \\(615\\) 元，則拾元硬幣有多少枚？',ans:45,type:'number',pfx:'拾元硬幣'},
       {q:'已知 \\(x:y=0.6:0.5\\)，\\(x:z=9:4\\)，則 \\(x:y:z=\\)',ans:'18:15:8',type:'text',pfx:'\\(x:y:z\\)'},
+      {q:'若 \\(a:b=3:4\\)，\\(b:c=6:5\\)，則 \\(a:b:c=\\)',ans:'9:12:10',type:'text',pfx:'\\(a:b:c\\)'},
+      {q:'一三角形三邊長的連比為 \\(3:5:7\\)，若最短邊為 \\(12\\) 公分，則最長邊為多少公分？',ans:28,type:'number',pfx:'最長邊'},
+      {q:'某班男生：女生 \\(=3:2\\)，女生：老師 \\(=10:1\\)，若老師有 \\(2\\) 位，則全班學生共有多少人？',ans:50,type:'number',pfx:'全班學生數'},
+      {q:'一批零件良品：不良品 \\(=9:1\\)，若不良品有 \\(30\\) 件，則良品共有多少件？',ans:270,type:'number',pfx:'良品數量'},
+      {q:'若 \\(a:b=2:3\\)，\\(b:c=9:4\\)，則 \\(a:c=\\)',ans:'3:2',type:'text',pfx:'\\(a:c\\)'},
+      {q:'甲、乙、丙共有糖果 \\(120\\) 顆，若甲：乙：丙 \\(=1:2:3\\)，則乙比甲多幾顆？',ans:20,type:'number',pfx:'乙比甲多'},
     ];
     const item=jrQPick(pool,_rcBQ);
     return {question:item.q,answer:item.ans,type:item.type,answerPrefix:item.pfx};
@@ -8255,6 +8416,15 @@ function _9aPropSeg(level){
     {q:'在坐標平面上，直線 \\(L\\) 的方程式為 \\(3x-8y+24=0\\)，分別交 \\(x\\) 軸、\\(y\\) 軸於 \\(A\\)、\\(B\\)，原點 \\(O\\) 與 \\(A\\)、\\(B\\) 形成 \\(\\triangle OAB\\)，\\(C\\) 為 \\(\\overline{OA}\\) 上一點，若 \\(\\triangle ABC\\) 面積：\\(\\triangle OAB\\) 面積 \\(=1:4\\)，則直線 \\(BC\\) 的方程式為',ans:'y=\\dfrac{1}{2}x+3',type:'text',pfx:'方程式'},
     {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，\\(\\overline{FE}//\\overline{DC}\\)，若 \\(\\overline{AF}=9\\)，\\(\\overline{FD}=15\\)，則 \\(\\overline{BD}=\\)',ans:40,type:'number',pfx:'\\(\\overline{BD}\\)'},
     {q:'如圖，\\(\\overline{AB}//\\overline{CD}//\\overline{EF}\\)，若 \\(\\overline{AG}:\\overline{AF}=2:7\\)，\\(\\overline{AC}=6\\)，\\(\\overline{GD}=10\\)，則 \\(\\overline{AB}+\\overline{CE}=\\)',ans:29,type:'number',pfx:'\\(\\overline{AB}+\\overline{CE}\\)'},
+    {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{BD}:\\overline{DC}=3:5\\)，若 \\(\\triangle ABC\\) 面積為 \\(32\\)，則 \\(\\triangle ABD\\) 面積為',ans:12,type:'number',pfx:'\\(\\triangle ABD\\) 面積'},
+    {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{BD}:\\overline{DC}=2:3\\)，若 \\(\\triangle ABD\\) 面積為 \\(16\\)，則 \\(\\triangle ACD\\) 面積為',ans:24,type:'number',pfx:'\\(\\triangle ACD\\) 面積'},
+    {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，\\(\\overline{AD}=4\\)，\\(\\overline{DB}=6\\)，\\(\\overline{AC}=15\\)，則 \\(\\overline{EC}=\\)',ans:9,type:'number',pfx:'\\(\\overline{EC}\\)'},
+    {q:'如圖，\\(L_1//L_2//L_3\\)，截線 \\(M_1\\) 上 \\(\\overline{AB}=3\\)，\\(\\overline{BC}=4\\)，截線 \\(M_2\\) 上 \\(\\overline{DE}=6\\)，則 \\(\\overline{EF}=\\)',ans:8,type:'number',pfx:'\\(\\overline{EF}\\)'},
+    {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，\\(\\overline{AD}:\\overline{DB}=3:2\\)，\\(\\overline{BC}=20\\)，則 \\(\\overline{DE}=\\)',ans:12,type:'number',pfx:'\\(\\overline{DE}\\)'},
+    {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，\\(\\overline{AE}=8\\)，\\(\\overline{EC}=4\\)，\\(\\overline{DE}=10\\)，則 \\(\\overline{BC}=\\)',ans:15,type:'number',pfx:'\\(\\overline{BC}\\)'},
+    {q:'梯形 \\(ABCD\\) 中，\\(\\overline{AD}//\\overline{BC}\\)，\\(\\overline{AD}=6\\)，\\(\\overline{BC}=10\\)，\\(E\\) 為 \\(\\overline{AB}\\) 中點，\\(F\\) 為 \\(\\overline{CD}\\) 中點，則中線 \\(\\overline{EF}=\\)',ans:8,type:'number',pfx:'\\(\\overline{EF}\\)'},
+    {q:'在 \\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 的中點，若 \\(\\triangle ADE\\) 的面積為 \\(9\\)，則 \\(\\triangle ABC\\) 的面積為',ans:36,type:'number',pfx:'\\(\\triangle ABC\\) 面積'},
+    {q:'在 \\(\\triangle ABC\\) 中，\\(D\\) 在 \\(\\overline{AB}\\) 上且 \\(\\overline{AD}=2\\overline{DB}\\)，\\(E\\) 為 \\(\\overline{AC}\\) 中點，若 \\(\\triangle ADE\\) 的面積為 \\(6\\)，則 \\(\\triangle ABC\\) 的面積為',ans:18,type:'number',pfx:'\\(\\triangle ABC\\) 面積'},
   ];
   const item=jrQPick(pool,_psHQ);
   return {question:item.q,answer:item.ans,type:item.type,answerPrefix:item.pfx};
