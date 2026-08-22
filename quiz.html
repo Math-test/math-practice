@@ -61,7 +61,7 @@
 <script src="js/elementary-gen.js?v=2"></script>
 <script src="js/junior-gen.js?v=153"></script>
 <script src="js/senior-gen.js?v=43"></script>
-<script src="js/quiz.js?v=71"></script>
+<script src="js/quiz.js?v=72"></script>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
@@ -81,86 +81,7 @@
     else if (/^el[cd]-/.test(firstTopic)) { titleEl.textContent = '選修數學乙練習系統'; document.title = '選修數學乙練習'; }
     else if (params.topics.length > 0)    { titleEl.textContent = '先修數學練習系統';   document.title = '先修數學練習'; }
 
-    const topicLabel = params.topics
-      .map(t => ({
-        'frac-add':'分數加法','frac-sub':'分數減法',
-        'frac-mul':'分數乘法','frac-div':'分數除法','frac-mix':'分數四則混合',
-        'dec-add':'小數加法','dec-sub':'小數減法',
-        'dec-mul':'小數乘法','dec-div':'小數除法','dec-mix':'小數四則混合',
-        'mix-fd':'分數小數混合',
-        'int-arith':'整數四則運算','gcd-lcm':'公因數公倍數',
-        'ratio-val':'比與比值','rate':'速率',
-        'unit':'單位換算','area':'面積','volume':'體積表面積',
-        '7a-prime':'質因數分解',
-        '7b-poly':'二元一次多項式',
-        '7a-int-exp':'整數指數律',
-        '7a-frac-exp':'分數指數律',
-        '7b-coord':'平面座標',
-        '7b-linepic':'二元一次方程式圖形',
-        '7b-chain':'二元一次式連等',
-        '7b-ratio':'比例式',
-        '7b-prop':'正比與反比',
-        '7b-dirprop':'正比',
-        '7b-invprop':'反比',
-        '7b-ineq':'一元一次不等式',
-        '7b-stat':'統計',
-        '8a-mulform': '乘法公式',
-        '8a-sq-sum':  '和的平方公式',
-        '8a-sq-diff': '差的平方公式',
-        '8a-diff-sq': '平方差公式',
-        '8a-poly-add':'多項式加法與減法',
-        '8a-poly-mul':'多項式乘法與除法',
-        '8a-sqrt-basic':'平方根的意義',
-        '8a-sqrt-add':'根號加法與減法',
-        '8a-sqrt-mul':'根號乘法與除法',
-        '8a-sqrt-mix':'根號四則運算',
-        '8a-pyth':'畢氏定理',
-        '8a-factor1':'提公因式與乘法公式因式分解',
-        '8a-factor2':'十字交乘法因式分解',
-        '8a-quad1':'因式分解法解一元二次方程式',
-        '8a-quad2':'配方法與公式解',
-        '8a-stat':'統計資料處理',
-        '8b-arith-seq':'等差數列',
-        '8b-arith-series':'等差級數',
-        '8b-geo-seq':'等比數列',
-        '8b-linear-func':'線型函數',
-        '8b-tri-angle':'三角形內角外角',
-        '8b-tri-congruence':'三角形全等',
-        '8b-tri-bisector':'中垂線與角平分線',
-        '8b-tri-side-angle':'三角形邊角關係',
-        '8b-parallel':'平行線與截角',
-        '8b-parallelogram':'平行四邊形',
-        '8b-special-quad':'特殊四邊形',
-        '9a-ratio-chain':'連比',
-        '9a-prop-seg':'比例線段',
-        '9a-similar-poly':'相似多邊形',
-        '9a-trig':'三角比',
-        '9a-circle-line':'點、線、圓',
-        '9a-circle-angle':'圓心角與圓周角',
-        '9a-tri-center':'三角形的心',
-        'b1-decimal-term':'有限小數與循環小數',
-        'b1-expr':'式的運算',
-        'b1-abs-calc':'絕對值方程式',
-        'b1-abs-ineq':'絕對值不等式',
-        'b1-exp':'指數律',
-        'b1-log':'常用對數',
-        'b1-amgm':'算幾不等式',
-        'b1-dbl-rad':'雙重根號',
-        'b1-line':'直線方程式',
-        'b1-line-dist':'點到直線的距離',
-        'b1-line-sys':'聯立方程式的幾何意義',
-        'b1-line-ineq':'二元一次不等式',
-        'b1-line-app':'直線方程式的應用',
-        'b1-div-pt':  '分點公式',
-        'b2-trig':       '三角形的邊角關係',
-        'b3a-arc':         '弳度量',
-        'b3a-trig-add':    '和角公式',
-        'b3a-trig-dbl':    '二倍角與半角',
-        'b3a-trig-graph':  '三角函數的圖形',
-        'b3a-trig-sup':    '三角函數的疊合',
-        'b3b-trig-arc':  '弳度量',
-      }[t] || t))
-      .join('、');
+    const topicLabel = params.topics.map(t => TOPIC_NAMES[t] || t).join('、');
     const levelLabel = {'basic':'基礎','medium':'中等','mixed':'基礎＋中等','hard':'困難'}[params.level] || '';
     document.getElementById('header-sub').textContent = `${topicLabel}　${levelLabel}`;
 

@@ -653,6 +653,22 @@ function renderQuiz(questions, params) {
 
 // ─── 解答頁 ───────────────────────────────────────────────────────
 
+function textAnsToLatex(tv) {
+  const parts = String(tv).split(';');
+  const rendered = parts.map(p => {
+    p = p.trim();
+    if (!p) return p;
+    if (p.includes('\\')) return `\\(${p}\\)`;
+    if (/[一-鿿㐀-䶿]/.test(p)) return p;
+    let c = p.replace(/(-?)(\d+)\/(\d+)/g, (_, s, n, d) => `${s}\\dfrac{${n}}{${d}}`);
+    c = c.replace(/\(([^)]+)\)\/(\d+)/g, (_, e, d) => `\\dfrac{${e}}{${d}}`);
+    if (c.includes('\\')) return `\\(${c}\\)`;
+    if (/^[-\d\s.+\-*^()[\]<>=≤≥|a-zA-Z]+$/.test(p) && /\d/.test(p)) return `\\(${p}\\)`;
+    return p;
+  });
+  return rendered.join('；');
+}
+
 function renderAnswerSheet(questions, topicLabel, levelLabel, dateStr) {
   const sheet = document.getElementById('answer-sheet');
   if (!sheet) return;
@@ -698,7 +714,7 @@ function renderAnswerSheet(questions, topicLabel, levelLabel, dateStr) {
     } else {
       const _ip = q.sym ? `x ${q.sym} ` : (q.answerPrefix && /[<>≤≥]$/.test(q.answerPrefix) ? `${q.answerPrefix} ` : '');
       const _tv = String(q.answer);
-      val = _ip + (q.type === 'fraction' ? `\\(${fracToLatex(q.answer)}\\)` : q.type === 'text' ? (_tv.includes('\\') ? `\\(${_tv}\\)` : _tv) : q.type === 'sci' ? `\\(${q.sciCoef} \\times 10^{${q.sciExp}}\\)` : dStr(q.answer));
+      val = _ip + (q.type === 'fraction' ? `\\(${fracToLatex(q.answer)}\\)` : q.type === 'text' ? textAnsToLatex(_tv) : q.type === 'sci' ? `\\(${q.sciCoef} \\times 10^{${q.sciExp}}\\)` : dStr(q.answer));
     }
     return `<div class="ans-item"><span class="ans-num">${idx + 1}.</span><span class="ans-val">${val}</span></div>`;
   }
@@ -861,7 +877,7 @@ function checkAnswers() {
       else if (q.type === 'poly') correctStr = `\\(${polyToLatex(q.polyA2,q.polyA1,q.polyA0)}\\)`;
       else if (q.type === 'linear2') correctStr = `\\(${linear2ToLatex(q.linA,q.linB,q.linC)}\\)`;
       else if (q.type === 'sci') correctStr = `\\(${q.sciCoef} \\times 10^{${q.sciExp}}\\)`;
-      else if (q.type === 'text') { const _tv2=String(q.answer); correctStr = _tv2.includes('\\')?`\\(${_tv2}\\)`:_tv2; }
+      else if (q.type === 'text') { correctStr = textAnsToLatex(String(q.answer)); }
       else correctStr = dStr(q.answer);
       fb.innerHTML = `<span class="fb-wrong">✗</span> <span class="fb-ans">正確：${_ip2}${correctStr}</span>`;
     }
