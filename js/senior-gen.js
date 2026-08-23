@@ -474,7 +474,7 @@ function _b1Expr(level) {
 
     if (t === 0) {
       // x+1/x=k → x²+1/x² = k²-2
-      const k = srRandInt(2, 8);
+      const k = srRandInt(2, 15);
       return { question:`已知 \\(x+\\dfrac{1}{x}=${k}\\)，求 \\(x^2+\\dfrac{1}{x^2}\\) 的值？`, answer:k*k-2, type:'number', answerPrefix:'' };
     }
 
@@ -486,12 +486,12 @@ function _b1Expr(level) {
 
     if (t === 2) {
       // (x-a)(x+a)(x²+a²) = x⁴-a⁴
-      const a = srRandInt(1,4), a4 = a*a*a*a;
+      const a = srRandInt(1,8), a4 = a*a*a*a;
       return { question:`化簡 \\((x-${a})(x+${a})(x^2+${a*a})\\)（格式：x^4-N）`, answer:`x^4-${a4}`, type:'text', answerPrefix:'' };
     }
 
     // t=3: Factor (x±a)³
-    const a = srRandInt(1,4), sg = srRandInt(0,1)===0 ? 1 : -1;
+    const a = srRandInt(1,8), sg = srRandInt(0,1)===0 ? 1 : -1;
     const ae = sg*a;
     const [c2,c1,c0] = [3*ae, 3*ae*ae, ae*ae*ae];
     const sStr = ae>=0 ? `+${a}` : `-${a}`;
@@ -504,7 +504,7 @@ function _b1Expr(level) {
 
     if (t === 0) {
       // x+1/x=k (整數) → x³+1/x³ = k³-3k
-      const k = srRandInt(2, 6);
+      const k = srRandInt(2, 10);
       return { question:`已知 \\(x+\\dfrac{1}{x}=${k}\\)，求 \\(x^3+\\dfrac{1}{x^3}\\) 的值？`, answer:k*k*k-3*k, type:'number', answerPrefix:'' };
     }
 
@@ -544,15 +544,18 @@ function _b1Expr(level) {
     if (t === 4) {
       // a³=√N → (a-1)(a+1)(a²-a+1)(a²+a+1) = a⁶-1 = N-1
       const opts = [
-        {kStr:'\\sqrt{2}',ans:1},{kStr:'\\sqrt{3}',ans:2},{kStr:'\\sqrt{5}',ans:4},
-        {kStr:'\\sqrt{6}',ans:5},{kStr:'\\sqrt{7}',ans:6},{kStr:'2',ans:3},{kStr:'3',ans:8}
+        {kStr:'\\sqrt{2}',ans:1},{kStr:'\\sqrt{3}',ans:2},{kStr:'2',ans:3},
+        {kStr:'\\sqrt{5}',ans:4},{kStr:'\\sqrt{6}',ans:5},{kStr:'\\sqrt{7}',ans:6},
+        {kStr:'2\\sqrt{2}',ans:7},{kStr:'3',ans:8},{kStr:'\\sqrt{10}',ans:9},
+        {kStr:'\\sqrt{11}',ans:10},{kStr:'2\\sqrt{3}',ans:11},{kStr:'\\sqrt{13}',ans:12},
+        {kStr:'\\sqrt{14}',ans:13},{kStr:'\\sqrt{15}',ans:14},{kStr:'4',ans:15},
       ];
       const r = opts[srRandInt(0, opts.length-1)];
       return { question:`已知 \\(a^3=${r.kStr}\\)，試求 \\((a-1)(a+1)(a^2-a+1)(a^2+a+1)\\) 的值？`, answer:r.ans, type:'number', answerPrefix:'' };
     }
 
     // t=5: 四因子連乘 (x-a)(x+a)(x²+a²)(x⁴+a⁴) = x⁸-a⁸
-    const a = srRandInt(1,3), a8 = Math.pow(a,8);
+    const a = srRandInt(1,5), a8 = Math.pow(a,8);
     return { question:`化簡 \\((x-${a})(x+${a})(x^2+${a*a})(x^4+${a*a*a*a})\\)（格式：x^8-N）`, answer:`x^8-${a8}`, type:'text', answerPrefix:'' };
   }
 
@@ -592,10 +595,19 @@ function _b1Expr(level) {
   // ht=3: 聯立三次 x+ky=s, x³+k³y³=t → 求 x²+k²y²
   if (ht === 3) {
     const simTbl = [
+      { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+y=3\\)，\\(x^3+y^3=9\\)，試求 \\(x^2+y^2\\) 的值？`, ans:5 },
       { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+2y=3\\)，\\(x^3+8y^3=9\\)，試求 \\(x^2+4y^2\\) 的值？`, ans:5 },
+      { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+2y=4\\)，\\(x^3+8y^3=16\\)，試求 \\(x^2+4y^2\\) 的值？`, ans:8 },
       { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+y=4\\)，\\(x^3+y^3=16\\)，試求 \\(x^2+y^2\\) 的值？`, ans:8 },
+      { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+2y=5\\)，\\(x^3+8y^3=35\\)，試求 \\(x^2+4y^2\\) 的值？`, ans:13 },
       { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+y=5\\)，\\(x^3+y^3=35\\)，試求 \\(x^2+y^2\\) 的值？`, ans:13 },
-      { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+3y=6\\)，\\(x^3+27y^3=72\\)，試求 \\(x^2+9y^2\\) 的值？`, ans:20 }
+      { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+3y=6\\)，\\(x^3+27y^3=72\\)，試求 \\(x^2+9y^2\\) 的值？`, ans:20 },
+      { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+y=6\\)，\\(x^3+y^3=72\\)，試求 \\(x^2+y^2\\) 的值？`, ans:20 },
+      { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+2y=7\\)，\\(x^3+8y^3=91\\)，試求 \\(x^2+4y^2\\) 的值？`, ans:25 },
+      { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+y=7\\)，\\(x^3+y^3=91\\)，試求 \\(x^2+y^2\\) 的值？`, ans:25 },
+      { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+y=8\\)，\\(x^3+y^3=152\\)，試求 \\(x^2+y^2\\) 的值？`, ans:34 },
+      { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+4y=8\\)，\\(x^3+64y^3=128\\)，試求 \\(x^2+16y^2\\) 的值？`, ans:32 },
+      { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+3y=9\\)，\\(x^3+27y^3=243\\)，試求 \\(x^2+9y^2\\) 的值？`, ans:45 },
     ];
     const e = simTbl[srRandInt(0, simTbl.length-1)];
     return { question:e.q, answer:e.ans, type:'number', answerPrefix:'' };
