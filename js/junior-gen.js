@@ -5811,7 +5811,7 @@ function _8aSqrtBasic(level) {
     if(t===2){
       const a=randInt(3,30);
       const n=randInt(a*a+1,(a+1)*(a+1)-1);
-      return {question:`整數 \\(a\\) 滿足 \\(a<\\sqrt{${n}}<a+1\\)，求 \\(a\\)`, answer:a, type:'number'};
+      return {question:`整數 \\(a\\) 滿足 \\(a&lt;\\sqrt{${n}}&lt;a+1\\)，求 \\(a\\)`, answer:a, type:'number'};
     }
     // t=3：(√n)² = n
     const n=randInt(3,200);

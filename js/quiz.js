@@ -658,12 +658,12 @@ function textAnsToLatex(tv) {
   const rendered = parts.map(p => {
     p = p.trim();
     if (!p) return p;
-    if (p.includes('\\')) return `\\(${p}\\)`;
+    if (p.includes('\\')) return `\\(${p.replace(/</g,'&lt;')}\\)`;
     if (/[一-鿿㐀-䶿]/.test(p)) return p;
     let c = p.replace(/(-?)(\d+)\/(\d+)/g, (_, s, n, d) => `${s}\\dfrac{${n}}{${d}}`);
     c = c.replace(/\(([^)]+)\)\/(\d+)/g, (_, e, d) => `\\dfrac{${e}}{${d}}`);
-    if (c.includes('\\')) return `\\(${c}\\)`;
-    if (/^[-\d\s.+\-*^()[\]<>=≤≥|a-zA-Z]+$/.test(p) && /\d/.test(p)) return `\\(${p}\\)`;
+    if (c.includes('\\')) return `\\(${c.replace(/</g,'&lt;')}\\)`;
+    if (/^[-\d\s.+\-*^()[\]<>=≤≥|a-zA-Z]+$/.test(p) && /\d/.test(p)) return `\\(${p.replace(/</g,'&lt;')}\\)`;
     return p;
   });
   return rendered.join('；');
