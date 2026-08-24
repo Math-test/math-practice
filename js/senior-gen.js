@@ -669,7 +669,7 @@ function _b1Exp(level) {
       return { question:`\\(\\left(\\dfrac{${a}}{${b}}\\right)^{-1}\\) ＝ ？（格式：p/q）`, answer:`${b}/${a}`, type:'text', answerPrefix:'' };
     } else if (t === 2) {
       // a^0 = 1
-      const a = srRandInt(2,9);
+      const a = srRandInt(2,20);
       return { question:`\\(${a}^{0}\\) ＝ ？`, answer:1, type:'number', answerPrefix:'' };
     } else if (t === 3) {
       // 求 x：a^x = 1/a^n → x = -n
@@ -732,6 +732,12 @@ function _b1Exp(level) {
         ['9^{\\sqrt{5}} \\times 27^{1-\\frac{2\\sqrt{5}}{3}}', 27],
         ['4^{\\sqrt{5}} \\times 8^{1-\\frac{2\\sqrt{5}}{3}}', 8],
         ['2^{\\sqrt{3}} \\times 4^{1-\\frac{\\sqrt{3}}{2}}', 4],
+        ['2^{\\sqrt{5}} \\times 4^{1-\\frac{\\sqrt{5}}{2}}', 4],
+        ['3^{\\sqrt{2}} \\times 9^{1-\\frac{\\sqrt{2}}{2}}', 9],
+        ['16^{1-\\sqrt{3}} \\times 2^{4\\sqrt{3}-2}', 4],
+        ['27^{1-\\sqrt{2}} \\times 3^{3\\sqrt{2}}', 27],
+        ['8^{\\sqrt{5}} \\times 4^{1-\\frac{3\\sqrt{5}}{2}}', 4],
+        ['2^{3\\sqrt{2}} \\times 8^{1-\\sqrt{2}}', 8],
       ];
       const [q7b, a7b] = srQPick(tbl7b, _b1ExpB7Q);
       return { question:`試化簡 \\(${q7b}\\) ＝ ？`, answer:a7b, type:'number', answerPrefix:'' };
@@ -746,6 +752,12 @@ function _b1Exp(level) {
         ['(3^{-1})^{-1} + 2^{-2} \\times 2^{5} + (5^{-3})^{0}', 12],
         ['(2^{-1})^{-1} + 5^{-2} \\times 5^{3} + (3^{-7})^{0}', 8],
         ['(4^{-1})^{-1} + 2^{-3} \\times 2^{5} + (3^{-4})^{0}', 9],
+        ['(4^{-2})^{-1} + 2^{-3} \\times 2^{5} + (5^{-6})^{0}', 21],
+        ['(5^{-2})^{-1} + 3^{-1} \\times 3^{3} + (2^{-4})^{0}', 35],
+        ['(4^{-1})^{-1} + 3^{-1} \\times 3^{3} + (5^{-2})^{0}', 14],
+        ['(3^{-3})^{-1} + 2^{-2} \\times 2^{4} + (7^{-3})^{0}', 32],
+        ['(2^{-5})^{-1} + 2^{-3} \\times 2^{4} + (3^{-6})^{0}', 35],
+        ['(3^{-2})^{-1} + 5^{-1} \\times 5^{3} + (2^{-7})^{0}', 35],
       ];
       const [q8b, a8b] = srQPick(tbl8b, _b1ExpB8Q);
       return { question:`計算 \\(${q8b}\\) ＝ ？`, answer:a8b, type:'number', answerPrefix:'' };
@@ -797,7 +809,9 @@ function _b1Exp(level) {
       return { question:`若 \\(a > 0\\)，\\(a^{${gE}} = ${gV}\\)，求 \\(a^{${findStr}}\\)`, answer:fV, type:'number', answerPrefix:'' };
     } else if (t === 4) {
       // a^{-1}+b^{-1} = (a+b)/(ab)
-      const pairs = [[2,3],[2,4],[3,6],[2,6],[4,6],[3,4]];
+      const pairs = [[2,3],[2,4],[3,6],[2,6],[4,6],[3,4],
+                     [2,5],[3,5],[4,5],[5,6],[2,8],[3,8],
+                     [4,8],[5,8],[6,8],[3,9]];
       const [a,b] = srQPick(pairs, _b1ExpM4Q);
       const g = srGcd(a+b, a*b);
       const sn = (a+b)/g, sd = (a*b)/g;
@@ -807,6 +821,9 @@ function _b1Exp(level) {
       const tbl = [
         [2,3,2,3,72],[2,3,3,2,108],[2,5,2,3,200],
         [2,4,3,2,256],[2,3,2,2,36],[2,5,2,2,100],
+        [3,2,2,3,108],[3,4,2,3,432],[2,3,3,3,216],
+        [3,5,2,3,675],[2,3,2,4,144],[2,5,3,2,500],
+        [2,4,2,3,128],[3,4,3,2,576],[3,2,3,2,72],
       ];
       const [a,b,p,q,ans] = srQPick(tbl, _b1ExpM5Q);
       return {
@@ -818,6 +835,9 @@ function _b1Exp(level) {
       const tbl = [
         [4,2,3,2,64],[8,3,2,2,16],[27,3,2,2,81],
         [16,4,3,2,64],[32,5,2,3,64],
+        [4,4,2,3,8],[4,2,4,2,256],[4,2,3,3,512],
+        [9,2,3,2,729],[8,3,4,2,256],[125,3,2,2,625],
+        [16,4,3,3,512],[64,6,3,3,512],[81,4,3,2,729],
       ];
       const [a,p,q,r,ans] = srQPick(tbl, _b1ExpM6Q);
       return {
@@ -864,6 +884,12 @@ function _b1Exp(level) {
         [`8^{\\frac{5}{6}} \\times 8^{\\frac{1}{6}} \\times 8^{-\\frac{1}{3}}`, 4],
         [`16^{\\frac{3}{8}} \\times 16^{\\frac{3}{8}} \\div 16^{\\frac{1}{4}}`, 4],
         [`27^{\\frac{5}{6}} \\times 27^{\\frac{1}{6}} \\div 27^{\\frac{2}{3}}`, 3],
+        [`4^{\\frac{5}{6}} \\times 4^{\\frac{1}{6}} \\div 4^{\\frac{1}{2}}`, 2],
+        [`16^{\\frac{5}{8}} \\times 16^{\\frac{1}{8}} \\div 16^{\\frac{1}{4}}`, 4],
+        [`8^{\\frac{5}{6}} \\times 8^{\\frac{1}{3}} \\times 8^{-\\frac{1}{2}}`, 4],
+        [`27^{\\frac{2}{3}} \\times 27^{\\frac{1}{3}} \\div 27^{\\frac{2}{3}}`, 3],
+        [`32^{\\frac{4}{5}} \\times 32^{\\frac{1}{5}} \\div 32^{\\frac{3}{5}}`, 4],
+        [`9^{\\frac{5}{4}} \\times 9^{\\frac{1}{4}} \\div 9^{\\frac{3}{2}}`, 1],
       ];
       const [qm9,ansm9] = srQPick(tbl9m, _b1ExpM9Q);
       return { question:`\\(${qm9}\\) ＝ ？`, answer:ansm9, type:'number', answerPrefix:'' };
@@ -886,13 +912,20 @@ function _b1Exp(level) {
       // a^{2x}=k → (a^x+a^{-x})/(a^{3x}+a^{-3x}) = k/(k²-k+1)
       //          或 (a^{3x}+a^{-3x})/(a^x-a^{-x}) = (k+1)(k²-k+1)/(k(k-1))
       const pool11m = [
-        {q:'設 \\(a>0\\)，\\(a^{2x}=3\\)，求 \\(\\dfrac{a^x+a^{-x}}{a^{3x}+a^{-3x}}\\)', ans:frac(3,7),   type:'fraction'},
-        {q:'設 \\(a>0\\)，\\(a^{2x}=2\\)，求 \\(\\dfrac{a^x+a^{-x}}{a^{3x}+a^{-3x}}\\)', ans:frac(2,3),   type:'fraction'},
-        {q:'設 \\(a>0\\)，\\(a^{2x}=4\\)，求 \\(\\dfrac{a^x+a^{-x}}{a^{3x}+a^{-3x}}\\)', ans:frac(4,13),  type:'fraction'},
-        {q:'設 \\(a>0\\)，\\(a^{2x}=5\\)，求 \\(\\dfrac{a^x+a^{-x}}{a^{3x}+a^{-3x}}\\)', ans:frac(5,21),  type:'fraction'},
-        {q:'設 \\(a>0\\)，\\(a^{2x}=3\\)，求 \\(\\dfrac{a^{3x}+a^{-3x}}{a^x-a^{-x}}\\)', ans:frac(14,3),  type:'fraction'},
-        {q:'設 \\(a>0\\)，\\(a^{2x}=2\\)，求 \\(\\dfrac{a^{3x}+a^{-3x}}{a^x-a^{-x}}\\)', ans:frac(9,2),   type:'fraction'},
-        {q:'設 \\(a>0\\)，\\(a^{2x}=4\\)，求 \\(\\dfrac{a^{3x}+a^{-3x}}{a^x-a^{-x}}\\)', ans:frac(65,12), type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=3\\)，求 \\(\\dfrac{a^x+a^{-x}}{a^{3x}+a^{-3x}}\\)', ans:frac(3,7),    type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=2\\)，求 \\(\\dfrac{a^x+a^{-x}}{a^{3x}+a^{-3x}}\\)', ans:frac(2,3),    type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=4\\)，求 \\(\\dfrac{a^x+a^{-x}}{a^{3x}+a^{-3x}}\\)', ans:frac(4,13),   type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=5\\)，求 \\(\\dfrac{a^x+a^{-x}}{a^{3x}+a^{-3x}}\\)', ans:frac(5,21),   type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=3\\)，求 \\(\\dfrac{a^{3x}+a^{-3x}}{a^x-a^{-x}}\\)', ans:frac(14,3),   type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=2\\)，求 \\(\\dfrac{a^{3x}+a^{-3x}}{a^x-a^{-x}}\\)', ans:frac(9,2),    type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=4\\)，求 \\(\\dfrac{a^{3x}+a^{-3x}}{a^x-a^{-x}}\\)', ans:frac(65,12),  type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=6\\)，求 \\(\\dfrac{a^x+a^{-x}}{a^{3x}+a^{-3x}}\\)', ans:frac(6,31),   type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=7\\)，求 \\(\\dfrac{a^x+a^{-x}}{a^{3x}+a^{-3x}}\\)', ans:frac(7,43),   type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=9\\)，求 \\(\\dfrac{a^x+a^{-x}}{a^{3x}+a^{-3x}}\\)', ans:frac(9,73),   type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=5\\)，求 \\(\\dfrac{a^{3x}+a^{-3x}}{a^x-a^{-x}}\\)', ans:frac(63,10),  type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=6\\)，求 \\(\\dfrac{a^{3x}+a^{-3x}}{a^x-a^{-x}}\\)', ans:frac(217,30), type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=7\\)，求 \\(\\dfrac{a^{3x}+a^{-3x}}{a^x-a^{-x}}\\)', ans:frac(172,21), type:'fraction'},
+        {q:'設 \\(a>0\\)，\\(a^{2x}=9\\)，求 \\(\\dfrac{a^{3x}+a^{-3x}}{a^x-a^{-x}}\\)', ans:frac(365,36), type:'fraction'},
       ];
       const item11m = srQPick(pool11m, _b1ExpM11Q);
       return { question:item11m.q, answer:item11m.ans, type:item11m.type, answerPrefix:'' };
@@ -906,6 +939,14 @@ function _b1Exp(level) {
         {q:'設 \\(2^x=4^y=8^z=16\\)，求 \\(\\dfrac{1}{x}+\\dfrac{1}{y}+\\dfrac{1}{z}\\)',    ans:frac(3,2),  type:'fraction'},
         {q:'設 \\(2^x=8^y=16^z=64\\)，求 \\(x+y-z\\)',                                         ans:frac(13,2), type:'fraction'},
         {q:'設 \\(3^x=9^y=27^z=729\\)，求 \\(x-y+z\\)',                                        ans:5,          type:'number'},
+        {q:'設 \\(2^x=4^y=8^z=256\\)，求 \\(x-y+z\\)',                                         ans:frac(20,3), type:'fraction'},
+        {q:'設 \\(2^x=4^y=8^z=256\\)，求 \\(\\dfrac{1}{x}+\\dfrac{1}{y}+\\dfrac{1}{z}\\)',    ans:frac(3,4),  type:'fraction'},
+        {q:'設 \\(2^x=4^y=8^z=32\\)，求 \\(\\dfrac{1}{x}+\\dfrac{1}{y}+\\dfrac{1}{z}\\)',     ans:frac(6,5),  type:'fraction'},
+        {q:'設 \\(2^x=4^y=8^z=32\\)，求 \\(x+y+z\\)',                                          ans:frac(55,6), type:'fraction'},
+        {q:'設 \\(2^x=4^y=16^z=64\\)，求 \\(x+y-z\\)',                                         ans:frac(15,2), type:'fraction'},
+        {q:'設 \\(2^x=4^y=16^z=16\\)，求 \\(\\dfrac{1}{x}+\\dfrac{1}{y}+\\dfrac{1}{z}\\)',    ans:frac(7,4),  type:'fraction'},
+        {q:'設 \\(3^x=9^y=27^z=243\\)，求 \\(x+y-z\\)',                                        ans:frac(35,6), type:'fraction'},
+        {q:'設 \\(3^x=9^y=81^z=729\\)，求 \\(\\dfrac{1}{x}+\\dfrac{1}{y}+\\dfrac{1}{z}\\)',   ans:frac(7,6),  type:'fraction'},
       ];
       const item12m = srQPick(pool12m, _b1ExpM12Q);
       return { question:item12m.q, answer:item12m.ans, type:item12m.type, answerPrefix:'' };
@@ -946,6 +987,14 @@ function _b1Exp(level) {
         [4,81,3,1,27, 3,8, 2,1,4,   1],  // a^3=27, b^2=4 → 27+4=31
         [3,32,6,5,4,  2,27,4,3,9,   1],  // a^(6/5)=4, b^(4/3)=9 → 4+9=13
         [3,16,3,2,4,  4,32,8,5,4,   1],  // a^(3/2)=4, b^(8/5)=4 → 4+4=8
+        [2,9,3,1,27,  4,16,3,1,8,   1],  // a^2=9→a^3=27, b^4=16→b^3=8 → 35
+        [2,9,3,1,27,  4,16,3,1,8,  -1],  // a^2=9→a^3=27, b^4=16→b^3=8 → 19
+        [4,16,3,1,8,  3,125,2,1,25,  1], // a^4=16→a^3=8, b^3=125→b^2=25 → 33
+        [2,4,3,1,8,   3,27,2,1,9,   1],  // a^2=4→a^3=8, b^3=27→b^2=9 → 17
+        [2,4,3,1,8,   3,27,2,1,9,  -1],  // a^2=4→a^3=8, b^3=27→b^2=9 → -1
+        [4,81,3,1,27, 4,16,5,1,32, -1],  // a^4=81→a^3=27, b^4=16→b^5=32 → -5
+        [6,64,4,1,16, 3,8, 2,1,4,   1],  // a^6=64→a^4=16, b^3=8→b^2=4 → 20
+        [6,64,5,1,32, 3,27,2,1,9,  -1],  // a^6=64→a^5=32, b^3=27→b^2=9 → 23
       ];
       const [aGE,aGV,aFN,aFD,aFV, bGE,bGV,bFN,bFD,bFV, sign] = srQPick(tbl, _b1ExpH2Q);
       const aFS = aFD===1 ? `${aFN}` : `\\frac{${aFN}}{${aFD}}`;
@@ -958,7 +1007,7 @@ function _b1Exp(level) {
       };
     } else if (t === 3) {
       // a+a^{-1}=k，求 a²+a^{-2}=k²-2 或 a³+a^{-3}=k³-3k
-      const k = srRandInt(3,6);
+      const k = srRandInt(3,10);
       if (srRandInt(0,1)===0) {
         return { question:`設 \\(a > 0\\)，若 \\(a + a^{-1} = ${k}\\)，求 \\(a^2 + a^{-2}\\)`, answer:k*k-2, type:'number', answerPrefix:'' };
       } else {
@@ -985,6 +1034,15 @@ function _b1Exp(level) {
         [2,5, 2,1,3, 1,2,2, 80],   // {[2^2×5^{-1}]^3×(2^{-1}×5^2)^2} = 2^4×5 = 80
         [3,2, 2,1,3, 1,2,2, 162],  // {[3^2×2^{-1}]^3×(3^{-1}×2^2)^2} = 3^4×2 = 162
         [2,3, 3,1,2, 1,2,1, 32],   // {[2^3×3^{-1}]^2×(2^{-1}×3^2)^1} = 2^5 = 32
+        [2,3, 2,1,4, 2,3,2, 144],  // 2^(8-4)×3^(6-4)=2^4×3^2=144
+        [2,3, 2,1,4, 1,2,3, 288],  // 2^(8-3)×3^(6-4)=2^5×3^2=288
+        [2,3, 3,2,2, 2,3,3, 243],  // 2^(6-6)×3^(9-4)=3^5=243
+        [3,2, 2,1,4, 2,3,2, 324],  // 3^(8-4)×2^(6-4)=3^4×2^2=324
+        [3,2, 2,1,3, 2,3,1, 81],   // 3^(6-2)×2^(3-3)=3^4=81
+        [3,5, 2,1,3, 1,2,2, 405],  // 3^(6-2)×5^(4-3)=3^4×5=405
+        [2,5, 2,1,4, 2,3,2, 400],  // 2^(8-4)×5^(6-4)=2^4×5^2=400
+        [2,3, 2,1,2, 1,4,1, 72],   // 2^(4-1)×3^(4-2)=2^3×3^2=72
+        [3,2, 2,1,2, 1,4,1, 108],  // 3^(4-1)×2^(4-2)=3^3×2^2=108
       ];
       const [a,b,r,s,m,tt,u,n,ans] = srQPick(tbl, _b1ExpH5Q);
       return {
@@ -995,6 +1053,8 @@ function _b1Exp(level) {
       // 小中括號鏈：[(a^{1/p} × a^n)^m]^p = a^{m(1+np)}
       const tbl = [
         [2,2,1,2,64],[2,2,1,3,512],[2,3,1,2,256],[2,3,2,1,128],[2,2,2,1,32],
+        [2,2,3,1,128],[2,3,1,1,16],[2,2,1,1,8],[2,5,1,1,64],[2,4,2,1,512],
+        [3,2,1,1,27],[3,3,1,1,81],[3,2,2,1,243],[3,2,1,2,729],
       ];
       const [a,p,n,m,ans] = srQPick(tbl, _b1ExpH6Q);
       return {
@@ -1059,7 +1119,12 @@ function _b1Exp(level) {
         [`3^{4} \\times 3^{-2} + \\left(\\dfrac{2}{3}\\right)^{-2}`, '45/4'],   // 9+9/4=45/4
         [`\\left(\\dfrac{2}{3}\\right)^{-2} - 2^{3} \\times 2^{-2}`, '1/4'],    // 9/4-2=1/4
         [`2^{4} \\times 2^{-2} - \\left(\\dfrac{3}{2}\\right)^{-2}`, '32/9'],   // 4-4/9=32/9
-        [`3^{4} \\times 3^{-2} - \\left(\\dfrac{3}{2}\\right)^{-2}`, '77/9'],   // 9-4/9=77/9... wait 9=81/9, 81/9-4/9=77/9 ✓
+        [`3^{4} \\times 3^{-2} - \\left(\\dfrac{3}{2}\\right)^{-2}`, '77/9'],   // 9-4/9=81/9-4/9=77/9
+        [`2^{3} \\times 2^{-2} + \\left(\\dfrac{2}{3}\\right)^{-3}`, '43/8'],   // 2+27/8=43/8
+        [`3^{4} \\times 3^{-3} + \\left(\\dfrac{3}{2}\\right)^{-2}`, '31/9'],   // 3+4/9=31/9
+        [`2^{5} \\times 2^{-3} + \\left(\\dfrac{3}{2}\\right)^{-2}`, '40/9'],   // 4+4/9=40/9
+        [`3^{3} \\times 3^{-1} + \\left(\\dfrac{2}{3}\\right)^{-3}`, '99/8'],   // 9+27/8=99/8
+        [`2^{4} \\times 2^{-2} + \\left(\\dfrac{2}{3}\\right)^{-3}`, '59/8'],   // 4+27/8=59/8
       ];
       const [qMix,ansMix] = srQPick(tblMix, _b1ExpH10Q);
       return { question:`\\(${qMix}\\) ＝ ？（格式：p/q）`, answer:ansMix, type:'text', answerPrefix:'' };
@@ -1088,6 +1153,14 @@ function _b1Exp(level) {
         {q:'假設 \\(f(x)=\\dfrac{9^x}{3+9^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{6}\\right)+f\\!\\left(\\dfrac{2}{6}\\right)+\\cdots+f\\!\\left(\\dfrac{5}{6}\\right)\\)',                ans:frac(5,2), type:'fraction'},
         {q:'假設 \\(f(x)=\\dfrac{25^x}{5+25^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{4}\\right)+f\\!\\left(\\dfrac{2}{4}\\right)+f\\!\\left(\\dfrac{3}{4}\\right)\\)',                      ans:frac(3,2), type:'fraction'},
         {q:'假設 \\(f(x)=\\dfrac{4^x}{2+4^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{8}\\right)+f\\!\\left(\\dfrac{2}{8}\\right)+\\cdots+f\\!\\left(\\dfrac{7}{8}\\right)\\)',                ans:frac(7,2), type:'fraction'},
+        {q:'假設 \\(f(x)=\\dfrac{16^x}{4+16^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{10}\\right)+f\\!\\left(\\dfrac{2}{10}\\right)+\\cdots+f\\!\\left(\\dfrac{9}{10}\\right)\\)',            ans:frac(9,2), type:'fraction'},
+        {q:'假設 \\(f(x)=\\dfrac{4^x}{2+4^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{4}\\right)+f\\!\\left(\\dfrac{2}{4}\\right)+f\\!\\left(\\dfrac{3}{4}\\right)\\)',                        ans:frac(3,2), type:'fraction'},
+        {q:'假設 \\(f(x)=\\dfrac{4^x}{2+4^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{10}\\right)+f\\!\\left(\\dfrac{2}{10}\\right)+\\cdots+f\\!\\left(\\dfrac{9}{10}\\right)\\)',              ans:frac(9,2), type:'fraction'},
+        {q:'假設 \\(f(x)=\\dfrac{9^x}{3+9^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{4}\\right)+f\\!\\left(\\dfrac{2}{4}\\right)+f\\!\\left(\\dfrac{3}{4}\\right)\\)',                        ans:frac(3,2), type:'fraction'},
+        {q:'假設 \\(f(x)=\\dfrac{9^x}{3+9^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{8}\\right)+f\\!\\left(\\dfrac{2}{8}\\right)+\\cdots+f\\!\\left(\\dfrac{7}{8}\\right)\\)',                ans:frac(7,2), type:'fraction'},
+        {q:'假設 \\(f(x)=\\dfrac{25^x}{5+25^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{6}\\right)+f\\!\\left(\\dfrac{2}{6}\\right)+\\cdots+f\\!\\left(\\dfrac{5}{6}\\right)\\)',              ans:frac(5,2), type:'fraction'},
+        {q:'假設 \\(f(x)=\\dfrac{25^x}{5+25^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{8}\\right)+f\\!\\left(\\dfrac{2}{8}\\right)+\\cdots+f\\!\\left(\\dfrac{7}{8}\\right)\\)',              ans:frac(7,2), type:'fraction'},
+        {q:'假設 \\(f(x)=\\dfrac{36^x}{6+36^x}\\)，求 \\(f\\!\\left(\\dfrac{1}{6}\\right)+f\\!\\left(\\dfrac{2}{6}\\right)+\\cdots+f\\!\\left(\\dfrac{5}{6}\\right)\\)',              ans:frac(5,2), type:'fraction'},
       ];
       const item12h = srQPick(pool12h, _b1ExpH12Q);
       return { question:item12h.q, answer:item12h.ans, type:item12h.type, answerPrefix:'' };
@@ -1113,12 +1186,12 @@ function _b1Log(level) {
 
     if (t === 0) {
       // log(10^n) = n
-      const n = srRnz(-2, 4);
+      const n = srRnz(-4, 6);
       return { question:`\\(\\log 10^{${n}}\\) ＝ ？`, answer:n, type:'number', answerPrefix:'' };
 
     } else if (t === 1) {
       // 若 log x = k，求 x（未知數版）
-      const k = srRandInt(1, 5);
+      const k = srRandInt(1, 10);
       const N = Math.pow(10, k);
       return { question:`若 \\(\\log x = ${k}\\)，求 \\(x\\)`, answer:N, type:'number', answerPrefix:'x' };
 
@@ -1127,6 +1200,8 @@ function _b1Log(level) {
       const pairs = [
         [4,25,2],[8,125,3],[2,5000,4],[20,50,3],
         [0.2,500,2],[4,2500,4],[40,25,3],[0.5,200,2],[5,200,3],
+        [50,200,4],[2,50,2],[4,250,3],[0.4,250,2],[2,500,3],
+        [400,25,4],[0.5,2000,3],[80,125,4],[0.1,1000,2],[25,400,4],
       ];
       const [a,b,ans] = srQPick(pairs, _b1LogB2Q);
       return { question:`\\(\\log ${a} + \\log ${b}\\) ＝ ？`, answer:ans, type:'number', answerPrefix:'' };
@@ -1136,6 +1211,8 @@ function _b1Log(level) {
       const pairs = [
         [1000,10,2],[100,0.1,3],[10000,100,2],
         [1000,0.01,5],[10,0.001,4],[100000,1000,2],
+        [100,10,1],[1000,100,1],[10000,10,3],[10,0.1,2],
+        [1000,1,3],[1,0.001,3],[100000,100,3],[10,0.01,3],
       ];
       const [a,b,ans] = srQPick(pairs, _b1LogB3Q);
       return { question:`\\(\\log ${a} - \\log ${b}\\) ＝ ？`, answer:ans, type:'number', answerPrefix:'' };
@@ -1156,6 +1233,13 @@ function _b1Log(level) {
         { N:'27',  a:3*L3 },
         { N:'18',  a:L2+2*L3 },
         { N:'12',  a:2*L2+L3 },
+        { N:'2',   a:L2 },
+        { N:'3',   a:L3 },
+        { N:'16',  a:4*L2 },
+        { N:'24',  a:3*L2+L3 },
+        { N:'36',  a:2*L2+2*L3 },
+        { N:'0.6', a:L2+L3-1 },
+        { N:'1.5', a:L3-L2 },
       ];
       const c = srQPick(cases, _b1LogB5Q);
       return {
@@ -1165,7 +1249,7 @@ function _b1Log(level) {
 
     } else if (t === 6) {
       // 10^x = N，求 x（指數改寫為對數）
-      const n = srRnz(-3, 4);
+      const n = srRnz(-5, 6);
       const N = Math.pow(10, n);
       return { question:`\\(10^x = ${N}\\)，求 \\(x\\)`, answer:n, type:'number', answerPrefix:'x' };
 
@@ -1175,6 +1259,8 @@ function _b1Log(level) {
         {a:2,n:1,x:5},{a:5,n:1,x:2},{a:2,n:2,x:50},
         {a:4,n:2,x:25},{a:5,n:2,x:20},{a:25,n:2,x:4},
         {a:2,n:3,x:500},{a:5,n:3,x:200},{a:4,n:3,x:250},
+        {a:50,n:2,x:2},{a:20,n:2,x:5},{a:8,n:3,x:125},
+        {a:20,n:3,x:50},{a:25,n:3,x:40},{a:50,n:3,x:20},
       ];
       const c = srQPick(cases, _b1LogB7Q);
       return { question:`\\(\\log(${c.a}x) = ${c.n}\\)，求 \\(x\\)`, answer:c.x, type:'number', answerPrefix:'x' };
@@ -1196,6 +1282,12 @@ function _b1Log(level) {
         { N:'0.09', a:2*L3-2 },
         { N:'72',   a:3*L2+2*L3 },
         { N:'0.6',  a:L2+L3-1 },
+        { N:'150',  a:2-L2+L3 },
+        { N:'48',   a:4*L2+L3 },
+        { N:'54',   a:L2+3*L3 },
+        { N:'0.8',  a:3*L2-1 },
+        { N:'0.12', a:2*L2+L3-2 },
+        { N:'0.18', a:L2+2*L3-2 },
       ];
       const c = srQPick(cases, _b1LogM0Q);
       return {
@@ -1214,6 +1306,12 @@ function _b1Log(level) {
         { q:`3\\log 5 + 3\\log 2`,                   ans:3 },
         { q:`\\log 5 + \\log 2 + \\log 10`,          ans:2 },
         { q:`4\\log 2 + 4\\log 5`,                   ans:4 },
+        { q:`\\log 4 + \\log 250`,                   ans:3 },
+        { q:`\\log 5 + \\log 200`,                   ans:3 },
+        { q:`\\log 8 + \\log 125`,                   ans:3 },
+        { q:`2\\log 4 + 2\\log 25`,                  ans:4 },
+        { q:`\\log 18 + \\log \\dfrac{500}{9}`,      ans:3 },
+        { q:`\\log 50 + \\log 20`,                   ans:3 },
       ];
       const c = srQPick(cases, _b1LogM1Q);
       return { question:`計算 \\(${c.q}\\)`, answer:c.ans, type:'number', answerPrefix:'' };
@@ -1229,6 +1327,13 @@ function _b1Log(level) {
         { a:5,b:0,n:2,x:20 },
         { a:1,b:0,n:3,x:1000 },
         { a:2,b:-4,n:1,x:7 },
+        { a:2,b:0,n:2,x:50 },
+        { a:2,b:2,n:2,x:49 },
+        { a:1,b:-5,n:2,x:105 },
+        { a:1,b:0,n:4,x:10000 },
+        { a:2,b:0,n:3,x:500 },
+        { a:5,b:5,n:2,x:19 },
+        { a:2,b:-2,n:2,x:51 },
       ];
       const c = srQPick(cases, _b1LogM2Q);
       let qStr;
@@ -1253,6 +1358,14 @@ function _b1Log(level) {
         { str:`\\log(2 \\times 3^3)`,   a:L2+3*L3 },
         { str:`\\log \\sqrt{6}`,        a:(L2+L3)/2 },
         { str:`\\log \\dfrac{4}{27}`,   a:2*L2-3*L3 },
+        { str:`\\log(2^3 \\times 3)`,   a:3*L2+L3 },
+        { str:`\\log \\dfrac{2}{3}`,    a:L2-L3 },
+        { str:`\\log \\dfrac{3}{4}`,    a:L3-2*L2 },
+        { str:`\\log 2^4`,              a:4*L2 },
+        { str:`\\log 3^4`,              a:4*L3 },
+        { str:`\\log 54`,               a:L2+3*L3 },
+        { str:`\\log 30`,               a:1+L3 },
+        { str:`\\log \\sqrt{3}`,        a:L3/2 },
       ];
       const c = srQPick(cases, _b1LogM3Q);
       return {
@@ -1263,11 +1376,20 @@ function _b1Log(level) {
     } else if (t === 4) {
       // 括號展開：log{[(ab)^m / c^n]} 合併為整數
       const cases5 = [
-        { q:`\\log\\left[\\dfrac{(2 \\times 5)^3}{10}\\right]`,   ans:2 },
-        { q:`\\log\\left[\\dfrac{(4 \\times 25)^2}{100}\\right]`, ans:2 },
-        { q:`\\log\\left[(2 \\times 5)^4\\right]`,                ans:4 },
-        { q:`\\log\\left[\\dfrac{8 \\times 125}{10}\\right]`,     ans:2 },
-        { q:`\\log\\left[\\dfrac{(2 \\times 5)^5}{10^2}\\right]`, ans:3 },
+        { q:`\\log\\left[\\dfrac{(2 \\times 5)^3}{10}\\right]`,      ans:2 },
+        { q:`\\log\\left[\\dfrac{(4 \\times 25)^2}{100}\\right]`,    ans:2 },
+        { q:`\\log\\left[(2 \\times 5)^4\\right]`,                   ans:4 },
+        { q:`\\log\\left[\\dfrac{8 \\times 125}{10}\\right]`,        ans:2 },
+        { q:`\\log\\left[\\dfrac{(2 \\times 5)^5}{10^2}\\right]`,    ans:3 },
+        { q:`\\log\\left[(2 \\times 5)^2\\right]`,                   ans:2 },
+        { q:`\\log\\left[(4 \\times 25)^3 \\div 10^2\\right]`,       ans:4 },
+        { q:`\\log\\left[(8 \\times 125)^2\\right]`,                 ans:6 },
+        { q:`\\log\\left[(2 \\times 5)^6\\right]`,                   ans:6 },
+        { q:`\\log\\left[\\dfrac{(2 \\times 5)^4}{10}\\right]`,      ans:3 },
+        { q:`\\log\\left[\\dfrac{8 \\times 125}{10^2}\\right]`,      ans:1 },
+        { q:`\\log\\left[\\dfrac{(2 \\times 5)^3}{10^2}\\right]`,    ans:1 },
+        { q:`\\log\\left[(16 \\times 625)^2 \\div 10^2\\right]`,     ans:6 },
+        { q:`\\log\\left[\\dfrac{32 \\times 3125}{10}\\right]`,      ans:4 },
       ];
       const c5 = srQPick(cases5, _b1LogM4Q);
       return { question:`計算 \\(${c5.q}\\)`, answer:c5.ans, type:'number', answerPrefix:'' };
@@ -1311,6 +1433,13 @@ function _b1Log(level) {
         { q:`10^{\\log 9} + \\log 0.01 + \\log 100`,   ans:9  },
         { q:`10^{\\log 5} + \\log 10 - \\log 100`,     ans:4  },
         { q:`10^{\\log 7} - \\log 100 + \\log 1000`,   ans:8  },
+        { q:`10^{\\log 6} - \\log 1000 + \\log 10000`, ans:7  },
+        { q:`10^{\\log 4} + \\log 0.01 + \\log 1000`,  ans:5  },
+        { q:`10^{\\log 6} + \\log 0.001 + \\log 100`,  ans:5  },
+        { q:`10^{\\log 3} + \\log 10000 - \\log 100`,  ans:5  },
+        { q:`10^{\\log 11} + \\log 0.01 + \\log 1000`, ans:10 },
+        { q:`10^{\\log 8} + \\log 0.001 + \\log 10000`,ans:9  },
+        { q:`10^{\\log 2} + \\log 10^4 - \\log 1000`,  ans:3  },
       ];
       const c9L = srQPick(cases9L, _b1LogM7Q);
       return { question:`計算 \\(${c9L.q}\\)`, answer:c9L.ans, type:'number', answerPrefix:'' };
@@ -1323,15 +1452,21 @@ function _b1Log(level) {
     if (t === 0) {
       // 幾位數：N = base^n，digits = floor(n × log base) + 1
       const cases = [
-        { base:2, n:10,  logGiven:'\\log 2 \\approx 0.3010', logVal:10*L2,   digits:4 },
-        { base:2, n:20,  logGiven:'\\log 2 \\approx 0.3010', logVal:20*L2,   digits:7 },
-        { base:2, n:30,  logGiven:'\\log 2 \\approx 0.3010', logVal:30*L2,   digits:10 },
-        { base:2, n:50,  logGiven:'\\log 2 \\approx 0.3010', logVal:50*L2,   digits:16 },
-        { base:3, n:10,  logGiven:'\\log 3 \\approx 0.4771', logVal:10*L3,   digits:5 },
-        { base:3, n:20,  logGiven:'\\log 3 \\approx 0.4771', logVal:20*L3,   digits:10 },
-        { base:3, n:15,  logGiven:'\\log 3 \\approx 0.4771', logVal:15*L3,   digits:8 },
+        { base:2, n:10,  logGiven:'\\log 2 \\approx 0.3010', logVal:10*L2,    digits:4 },
+        { base:2, n:20,  logGiven:'\\log 2 \\approx 0.3010', logVal:20*L2,    digits:7 },
+        { base:2, n:30,  logGiven:'\\log 2 \\approx 0.3010', logVal:30*L2,    digits:10 },
+        { base:2, n:50,  logGiven:'\\log 2 \\approx 0.3010', logVal:50*L2,    digits:16 },
+        { base:3, n:10,  logGiven:'\\log 3 \\approx 0.4771', logVal:10*L3,    digits:5 },
+        { base:3, n:20,  logGiven:'\\log 3 \\approx 0.4771', logVal:20*L3,    digits:10 },
+        { base:3, n:15,  logGiven:'\\log 3 \\approx 0.4771', logVal:15*L3,    digits:8 },
         { base:5, n:10,  logGiven:'\\log 5 \\approx 0.6990', logVal:10*0.699, digits:7 },
         { base:5, n:20,  logGiven:'\\log 5 \\approx 0.6990', logVal:20*0.699, digits:14 },
+        { base:2, n:40,  logGiven:'\\log 2 \\approx 0.3010', logVal:40*L2,    digits:13 },
+        { base:2, n:100, logGiven:'\\log 2 \\approx 0.3010', logVal:100*L2,   digits:31 },
+        { base:3, n:25,  logGiven:'\\log 3 \\approx 0.4771', logVal:25*L3,    digits:12 },
+        { base:3, n:30,  logGiven:'\\log 3 \\approx 0.4771', logVal:30*L3,    digits:15 },
+        { base:5, n:15,  logGiven:'\\log 5 \\approx 0.6990', logVal:15*0.699, digits:11 },
+        { base:5, n:5,   logGiven:'\\log 5 \\approx 0.6990', logVal:5*0.699,  digits:4 },
       ];
       const c = srQPick(cases, _b1LogH0Q);
       return {
@@ -1345,11 +1480,17 @@ function _b1Log(level) {
         { base:2, n:10,  logGiven:'\\log 2 \\approx 0.3010', frac:0.010, leading:1 },
         { base:2, n:15,  logGiven:'\\log 2 \\approx 0.3010', frac:0.515, leading:3 },
         { base:2, n:25,  logGiven:'\\log 2 \\approx 0.3010', frac:0.525, leading:3 },
-        { base:3, n:5,   logGiven:'\\log 3 \\approx 0.4771', frac:0.3855,leading:2 },
+        { base:3, n:5,   logGiven:'\\log 3 \\approx 0.4771', frac:0.386, leading:2 },
         { base:3, n:10,  logGiven:'\\log 3 \\approx 0.4771', frac:0.771, leading:5 },
         { base:3, n:20,  logGiven:'\\log 3 \\approx 0.4771', frac:0.542, leading:3 },
         { base:5, n:5,   logGiven:'\\log 5 \\approx 0.6990', frac:0.495, leading:3 },
         { base:5, n:10,  logGiven:'\\log 5 \\approx 0.6990', frac:0.990, leading:9 },
+        { base:2, n:40,  logGiven:'\\log 2 \\approx 0.3010', frac:0.040, leading:1 },
+        { base:2, n:100, logGiven:'\\log 2 \\approx 0.3010', frac:0.100, leading:1 },
+        { base:3, n:15,  logGiven:'\\log 3 \\approx 0.4771', frac:0.157, leading:1 },
+        { base:3, n:25,  logGiven:'\\log 3 \\approx 0.4771', frac:0.928, leading:8 },
+        { base:5, n:20,  logGiven:'\\log 5 \\approx 0.6990', frac:0.980, leading:9 },
+        { base:5, n:15,  logGiven:'\\log 5 \\approx 0.6990', frac:0.485, leading:3 },
       ];
       const c = srQPick(cases, _b1LogH1Q);
       return {
@@ -1368,6 +1509,13 @@ function _b1Log(level) {
         { base:'0.3',  n:10,  logGiven:'\\log 3 \\approx 0.4771', pos:6 },
         { base:'0.2',  n:5,   logGiven:'\\log 2 \\approx 0.3010', pos:4 },
         { base:'0.2',  n:10,  logGiven:'\\log 2 \\approx 0.3010', pos:7 },
+        { base:'0.5',  n:20,  logGiven:'\\log 2 \\approx 0.3010', pos:7 },
+        { base:'0.5',  n:25,  logGiven:'\\log 2 \\approx 0.3010', pos:8 },
+        { base:'0.3',  n:15,  logGiven:'\\log 3 \\approx 0.4771', pos:8 },
+        { base:'0.2',  n:15,  logGiven:'\\log 2 \\approx 0.3010', pos:11 },
+        { base:'0.5',  n:30,  logGiven:'\\log 2 \\approx 0.3010', pos:10 },
+        { base:'0.3',  n:20,  logGiven:'\\log 3 \\approx 0.4771', pos:11 },
+        { base:'0.2',  n:20,  logGiven:'\\log 2 \\approx 0.3010', pos:14 },
       ];
       const c = srQPick(cases, _b1LogH2Q);
       return {
@@ -1383,6 +1531,15 @@ function _b1Log(level) {
         { expr:'2^{5} \\times 5^{5}',   logExpr:'5\\times(\\log 2+\\log 5)',        logVal:5*1,          digits:6 },
         { expr:'6^{10}', logExpr:'10\\times(\\log 2+\\log 3)',                       logVal:10*(L2+L3),   digits:Math.floor(10*(L2+L3))+1 },
         { expr:'6^{15}', logExpr:'15\\times 0.7781',                                 logVal:15*(L2+L3),   digits:Math.floor(15*(L2+L3))+1 },
+        { expr:'2^{15} \\times 3^{5}',  logExpr:'15\\times 0.3010+5\\times 0.4771', logVal:15*L2+5*L3,  digits:7 },
+        { expr:'2^{5} \\times 3^{10}',  logExpr:'5\\times 0.3010+10\\times 0.4771', logVal:5*L2+10*L3,  digits:7 },
+        { expr:'6^{5}',  logExpr:'5\\times(\\log 2+\\log 3)',                        logVal:5*(L2+L3),    digits:4 },
+        { expr:'12^{5}', logExpr:'5\\times(2\\log 2+\\log 3)',                       logVal:5*(2*L2+L3),  digits:6 },
+        { expr:'2^{30}', logExpr:'30\\times 0.3010',                                 logVal:30*L2,        digits:10 },
+        { expr:'3^{15}', logExpr:'15\\times 0.4771',                                 logVal:15*L3,        digits:8 },
+        { expr:'2^{40}', logExpr:'40\\times 0.3010',                                 logVal:40*L2,        digits:13 },
+        { expr:'3^{20}', logExpr:'20\\times 0.4771',                                 logVal:20*L3,        digits:10 },
+        { expr:'2^{10} \\times 5^{10}', logExpr:'10\\times(\\log 2+\\log 5)',        logVal:10,           digits:11 },
       ];
       const c = srQPick(cases, _b1LogH3Q);
       return {
@@ -1399,6 +1556,14 @@ function _b1Log(level) {
         { base:3, n:10,  logGiven:'\\log 3 \\approx 0.4771', k:4 },
         { base:3, n:20,  logGiven:'\\log 3 \\approx 0.4771', k:9 },
         { base:5, n:10,  logGiven:'\\log 5 \\approx 0.6990', k:6 },
+        { base:2, n:40,  logGiven:'\\log 2 \\approx 0.3010', k:12 },
+        { base:2, n:50,  logGiven:'\\log 2 \\approx 0.3010', k:15 },
+        { base:2, n:100, logGiven:'\\log 2 \\approx 0.3010', k:30 },
+        { base:3, n:5,   logGiven:'\\log 3 \\approx 0.4771', k:2 },
+        { base:3, n:15,  logGiven:'\\log 3 \\approx 0.4771', k:7 },
+        { base:3, n:25,  logGiven:'\\log 3 \\approx 0.4771', k:11 },
+        { base:5, n:5,   logGiven:'\\log 5 \\approx 0.6990', k:3 },
+        { base:5, n:15,  logGiven:'\\log 5 \\approx 0.6990', k:10 },
       ];
       const cH4 = srQPick(casesH4, _b1LogH4Q);
       return {
@@ -1791,7 +1956,7 @@ function _b1AmGm(level) {
 
     if (t === 0) {
       // a+b=k, a,b>0, ab 最大值 = (k/2)²
-      const h = srRandInt(2, 10);
+      const h = srRandInt(2, 20);
       const k = 2 * h;
       return {
         question:`設 \\(a > 0,\\ b > 0,\\ a + b = ${k}\\)，則 \\(ab\\) 的最大值為何？`,
@@ -1801,7 +1966,7 @@ function _b1AmGm(level) {
 
     if (t === 1) {
       // ab=n², a,b>0, a+b 最小值 = 2n
-      const n = srRandInt(1, 10);
+      const n = srRandInt(1, 20);
       return {
         question:`設 \\(a > 0,\\ b > 0,\\ ab = ${n*n}\\)，則 \\(a + b\\) 的最小值為何？`,
         answer:2*n, type:'number', answerPrefix:''
@@ -1810,7 +1975,7 @@ function _b1AmGm(level) {
 
     if (t === 2) {
       // x + c/x (c=n²), x>0, 最小值 = 2n
-      const n = srRandInt(1, 10);
+      const n = srRandInt(1, 20);
       const c = n * n;
       return {
         question:`設 \\(x > 0\\)，求 \\(x + \\dfrac{${c}}{x}\\) 的最小值`,
@@ -1855,6 +2020,11 @@ function _b1AmGm(level) {
         { k:8,  ans:'1/2', tp:'text'   },
         { k:6,  ans:'2/3', tp:'text'   },
         { k:12, ans:'1/3', tp:'text'   },
+        { k:3,  ans:'4/3', tp:'text'   },
+        { k:5,  ans:'4/5', tp:'text'   },
+        { k:10, ans:'2/5', tp:'text'   },
+        { k:16, ans:'1/4', tp:'text'   },
+        { k:20, ans:'1/5', tp:'text'   },
       ];
       const e1 = srQPick(cases1, _b1AmGmM1Q);
       return {
@@ -1865,7 +2035,7 @@ function _b1AmGm(level) {
 
     if (t === 2) {
       // a+b=k, a,b>0, a²+b² 最小值 = k²/2
-      const k = [2,4,6,8,10,12,14][srRandInt(0,6)];
+      const k = [2,3,4,5,6,7,8,9,10,12,14,16,18,20][srRandInt(0,13)];
       return {
         question:`設 \\(a > 0,\\ b > 0,\\ a + b = ${k}\\)，則 \\(a^2 + b^2\\) 的最小值為何？`,
         answer:k*k/2, type:'number', answerPrefix:''
@@ -1945,6 +2115,12 @@ function _b1AmGm(level) {
       { a:1, b:4, k:8,  ans:4,     tp:'number' },
       { a:2, b:8, k:8,  ans:1,     tp:'number' },
       { a:1, b:9, k:6,  ans:1,     tp:'number' },
+      { a:1, b:1, k:4,  ans:4,     tp:'number' },
+      { a:1, b:1, k:6,  ans:9,     tp:'number' },
+      { a:2, b:2, k:4,  ans:1,     tp:'number' },
+      { a:2, b:3, k:12, ans:6,     tp:'number' },
+      { a:1, b:4, k:12, ans:9,     tp:'number' },
+      { a:1, b:9, k:9,  ans:'9/4', tp:'text'   },
     ];
     const eH0 = srQPick(casesH0, _b1AmGmH0Q);
     const xPH0 = eH0.a === 1 ? 'x' : `${eH0.a}x`;
@@ -1965,6 +2141,12 @@ function _b1AmGm(level) {
       { a:2, b:8,  k:4,  ans:16 },
       { a:1, b:25, k:4,  ans:20 },
       { a:4, b:9,  k:4,  ans:24 },
+      { a:1, b:1,  k:4,  ans:4  },
+      { a:1, b:1,  k:9,  ans:6  },
+      { a:1, b:4,  k:9,  ans:12 },
+      { a:1, b:4,  k:16, ans:16 },
+      { a:4, b:9,  k:9,  ans:36 },
+      { a:4, b:4,  k:4,  ans:16 },
     ];
     const eH1 = srQPick(casesH1, _b1AmGmH1Q);
     const xPH1 = eH1.a === 1 ? 'x' : `${eH1.a}x`;
@@ -1977,7 +2159,7 @@ function _b1AmGm(level) {
 
   if (t === 2) {
     // (x+a)²/x, x>0, 最小值 = 4a
-    const a2 = srRandInt(1, 10);
+    const a2 = srRandInt(1, 20);
     const sqStr = a2 === 1 ? '(x+1)^2' : `(x+${a2})^2`;
     return {
       question:`設 \\(x > 0\\)，求 \\(\\dfrac{${sqStr}}{x}\\) 的最小值`,
@@ -2374,6 +2556,13 @@ function _b1LineSys(level) {
         {L1:'2x+ky=1',  L2:'6x+9y=4',  k:3},
         {L1:'kx+6y=1',  L2:'2x+4y=3',  k:3},
         {L1:'3x+ky=2',  L2:'9x+6y=5',  k:2},
+        {L1:'kx+3y=4',  L2:'2x+6y=5',  k:1},
+        {L1:'kx+4y=5',  L2:'2x+8y=7',  k:1},
+        {L1:'4x+ky=3',  L2:'x+2y=5',   k:8},
+        {L1:'3x+ky=5',  L2:'x+4y=7',   k:12},
+        {L1:'kx+2y=3',  L2:'3x+6y=7',  k:1},
+        {L1:'2x+ky=3',  L2:'6x+9y=5',  k:3},
+        {L1:'5x+ky=3',  L2:'x+4y=5',   k:20},
       ];
       const e = cases[srRandInt(0,cases.length-1)];
       return {
@@ -2407,6 +2596,13 @@ function _b1LineSys(level) {
         {L1:'3x+ky=9',  L2:'6x+4y=18',  k:2},
         {L1:'kx+2y=8',  L2:'2x+4y=16',  k:1},
         {L1:'4x+ky=12', L2:'2x+3y=6',   k:6},
+        {L1:'kx+3y=9',  L2:'3x+9y=27',  k:1},
+        {L1:'kx+6y=4',  L2:'3x+18y=12', k:1},
+        {L1:'2x+ky=10', L2:'4x+10y=20', k:5},
+        {L1:'kx+4y=8',  L2:'3x+12y=24', k:1},
+        {L1:'5x+ky=15', L2:'10x+6y=30', k:3},
+        {L1:'3x+ky=6',  L2:'9x+6y=18',  k:2},
+        {L1:'kx+5y=15', L2:'2x+10y=30', k:1},
       ];
       const e = cases[srRandInt(0,cases.length-1)];
       return {
@@ -2417,8 +2613,20 @@ function _b1LineSys(level) {
     const pcases = [
       {q:'若兩直線 \\((a-1)x+(3-a)y+3=0\\) 與 \\(2x+ay+3a=0\\) 平行，則實數 \\(a =\\)', ans:-3},
       {q:'若兩直線 \\((2a-1)x+(a+1)y-3=0\\) 與 \\(x+2y-5=0\\) 平行，則實數 \\(a =\\)', ans:1},
+      {q:'若兩直線 \\(kx+2y-1=0\\) 與 \\(3x+6y+5=0\\) 平行，則 \\(k =\\)', ans:1},
+      {q:'若兩直線 \\(2x+ky-3=0\\) 與 \\(4x+6y+1=0\\) 平行，則 \\(k =\\)', ans:3},
+      {q:'若兩直線 \\(kx-3y+2=0\\) 與 \\(4x-6y-1=0\\) 平行，則 \\(k =\\)', ans:2},
+      {q:'若兩直線 \\(3x+ky+5=0\\) 與 \\(6x-4y+2=0\\) 平行，則 \\(k =\\)', ans:-2},
+      {q:'若兩直線 \\(kx+4y-3=0\\) 與 \\(2x+8y+1=0\\) 平行，則 \\(k =\\)', ans:1},
+      {q:'若兩直線 \\(5x+ky-2=0\\) 與 \\(x+3y+4=0\\) 平行，則 \\(k =\\)', ans:15},
+      {q:'若兩直線 \\(4x+ky+1=0\\) 與 \\(x+3y-2=0\\) 平行，則 \\(k =\\)', ans:12},
+      {q:'若兩直線 \\(kx+3y-1=0\\) 與 \\(2x+6y+5=0\\) 平行，則 \\(k =\\)', ans:1},
+      {q:'若兩直線 \\(kx+3y-7=0\\) 與 \\(4x+6y+1=0\\) 平行，則 \\(k =\\)', ans:2},
+      {q:'若兩直線 \\(x+ky-4=0\\) 與 \\(2x+8y+1=0\\) 平行，則 \\(k =\\)', ans:4},
+      {q:'若兩直線 \\(2x+ky+3=0\\) 與 \\(6x+3y-2=0\\) 平行，則 \\(k =\\)', ans:1},
+      {q:'若兩直線 \\(kx+2y+3=0\\) 與 \\(3x+6y-1=0\\) 平行，則 \\(k =\\)', ans:1},
     ];
-    const pe = pcases[srRandInt(0,1)];
+    const pe = pcases[srRandInt(0,pcases.length-1)];
     return {question:pe.q, answer:pe.ans, type:'number', answerPrefix:''};
   }
 
@@ -2431,6 +2639,14 @@ function _b1LineSys(level) {
       {L1:'(k-2)x+y=k+1',  L2:'2x+(k-3)y=2k-6',   ans:'4'  },
       {L1:'(k+1)x+2y=2',   L2:'2x+(k-2)y=1',       ans:'-2' },
       {L1:'(k+1)x+2y=1',   L2:'3x+(k-4)y=-3',      ans:'5'  },
+      {L1:'(2k-1)x+3y=4',  L2:'4x+6y=5',           ans:'3/2'},
+      {L1:'(3k+1)x+2y=5',  L2:'4x+8y=3',           ans:'0'  },
+      {L1:'(2k+1)x+6y=7',  L2:'3x+9y=4',           ans:'1/2'},
+      {L1:'(3k+2)x+4y=5',  L2:'9x+12y=7',          ans:'1/3'},
+      {L1:'(k-1)x+y=3',    L2:'4x+4y=7',           ans:'2'  },
+      {L1:'x+(2k-3)y=1',   L2:'2x+(3k-1)y=5',      ans:'5'  },
+      {L1:'(2k+3)x+4y=3',  L2:'6x+12y=5',          ans:'-1/2'},
+      {L1:'(4k-1)x+2y=5',  L2:'6x+3y=4',           ans:'5/4'},
     ];
     if (_b1LineSysParaQ.length === 0) {
       const idx = paraCases.map((_,i)=>i);
@@ -2444,9 +2660,20 @@ function _b1LineSys(level) {
     };
   }
   const segCases = [
-    {L:'x-ky=5', Ax:5, Ay:1, Bx:-7, By:0, maxK:0 },
-    {L:'x-ky=4', Ax:2, Ay:1, Bx:-6, By:3, maxK:-2},
-    {L:'x-ky=3', Ax:4, Ay:1, Bx:-5, By:2, maxK:1 },
+    {L:'x-ky=5', Ax:5,  Ay:1, Bx:-7, By:0, maxK:0 },
+    {L:'x-ky=4', Ax:2,  Ay:1, Bx:-6, By:3, maxK:-2},
+    {L:'x-ky=3', Ax:4,  Ay:1, Bx:-5, By:2, maxK:1 },
+    {L:'x-ky=4', Ax:6,  Ay:1, Bx:-5, By:0, maxK:2 },
+    {L:'x-ky=5', Ax:7,  Ay:1, Bx:-4, By:0, maxK:2 },
+    {L:'x-ky=4', Ax:7,  Ay:1, Bx:-5, By:0, maxK:3 },
+    {L:'x-ky=5', Ax:8,  Ay:1, Bx:-4, By:0, maxK:3 },
+    {L:'x-ky=4', Ax:8,  Ay:1, Bx:-6, By:0, maxK:4 },
+    {L:'x-ky=6', Ax:10, Ay:1, Bx:-3, By:0, maxK:4 },
+    {L:'x-ky=5', Ax:4,  Ay:1, Bx:-6, By:0, maxK:-1},
+    {L:'x-ky=4', Ax:3,  Ay:1, Bx:-5, By:0, maxK:-1},
+    {L:'x-ky=3', Ax:9,  Ay:2, Bx:-5, By:0, maxK:3 },
+    {L:'x-ky=4', Ax:8,  Ay:2, Bx:-3, By:0, maxK:2 },
+    {L:'x-ky=6', Ax:4,  Ay:2, Bx:-5, By:0, maxK:-1},
   ];
   if (_b1LineSysSegQ.length === 0) {
     const idx = segCases.map((_,i)=>i);
@@ -2482,6 +2709,12 @@ function _b1LineIneq(level) {
         {P:[2,0], A:3,B:-1,c:5,op:'\\leq', sat:false},
         {P:[-1,2],A:1,B:3,c:5,op:'\\leq', sat:true},
         {P:[3,-1],A:2,B:1,c:4,op:'\\geq', sat:true},
+        {P:[0,2], A:2,B:1,c:5,op:'\\leq', sat:true},
+        {P:[4,0], A:1,B:2,c:3,op:'\\geq', sat:true},
+        {P:[1,2], A:3,B:2,c:5,op:'\\leq', sat:false},
+        {P:[3,1], A:2,B:-1,c:4,op:'\\leq', sat:false},
+        {P:[1,4], A:1,B:1,c:4,op:'\\leq', sat:false},
+        {P:[2,3], A:3,B:-1,c:3,op:'\\geq', sat:true},
       ];
       const e = ptCases[srRandInt(0,ptCases.length-1)];
       const Bsgn = e.B>0?`+${e.B}`:String(e.B);
@@ -2499,6 +2732,13 @@ function _b1LineIneq(level) {
         {a:2,b:3,n:12, cnt:19},
         {a:3,b:1,n:6,  cnt:12},
         {a:1,b:3,n:6,  cnt:12},
+        {a:1,b:1,n:5,  cnt:21},
+        {a:2,b:1,n:4,  cnt:9},
+        {a:1,b:2,n:4,  cnt:9},
+        {a:4,b:1,n:8,  cnt:15},
+        {a:1,b:4,n:8,  cnt:15},
+        {a:2,b:1,n:5,  cnt:12},
+        {a:2,b:3,n:9,  cnt:12},
       ];
       const e = latCases[srRandInt(0,latCases.length-1)];
       const aStr = e.a===1?'x':`${e.a}x`;
@@ -2516,6 +2756,14 @@ function _b1LineIneq(level) {
       {P:[4,2], q:'x+y \\leq 5 \\\\ 2x-y \\geq 3',  ans:'否'},
       {P:[1,2], q:'2x+y \\leq 4 \\\\ x+3y \\geq 8',   ans:'否'},
       {P:[0,3], q:'x+2y \\leq 7 \\\\ 3x-y \\geq -3', ans:'是'},
+      {P:[3,1], q:'x+y \\leq 5 \\\\ 2x-y \\geq 3',  ans:'是'},
+      {P:[5,2], q:'x+2y \\leq 8 \\\\ x+y \\leq 6',  ans:'否'},
+      {P:[2,3], q:'x+2y \\leq 9 \\\\ 3x-y \\geq 1', ans:'是'},
+      {P:[1,4], q:'x+2y \\leq 8 \\\\ x+y \\leq 4',  ans:'否'},
+      {P:[3,0], q:'x+y \\leq 2 \\\\ 2x-y \\geq 0',  ans:'否'},
+      {P:[2,2], q:'3x-y \\leq 4 \\\\ x+2y \\leq 6', ans:'是'},
+      {P:[1,1], q:'x+y \\leq 3 \\\\ x+2y \\leq 5',  ans:'是'},
+      {P:[2,4], q:'x+y \\leq 5 \\\\ x+2y \\leq 9',  ans:'否'},
     ];
     const ev2 = hcV2[srRandInt(0,hcV2.length-1)];
     return {
@@ -2528,9 +2776,20 @@ function _b1LineIneq(level) {
     const t = srRandInt(0,3);
     if (t === 0) {
       const cases = [
-        {Pq:'P(a+1,\\ 2a-1)', sys:'x+5y \\geq 18 \\\\ 3x-2y \\leq 2',   ask:'a 的最小值', ans:3, tp:'number'},
-        {Pq:'P(a+2,\\ 3a)',   sys:'x-y \\leq 2 \\\\ x+y \\geq 6',         ask:'a 的最小值', ans:1, tp:'number'},
-        {Pq:'P(2a,\\ a+1)',   sys:'x+y \\leq 6 \\\\ x-y \\geq -2',        ask:'a 的最大整數值', ans:1, tp:'number'},
+        {Pq:'P(a+1,\\ 2a-1)', sys:'x+5y \\geq 18 \\\\ 3x-2y \\leq 2',   ask:'a 的最小值',       ans:3,     tp:'number'},
+        {Pq:'P(a+2,\\ 3a)',   sys:'x-y \\leq 2 \\\\ x+y \\geq 6',         ask:'a 的最小值',       ans:1,     tp:'number'},
+        {Pq:'P(2a,\\ a+1)',   sys:'x+y \\leq 6 \\\\ x-y \\geq -2',        ask:'a 的最大整數值',   ans:1,     tp:'number'},
+        {Pq:'P(a+3,\\ 2a+1)',sys:'x+y \\leq 9 \\\\ 2x-y \\geq 1',         ask:'a 的最大整數值',   ans:1,     tp:'number'},
+        {Pq:'P(2a+1,\\ a-1)',sys:'x+y \\leq 5 \\\\ x+2y \\leq 7',         ask:'a 的最大整數值',   ans:1,     tp:'number'},
+        {Pq:'P(3a+1,\\ a)',  sys:'x+2y \\leq 9 \\\\ x-y \\leq 3',         ask:'a 的最大整數值',   ans:1,     tp:'number'},
+        {Pq:'P(a-1,\\ 2a+1)',sys:'x+y \\leq 7 \\\\ 3x-y \\leq 9',         ask:'a 的最大整數值',   ans:2,     tp:'number'},
+        {Pq:'P(a,\\ 3a-2)',  sys:'x+y \\geq 5 \\\\ 2x-y \\leq 4',         ask:'a 的最小整數值',   ans:2,     tp:'number'},
+        {Pq:'P(2a-1,\\ a+2)',sys:'x+y \\geq 6 \\\\ x-y \\leq 1',          ask:'a 的最小整數值',   ans:2,     tp:'number'},
+        {Pq:'P(a+1,\\ 2a)',  sys:'x+3y \\geq 10 \\\\ 2x-y \\leq 5',       ask:'a 的最小整數值',   ans:2,     tp:'number'},
+        {Pq:'P(3a-2,\\ a+1)',sys:'x+y \\geq 5 \\\\ x+2y \\leq 10',        ask:'a 的最小值',       ans:'3/2', tp:'text'},
+        {Pq:'P(2a+3,\\ a)',  sys:'x+y \\leq 7 \\\\ 3x-2y \\leq 12',       ask:'a 的最大值',       ans:'3/4', tp:'text'},
+        {Pq:'P(a,\\ a+3)',   sys:'x+y \\leq 8 \\\\ 2x-y \\geq -1',        ask:'a 的最大整數值',   ans:2,     tp:'number'},
+        {Pq:'P(a+4,\\ 2a-1)',sys:'x+y \\geq 8 \\\\ x+2y \\leq 12',        ask:'a 的最小整數值',   ans:2,     tp:'number'},
       ];
       const e = cases[srRandInt(0,cases.length-1)];
       return {
@@ -2545,6 +2804,15 @@ function _b1LineIneq(level) {
         {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 2x+y \\leq 6',    ans:9},
         {sys:'y \\geq 0 \\\\ x+y \\leq 3 \\\\ x-y \\geq -1',  ans:4},
         {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+2y \\leq 4',    ans:4},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 3x+y \\leq 6',    ans:6},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+3y \\leq 6',    ans:6},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+y \\leq 6',     ans:18},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 2x+y \\leq 4',    ans:4},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+2y \\leq 6',    ans:9},
+        {sys:'y \\geq 0 \\\\ x-y \\leq 1 \\\\ x+y \\leq 5',   ans:4},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 3x+2y \\leq 12',  ans:12},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 2x+3y \\leq 6',   ans:3},
+        {sys:'y \\geq 0 \\\\ x-2y \\geq -2 \\\\ x+y \\leq 4', ans:9},
       ];
       const e = areaCases[srRandInt(0,areaCases.length-1)];
       return {
@@ -2558,6 +2826,16 @@ function _b1LineIneq(level) {
         {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+y \\leq 4',      cnt:15},
         {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 2x+3y \\leq 12',   cnt:19},
         {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 2x+y \\leq 6',     cnt:16},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+y \\leq 5',      cnt:21},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+y \\leq 2',      cnt:6},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 2x+y \\leq 4',     cnt:9},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+2y \\leq 4',     cnt:9},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 3x+y \\leq 6',     cnt:12},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+3y \\leq 6',     cnt:12},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 2x+3y \\leq 6',    cnt:7},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 3x+2y \\leq 6',    cnt:7},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 2x+y \\leq 8',     cnt:25},
+        {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+2y \\leq 6',     cnt:16},
       ];
       const e = latCases2[srRandInt(0,latCases2.length-1)];
       return {
@@ -2567,27 +2845,47 @@ function _b1LineIneq(level) {
     }
     // t=3: P(k+h, mk+j) → max k
     const kCases = [
-      {Pq:'P(k+1,\\ 2k-1)', sys:'x+3y \\leq 0 \\\\ 4x-y+1 \\geq 0', ask:'k 的最大值', ans:'2/7', tp:'text'},
-      {Pq:'P(k,\\ k+1)',    sys:'x+y \\leq 5 \\\\ x-y \\geq -1',     ask:'k 的最大值', ans:2,      tp:'number'},
+      {Pq:'P(k+1,\\ 2k-1)', sys:'x+3y \\leq 0 \\\\ 4x-y+1 \\geq 0',   ask:'k 的最大值', ans:'2/7', tp:'text'},
+      {Pq:'P(k,\\ k+1)',    sys:'x+y \\leq 5 \\\\ x-y \\geq -1',       ask:'k 的最大值', ans:2,     tp:'number'},
+      {Pq:'P(k+2,\\ 3k)',   sys:'x+y \\leq 8 \\\\ 2x-y \\geq 1',       ask:'k 的最大值', ans:'3/2', tp:'text'},
+      {Pq:'P(2k+1,\\ k)',   sys:'x+2y \\leq 5 \\\\ x-y \\geq -2',      ask:'k 的最大值', ans:1,     tp:'number'},
+      {Pq:'P(k+3,\\ 2k-1)',sys:'x+y \\leq 6 \\\\ x-2y \\geq 0',        ask:'k 的最大值', ans:'4/3', tp:'text'},
+      {Pq:'P(2k,\\ k+2)',   sys:'x+y \\leq 8 \\\\ x-y \\geq -2',       ask:'k 的最大值', ans:2,     tp:'number'},
+      {Pq:'P(k+1,\\ 3k-2)',sys:'x+2y \\leq 5 \\\\ 2x-y \\geq 1',       ask:'k 的最大值', ans:'8/7', tp:'text'},
+      {Pq:'P(k+2,\\ 2k)',   sys:'x+y \\leq 7 \\\\ 3x-y \\geq 2',       ask:'k 的最大值', ans:'5/3', tp:'text'},
+      {Pq:'P(k+1,\\ k-1)', sys:'x+y \\leq 5 \\\\ x+2y \\leq 7',        ask:'k 的最大值', ans:'5/2', tp:'text'},
+      {Pq:'P(2k+3,\\ k-1)',sys:'x-y \\leq 4 \\\\ x+2y \\leq 10',       ask:'k 的最大值', ans:0,     tp:'number'},
+      {Pq:'P(3k+1,\\ k)',   sys:'x+y \\leq 5 \\\\ 2x-3y \\leq 3',      ask:'k 的最大值', ans:'1/3', tp:'text'},
+      {Pq:'P(k,\\ k+3)',    sys:'x+y \\leq 8 \\\\ 2x-3y \\leq 4',      ask:'k 的最大值', ans:'5/2', tp:'text'},
+      {Pq:'P(2k-1,\\ k+1)',sys:'x+y \\leq 7 \\\\ x-2y \\leq 2',        ask:'k 的最大值', ans:'7/3', tp:'text'},
+      {Pq:'P(k+2,\\ 2k+1)',sys:'x+y \\leq 6 \\\\ 2x-y \\leq 4',        ask:'k 的最大值', ans:1,     tp:'number'},
     ];
-    const ke = kCases[srRandInt(0,1)];
+    const ke = kCases[srRandInt(0,kCases.length-1)];
     return {
       question:`若點 \\(${ke.Pq}\\) 在聯立不等式 \\(\\begin{cases} ${ke.sys} \\end{cases}\\) 的圖形中，則 ${ke.ask}為`,
       answer:ke.ans, type:ke.tp, answerPrefix:''
     };
   }
 
-  // hard
-  if (srRandInt(0,1)===0) {
-    return {
-      question:`平面上有直線 \\(L : x-ky=5\\)、\\(A(5,\\ 1)\\)、\\(B(-7,\\ 0)\\)，已知線段 \\(\\overline{AB}\\) 與直線 \\(L\\) 有交點，則 \\(k\\) 的最大值為`,
-      answer:0, type:'number', answerPrefix:''
-    };
-  }
-  return {
-    question:`滿足二元一次聯立不等式 \\(\\begin{cases} y \\geq 0 \\\\ x-y \\geq -1 \\\\ x+2y \\leq 5 \\end{cases}\\) 的圖形，其面積為`,
-    answer:6, type:'number', answerPrefix:''
-  };
+  // hard pool
+  const hardPool = [
+    {q:`平面上有直線 \\(L : x-ky=5\\)、\\(A(5,\\ 1)\\)、\\(B(-7,\\ 0)\\)，已知線段 \\(\\overline{AB}\\) 與直線 \\(L\\) 有交點，則 \\(k\\) 的最大值為`, a:0,      at:'number'},
+    {q:`滿足二元一次聯立不等式 \\(\\begin{cases} y \\geq 0 \\\\ x-y \\geq -1 \\\\ x+2y \\leq 5 \\end{cases}\\) 的圖形，其面積為`, a:6, at:'number'},
+    {q:`平面上有直線 \\(L : x-ky=5\\)、\\(A(7,\\ 2)\\)、\\(B(-3,\\ 0)\\)，已知線段 \\(\\overline{AB}\\) 與直線 \\(L\\) 有交點，則 \\(k\\) 的最大值為`, a:1,      at:'number'},
+    {q:`平面上有直線 \\(L : x-ky=5\\)、\\(A(9,\\ 2)\\)、\\(B(-3,\\ 0)\\)，已知線段 \\(\\overline{AB}\\) 與直線 \\(L\\) 有交點，則 \\(k\\) 的最大值為`, a:2,      at:'number'},
+    {q:`平面上有直線 \\(L : x-ky=5\\)、\\(A(11,\\ 2)\\)、\\(B(-3,\\ 0)\\)，已知線段 \\(\\overline{AB}\\) 與直線 \\(L\\) 有交點，則 \\(k\\) 的最大值為`, a:3,      at:'number'},
+    {q:`平面上有直線 \\(L : x-ky=5\\)、\\(A(7,\\ 3)\\)、\\(B(-3,\\ 0)\\)，已知線段 \\(\\overline{AB}\\) 與直線 \\(L\\) 有交點，則 \\(k\\) 的最大值為`, a:'2/3',  at:'text'},
+    {q:`平面上有直線 \\(L : x-ky=5\\)、\\(A(8,\\ 3)\\)、\\(B(-3,\\ 0)\\)，已知線段 \\(\\overline{AB}\\) 與直線 \\(L\\) 有交點，則 \\(k\\) 的最大值為`, a:1,      at:'number'},
+    {q:`平面上有直線 \\(L : x-ky=5\\)、\\(A(9,\\ 3)\\)、\\(B(-3,\\ 0)\\)，已知線段 \\(\\overline{AB}\\) 與直線 \\(L\\) 有交點，則 \\(k\\) 的最大值為`, a:'4/3',  at:'text'},
+    {q:`平面上有直線 \\(L : x-ky=5\\)、\\(A(7,\\ 1)\\)、\\(B(-3,\\ 0)\\)，已知線段 \\(\\overline{AB}\\) 與直線 \\(L\\) 有交點，則 \\(k\\) 的最大值為`, a:2,      at:'number'},
+    {q:`平面上有直線 \\(L : 3x-ky=9\\)、\\(A(4,\\ 1)\\)、\\(B(1,\\ 2)\\)，已知線段 \\(\\overline{AB}\\) 與直線 \\(L\\) 有交點，則 \\(k\\) 的最大值為`, a:3,      at:'number'},
+    {q:`滿足二元一次聯立不等式 \\(\\begin{cases} x \\geq 0 \\\\ y \\geq 0 \\\\ 2x+3y \\leq 12 \\end{cases}\\) 的圖形，其面積為`, a:12, at:'number'},
+    {q:`滿足二元一次聯立不等式 \\(\\begin{cases} y \\geq 0 \\\\ x+y \\leq 5 \\\\ x-y \\geq -1 \\end{cases}\\) 的圖形，其面積為`, a:9,  at:'number'},
+    {q:`滿足二元一次聯立不等式 \\(\\begin{cases} x \\geq 0 \\\\ y \\geq 0 \\\\ x+3y \\leq 6 \\end{cases}\\) 的圖形，其面積為`, a:6,  at:'number'},
+    {q:`滿足二元一次聯立不等式 \\(\\begin{cases} y \\geq 0 \\\\ 2x-y \\leq 4 \\\\ x+y \\leq 5 \\end{cases}\\) 的圖形，其面積為`, a:3,  at:'number'},
+  ];
+  const he = hardPool[srRandInt(0,hardPool.length-1)];
+  return { question:he.q, answer:he.a, type:he.at, answerPrefix:'' };
 }
 
 // ── b1-line-app：直線方程式的應用（距離・聯立・不等式 混合）────────────
@@ -2773,6 +3071,9 @@ function _b1DblRad(level) {
       {q:'\\sqrt{11-6\\sqrt{2}}', a:1},
       {q:'\\sqrt{7-4\\sqrt{3}}',  a:0},
       {q:'\\sqrt{9-4\\sqrt{5}}',  a:0},
+      {q:'\\sqrt{5+2\\sqrt{6}}',  a:3},  // √3+√2≈3.146
+      {q:'\\sqrt{7+2\\sqrt{10}}', a:3},  // √5+√2≈3.650
+      {q:'\\sqrt{11+2\\sqrt{30}}',a:4},  // √6+√5≈4.685
     ].filter(x=>x.a>0);
     const item=srQPick(IPOOL,_b1DblB4Q);
     return {question:`若 \\(${item.q}\\) 的整數部分為 \\(a\\)，則 \\(a\\)`,answer:item.a,type:'number'};
@@ -2800,6 +3101,24 @@ function _b1DblRad(level) {
         {q:'\\sqrt{9+4\\sqrt{5}}',exq:'a-b^2',
          // √5+2≈4.236, a=4, b=√5-2. b²=(√5-2)²=9-4√5. a-b²=4-(9-4√5)=4√5-5
          type:'radical-mix',rational:-5,radCoeff:4,radM:5},
+        {q:'\\sqrt{7+4\\sqrt{3}}',exq:'2a-b^2',
+         // 2+√3≈3.732, a=3, b=√3-1. b²=4-2√3. 2a-b²=6-(4-2√3)=2+2√3
+         type:'radical-mix',rational:2,radCoeff:2,radM:3},
+        {q:'\\sqrt{6+2\\sqrt{5}}',exq:'b^2+4b',
+         // √5+1≈3.236, a=3, b=√5-2. b²+4b=(9-4√5)+(4√5-8)=1
+         type:'number',answer:1},
+        {q:'\\sqrt{10+4\\sqrt{6}}',exq:'b^2+4b',
+         // √6+2≈4.449, a=4, b=√6-2. b²+4b=(10-4√6)+(4√6-8)=2
+         type:'number',answer:2},
+        {q:'\\sqrt{11+6\\sqrt{2}}',exq:'b^2+2b',
+         // 3+√2≈4.414, a=4, b=√2-1. b²+2b=(3-2√2)+(2√2-2)=1
+         type:'number',answer:1},
+        {q:'\\sqrt{14+4\\sqrt{10}}',exq:'b^2+6b',
+         // √10+2≈5.162, a=5, b=√10-3. b²+6b=(19-6√10)+(6√10-18)=1
+         type:'number',answer:1},
+        {q:'\\sqrt{12+6\\sqrt{3}}',exq:'b^2+2b',
+         // 3+√3≈4.732, a=4, b=√3-1. b²+2b=(4-2√3)+(2√3-2)=2
+         type:'number',answer:2},
       ].filter(x=>!(x.type==='number'&&x.answer===-999));
       const item=srQPick(POOL,_b1DblM0Q);
       const q2={question:`設 \\(${item.q}\\) 的整數部分為 \\(a\\)，小數部分為 \\(b\\)，則 \\(${item.exq}=\\)`};
@@ -2812,6 +3131,9 @@ function _b1DblRad(level) {
       const POOL=[
         {a:3,b:2,ans:10},{a:5,b:3,ans:8},{a:6,b:2,ans:4},
         {a:7,b:3,ans:5},{a:7,b:5,ans:12},
+        // New entries: 2(a+b)/(a-b). Verified:
+        {a:4,b:3,ans:14},{a:9,b:5,ans:7},{a:9,b:7,ans:16},
+        {a:5,b:1,ans:3},{a:5,b:4,ans:18},{a:11,b:7,ans:9},{a:6,b:3,ans:6},
       ];
       const {a,b,ans}=srQPick(POOL,_b1DblM1Q);
       return {
@@ -2841,6 +3163,24 @@ function _b1DblRad(level) {
         {q:'設 \\(a,b\\) 皆為有理數，且 \\(a\\sqrt{11+6\\sqrt{2}}+b\\sqrt{11-6\\sqrt{2}}=15+\\sqrt{2}\\)，則數對 \\((a,b)\\)',
          ans:'(3,2)'},
         // 3(a+b)=15→a+b=5, a-b=1→a=3,b=2
+        {q:'設 \\(a,b\\) 皆為有理數，且 \\(a\\sqrt{6+2\\sqrt{5}}+b\\sqrt{6-2\\sqrt{5}}=3\\sqrt{5}+1\\)，則數對 \\((a,b)\\)',
+         ans:'(2,1)'},
+        // a(√5+1)+b(√5-1)=3√5+1: a+b=3, a-b=1 → a=2,b=1
+        {q:'設 \\(a,b\\) 皆為有理數，且 \\(a\\sqrt{7+4\\sqrt{3}}+b\\sqrt{7-4\\sqrt{3}}=8+2\\sqrt{3}\\)，則數對 \\((a,b)\\)',
+         ans:'(3,1)'},
+        // a(2+√3)+b(2-√3)=8+2√3: 2(a+b)=8→a+b=4, a-b=2→a=3,b=1
+        {q:'設 \\(a,b\\) 皆為有理數，且 \\(a\\sqrt{9+4\\sqrt{5}}+b\\sqrt{9-4\\sqrt{5}}=6\\sqrt{5}\\)，則數對 \\((a,b)\\)',
+         ans:'(3,-3)'},
+        // a(2+√5)+b(2-√5)=6√5: 2(a+b)=0→a=-b, (a-b)=6→a=3,b=-3
+        {q:'設 \\(a,b\\) 皆為有理數，且 \\(a\\sqrt{3+2\\sqrt{2}}+b\\sqrt{3-2\\sqrt{2}}=4\\sqrt{2}+2\\)，則數對 \\((a,b)\\)',
+         ans:'(3,1)'},
+        // a(√2+1)+b(√2-1)=4√2+2: a+b=4, a-b=2→a=3,b=1
+        {q:'設 \\(a,b\\) 皆為有理數，且 \\(a\\sqrt{3+2\\sqrt{2}}+b\\sqrt{3-2\\sqrt{2}}=2\\sqrt{2}+6\\)，則數對 \\((a,b)\\)',
+         ans:'(4,-2)'},
+        // a+b=2, a-b=6→a=4,b=-2. Check:4(√2+1)+(-2)(√2-1)=4√2+4-2√2+2=2√2+6 ✓
+        {q:'設 \\(a,b\\) 皆為有理數，且 \\(a\\sqrt{6+2\\sqrt{5}}+b\\sqrt{6-2\\sqrt{5}}=7\\sqrt{5}+1\\)，則數對 \\((a,b)\\)',
+         ans:'(4,3)'},
+        // a+b=7, a-b=1→a=4,b=3. Check:4(√5+1)+3(√5-1)=4√5+4+3√5-3=7√5+1 ✓
       ];
       const item=srQPick(POOL,_b1DblM2Q);
       return {question:`${item.q} \\(=\\)`,answer:item.ans,type:'text'};
@@ -2968,6 +3308,10 @@ function _b2Trig(level) {
         {q:'\\sin^2 30^\\circ+\\cos^2 60^\\circ+\\tan 60^\\circ\\,\\cos 30^\\circ',          a:frac(2,1)},
         {q:'\\sin 30^\\circ+\\cos 60^\\circ+\\tan 45^\\circ',                                a:frac(2,1)},
         {q:'(\\sin 30^\\circ+\\cos 60^\\circ)^2',                                             a:frac(1,1)},
+        {q:'\\tan^2 60^\\circ-2\\cos^2 30^\\circ+3\\sin^2 30^\\circ',                        a:frac(9,4)},
+        {q:'\\tan 45^\\circ+2\\sin^2 60^\\circ-\\cos^2 30^\\circ',                           a:frac(7,4)},
+        {q:'2\\tan^2 30^\\circ+3\\sin^2 30^\\circ+\\cos^2 60^\\circ',                        a:frac(5,3)},
+        {q:'\\cos 60^\\circ+2\\sin^2 30^\\circ-\\sin 30^\\circ\\cos 30^\\circ\\tan 60^\\circ', a:frac(1,4)},
       ];
       const item = srQPick(pool, _b2TrigSpecialQ);
       return {question:`求 \\(${item.q}\\) 的值`, answer:item.a, type:'fraction'};
@@ -3039,7 +3383,9 @@ function _b2Trig(level) {
 
     if (t === 1) {
       // sinθ+cosθ=p/q（銳角），求(sinθ-cosθ)²
-      const pqs = [{p:5,q:4},{p:7,q:5},{p:4,q:3},{p:9,q:7},{p:11,q:8}];
+      const pqs = [{p:5,q:4},{p:7,q:5},{p:4,q:3},{p:9,q:7},{p:11,q:8},
+                   {p:6,q:5},{p:7,q:6},{p:8,q:7},{p:9,q:8},{p:11,q:9},
+                   {p:11,q:10},{p:13,q:10},{p:13,q:11},{p:14,q:11}];
       const {p, q} = pick(pqs);
       const num = 2*q*q - p*p, den = q*q;
       if (num <= 0) return null;
@@ -3052,7 +3398,8 @@ function _b2Trig(level) {
 
     if (t === 2) {
       // sinθcosθ=p/q（銳角），求tanθ+1/tanθ = 1/(sinθcosθ) = q/p
-      const frs = [{p:3,q:8},{p:2,q:5},{p:5,q:16},{p:3,q:10},{p:4,q:17},{p:2,q:9}];
+      const frs = [{p:3,q:8},{p:2,q:5},{p:5,q:16},{p:3,q:10},{p:4,q:17},{p:2,q:9},
+                   {p:1,q:4},{p:1,q:3},{p:2,q:7},{p:3,q:11},{p:5,q:12},{p:4,q:11},{p:5,q:13},{p:6,q:17}];
       const {p, q} = pick(frs);
       const g = gcd(q, p);
       return {
@@ -3070,6 +3417,14 @@ function _b2Trig(level) {
         {a:5, b:7, kn:12, kd:5},
         {a:5, b:6, kn:11, kd:10},
         {a:7, b:9, kn:16, kd:7},
+        {a:6, b:7, kn:13, kd:12},
+        {a:8, b:9, kn:17, kd:16},
+        {a:7, b:8, kn:15, kd:14},
+        {a:9, b:11,kn:20, kd:9 },
+        {a:10,b:11,kn:21, kd:20},
+        {a:8, b:11,kn:57, kd:16},
+        {a:10,b:13,kn:69, kd:20},
+        {a:12,b:13,kn:25, kd:24},
       ];
       const {a, b, kn, kd} = pick(setups);
       return {
@@ -3079,7 +3434,9 @@ function _b2Trig(level) {
     }
 
     // t === 4: p·cosα·tanα = q → sinα = q/p（因 cosα·tanα = sinα）
-    const cases = [{p:20,q:9},{p:5,q:4},{p:13,q:5},{p:10,q:3},{p:17,q:8},{p:25,q:7}];
+    const cases = [{p:20,q:9},{p:5,q:4},{p:13,q:5},{p:10,q:3},{p:17,q:8},{p:25,q:7},
+                   {p:5,q:3},{p:13,q:12},{p:17,q:15},{p:25,q:24},{p:15,q:8},{p:29,q:20},
+                   {p:41,q:9},{p:37,q:35}];
     const {p, q} = pick(cases);
     return {
       question: `設 \\(\\alpha\\) 為銳角，若 \\(${p}\\cos\\alpha\\tan\\alpha=${q}\\)，則 \\(\\sin\\alpha=\\)`,
@@ -3275,6 +3632,8 @@ function _b3Arc(level) {
         {s:12,A:18, r:3,theta:4},{s:6, A:18, r:6,theta:1},
         {s:8, A:32, r:8,theta:1},{s:12,A:36, r:6,theta:2},
         {s:4, A:2,  r:1,theta:4},{s:8, A:16, r:4,theta:2},
+        {s:4, A:8,  r:4,theta:1},{s:8, A:8,  r:2,theta:4},
+        {s:12,A:24, r:4,theta:3},{s:10,A:50, r:10,theta:1},
       ];
       const item = srQPick(pool, _b3ArcHardQ);
       return {
@@ -3331,6 +3690,9 @@ function _b3aAdd(level) {
         {q:'\\cos100^\\circ\\cos80^\\circ-\\sin100^\\circ\\sin80^\\circ', ans:-1, tp:'number'},
         {q:'\\cos70^\\circ\\cos10^\\circ+\\sin70^\\circ\\sin10^\\circ', ans:frac(1,2), tp:'fraction'},
         {q:'\\cos130^\\circ\\cos10^\\circ+\\sin130^\\circ\\sin10^\\circ', ans:frac(-1,2), tp:'fraction'},
+        {q:'\\sin75^\\circ\\cos15^\\circ+\\cos75^\\circ\\sin15^\\circ', ans:1, tp:'number'},
+        {q:'\\cos160^\\circ\\cos40^\\circ+\\sin160^\\circ\\sin40^\\circ', ans:frac(-1,2), tp:'fraction'},
+        {q:'\\cos140^\\circ\\cos80^\\circ+\\sin140^\\circ\\sin80^\\circ', ans:frac(1,2), tp:'fraction'},
       ];
       const item = srQPick(pool, _b3aAddB0Q);
       return { question:`試求 \\(${item.q}\\) 之值`, answer:item.ans, type:item.tp, answerPrefix:'' };
@@ -3348,6 +3710,9 @@ function _b3aAdd(level) {
         {q:'已知 \\(\\tan\\alpha=\\dfrac{1}{2}\\)、\\(\\tan\\beta=\\dfrac{1}{3}\\)，求 \\(\\tan(\\alpha+\\beta)\\)', ans:1, tp:'number'},
         {q:'已知 \\(\\tan\\alpha=7\\)、\\(\\tan\\beta=2\\)，求 \\(\\tan(\\alpha-\\beta)\\)', ans:frac(1,3), tp:'fraction'},
         {q:'已知 \\(\\tan\\alpha=5\\)、\\(\\tan\\beta=3\\)，求 \\(\\tan(\\alpha-\\beta)\\)', ans:frac(1,8), tp:'fraction'},
+        {q:'已知 \\(\\tan\\alpha=3\\)、\\(\\tan\\beta=1\\)，求 \\(\\tan(\\alpha+\\beta)\\)', ans:-2, tp:'number'},
+        {q:'已知 \\(\\tan A=5\\)、\\(\\tan B=4\\)，求 \\(\\tan(A-B)\\)', ans:frac(1,21), tp:'fraction'},
+        {q:'已知 \\(\\tan\\alpha=\\dfrac{1}{4}\\)、\\(\\tan\\beta=\\dfrac{1}{5}\\)，求 \\(\\tan(\\alpha+\\beta)\\)', ans:frac(9,19), tp:'fraction'},
       ];
       const item = srQPick(pool, _b3aAddB1Q);
       return { question:item.q, answer:item.ans, type:item.tp, answerPrefix:'' };
@@ -3364,6 +3729,10 @@ function _b3aAdd(level) {
         {S:'3',  P:'-1', ans:frac(3,2),  tp:'fraction'},
         {S:'-4', P:'-1', ans:-2,         tp:'number'},
         {S:'6',  P:'5',  ans:frac(-3,2), tp:'fraction'},
+        {S:'7',  P:'6',  ans:frac(-7,5), tp:'fraction'},
+        {S:'4',  P:'3',  ans:-2,         tp:'number'},
+        {S:'-3', P:'2',  ans:3,          tp:'number'},
+        {S:'-5', P:'4',  ans:frac(5,3),  tp:'fraction'},
       ];
       const item = srQPick(pool, _b3aAddB2Q);
       return {
@@ -3383,6 +3752,9 @@ function _b3aAdd(level) {
       {e:'\\dfrac{\\tan154^\\circ-\\tan19^\\circ}{1+\\tan154^\\circ\\tan19^\\circ}', ans:-1},
       {e:'\\dfrac{\\tan167^\\circ-\\tan32^\\circ}{1+\\tan167^\\circ\\tan32^\\circ}', ans:-1},
       {e:'\\dfrac{\\tan55^\\circ-\\tan10^\\circ}{1+\\tan55^\\circ\\tan10^\\circ}', ans:1},
+      {e:'\\dfrac{\\tan40^\\circ+\\tan5^\\circ}{1-\\tan40^\\circ\\tan5^\\circ}', ans:1},
+      {e:'\\dfrac{\\tan35^\\circ+\\tan10^\\circ}{1-\\tan35^\\circ\\tan10^\\circ}', ans:1},
+      {e:'\\dfrac{\\tan120^\\circ+\\tan15^\\circ}{1-\\tan120^\\circ\\tan15^\\circ}', ans:-1},
     ];
     const item3 = srQPick(pool3, _b3aAddB3Q);
     return { question:`試求 \\(${item3.e}\\) 之值`, answer:item3.ans, type:'number', answerPrefix:'' };
@@ -3422,8 +3794,14 @@ function _b3aAdd(level) {
         {sA:'\\dfrac{5}{13}', cB:'-\\dfrac{3}{5}', ans:frac(33,65), tp:'fraction'},
         {sA:'\\dfrac{8}{17}', cB:'-\\dfrac{4}{5}', ans:frac(13,85), tp:'fraction'},
         {sA:'\\dfrac{8}{17}', cB:'-\\dfrac{3}{5}', ans:frac(36,85), tp:'fraction'},
-        {sA:'\\dfrac{3}{5}',  cB:'-\\dfrac{3}{5}', ans:frac(7,25),  tp:'fraction'},
-        {sA:'\\dfrac{7}{25}', cB:'-\\dfrac{3}{5}', ans:frac(3,5),   tp:'fraction'},
+        {sA:'\\dfrac{3}{5}',  cB:'-\\dfrac{3}{5}', ans:frac(7,25),   tp:'fraction'},
+        {sA:'\\dfrac{7}{25}', cB:'-\\dfrac{3}{5}', ans:frac(3,5),    tp:'fraction'},
+        {sA:'\\dfrac{3}{5}',  cB:'-\\dfrac{5}{13}', ans:frac(33,65), tp:'fraction'},
+        {sA:'\\dfrac{4}{5}',  cB:'-\\dfrac{5}{13}', ans:frac(16,65), tp:'fraction'},
+        {sA:'\\dfrac{5}{13}', cB:'-\\dfrac{5}{13}', ans:frac(119,169), tp:'fraction'},
+        {sA:'\\dfrac{15}{17}',cB:'-\\dfrac{5}{13}', ans:frac(21,221), tp:'fraction'},
+        {sA:'\\dfrac{8}{17}', cB:'-\\dfrac{5}{13}', ans:frac(140,221), tp:'fraction'},
+        {sA:'\\dfrac{5}{13}', cB:'-\\dfrac{8}{17}', ans:frac(140,221), tp:'fraction'},
       ];
       const item = srQPick(pool, _b3aAddM1Q);
       return {
@@ -3440,6 +3818,12 @@ function _b3aAdd(level) {
       {q:'設 \\(\\tan\\alpha=\\dfrac{1}{4}\\)，\\(\\tan(\\alpha+\\beta)=-1\\)，求 \\(\\tan\\beta\\)', ans:frac(-5,3), tp:'fraction', pfx:'\\(\\tan\\beta\\)'},
       {q:'設 \\(\\tan\\alpha=2\\)，\\(\\tan(\\alpha-\\beta)=1\\)，求 \\(\\tan\\beta\\)',             ans:frac(1,3), tp:'fraction', pfx:'\\(\\tan\\beta\\)'},
       {q:'設 \\(\\tan\\beta=\\dfrac{3}{4}\\)，\\(\\tan(\\alpha+\\beta)=1\\)，求 \\(\\tan\\alpha\\)', ans:frac(1,7), tp:'fraction', pfx:'\\(\\tan\\alpha\\)'},
+      {q:'設 \\(\\tan\\beta=\\dfrac{1}{5}\\)，\\(\\tan(\\alpha+\\beta)=1\\)，求 \\(\\tan\\alpha\\)', ans:frac(2,3), tp:'fraction', pfx:'\\(\\tan\\alpha\\)'},
+      {q:'設 \\(\\tan\\beta=2\\)，\\(\\tan(\\alpha+\\beta)=-1\\)，求 \\(\\tan\\alpha\\)', ans:3, tp:'number', pfx:'\\(\\tan\\alpha\\)'},
+      {q:'設 \\(\\tan\\alpha=\\dfrac{1}{3}\\)，\\(\\tan(\\alpha+\\beta)=1\\)，求 \\(\\tan\\beta\\)', ans:frac(1,2), tp:'fraction', pfx:'\\(\\tan\\beta\\)'},
+      {q:'設 \\(\\tan\\alpha=4\\)，\\(\\tan(\\alpha+\\beta)=-1\\)，求 \\(\\tan\\beta\\)', ans:frac(5,3), tp:'fraction', pfx:'\\(\\tan\\beta\\)'},
+      {q:'設 \\(\\tan\\alpha=5\\)，\\(\\tan(\\alpha-\\beta)=1\\)，求 \\(\\tan\\beta\\)', ans:frac(2,3), tp:'fraction', pfx:'\\(\\tan\\beta\\)'},
+      {q:'設 \\(\\tan\\beta=\\dfrac{1}{2}\\)，\\(\\tan(\\alpha+\\beta)=1\\)，求 \\(\\tan\\alpha\\)', ans:frac(1,3), tp:'fraction', pfx:'\\(\\tan\\alpha\\)'},
     ];
     const item2 = srQPick(pool2, _b3aAddM2Q);
     return { question:item2.q, answer:item2.ans, type:item2.tp, answerPrefix:item2.pfx };
@@ -3458,6 +3842,11 @@ function _b3aAdd(level) {
         {q:'(1+\\tan6^\\circ)(1+\\tan7^\\circ)(1+\\tan38^\\circ)(1+\\tan39^\\circ)',                   ans:4},
         {q:'(1+\\tan12^\\circ)(1+\\tan33^\\circ)(1+\\tan2^\\circ)(1+\\tan43^\\circ)',                  ans:4},
         {q:'已知 \\((1+\\tan1^\\circ)(1+\\tan2^\\circ)\\cdots(1+\\tan44^\\circ)=2^k\\)，求 \\(k\\)', ans:22, full:true},
+        {q:'(1+\\tan8^\\circ)(1+\\tan37^\\circ)',                                                       ans:2},
+        {q:'(1+\\tan3^\\circ)(1+\\tan42^\\circ)',                                                       ans:2},
+        {q:'(1-\\tan60^\\circ)(1-\\tan75^\\circ)',                                                      ans:2},
+        {q:'(1-\\tan10^\\circ)(1-\\tan125^\\circ)',                                                     ans:2},
+        {q:'(1+\\tan5^\\circ)(1+\\tan8^\\circ)(1+\\tan37^\\circ)(1+\\tan40^\\circ)',                   ans:4},
       ];
       const item = srQPick(pool, _b3aAddH0Q);
       return {
@@ -3474,6 +3863,12 @@ function _b3aAdd(level) {
       {q:'設 \\(\\tan\\alpha\\)、\\(\\tan\\beta\\) 是方程式 \\(x^2-x-6=0\\) 的兩根，求 \\(\\tan(\\alpha+\\beta)\\)', ans:frac(1,7), tp:'fraction'},
       {q:'設 \\(\\tan\\alpha\\)、\\(\\tan\\beta\\) 是方程式 \\(x^2+2x-3=0\\) 的兩根，求 \\(\\tan(\\alpha+\\beta)\\)', ans:frac(-1,2), tp:'fraction'},
       {q:'設 \\(\\tan\\alpha\\)、\\(\\tan\\beta\\) 是方程式 \\(x^2-5x+6=0\\) 的兩根，求 \\(\\tan(\\alpha+\\beta)\\)', ans:-1, tp:'number'},
+      {q:'設 \\(\\tan\\alpha\\)、\\(\\tan\\beta\\) 是方程式 \\(x^2-4x+3=0\\) 的兩根，求 \\(\\tan(\\alpha+\\beta)\\)', ans:-2, tp:'number'},
+      {q:'設 \\(\\tan\\alpha\\)、\\(\\tan\\beta\\) 是方程式 \\(x^2-5x+4=0\\) 的兩根，求 \\(\\tan(\\alpha+\\beta)\\)', ans:frac(-5,3), tp:'fraction'},
+      {q:'設 \\(\\tan\\alpha\\)、\\(\\tan\\beta\\) 是方程式 \\(x^2+x-2=0\\) 的兩根，求 \\(\\tan(\\alpha+\\beta)\\)', ans:frac(-1,3), tp:'fraction'},
+      {q:'設 \\(\\tan\\alpha\\)、\\(\\tan\\beta\\) 是方程式 \\(x^2-4x-5=0\\) 的兩根，求 \\(\\tan(\\alpha+\\beta)\\)', ans:frac(2,3), tp:'fraction'},
+      {q:'設 \\(\\tan\\alpha\\)、\\(\\tan\\beta\\) 是方程式 \\(x^2+3x+2=0\\) 的兩根，求 \\(\\tan(\\alpha+\\beta)\\)', ans:3, tp:'number'},
+      {q:'設 \\(\\tan\\alpha\\)、\\(\\tan\\beta\\) 是方程式 \\(x^2-3x-4=0\\) 的兩根，求 \\(\\tan(\\alpha+\\beta)\\)', ans:frac(3,5), tp:'fraction'},
     ];
     const item = srQPick(pool, _b3aAddH1Q);
     return { question:item.q, answer:item.ans, type:item.tp, answerPrefix:'' };
@@ -3709,6 +4104,9 @@ function _b3aTrigGraph(level) {
         {q:'函數 \\(y=\\cos\\!\\left(\\dfrac{x}{4}-\\dfrac{\\pi}{3}\\right)\\) 的週期為（填 \\(\\square\\,\\pi\\) 中的 \\(\\square\\)）', n:8,d:1},
         {q:'函數 \\(y=2\\tan\\!\\left(3x+\\dfrac{\\pi}{6}\\right)\\) 的週期為（填 \\(\\square\\,\\pi\\) 中的 \\(\\square\\)）', n:1,d:3},
         {q:'函數 \\(y=\\sin(4x-1)+3\\) 的週期為（填 \\(\\square\\,\\pi\\) 中的 \\(\\square\\)）', n:1,d:2},
+        {q:'函數 \\(y=4\\cos\\!\\left(\\dfrac{3x}{4}-1\\right)\\) 的週期為（填 \\(\\square\\,\\pi\\) 中的 \\(\\square\\)）', n:8,d:3},
+        {q:'函數 \\(y=\\tan(4x-1)\\) 的週期為（填 \\(\\square\\,\\pi\\) 中的 \\(\\square\\)）', n:1,d:4},
+        {q:'函數 \\(y=\\sin\\!\\left(\\dfrac{5x}{4}+\\dfrac{\\pi}{6}\\right)\\) 的週期為（填 \\(\\square\\,\\pi\\) 中的 \\(\\square\\)）', n:8,d:5},
       ];
       const item = srQPick(pool, _b3aGrfB0Q);
       const ans = (item.d===1) ? item.n : frac(item.n,item.d);
@@ -3725,6 +4123,12 @@ function _b3aTrigGraph(level) {
         {q:'函數 \\(y=4\\sin(3\\pi x-2)+1\\) 的週期為', ans:frac(2,3), type:'fraction'},
         {q:'函數 \\(y=\\cos(4\\pi x+1)\\) 的週期為', ans:frac(1,2), type:'fraction'},
         {q:'設函數 \\(y=-3\\tan\\!\\left(\\pi x-\\dfrac{\\pi}{6}\\right)+5\\)，則 \\(y\\) 的週期為', ans:1, type:'number'},
+        {q:'函數 \\(y=\\sin\\!\\left(\\dfrac{\\pi x}{2}\\right)\\) 的週期為', ans:4, type:'number'},
+        {q:'函數 \\(y=\\cos\\!\\left(\\dfrac{\\pi x}{3}\\right)\\) 的週期為', ans:6, type:'number'},
+        {q:'函數 \\(y=\\tan\\!\\left(\\dfrac{\\pi x}{4}\\right)\\) 的週期為', ans:4, type:'number'},
+        {q:'函數 \\(y=3\\sin\\!\\left(\\dfrac{2\\pi x}{3}+1\\right)\\) 的週期為', ans:3, type:'number'},
+        {q:'函數 \\(y=2\\cos\\!\\left(\\dfrac{3\\pi x}{2}-1\\right)\\) 的週期為', ans:frac(4,3), type:'fraction'},
+        {q:'函數 \\(y=-\\tan(2\\pi x+3)\\) 的週期為', ans:frac(1,2), type:'fraction'},
       ];
       const item = srQPick(pool, _b3aGrfB1Q);
       return { question:item.q, answer:item.ans, type:item.type, answerPrefix:'週期' };
@@ -3760,6 +4164,11 @@ function _b3aTrigGraph(level) {
         {q:'函數 \\(y=-3\\cos(2x)+5\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M+m\\)', ans:16, pfx:'\\(M+m\\)'},
         {q:'函數 \\(y=2\\cos(x)+3\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M \\times m\\)', ans:5, pfx:'\\(M\\times m\\)'},
         {q:'函數 \\(y=4\\sin(3x)+1\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M+m\\)', ans:2, pfx:'\\(M+m\\)'},
+        {q:'函數 \\(y=4\\sin(x+2)-2\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M \\times m\\)', ans:-12, pfx:'\\(M\\times m\\)'},
+        {q:'函數 \\(y=2\\cos(3x)+4\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M+m\\)', ans:8, pfx:'\\(M+m\\)'},
+        {q:'函數 \\(y=-4\\sin(2x)-3\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M+m\\)', ans:-6, pfx:'\\(M+m\\)'},
+        {q:'函數 \\(y=3\\sin\\!\\left(\\dfrac{x}{2}\\right)-2\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M+m\\)', ans:-4, pfx:'\\(M+m\\)'},
+        {q:'函數 \\(y=-5\\cos(x)-2\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M \\times m\\)', ans:-21, pfx:'\\(M\\times m\\)'},
       ];
       const item = srQPick(pool, _b3aGrfB3Q);
       return { question:item.q, answer:item.ans, type:'number', answerPrefix:item.pfx };
@@ -3774,6 +4183,12 @@ function _b3aTrigGraph(level) {
         {q:'若 \\(0 &lt; h &lt; 2\\pi\\)，且 \\(y=\\cos(x+h)\\) 的圖形通過原點，則 \\(h\\) 的最小值為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:frac(1,2), type:'fraction', pfx:'\\(h_{min}\\)'},
         {q:'若將 \\(y=\\sin x\\) 的圖形向左平移 \\(\\dfrac{\\pi}{6}\\) 單位，可得 \\(y=\\sin(x+h)\\) 的圖形，其中 \\(0 &lt; h &lt; 2\\pi\\)，\\(h\\) 為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:frac(1,6), type:'fraction', pfx:'\\(h\\)'},
         {q:'若 \\(0 &lt; h &lt; 2\\pi\\)，且 \\(y=\\sin(x+h)\\) 的圖形通過原點，則 \\(h\\) 的最大值為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:2, type:'number', pfx:'\\(h_{max}\\)'},
+        {q:'在 \\(y=\\sin x\\)、\\(y=\\cos x\\)、\\(y=\\tan x\\) 三函數中，偶函數的個數為', ans:1, type:'number', pfx:'個'},
+        {q:'在 \\(y=\\sin x\\)、\\(y=\\cos x\\)、\\(y=\\tan x\\) 三函數中，奇函數的個數為', ans:2, type:'number', pfx:'個'},
+        {q:'若 \\(0 &lt; h &lt; 2\\pi\\)，且 \\(y=\\cos(x+h)\\) 的圖形通過原點，則 \\(h\\) 的最大值為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:frac(3,2), type:'fraction', pfx:'\\(h_{max}\\)'},
+        {q:'若將 \\(y=\\cos x\\) 的圖形向左平移 \\(\\dfrac{\\pi}{3}\\) 單位，可得 \\(y=\\cos(x+h)\\) 的圖形（\\(0 &lt; h &lt; 2\\pi\\)），\\(h\\) 為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:frac(1,3), type:'fraction', pfx:'\\(h\\)'},
+        {q:'若將 \\(y=\\sin x\\) 的圖形向右平移 \\(\\dfrac{\\pi}{3}\\) 單位，可得 \\(y=\\sin(x+h)\\) 的圖形（\\(0 &lt; h &lt; 2\\pi\\)），\\(h\\) 為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:frac(5,3), type:'fraction', pfx:'\\(h\\)'},
+        {q:'函數 \\(y=\\sin(2x+\\pi)\\) 的最小正週期為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:1, type:'number', pfx:'週期'},
       ];
       const item = srQPick(pool, _b3aGrfB4Q);
       return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
@@ -3807,6 +4222,13 @@ function _b3aTrigGraph(level) {
         {q:'比較 \\(\\sin 1\\)、\\(\\sin 2\\)、\\(\\sin 3\\) 之大小關係（格式如 a>b>c）', ans:'sin2>sin1>sin3'},
         {q:'三數 \\(a=\\cos 100^\\circ\\)、\\(b=\\cos 200^\\circ\\)、\\(c=\\sin 100^\\circ\\) 大小關係（格式如 c>b>a）', ans:'c>b>a'},
         {q:'比較 \\(\\sin\\dfrac{5\\pi}{6}\\)、\\(\\cos\\dfrac{5\\pi}{6}\\)、\\(\\tan\\dfrac{5\\pi}{6}\\) 大小（格式如 a>b>c，以 sin/cos/tan 表示）', ans:'sin>tan>cos'},
+        {q:'比較 \\(\\sin 4\\)、\\(\\sin 5\\)、\\(\\sin 6\\) 之大小關係（格式如 a>b>c）', ans:'sin6>sin4>sin5'},
+        {q:'比較 \\(\\tan 1\\)、\\(\\tan 2\\)、\\(\\tan 3\\) 之大小關係（格式如 a>b>c）', ans:'tan1>tan3>tan2'},
+        {q:'三數 \\(a=\\sin\\dfrac{2\\pi}{5}\\)、\\(b=\\cos\\dfrac{2\\pi}{5}\\)、\\(c=\\tan\\dfrac{2\\pi}{5}\\) 大小關係（格式如 a>b>c）', ans:'c>a>b'},
+        {q:'三數 \\(a=\\sin 2.5\\)、\\(b=\\cos 2.5\\)、\\(c=\\sin 0.5\\) 大小關係（格式如 a>b>c）', ans:'a>c>b'},
+        {q:'三數 \\(a=\\tan 100^\\circ\\)、\\(b=\\tan 200^\\circ\\)、\\(c=\\cos 200^\\circ\\) 大小關係（格式如 a>b>c）', ans:'b>c>a'},
+        {q:'比較 \\(\\sin 1.5\\)、\\(\\cos 1.5\\)、\\(\\sin 2\\) 大小（格式如 a>b>c）', ans:'a>c>b'},
+        {q:'三數 \\(a=\\sin(-30^\\circ)\\)、\\(b=\\cos 150^\\circ\\)、\\(c=\\tan 225^\\circ\\) 大小關係（格式如 a>b>c）', ans:'c>a>b'},
       ];
       const item = srQPick(pool, _b3aGrfM0Q);
       return { question:item.q, answer:item.ans, type:'text', answerPrefix:'' };
@@ -3865,6 +4287,12 @@ function _b3aTrigGraph(level) {
       {q:'設 \\(-\\pi \\le x \\le \\pi\\)，方程式 \\(\\tan x = 1-x\\) 的實數解個數有', ans:4, type:'number', pfx:'個'},
       {q:'設 \\(-\\pi \\le x \\le \\pi\\)，方程式 \\(\\sin x + \\dfrac{x}{4} = 1\\) 有幾個相異實數解', ans:2, type:'number', pfx:'個'},
       {q:'方程式 \\(\\sin x = \\dfrac{x}{4\\pi}\\) 有幾個實數解', ans:8, type:'number', pfx:'個'},
+      {q:'若 \\(0 \\le x \\le 2\\pi\\)，方程式 \\(\\sin x = -\\dfrac{1}{2}\\) 的兩實數解之和為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:3, type:'number', pfx:'兩解之和'},
+      {q:'若 \\(0 \\le x \\le 2\\pi\\)，方程式 \\(\\cos x = \\dfrac{\\sqrt{3}}{2}\\) 的兩實數解之差為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:frac(5,3), type:'fraction', pfx:'兩解之差'},
+      {q:'方程式 \\(\\sin x = \\dfrac{x}{5\\pi}\\) 的實數解個數有', ans:11, type:'number', pfx:'個'},
+      {q:'方程式 \\(\\sin x = \\dfrac{x}{3\\pi}\\) 的實數解個數有', ans:7, type:'number', pfx:'個'},
+      {q:'若 \\(0 \\le x \\le 2\\pi\\)，函數 \\(y=2\\cos^2 x + \\sin x\\) 的最大值為（填分數）', ans:frac(9,8), type:'fraction', pfx:'最大值'},
+      {q:'若 \\(0 \\le x \\le 2\\pi\\)，方程式 \\(\\tan x = -1\\) 的兩實數解之和為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:frac(5,2), type:'fraction', pfx:'兩解之和'},
     ];
     const item = srQPick(pool, _b3aGrfH0Q);
     return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
@@ -3877,6 +4305,12 @@ function _b3aTrigGraph(level) {
     {q:'已知 \\(a &gt; 0\\)、\\(b &gt; 0\\)，函數 \\(f(x)=a\\sin bx\\) 的圖形通過最高點 \\(P(3,\\,2)\\) 及最低點 \\(Q(9,\\,-2)\\)，則週期為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:4, type:'number', pfx:'週期'},
     {q:'函數 \\(y=3\\sin bx\\)（\\(b &gt; 0\\)）圖形最高點的 \\(x\\) 坐標為 \\(\\dfrac{\\pi}{4}\\)，求 \\(b\\)', ans:2, type:'number', pfx:'\\(b\\)'},
     {q:'函數 \\(y=a\\sin 2x\\)（\\(a &gt; 0\\)）的最高點為 \\(\\left(\\dfrac{\\pi}{4},\\,5\\right)\\)，求 \\(a\\)', ans:5, type:'number', pfx:'\\(a\\)'},
+    {q:'已知 \\(a &gt; 0\\)、\\(b &gt; 0\\)，函數 \\(f(x)=a\\sin bx\\) 的圖形最高點為 \\(P\\!\\left(\\dfrac{\\pi}{4},\\,3\\right)\\)，最低點 \\(Q\\!\\left(\\dfrac{3\\pi}{4},\\,-3\\right)\\)，求振幅 \\(a\\)', ans:3, type:'number', pfx:'\\(a\\)'},
+    {q:'已知 \\(a &gt; 0\\)、\\(b &gt; 0\\)，函數 \\(f(x)=a\\sin bx\\) 的圖形最高點為 \\(P\\!\\left(\\dfrac{\\pi}{4},\\,3\\right)\\)，最低點 \\(Q\\!\\left(\\dfrac{3\\pi}{4},\\,-3\\right)\\)，求 \\(b\\)', ans:2, type:'number', pfx:'\\(b\\)'},
+    {q:'已知 \\(a &gt; 0\\)、\\(b &gt; 0\\)，函數 \\(f(x)=a\\sin bx\\) 的圖形最高點為 \\(P\\!\\left(\\dfrac{\\pi}{6},\\,4\\right)\\)，最低點 \\(Q\\!\\left(\\dfrac{\\pi}{2},\\,-4\\right)\\)，求振幅 \\(a\\)', ans:4, type:'number', pfx:'\\(a\\)'},
+    {q:'已知 \\(a &gt; 0\\)、\\(b &gt; 0\\)，函數 \\(f(x)=a\\sin bx\\) 的圖形最高點為 \\(P\\!\\left(\\dfrac{\\pi}{6},\\,4\\right)\\)，最低點 \\(Q\\!\\left(\\dfrac{\\pi}{2},\\,-4\\right)\\)，求 \\(b\\)', ans:3, type:'number', pfx:'\\(b\\)'},
+    {q:'已知 \\(a &gt; 0\\)、\\(b &gt; 0\\)，函數 \\(f(x)=a\\sin bx\\) 的圖形通過最高點 \\(P(3,\\ 2)\\) 及最低點 \\(Q(9,\\ -2)\\)，求週期', ans:12, type:'number', pfx:'週期'},
+    {q:'函數 \\(y=a\\cos bx\\)（\\(a &gt; 0\\)，\\(b &gt; 0\\)）最高點 \\(x\\) 坐標為 \\(0\\)，次高點 \\(x\\) 坐標為 \\(\\pi\\)，且振幅 \\(a=2\\)，求 \\(b\\)', ans:2, type:'number', pfx:'\\(b\\)'},
   ];
   const item1 = srQPick(pool1, _b3aGrfH1Q);
   return { question:item1.q, answer:item1.ans, type:item1.type, answerPrefix:item1.pfx };
@@ -4029,6 +4463,20 @@ function _b3aTrigSup(level) {
          ans:'-\\dfrac{\\pi}{4}\\leq x\\leq 0', type:'text', pfx:'解'},
         {q:'設 \\(0\\leq\\theta<2\\pi\\)，且 \\(\\sin\\theta+\\sqrt{3}\\cos\\theta+1=0\\)，則 \\(\\theta=\\)',
          ans:'\\dfrac{5\\pi}{6}\\text{ 或 }\\dfrac{3\\pi}{2}', type:'text', pfx:'\\(\\theta\\)'},
+        {q:'在 \\(0\\leq x<2\\pi\\)，解不等式 \\(\\sin x-\\cos x>0\\)',
+         ans:'\\dfrac{\\pi}{4}<x<\\dfrac{5\\pi}{4}', type:'text', pfx:'解'},
+        {q:'在 \\(0\\leq x<2\\pi\\)，解不等式 \\(\\sin x+\\cos x\\geq 1\\)',
+         ans:'0\\leq x\\leq\\dfrac{\\pi}{2}', type:'text', pfx:'解'},
+        {q:'在 \\(0\\leq x<2\\pi\\)，解不等式 \\(\\sqrt{3}\\sin x-\\cos x\\geq 0\\)',
+         ans:'\\dfrac{\\pi}{6}\\leq x\\leq\\dfrac{7\\pi}{6}', type:'text', pfx:'解'},
+        {q:'在 \\(0\\leq x<2\\pi\\)，解不等式 \\(\\sin x-\\sqrt{3}\\cos x\\geq 1\\)',
+         ans:'\\dfrac{\\pi}{2}\\leq x\\leq\\dfrac{7\\pi}{6}', type:'text', pfx:'解'},
+        {q:'在 \\(0\\leq x<2\\pi\\)，解不等式 \\(\\sin x-\\sqrt{3}\\cos x\\leq 1\\)',
+         ans:'0\\leq x\\leq\\dfrac{\\pi}{2}\\text{ 或 }\\dfrac{7\\pi}{6}\\leq x<2\\pi', type:'text', pfx:'解'},
+        {q:'設 \\(0\\leq\\theta<2\\pi\\)，且 \\(-\\sin\\theta+\\cos\\theta=1\\)，則 \\(\\theta=\\)',
+         ans:'0\\text{ 或 }\\dfrac{3\\pi}{2}', type:'text', pfx:'\\(\\theta\\)'},
+        {q:'在 \\(0\\leq x<2\\pi\\)，解不等式 \\(\\sin x+\\cos x<0\\)',
+         ans:'\\dfrac{3\\pi}{4}<x<\\dfrac{7\\pi}{4}', type:'text', pfx:'解'},
       ];
       const item = srQPick(pool, _tsupM2Q);
       return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
@@ -4048,6 +4496,16 @@ function _b3aTrigSup(level) {
          ans:242, type:'number', pfx:'\\(m\\)'},
         {q:'設 \\(180°<A<270°\\)，且 \\(\\sin A+\\sqrt{3}\\cos A=2\\cos 2020°\\)，若 \\(A=m°\\)，則 \\(m=\\)',
          ans:250, type:'number', pfx:'\\(m\\)'},
+        {q:'設 \\(180°<A<270°\\)，且 \\(\\sin A+\\sqrt{3}\\cos A=2\\cos 2022°\\)，若 \\(A=m°\\)，則 \\(m=\\)',
+         ans:252, type:'number', pfx:'\\(m\\)'},
+        {q:'設 \\(180°<A<270°\\)，且 \\(\\sin A+\\sqrt{3}\\cos A=2\\cos 2024°\\)，若 \\(A=m°\\)，則 \\(m=\\)',
+         ans:254, type:'number', pfx:'\\(m\\)'},
+        {q:'設 \\(180°<A<270°\\)，且 \\(\\sin A+\\sqrt{3}\\cos A=2\\cos 2026°\\)，若 \\(A=m°\\)，則 \\(m=\\)',
+         ans:256, type:'number', pfx:'\\(m\\)'},
+        {q:'函數 \\(f(x)=2\\sin x\\cos x+2\\cos^2 x-1\\)，\\(0\\leq x<\\dfrac{\\pi}{2}\\)，則 \\(f(x)\\) 的最大值為',
+         ans:'\\sqrt{2}', type:'text', pfx:'最大值'},
+        {q:'試比較 \\(\\sin 10°+\\cos 10°\\) 與 \\(\\sin 30°+\\cos 30°\\) 的大小（寫 > 或 <）',
+         ans:'<', type:'text', pfx:'比較'},
       ];
       const item = srQPick(pool, _tsupM3Q);
       return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
@@ -4069,6 +4527,20 @@ function _b3aTrigSup(level) {
          ans:'2-\\sqrt{10}', type:'text', pfx:'最小值'},
         {q:'方程式 \\(\\sin x-3\\cos x=k\\)，在 \\(0\\leq x\\leq\\pi\\) 的範圍內，有兩個相異的實數解，求實數 \\(k\\) 的範圍',
          ans:'3\\leq k<\\sqrt{10}', type:'text', pfx:'\\(k\\)的範圍'},
+        {q:'設 \\(0\\leq x\\leq\\pi\\)，若 \\(y=\\cos x+\\sqrt{3}\\sin x\\) 的最大值為 \\(M\\)，最小值為 \\(m\\)，則 \\(Mm=\\)',
+         ans:-2, type:'number', pfx:'\\(Mm\\)'},
+        {q:'方程式 \\(\\sin x-\\cos x=a\\) 在 \\(0\\leq x\\leq\\pi\\) 恰有兩個相異實數解，求 \\(a\\) 的範圍',
+         ans:'1\\leq a<\\sqrt{2}', type:'text', pfx:'\\(a\\)的範圍'},
+        {q:'設 \\(0\\leq x\\leq 2\\pi\\)，函數 \\(y=\\sqrt{3}\\sin x+\\cos x\\) 的圖形與直線 \\(y=1\\) 有幾個交點',
+         ans:3, type:'number', pfx:'個'},
+        {q:'方程式 \\(\\sqrt{3}\\cos x-\\sin x=k\\) 在 \\(0\\leq x\\leq\\pi\\) 恰有兩個相異實數解，求 \\(k\\) 的範圍',
+         ans:'-2<k\\leq-\\sqrt{3}', type:'text', pfx:'\\(k\\)的範圍'},
+        {q:'已知 \\(0\\leq x\\leq\\pi\\)，\\(f(x)=2\\cos\\!\\left(\\dfrac{\\pi}{3}+x\\right)-2\\cos x\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，則 \\(M+m=\\)',
+         ans:-1, type:'number', pfx:'\\(M+m\\)'},
+        {q:'設 \\(0\\leq x\\leq\\dfrac{\\pi}{2}\\)，函數 \\(y=\\sin x-\\sqrt{3}\\cos x+2\\) 的最大值為',
+         ans:3, type:'number', pfx:'最大值'},
+        {q:'設 \\(0\\leq x\\leq\\dfrac{\\pi}{2}\\)，函數 \\(y=\\sin x-\\sqrt{3}\\cos x+2\\) 的最小值為',
+         ans:'2-\\sqrt{3}', type:'text', pfx:'最小值'},
       ];
       const item = srQPick(pool, _tsupH0Q);
       return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
@@ -4086,6 +4558,18 @@ function _b3aTrigSup(level) {
          ans:'(5,1)\\text{ 或 }(-1,-5)', type:'text', pfx:'\\((a,b)\\)'},
         {q:'已知 \\(\\pi<x<\\dfrac{3\\pi}{2}\\)，且 \\(\\sqrt{3}\\cos x+\\sin x=2\\sin 2020°\\)，則 \\(x=\\)',
          ans:'\\dfrac{13\\pi}{9}', type:'text', pfx:'\\(x\\)'},
+        {q:'若 \\(f(x)=\\cos x-\\sqrt{3}\\sin x\\)，\\(0\\leq x\\leq 2\\pi\\)，則 \\(f(x)\\) 取最小值時的 \\(x\\) 值為',
+         ans:'\\dfrac{2\\pi}{3}', type:'text', pfx:'\\(x\\)'},
+        {q:'方程式 \\(\\sin x + \\cos x = a\\) 恰好有兩個解在 \\([0,\\pi]\\) 中，求 \\(a\\) 的範圍',
+         ans:'1\\leq a<\\sqrt{2}', type:'text', pfx:'\\(a\\)的範圍'},
+        {q:'若 \\(f(x)=\\sin x+\\sqrt{3}\\cos x\\)，\\(0\\leq x\\leq 2\\pi\\)，則 \\(f(x)\\) 取最大值時的 \\(x\\) 值為',
+         ans:'\\dfrac{\\pi}{6}', type:'text', pfx:'\\(x\\)'},
+        {q:'設 \\(0\\leq x\\leq\\dfrac{\\pi}{2}\\)，\\(y=\\cos x-\\sqrt{3}\\sin x\\) 的最大值 \\(M\\) 與最小值 \\(m\\)，數對 \\((M,m)=\\)',
+         ans:'\\left(1,-\\sqrt{3}\\right)', type:'text', pfx:'\\((M,m)\\)'},
+        {q:'設 \\(0\\leq x\\leq\\pi\\)，函數 \\(y=2\\sin x-2\\sqrt{3}\\cos x\\) 的最大值為',
+         ans:4, type:'number', pfx:'最大值'},
+        {q:'\\(x\\) 為實數，函數 \\(y=\\dfrac{1+\\sin x}{2+\\cos x}\\) 的最大值為（填分數）',
+         ans:frac(4,3), type:'fraction', pfx:'最大值'},
       ];
       const item = srQPick(pool, _tsupH1Q);
       return { question:item.q, answer:item.ans, type:item.type, answerPrefix:item.pfx };
