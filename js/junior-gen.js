@@ -5569,56 +5569,30 @@ function _8aPolyMul(level) {
     if(!t.length) return '0';
     return t.map((e,i)=>(i===0?(e.s<0?'-':'')+e.v:(e.s<0?'-':'+')+e.v)).join('');
   };
-  const cb=(a3,a2,a1,a0)=>{
-    const t2=[];
-    if(a3!==0){const ab=Math.abs(a3);t2.push({s:a3>0?1:-1,v:ab===1?'x^3':`${ab}x^3`});}
-    if(a2!==0){const ab=Math.abs(a2);t2.push({s:a2>0?1:-1,v:ab===1?'x^2':`${ab}x^2`});}
-    if(a1!==0){const ab=Math.abs(a1);t2.push({s:a1>0?1:-1,v:ab===1?'x':`${ab}x`});}
-    if(a0!==0){t2.push({s:a0>0?1:-1,v:`${Math.abs(a0)}`});}
-    if(!t2.length) return '0';
-    return t2.map((e,i)=>(i===0?(e.s<0?'-':'')+e.v:(e.s<0?'-':'+')+e.v)).join('');
-  };
   const poly=(q,a2,a1,a0)=>({question:q,type:'poly',polyA2:a2,polyA1:a1,polyA0:a0});
 
   if(level==='basic'){
     const bpool=[
-      {q:'\\(A\\) 為多項式，若 \\(\\dfrac{x^2-x-1}{A}=(x+2)+\\dfrac{5}{A}\\)，則 \\(A=\\)', type:'poly',a2:0,a1:1,a0:-3,pfx:''},
       {q:'化簡 \\(5(x^2-2x+3)-2(3x^2-x+1)\\)', type:'poly',a2:-1,a1:-8,a0:13,pfx:''},
       {q:'展開 \\((-4x+7)(2x-1)\\)', type:'poly',a2:-8,a1:18,a0:-7,pfx:''},
       {q:'展開 \\((x^2+mx+n)(-4x+6)\\) 後，不含 \\(x^2\\) 與常數項，則 \\(x\\) 項係數為', type:'number',ans:9,pfx:'\\(x\\) 項係數'},
       {q:'若多項式 \\(A=2x^2-10\\)，多項式 \\(B=-6x^2+3x+4\\)，計算多項式 \\(A-2B\\)，並將結果依降冪排列為', type:'poly',a2:14,a1:-6,a0:-18,pfx:''},
-      {q:'小智在解多項式的除法 \\(A\\div B\\) 時，不小心將題目看成 \\(A\\times B\\)，算出來的答案是 \\((-x^2+3x+18)\\)，已知多項式 \\(B\\) 為 \\((x+3)\\)，則多項式 \\(A\\) 為', type:'poly',a2:0,a1:-1,a0:6,pfx:''},
-      {q:'若多項式 \\(A\\) 除以 \\(3x+1\\)，得商式為 \\(x-2\\)，餘式為 \\(-2\\)，則多項式 \\(A=\\)', type:'poly',a2:3,a1:-5,a0:-4,pfx:''},
       {q:'化簡 \\((2x-5)^2-[(-3x+2)(x+1)+2]\\)', type:'poly',a2:7,a1:-19,a0:21,pfx:''},
-      {q:'已知有一多項式除以 \\((x-2)\\) 得商式為 \\((2x-3)\\)，餘式為 \\(3\\)，則此多項式除以 \\((x-5)\\) 得商式為', type:'poly',a2:0,a1:2,a0:3,pfx:''},
       {q:'計算 \\((2x^2+ax+3)(4x-5)\\)，若二次項係數為 \\(18\\)，則其 \\(x\\) 項係數為', type:'number',ans:-23,pfx:'\\(x\\) 項係數'},
       {q:'已知 \\(x^2=14\\)，則 \\((x-3)(x+3)(x^2+9)=\\)', type:'number',ans:115,pfx:''},
     ];
     const bi=jrQPickOnce(bpool,_pmBQ); if(bi!==null) return ret(bi);
-    if(randInt(0,1)===0){
-      const k=rnzInt(-4,4),a=rnzInt(-6,6),b=randInt(-8,8);
-      return poly(`展開 \\(${ni(k)}(${ps(0,a,b)})\\)`, 0, k*a, k*b);
-    }
-    // 除法：(ax+b) ÷ k
-    const k=rp(2,6), a=k*rnzInt(-5,5), b=k*randInt(-6,6);
-    return poly(`化簡 \\((${ps(0,a,b)}) \\div ${k}\\)`, 0, a/k, b/k);
+    const k=rnzInt(-4,4),a=rnzInt(-6,6),b=randInt(-8,8);
+    return poly(`展開 \\(${ni(k)}(${ps(0,a,b)})\\)`, 0, k*a, k*b);
   }
   if(level==='medium'){
     const mpool=[
-      {q:'若梯形的上底為 \\(2x+1\\)，下底為 \\(4x-3\\)，面積為 \\((12x^2+11x-5)\\) 平方單位，試以 \\(x\\) 的多項式表示此梯形的高為', type:'poly',a2:0,a1:4,a0:5,pfx:''},
-      {q:'多項式 \\(6x^2-10x-9\\) 除以某個多項式後，得商式為 \\(3x+1\\)，餘式為 \\(-5\\)，試求此多項式為', type:'poly',a2:0,a1:2,a0:-4,pfx:''},
-      {q:'若一個長方形的長為 \\((4x+3)\\)，面積為 \\((8x^2-6x-9)\\)，則此長方形的寬為', type:'poly',a2:0,a1:2,a0:-3,pfx:''},
       {q:'若 \\(x(x-2)=4\\)，則 \\((x+1)^2(x-3)^2-4(x+3)(x-5)+5=\\)', type:'number',ans:50,pfx:''},
       {q:'\\((198x^2+198x+4)(x^2+4x+198)\\) 展開式中，\\(x^2\\) 項的係數＝', type:'number',ans:40000,pfx:'\\(x^2\\)項係數'},
-      {q:'已知一多項式 \\(W\\)，如果 \\(W\\div(x+1)\\) 的餘式為 \\(1\\)，則 \\([W\\times x(x-1)]\\div(x+1)\\) 所得的餘式為', type:'number',ans:-2,pfx:'餘式'},
-      {q:'計算 \\((8x^2+2x-7)\\div 2x\\) 的商式為【\\(\\quad\\quad\\)】，餘式為【\\(\\quad\\quad\\)】', type:'text',ans:'4x+1;-7',pfx:''},
       {q:'若已知 \\((3x+a)(bx+3)=-6x^2+11x+c\\)，則 \\(a+b+c=\\)', type:'number',ans:-6,pfx:'\\(a+b+c\\)'},
-      {q:'若 \\(\\dfrac{6x^2-19x+9}{B}=2x-3-\\dfrac{6}{B}\\)，則多項式 \\(B\\) 為', type:'poly',a2:0,a1:3,a0:-5,pfx:''},
-      {q:'若多項式 \\(A\\) 除以 \\(x-2\\)，得到商式為 \\(x-3\\)，餘式為 \\(-4\\)，則多項式 \\(A=\\)', type:'poly',a2:1,a1:-5,a0:2,pfx:''},
-      {q:'已知 \\(A\\)、\\(B\\) 均為多項式，其中 \\(B\\neq 0\\)，若 \\(A\\div B\\) 的商式為 \\(4x+5\\)，餘式為 \\(x+8\\)，則 \\(A\\div 3B\\) 得到的商式為', type:'text',ans:'(4x+5)/3',pfx:''},
     ];
     const mi=jrQPickOnce(mpool,_pmMQ); if(mi!==null) return ret(mi);
-    const t=randInt(0,4);
+    const t=randInt(0,3);
     if(t===0){
       const k=rnzInt(-5,5),a=rnzInt(-6,6),b=rnzInt(-8,8);
       return poly(`展開 \\(${ni(k)}x\\cdot(${ps(0,a,b)})\\)`, k*a, k*b, 0);
@@ -5634,8 +5608,96 @@ function _8aPolyMul(level) {
       const A=rnzInt(-6,6),B=randInt(-6,6);
       return poly(`展開 \\(\\dfrac{${fr.p}}{${fr.q}}(${ps(0,fr.q*A,fr.q*B)})\\)`, 0, fr.p*A, fr.p*B);
     }
-    if(t===3){
-      // 除法：(ax²+bx) ÷ cx
+    // t===3: 二項相乘
+    const a=rnzInt(-5,5),b=rnzInt(-6,6),c=rnzInt(-5,5),d=rnzInt(-6,6);
+    const x2=a*c,xc=a*d+b*c,con=b*d;
+    if(Math.abs(x2)>25||Math.abs(xc)>30||Math.abs(con)>36) return null;
+    return poly(`展開 \\((${ps(0,a,b)})(${ps(0,c,d)})\\)`, x2, xc, con);
+  }
+  const hpool=[
+    {q:'已知 \\((x^2+mx+n)(x^2-3x+6)\\) 展開後，\\(x^2\\) 項的係數和常數項都是 \\(0\\)，則 \\(m+n=\\)', type:'number',ans:2,pfx:'\\(m+n\\)'},
+    {q:'求多項式 \\((3x^2+9-5x)(4x^2-6x+7)-(-x+9x^2-4)\\) 的係數總和為', type:'number',ans:31,pfx:'係數總和'},
+    {q:'若 \\(x\\) 是實數，且 \\(x^2+2x-5=0\\)，則 \\((x+7)(x+3)(x-1)(x-5)=\\)', type:'number',ans:-60,pfx:''},
+  ];
+  const hi=jrQPickOnce(hpool,_pmHQ); if(hi!==null) return ret(hi);
+  const t=randInt(0,2);
+  if(t===0){
+    const a=rnzInt(-8,8),b=rnzInt(-10,10),c=rnzInt(-8,8),d=rnzInt(-10,10);
+    const x2=a*c,xc=a*d+b*c,con=b*d;
+    if(Math.abs(x2)>64||Math.abs(xc)>80||Math.abs(con)>100) return null;
+    return poly(`展開 \\((${ps(0,a,b)})(${ps(0,c,d)})\\)`, x2, xc, con);
+  }
+  if(t===1){
+    const a=rnzInt(-8,8),b=rnzInt(-10,10);
+    const xc=2*a*b;
+    if(Math.abs(xc)>80) return null;
+    return poly(`展開 \\((${ps(0,a,b)})^2\\)`, a*a, xc, b*b);
+  }
+  const k=pick([-3,-2,2,3]);
+  const a=rnzInt(-5,5),b=rnzInt(-6,6),c=rnzInt(-5,5),d=rnzInt(-6,6);
+  const x2=k*a*c,xc=k*(a*d+b*c),con=k*b*d;
+  if(Math.abs(x2)>60||Math.abs(xc)>80||Math.abs(con)>100) return null;
+  return poly(`展開 \\(${ni(k)}(${ps(0,a,b)})(${ps(0,c,d)})\\)`, x2, xc, con);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  八上 ▸ 多項式除法
+// ═══════════════════════════════════════════════════════════════════
+let _pdBQ=[],_pdMQ=[],_pdHQ=[];
+function gen8aPolyDiv(level) {
+  for (let i=0;i<30;i++) { const q=_8aPolyDiv(level); if(q) return q; }
+  return _8aPolyDiv('basic');
+}
+function _8aPolyDiv(level) {
+  const ret=it=>{
+    if(it.type==='poly') return {question:it.q,type:'poly',polyA2:it.a2,polyA1:it.a1,polyA0:it.a0,answerPrefix:it.pfx||''};
+    return {question:it.q,type:it.type,answer:it.ans,answerPrefix:it.pfx||''};
+  };
+  const ps=(a2,a1,a0)=>{
+    const t=[];
+    if(a2!==0){const ab=Math.abs(a2);t.push({s:a2>0?1:-1,v:ab===1?'x^2':`${ab}x^2`});}
+    if(a1!==0){const ab=Math.abs(a1);t.push({s:a1>0?1:-1,v:ab===1?'x':`${ab}x`});}
+    if(a0!==0){t.push({s:a0>0?1:-1,v:`${Math.abs(a0)}`});}
+    if(!t.length) return '0';
+    return t.map((e,i)=>(i===0?(e.s<0?'-':'')+e.v:(e.s<0?'-':'+')+e.v)).join('');
+  };
+  const cb=(a3,a2,a1,a0)=>{
+    const t2=[];
+    if(a3!==0){const ab=Math.abs(a3);t2.push({s:a3>0?1:-1,v:ab===1?'x^3':`${ab}x^3`});}
+    if(a2!==0){const ab=Math.abs(a2);t2.push({s:a2>0?1:-1,v:ab===1?'x^2':`${ab}x^2`});}
+    if(a1!==0){const ab=Math.abs(a1);t2.push({s:a1>0?1:-1,v:ab===1?'x':`${ab}x`});}
+    if(a0!==0){t2.push({s:a0>0?1:-1,v:`${Math.abs(a0)}`});}
+    if(!t2.length) return '0';
+    return t2.map((e,i)=>(i===0?(e.s<0?'-':'')+e.v:(e.s<0?'-':'+')+e.v)).join('');
+  };
+  const poly=(q,a2,a1,a0)=>({question:q,type:'poly',polyA2:a2,polyA1:a1,polyA0:a0});
+
+  if(level==='basic'){
+    const bpool=[
+      {q:'\\(A\\) 為多項式，若 \\(\\dfrac{x^2-x-1}{A}=(x+2)+\\dfrac{5}{A}\\)，則 \\(A=\\)', type:'poly',a2:0,a1:1,a0:-3,pfx:''},
+      {q:'小智在解多項式的除法 \\(A\\div B\\) 時，不小心將題目看成 \\(A\\times B\\)，算出來的答案是 \\((-x^2+3x+18)\\)，已知多項式 \\(B\\) 為 \\((x+3)\\)，則多項式 \\(A\\) 為', type:'poly',a2:0,a1:-1,a0:6,pfx:''},
+      {q:'若多項式 \\(A\\) 除以 \\(3x+1\\)，得商式為 \\(x-2\\)，餘式為 \\(-2\\)，則多項式 \\(A=\\)', type:'poly',a2:3,a1:-5,a0:-4,pfx:''},
+      {q:'已知有一多項式除以 \\((x-2)\\) 得商式為 \\((2x-3)\\)，餘式為 \\(3\\)，則此多項式除以 \\((x-5)\\) 得商式為', type:'poly',a2:0,a1:2,a0:3,pfx:''},
+      {q:'若多項式 \\(A\\) 除以 \\(2x-1\\)，得商式為 \\(x+3\\)，餘式為 \\(4\\)，則多項式 \\(A=\\)', type:'poly',a2:2,a1:5,a0:1,pfx:''},
+      {q:'化簡 \\((4x^2-6x) \\div 2x\\)', type:'poly',a2:0,a1:2,a0:-3,pfx:''},
+    ];
+    const bi=jrQPickOnce(bpool,_pdBQ); if(bi!==null) return ret(bi);
+    const k=rp(2,6), a=k*rnzInt(-5,5), b=k*randInt(-6,6);
+    return poly(`化簡 \\((${ps(0,a,b)}) \\div ${k}\\)`, 0, a/k, b/k);
+  }
+  if(level==='medium'){
+    const mpool=[
+      {q:'若梯形的上底為 \\(2x+1\\)，下底為 \\(4x-3\\)，面積為 \\((12x^2+11x-5)\\) 平方單位，試以 \\(x\\) 的多項式表示此梯形的高為', type:'poly',a2:0,a1:4,a0:5,pfx:''},
+      {q:'多項式 \\(6x^2-10x-9\\) 除以某個多項式後，得商式為 \\(3x+1\\)，餘式為 \\(-5\\)，試求此多項式為', type:'poly',a2:0,a1:2,a0:-4,pfx:''},
+      {q:'若一個長方形的長為 \\((4x+3)\\)，面積為 \\((8x^2-6x-9)\\)，則此長方形的寬為', type:'poly',a2:0,a1:2,a0:-3,pfx:''},
+      {q:'已知一多項式 \\(W\\)，如果 \\(W\\div(x+1)\\) 的餘式為 \\(1\\)，則 \\([W\\times x(x-1)]\\div(x+1)\\) 所得的餘式為', type:'number',ans:-2,pfx:'餘式'},
+      {q:'計算 \\((8x^2+2x-7)\\div 2x\\) 的商式為【\\(\\quad\\quad\\)】，餘式為【\\(\\quad\\quad\\)】', type:'text',ans:'4x+1;-7',pfx:''},
+      {q:'若 \\(\\dfrac{6x^2-19x+9}{B}=2x-3-\\dfrac{6}{B}\\)，則多項式 \\(B\\) 為', type:'poly',a2:0,a1:3,a0:-5,pfx:''},
+      {q:'若多項式 \\(A\\) 除以 \\(x-2\\)，得到商式為 \\(x-3\\)，餘式為 \\(-4\\)，則多項式 \\(A=\\)', type:'poly',a2:1,a1:-5,a0:2,pfx:''},
+      {q:'已知 \\(A\\)、\\(B\\) 均為多項式，其中 \\(B\\neq 0\\)，若 \\(A\\div B\\) 的商式為 \\(4x+5\\)，餘式為 \\(x+8\\)，則 \\(A\\div 3B\\) 得到的商式為', type:'text',ans:'(4x+5)/3',pfx:''},
+    ];
+    const mi=jrQPickOnce(mpool,_pdMQ); if(mi!==null) return ret(mi);
+    if(randInt(0,1)===0){
       const c=rp(2,6), a=c*rnzInt(-5,5), b=c*randInt(-6,6);
       return poly(`化簡 \\((${ps(a,b,0)}) \\div ${c}x\\)`, 0, a/c, b/c);
     }
@@ -5652,10 +5714,8 @@ function _8aPolyMul(level) {
     };
   }
   const hpool=[
-    {q:'已知 \\((x^2+mx+n)(x^2-3x+6)\\) 展開後，\\(x^2\\) 項的係數和常數項都是 \\(0\\)，則 \\(m+n=\\)', type:'number',ans:2,pfx:'\\(m+n\\)'},
     {q:'已知 \\(A\\) 為一多項式，且 \\(A\\cdot(x+5)=x^3+3x^2-13x-15\\)，求 \\(A\\div(x+1)\\) 得商式為【\\(\\quad\\quad\\)】，餘式為【\\(\\quad\\quad\\)】', type:'text',ans:'x-3;0',pfx:''},
     {q:'計算 \\([(x^2+5x-2)-(-2x^2-3x+4)]\\div(x-2)\\) 的餘式為', type:'number',ans:22,pfx:'餘式'},
-    {q:'求多項式 \\((3x^2+9-5x)(4x^2-6x+7)-(-x+9x^2-4)\\) 的係數總和為', type:'number',ans:31,pfx:'係數總和'},
     {q:'設 \\(A\\)、\\(B\\) 是整數，若 \\(\\dfrac{x^2+x+A}{x-2}=x+B\\)，則 \\(A=\\)【\\(\\quad\\quad\\)】，\\(B=\\)【\\(\\quad\\quad\\)】', type:'text',ans:'-6;3',pfx:''},
     {q:'某多項式除 \\(x^3+x^2-7x+3\\) 得商式為 \\(x^2+3x-1\\)，餘式為 \\(1\\)，則此多項式為', type:'poly',a2:0,a1:1,a0:-2,pfx:''},
     {q:'若多項式 \\(A\\) 除以 \\(2x-5\\) 的商式是 \\(B\\)，餘式是 \\(8\\)，又 \\(B\\) 除以 \\(4x+3\\) 的商式是 \\(x-2\\)，餘式是 \\(-7\\)，則多項式 \\(A\\) 除以 \\((2x-5)(4x+3)\\) 的商式為', type:'poly',a2:0,a1:1,a0:-2,pfx:''},
@@ -5663,36 +5723,9 @@ function _8aPolyMul(level) {
     {q:'利用多項式的除法，\\([(ax^2+bx+c)-(-x^2+3x-2)]\\div(3x-2)\\) 後，得商式為 \\(2x-4\\)，餘式為 \\(-1\\)，則 \\(a+2b+c=\\)', type:'number',ans:-16,pfx:'\\(a+2b+c\\)'},
     {q:'若 \\(6x^4-11x^3+Px^2+2x+Q\\) 可以被 \\(2x^2-x-1\\) 整除，則 \\(P=\\)【\\(\\quad\\quad\\)】，\\(Q=\\)【\\(\\quad\\quad\\)】', type:'text',ans:'5;-2',pfx:''},
     {q:'若 \\((2x^3+8x^2-ax+3)\\div(2x^2-1)\\) 得餘式 \\(2x+b\\)，則 \\(a=\\)【\\(\\quad\\quad\\)】，\\(b=\\)【\\(\\quad\\quad\\)】', type:'text',ans:'-1;7',pfx:''},
-    {q:'若 \\(x\\) 是實數，且 \\(x^2+2x-5=0\\)，則 \\((x+7)(x+3)(x-1)(x-5)=\\)', type:'number',ans:-60,pfx:''},
   ];
-  const hi=jrQPickOnce(hpool,_pmHQ); if(hi!==null) return ret(hi);
-  const t=randInt(0,4);
-  if(t===0){
-    const a=rnzInt(-8,8),b=rnzInt(-10,10),c=rnzInt(-8,8),d=rnzInt(-10,10);
-    const x2=a*c,xc=a*d+b*c,con=b*d;
-    if(Math.abs(x2)>64||Math.abs(xc)>80||Math.abs(con)>100) return null;
-    return poly(`展開 \\((${ps(0,a,b)})(${ps(0,c,d)})\\)`, x2, xc, con);
-  }
-  if(t===1){
-    const a=rnzInt(-8,8),b=rnzInt(-10,10);
-    const xc=2*a*b;
-    if(Math.abs(xc)>80) return null;
-    return poly(`展開 \\((${ps(0,a,b)})^2\\)`, a*a, xc, b*b);
-  }
-  if(t===2){
-    const k=pick([-3,-2,2,3]);
-    const a=rnzInt(-5,5),b=rnzInt(-6,6),c=rnzInt(-5,5),d=rnzInt(-6,6);
-    const x2=k*a*c,xc=k*(a*d+b*c),con=k*b*d;
-    if(Math.abs(x2)>60||Math.abs(xc)>80||Math.abs(con)>100) return null;
-    return poly(`展開 \\(${ni(k)}(${ps(0,a,b)})(${ps(0,c,d)})\\)`, x2, xc, con);
-  }
-  if(t===3){
-    // 除法：(Ax²+Bx+C) ÷ k
-    const k=rp(2,8);
-    const A=k*rnzInt(-5,5), B=k*randInt(-7,7), C=k*randInt(-9,9);
-    return poly(`化簡 \\((${ps(A,B,C)}) \\div ${k}\\)`, A/k, B/k, C/k);
-  }
-  // 長除法（困難）：非首一三次 ax³+... ÷ (x+k)，a∈{2,3}，商式首項係數不為1
+  const hi=jrQPickOnce(hpool,_pdHQ); if(hi!==null) return ret(hi);
+  // 長除法（困難）：非首一三次 ax³+... ÷ (x+k)
   const a=pick([2,3]);
   const k=rnzInt(-5,5), p=randInt(-6,6), q=randInt(-8,8), r=randInt(-10,10);
   const b=p+a*k, c=q+p*k, d=q*k+r;
@@ -8936,6 +8969,7 @@ const JR_GENERATORS = {
   '8a-diff-sq':     gen8aDiffSq,
   '8a-poly-add':    gen8aPolyAdd,
   '8a-poly-mul':    gen8aPolyMul,
+  '8a-poly-div':    gen8aPolyDiv,
   '8a-sqrt-basic':  gen8aSqrtBasic,
   '8a-sqrt-add':    gen8aSqrtAdd,
   '8a-sqrt-mul':    gen8aSqrtMul,
