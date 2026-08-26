@@ -6045,34 +6045,57 @@ function gen8aSqrtMul(level) {
 }
 function _8aSqrtMul(level) {
   if(level==='basic'){
-    const t=randInt(0,1);
+    const t=randInt(0,2);
     if(t===0){
-      const pairs=[{a:2,b:8,c:4},{a:3,b:12,c:6},{a:2,b:18,c:6},{a:5,b:20,c:10},
-                   {a:3,b:27,c:9},{a:5,b:45,c:15},{a:2,b:32,c:8},{a:7,b:28,c:14}];
+      // √a × √b = integer（擴充至 28 組，含較大數字）
+      const pairs=[
+        {a:2,b:8,c:4},{a:3,b:12,c:6},{a:2,b:18,c:6},{a:5,b:20,c:10},
+        {a:3,b:27,c:9},{a:5,b:45,c:15},{a:2,b:32,c:8},{a:7,b:28,c:14},
+        {a:3,b:75,c:15},{a:5,b:80,c:20},{a:6,b:24,c:12},{a:8,b:18,c:12},
+        {a:10,b:40,c:20},{a:6,b:54,c:18},{a:8,b:50,c:20},{a:10,b:90,c:30},
+        {a:7,b:63,c:21},{a:11,b:44,c:22},{a:3,b:48,c:12},{a:2,b:50,c:10},
+        {a:5,b:125,c:25},{a:12,b:27,c:18},{a:4,b:36,c:12},{a:2,b:72,c:12},
+        {a:9,b:16,c:12},{a:6,b:96,c:24},{a:14,b:56,c:28},{a:10,b:160,c:40}
+      ];
       const {a,b,c}=pick(pairs);
       return {question:`計算 \\(\\sqrt{${a}}\\times\\sqrt{${b}}\\)`, answer:c, type:'number'};
     }
-    const a=randInt(2,7),m=pick([2,3,5,6,7]);
-    return {question:`計算 \\(\\sqrt{${a*a*m}}\\div\\sqrt{${m}}\\)`, answer:a, type:'number'};
+    if(t===1){
+      // √(a²m) ÷ √m = a（擴大範圍 a:2-12, m 更多選項）
+      const a=randInt(2,12),m=pick([2,3,5,6,7,10,11,13]);
+      return {question:`計算 \\(\\sqrt{${a*a*m}}\\div\\sqrt{${m}}\\)`, answer:a, type:'number'};
+    }
+    // t===2: k√m × a = ka√m（有理數係數與根號相乘）
+    const m=pick([2,3,5,6,7,10,11,13]);
+    const k=randInt(2,9),a=randInt(2,7);
+    return {question:`計算 \\(${k}\\sqrt{${m}}\\times${a}\\)`,
+      type:'radical-mix',rational:0,radCoeff:k*a,radM:m};
   }
   if(level==='medium'){
-    const t=randInt(0,3);
+    const t=randInt(0,4);
     if(t===0){
-      const m=pick([2,3,5,6]),a=randInt(2,5),b=randInt(2,4);
+      // a√m × b√m = abm（擴大係數與 m 範圍）
+      const m=pick([2,3,5,6,7,10,11,13]);
+      const a=randInt(2,8),b=randInt(2,6);
       return {question:`計算 \\(${a}\\sqrt{${m}}\\times${b}\\sqrt{${m}}\\)`, answer:a*b*m, type:'number'};
     }
     if(t===1){
-      // a√m × b√n = ab·prod（m×n 為完全平方數）
-      const mPairs=[{m:2,n:8,prod:4},{m:2,n:18,prod:6},{m:3,n:12,prod:6},
-                    {m:3,n:27,prod:9},{m:5,n:20,prod:10},{m:5,n:45,prod:15}];
+      // a√m × b√n = ab·prod（m×n 為完全平方數，擴充至 15 組）
+      const mPairs=[
+        {m:2,n:8,prod:4},{m:2,n:18,prod:6},{m:3,n:12,prod:6},
+        {m:3,n:27,prod:9},{m:5,n:20,prod:10},{m:5,n:45,prod:15},
+        {m:2,n:50,prod:10},{m:7,n:63,prod:21},{m:6,n:24,prod:12},
+        {m:8,n:18,prod:12},{m:10,n:40,prod:20},{m:6,n:54,prod:18},
+        {m:11,n:44,prod:22},{m:3,n:48,prod:12},{m:12,n:27,prod:18}
+      ];
       const mp=pick(mPairs);
-      const a=randInt(2,5),b=randInt(2,4);
+      const a=randInt(2,7),b=randInt(2,5);
       return {question:`計算 \\(${a}\\sqrt{${mp.m}}\\times${b}\\sqrt{${mp.n}}\\)`, answer:a*b*mp.prod, type:'number'};
     }
     if(t===2){
-      // 分數形式 a√m × b√m ÷ c
-      const m=pick([2,3,5,6]);
-      const a=randInt(2,5),b=randInt(2,4);
+      // 分數形式 a√m × b√m ÷ c（擴大範圍）
+      const m=pick([2,3,5,6,7]);
+      const a=randInt(2,7),b=randInt(2,5);
       const prod=a*b*m;
       const divs=[];
       for(let d=2;d<=prod/2;d++) if(prod%d===0) divs.push(d);
@@ -6080,41 +6103,64 @@ function _8aSqrtMul(level) {
       const c=pick(divs);
       return {question:`計算 \\(\\dfrac{${a}\\sqrt{${m}}\\times${b}\\sqrt{${m}}}{${c}}\\)`, answer:prod/c, type:'number'};
     }
-    // t===3: 有理化分母 k/√m → c√m（k = c×m）
-    const m=pick([2,3,5,6]);
-    const c=randInt(2,5);
-    return {question:`有理化分母 \\(\\dfrac{${c*m}}{\\sqrt{${m}}}\\)`,
-      type:'radical-mix',rational:0,radCoeff:c,radM:m};
+    if(t===3){
+      // 有理化分母 k/√m → c√m（k = c×m，擴大 m 與 c 範圍）
+      const m=pick([2,3,5,6,7,10,11,13]);
+      const c=randInt(2,8);
+      return {question:`有理化分母 \\(\\dfrac{${c*m}}{\\sqrt{${m}}}\\)`,
+        type:'radical-mix',rational:0,radCoeff:c,radM:m};
+    }
+    // t===4: √p × √q = c√d（乘積化簡後仍含根號）
+    const radPairs=[
+      {p:3,q:15,c:3,d:5},{p:5,q:15,c:5,d:3},{p:6,q:10,c:2,d:15},
+      {p:3,q:21,c:3,d:7},{p:6,q:14,c:2,d:21},{p:10,q:15,c:5,d:6},
+      {p:14,q:21,c:7,d:6},{p:6,q:22,c:2,d:33},{p:21,q:6,c:3,d:14},
+      {p:15,q:6,c:3,d:10},{p:33,q:3,c:3,d:11},{p:2,q:6,c:2,d:3},
+      {p:5,q:3,c:1,d:15},{p:3,q:6,c:3,d:2},{p:10,q:6,c:2,d:15},
+      {p:6,q:35,c:1,d:210},{p:7,q:21,c:7,d:3},{p:22,q:6,c:2,d:33}
+    ];
+    const {p,q,c,d}=pick(radPairs);
+    const a=randInt(2,5),b=randInt(2,4);
+    return {question:`計算 \\(${a}\\sqrt{${p}}\\times${b}\\sqrt{${q}}\\)`,
+      type:'radical-mix',rational:0,radCoeff:a*b*c,radM:d};
   }
-  const t=randInt(0,3);
+  // hard
+  const t=randInt(0,4);
   if(t===0){
-    // (a√m+b√n)(a√m-b√n) = a²m-b²n
-    const m=pick([2,3,5,6]),n=pick([2,3,5,6]);
-    if(m===n) return null;
-    const a=randInt(2,4),b=randInt(1,3);
+    // (a√m+b√n)(a√m-b√n) = a²m-b²n（擴大 m,n 選項與係數）
+    const ms=[2,3,5,6,7,10,11,13];
+    const m=pick(ms),n=pick(ms.filter(x=>x!==m));
+    const a=randInt(2,5),b=randInt(1,4);
     const result=a*a*m-b*b*n;
     if(result===0) return null;
     return {question:`展開 \\((${a}\\sqrt{${m}}+${b}\\sqrt{${n}})(${a}\\sqrt{${m}}-${b}\\sqrt{${n}})\\)`, answer:result, type:'number'};
   }
   if(t===1){
-    // (a√m+b)² = a²m+b² + 2ab√m
-    const m=pick([2,3,5,6]);
-    const a=randInt(2,5),b=randInt(1,6);
+    // (a√m+b)²（擴大 m 選項與係數範圍）
+    const m=pick([2,3,5,6,7,10,11,13]);
+    const a=randInt(2,6),b=randInt(1,8);
     return {question:`展開 \\((${a}\\sqrt{${m}}+${b})^2\\)`,
       type:'radical-mix',rational:a*a*m+b*b,radCoeff:2*a*b,radM:m};
   }
   if(t===2){
-    // 括號展開再消項 (√m+a)²-2a√m = m+a²
-    const m=pick([2,3,5,6,7]);
-    const a=randInt(2,5);
+    // (√m+a)²-2a√m = m+a²（擴大 m 與 a 範圍）
+    const m=pick([2,3,5,6,7,10,11,13]);
+    const a=randInt(2,8);
     return {question:`計算 \\((\\sqrt{${m}}+${a})^2-${2*a}\\sqrt{${m}}\\)`, answer:m+a*a, type:'number'};
   }
-  // t===3: 共軛有理化 a/(√m-b)，m-b²=1 → a(√m+b) = ab + a√m
-  const conPairs=[{m:2,b:1},{m:5,b:2},{m:10,b:3}];
-  const {m:cm,b:cb}=pick(conPairs);
-  const ca=randInt(2,5);
-  return {question:`有理化分母 \\(\\dfrac{${ca}}{\\sqrt{${cm}}-${cb}}\\)`,
-    type:'radical-mix',rational:ca*cb,radCoeff:ca,radM:cm};
+  if(t===3){
+    // 共軛有理化 a/(√m-b)，m=b²+1（擴充 6 組）
+    const conPairs=[{m:2,b:1},{m:5,b:2},{m:10,b:3},{m:17,b:4},{m:26,b:5},{m:37,b:6}];
+    const {m:cm,b:cb}=pick(conPairs);
+    const ca=randInt(2,7);
+    return {question:`有理化分母 \\(\\dfrac{${ca}}{\\sqrt{${cm}}-${cb}}\\)`,
+      type:'radical-mix',rational:ca*cb,radCoeff:ca,radM:cm};
+  }
+  // t===4: (√m+a)(√m+b) = (m+ab) + (a+b)√m
+  const m=pick([2,3,5,6,7,10,11,13]);
+  const a=randInt(1,9),b=randInt(1,9);
+  return {question:`展開 \\((\\sqrt{${m}}+${a})(\\sqrt{${m}}+${b})\\)`,
+    type:'radical-mix',rational:m+a*b,radCoeff:a+b,radM:m};
 }
 
 // ═══════════════════════════════════════════════════════════════════
