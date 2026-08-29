@@ -5578,18 +5578,52 @@ function _8aPolyMul(level) {
       {q:'化簡 \\((2x-5)^2-[(-3x+2)(x+1)+2]\\)', type:'poly',a2:7,a1:-19,a0:21,pfx:''},
       {q:'計算 \\((2x^2+ax+3)(4x-5)\\)，若二次項係數為 \\(18\\)，則其 \\(x\\) 項係數為', type:'number',ans:-23,pfx:'\\(x\\) 項係數'},
       {q:'已知 \\(x^2=14\\)，則 \\((x-3)(x+3)(x^2+9)=\\)', type:'number',ans:115,pfx:''},
+      {q:'展開 \\(\\dfrac{1}{2}(4x^2-6x+8)\\)', type:'poly',a2:2,a1:-3,a0:4,pfx:''},
+      {q:'展開 \\(-\\dfrac{2}{3}(6x^2-9x+3)\\)', type:'poly',a2:-4,a1:6,a0:-2,pfx:''},
+      {q:'展開 \\((x+\\dfrac{1}{2})(2x-4)\\)', type:'poly',a2:2,a1:-3,a0:-2,pfx:''},
+      {q:'展開 \\((-2x+3)(x-1)\\)', type:'poly',a2:-2,a1:5,a0:-3,pfx:''},
+      {q:'展開 \\((-x+4)(-2x+1)\\)', type:'poly',a2:2,a1:-9,a0:4,pfx:''},
+      {q:'展開 \\(\\dfrac{3}{4}(8x^2-4x+12)\\)', type:'poly',a2:6,a1:-3,a0:9,pfx:''},
+      {q:'展開 \\(-\\dfrac{1}{3}(9x^2+6x-15)\\)', type:'poly',a2:-3,a1:-2,a0:5,pfx:''},
+      {q:'展開 \\((x+\\dfrac{3}{2})(2x-4)\\)', type:'poly',a2:2,a1:-1,a0:-6,pfx:''},
+      {q:'展開 \\((-3x+1)(2x-5)\\)', type:'poly',a2:-6,a1:17,a0:-5,pfx:''},
     ];
     const bi=jrQPickOnce(bpool,_pmBQ); if(bi!==null) return ret(bi);
-    const k=rnzInt(-4,4),a=rnzInt(-6,6),b=randInt(-8,8);
-    return poly(`展開 \\(${ni(k)}(${ps(0,a,b)})\\)`, 0, k*a, k*b);
+    // 動態：整數係數 / 分數×一次式 / 分數×二次式（各 1/3 機率）
+    const fStr=(p,q)=>p<0?`-\\dfrac{${-p}}{${q}}`:`\\dfrac{${p}}{${q}}`;
+    const bDyn=randInt(0,2);
+    if(bDyn===0){
+      const k=rnzInt(-4,4),a=rnzInt(-6,6),b=randInt(-8,8);
+      return poly(`展開 \\(${ni(k)}(${ps(0,a,b)})\\)`, 0, k*a, k*b);
+    }
+    if(bDyn===1){
+      // (p/q) × (q·a·x + q·b)  答案均為整數
+      const fracs=[{p:1,q:2},{p:1,q:3},{p:2,q:3},{p:1,q:4},{p:3,q:4},{p:-1,q:2},{p:-1,q:3},{p:-2,q:3}];
+      const fr=pick(fracs);
+      const A=rnzInt(-5,5),B=randInt(-6,6);
+      return poly(`展開 \\(${fStr(fr.p,fr.q)}(${ps(0,fr.q*A,fr.q*B)})\\)`, 0, fr.p*A, fr.p*B);
+    }
+    // bDyn===2: (p/q) × (q·a₂x² + q·a₁x + q·a₀)
+    const fracs2=[{p:1,q:2},{p:1,q:3},{p:2,q:3},{p:-1,q:2},{p:-1,q:3},{p:3,q:4},{p:-3,q:4}];
+    const fr2=pick(fracs2);
+    const A2=rnzInt(-3,3),A1=rnzInt(-4,4),A0=randInt(-5,5);
+    if(A2===0) return null;
+    return poly(`展開 \\(${fStr(fr2.p,fr2.q)}(${ps(fr2.q*A2,fr2.q*A1,fr2.q*A0)})\\)`, fr2.p*A2, fr2.p*A1, fr2.p*A0);
   }
   if(level==='medium'){
     const mpool=[
       {q:'若 \\(x(x-2)=4\\)，則 \\((x+1)^2(x-3)^2-4(x+3)(x-5)+5=\\)', type:'number',ans:50,pfx:''},
       {q:'\\((198x^2+198x+4)(x^2+4x+198)\\) 展開式中，\\(x^2\\) 項的係數＝', type:'number',ans:40000,pfx:'\\(x^2\\)項係數'},
       {q:'若已知 \\((3x+a)(bx+3)=-6x^2+11x+c\\)，則 \\(a+b+c=\\)', type:'number',ans:-6,pfx:'\\(a+b+c\\)'},
+      {q:'展開 \\((x+\\dfrac{1}{2})(2x-6)\\)', type:'poly',a2:2,a1:-5,a0:-3,pfx:''},
+      {q:'展開 \\((x-\\dfrac{2}{3})(3x+6)\\)', type:'poly',a2:3,a1:4,a0:-4,pfx:''},
+      {q:'展開 \\((-x+\\dfrac{3}{4})(4x-8)\\)', type:'poly',a2:-4,a1:11,a0:-6,pfx:''},
+      {q:'展開 \\((2x+\\dfrac{5}{3})(3x-6)\\)', type:'poly',a2:6,a1:-7,a0:-10,pfx:''},
+      {q:'展開 \\((-2x+\\dfrac{1}{3})(3x+9)\\)', type:'poly',a2:-6,a1:-17,a0:3,pfx:''},
+      {q:'展開 \\((x-\\dfrac{3}{2})(2x+8)\\)', type:'poly',a2:2,a1:5,a0:-12,pfx:''},
     ];
     const mi=jrQPickOnce(mpool,_pmMQ); if(mi!==null) return ret(mi);
+    const fStr=(p,q)=>p<0?`-\\dfrac{${-p}}{${q}}`:`\\dfrac{${p}}{${q}}`;
     const t=randInt(0,3);
     if(t===0){
       const k=rnzInt(-5,5),a=rnzInt(-6,6),b=rnzInt(-8,8);
@@ -5601,12 +5635,18 @@ function _8aPolyMul(level) {
       return poly(`展開 \\(${ni(k)}(${ps(a2,a1,a0)})\\)`, k*a2, k*a1, k*a0);
     }
     if(t===2){
-      const fracs=[{p:1,q:2},{p:1,q:3},{p:2,q:3},{p:1,q:4},{p:3,q:4}];
+      // 分數係數（含負分數）× 一次或二次式
+      const fracs=[{p:1,q:2},{p:1,q:3},{p:2,q:3},{p:1,q:4},{p:3,q:4},{p:-1,q:2},{p:-1,q:3},{p:-3,q:4}];
       const fr=pick(fracs);
-      const A=rnzInt(-6,6),B=randInt(-6,6);
-      return poly(`展開 \\(\\dfrac{${fr.p}}{${fr.q}}(${ps(0,fr.q*A,fr.q*B)})\\)`, 0, fr.p*A, fr.p*B);
+      if(randInt(0,1)===0){
+        const A=rnzInt(-7,7),B=randInt(-7,7);
+        return poly(`展開 \\(${fStr(fr.p,fr.q)}(${ps(0,fr.q*A,fr.q*B)})\\)`, 0, fr.p*A, fr.p*B);
+      }
+      const A2=rnzInt(-3,3),A1=rnzInt(-5,5),A0=randInt(-6,6);
+      if(A2===0) return null;
+      return poly(`展開 \\(${fStr(fr.p,fr.q)}(${ps(fr.q*A2,fr.q*A1,fr.q*A0)})\\)`, fr.p*A2, fr.p*A1, fr.p*A0);
     }
-    // t===3: 二項相乘
+    // t===3: 二項相乘（含負係數）
     const a=rnzInt(-5,5),b=rnzInt(-6,6),c=rnzInt(-5,5),d=rnzInt(-6,6);
     const x2=a*c,xc=a*d+b*c,con=b*d;
     if(Math.abs(x2)>25||Math.abs(xc)>30||Math.abs(con)>36) return null;
