@@ -425,7 +425,9 @@ body {
   }
   .q-input::placeholder { color: transparent; }
   .q-number { color: #000; font-size: 0.9rem; padding-top: 3px; }
-  .q-expr { font-size: 0.9rem; line-height: 1.3; padding: 2px 0; }
+  /* min-width:0 讓 flex child 可縮小至內容以下，避免長題目超出頁面 */
+  .q-body { min-width: 0; overflow: hidden; }
+  .q-expr { font-size: 0.9rem; line-height: 1.3; padding: 2px 0; overflow-wrap: break-word; }
   .q-answer-area { margin-top: 1px; font-size: 0.88rem; }
   .badge { display: none; }
 }
