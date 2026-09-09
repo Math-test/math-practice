@@ -2772,6 +2772,89 @@ function _7aEqn(level) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  七上 ▸ 一元一次方程式應用問題
+// ═══════════════════════════════════════════════════════════════════
+function gen7aEqnApp(level){
+  for(let i=0;i<30;i++){const q=_7aEqnAppQ(level);if(q)return q;}
+  return _7aEqnAppQ('basic');
+}
+function _7aEqnAppQ(level){
+  if(level==='basic'){
+    const t=randInt(0,4);
+    if(t===0){
+      const n=randInt(5,30);
+      return{question:`兩個連續正整數的和為 \\(${2*n+1}\\)，求較小的整數`,answer:n,type:'number'};
+    }
+    if(t===1){
+      const n=randInt(4,20);
+      return{question:`三個連續正整數的和為 \\(${3*n+3}\\)，求最小的整數`,answer:n,type:'number'};
+    }
+    if(t===2){
+      const b=randInt(5,30),k=randInt(1,10);
+      return{question:`甲比乙多 \\(${k}\\)，甲乙之和為 \\(${2*b+k}\\)，求甲`,answer:b+k,type:'number',answerPrefix:'甲'};
+    }
+    if(t===3){
+      const m=randInt(2,4),small=randInt(3,15);
+      return{question:`甲是乙的 \\(${m}\\) 倍，甲比乙多 \\(${(m-1)*small}\\)，求乙`,answer:small,type:'number',answerPrefix:'乙'};
+    }
+    // t===4: 購物
+    const p1=randInt(2,10)*5,n1=randInt(2,5),p2=randInt(2,10)*5,n2=randInt(2,5);
+    return{question:`買了 \\(${n1}\\) 件甲商品和 \\(${n2}\\) 件乙商品，共花 \\(${p1*n1+p2*n2}\\) 元，甲商品每件 \\(${p1}\\) 元，求乙商品每件幾元`,answer:p2,type:'number',answerPrefix:'乙商品每件（元）'};
+  }
+  if(level==='medium'){
+    const t=randInt(0,3);
+    if(t===0){
+      // 年齡：父P歲，子C歲，k年後父是子的m倍
+      const C=randInt(5,15),m=randInt(2,4),D=randInt(18,30),P=C+D;
+      const num=P-m*C,den=m-1;
+      if(num<=0||num%den!==0)return null;
+      const k=num/den;
+      if(k<1||k>25)return null;
+      return{question:`父親現年 \\(${P}\\) 歲，兒子現年 \\(${C}\\) 歲，幾年後父親年齡恰好是兒子的 \\(${m}\\) 倍？`,answer:k,type:'number',answerPrefix:'年後'};
+    }
+    if(t===1){
+      // 相遇行程
+      const va=randInt(3,9),vb=randInt(3,9),T=randInt(1,5);
+      return{question:`甲乙相距 \\(${(va+vb)*T}\\) 公里，同時相向而行，甲速 \\(${va}\\) 公里/時，乙速 \\(${vb}\\) 公里/時，幾小時後相遇？`,answer:T,type:'number',answerPrefix:'小時'};
+    }
+    if(t===2){
+      // 追及行程
+      const va=randInt(2,5),diff=randInt(2,4),vb=va+diff,H=randInt(1,4);
+      if(va*H%diff!==0)return null;
+      const T=va*H/diff;
+      if(T<1||T>12)return null;
+      return{question:`甲先出發，速 \\(${va}\\) 公里/時，\\(${H}\\) 小時後乙以 \\(${vb}\\) 公里/時追趕，乙需幾小時追上甲？`,answer:T,type:'number',answerPrefix:'小時'};
+    }
+    // t===3: 折扣
+    const disc=pick([7,8,9]),orig=randInt(4,20)*50;
+    const sale=orig*disc/10;
+    if(!Number.isInteger(sale))return null;
+    return{question:`某商品打 \\(${disc}\\) 折後售價為 \\(${sale}\\) 元，原價為多少元？`,answer:orig,type:'number',answerPrefix:'原價（元）'};
+  }
+  // hard
+  const t=randInt(0,2);
+  if(t===0){
+    // 工程問題：合作 T 天，甲單獨需 a 天
+    const T=randInt(2,6),extraA=randInt(1,4),a=T+extraA;
+    const numB=a*T,denB=a-T;
+    if(denB<=0||numB%denB!==0)return null;
+    const b=numB/denB;
+    if(b<1||b>60)return null;
+    return{question:`一項工程甲單獨完成需 \\(${a}\\) 天，乙單獨完成需 \\(${b}\\) 天，兩人合作需幾天完成？`,answer:T,type:'number',answerPrefix:'天'};
+  }
+  if(t===1){
+    // 分配問題：n人分total元，再加extra人，每人新得額
+    const n=randInt(3,8),total=randInt(5,20)*n,extra=randInt(1,4);
+    const newAvg=total/(n+extra);
+    if(!Number.isInteger(newAvg)||newAvg<1)return null;
+    return{question:`原有 \\(${n}\\) 人平分 \\(${total}\\) 元，再加入 \\(${extra}\\) 人一起平分，每人可得幾元？`,answer:newAvg,type:'number',answerPrefix:'每人（元）'};
+  }
+  // t===2: 長方形周長
+  const W=randInt(5,15),k=randInt(2,6),L=W+k;
+  return{question:`長方形的長比寬多 \\(${k}\\) 公分，周長為 \\(${2*(L+W)}\\) 公分，求寬`,answer:W,type:'number',answerPrefix:'寬（公分）'};
+}
+
 // ─── 二元一次方程式輔助 ────────────────────────────────────────────
 function _eqLine(a, b, c) {
   return `${_polyStr([{c:a,v:'x'},{c:b,v:'y'}])} = ${c}`;
@@ -6648,6 +6731,64 @@ function _8bQuad2(level){
 }
 
 // ═══════════════════════════════════════════════════════════════════
+//  八上 ▸ 一元二次方程式應用問題
+// ═══════════════════════════════════════════════════════════════════
+function gen8bQuad3(level){
+  for(let i=0;i<30;i++){const q=_8bQuad3(level);if(q)return q;}
+  return _8bQuad3('basic');
+}
+function _8bQuad3(level){
+  if(level==='basic'){
+    const t=randInt(0,2);
+    if(t===0){
+      // 兩連續正整數之積
+      const n=randInt(3,12);
+      return{question:`兩個連續正整數的乘積為 \\(${n*(n+1)}\\)，求較小的整數`,answer:n,type:'number'};
+    }
+    if(t===1){
+      // 長方形面積：長比寬多k，面積A
+      const w=randInt(3,10),k=randInt(1,5),l=w+k;
+      return{question:`長方形的長比寬多 \\(${k}\\) 公分，面積為 \\(${w*l}\\) 平方公分，求寬`,answer:w,type:'number',answerPrefix:'寬（公分）'};
+    }
+    // t===2: 某正整數平方減去a倍等於b
+    const n=randInt(3,10),a=randInt(1,2*n-2);
+    const b=n*n-a*n;
+    if(b<0)return null;
+    return{question:`某正整數的平方減去它的 \\(${a}\\) 倍等於 \\(${b}\\)，求此正整數`,answer:n,type:'number'};
+  }
+  if(level==='medium'){
+    const t=randInt(0,2);
+    if(t===0){
+      // 外加邊框：(a+2x)(b+2x)=outerArea，求x
+      const a=randInt(4,10),b=randInt(4,10),x=randInt(1,3);
+      return{question:`在 \\(${a}\\times${b}\\) 公分的長方形四周各加寬 \\(x\\) 公分的邊框後，面積變為 \\(${(a+2*x)*(b+2*x)}\\) 平方公分，求 \\(x\\)`,answer:x,type:'number',answerPrefix:'\\(x\\)（公分）'};
+    }
+    if(t===1){
+      // 裁去邊框：(aO-2x)(bO-2x)=innerArea，求x
+      const aO=randInt(8,16),bO=randInt(8,16),x=randInt(1,3);
+      const iA=aO-2*x,iB=bO-2*x;
+      if(iA<=2||iB<=2)return null;
+      return{question:`\\(${aO}\\times${bO}\\) 公分的長方形四邊各裁去等寬 \\(x\\) 公分後，剩餘面積為 \\(${iA*iB}\\) 平方公分，求 \\(x\\)`,answer:x,type:'number',answerPrefix:'\\(x\\)（公分）'};
+    }
+    // t===2: 兩正整數和積
+    const n1=randInt(2,10),n2=randInt(2,10);
+    if(n1===n2)return null;
+    return{question:`兩正整數之和為 \\(${n1+n2}\\)，積為 \\(${n1*n2}\\)，求較小的正整數`,answer:Math.min(n1,n2),type:'number'};
+  }
+  // hard
+  const t=randInt(0,1);
+  if(t===0){
+    // 拋體：h=v0*t-5t²，從固定組合保證兩個不同正整數根
+    const combos=[{v0:15,t:1,H:10},{v0:20,t:1,H:15},{v0:25,t:1,H:20},{v0:25,t:2,H:30},{v0:30,t:1,H:25},{v0:30,t:2,H:40}];
+    const {v0,t:tV,H}=pick(combos);
+    return{question:`從地面以初速 \\(${v0}\\) 公尺/秒向上拋球，高度公式 \\(h=${v0}t-5t^2\\)（公尺），求球到達高度 \\(${H}\\) 公尺的最短時間`,answer:tV,type:'number',answerPrefix:'\\(t\\)（秒）'};
+  }
+  // t===1: 連續偶數之積
+  const n=randInt(1,7)*2;
+  return{question:`兩個連續偶數的乘積為 \\(${n*(n+2)}\\)，求較小的偶數`,answer:n,type:'number'};
+}
+
+// ═══════════════════════════════════════════════════════════════════
 //  八下 ▸ 統計資料處理
 // ═══════════════════════════════════════════════════════════════════
 function gen8bStat(level){
@@ -9029,6 +9170,7 @@ const JR_GENERATORS = {
   // 七上 一元一次式與方程式
   '7a-poly':      gen7aPoly,
   '7a-eqn':       gen7aEqn,
+  '7a-eqn-app':  gen7aEqnApp,
   // 七下 二元一次方程式
   '7b-subst':     gen7bSubst,
   '7b-elim':      gen7bElim,
@@ -9064,6 +9206,7 @@ const JR_GENERATORS = {
   '8a-factor2':  gen8bFactor2,
   '8a-quad1':    gen8bQuad1,
   '8a-quad2':    gen8bQuad2,
+  '8a-quad3':    gen8bQuad3,
   '8a-stat':     gen8bStat,
   // 八下（數列、線型函數、三角形）
   '8b-arith-seq':      gen8bArithSeq,

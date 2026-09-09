@@ -53,6 +53,7 @@ const TOPIC_NAMES = {
   // 七上 一元一次式
   '7a-poly':      '七上·一元一次多項式',
   '7a-eqn':       '七上·一元一次方程式',
+  '7a-eqn-app':  '七上·一元一次方程式應用問題',
   // 七下
   '7b-subst':     '七下·代入消去法',
   '7b-elim':      '七下·加減消去法',
@@ -519,7 +520,7 @@ function renderQuiz(questions, params) {
 
   // 答題格式提示
   const ELEM_TOPICS = ['int-arith','gcd-lcm','ratio-val','rate','unit','area','volume'];
-  const JR_INT_TOPICS  = ['7a-int-sign','7a-int-add','7a-int-sub','7a-int-mul','7a-int-div','7a-int-mix','7a-int-abs','7a-poly','7b-poly','7b-coord','8a-poly-add','8a-poly-mul','8a-poly-div','8a-sqrt-basic','8a-sqrt-add','8a-sqrt-mul','8a-pyth','8b-geo-seq','8b-linear-func'];
+  const JR_INT_TOPICS  = ['7a-int-sign','7a-int-add','7a-int-sub','7a-int-mul','7a-int-div','7a-int-mix','7a-int-abs','7a-poly','7a-eqn-app','7b-poly','7b-coord','8a-poly-add','8a-poly-mul','8a-poly-div','8a-sqrt-basic','8a-sqrt-add','8a-sqrt-mul','8a-pyth','8a-quad3','8b-geo-seq','8b-linear-func'];
   const JR_FRAC_TOPICS = ['7a-frac-sign','7a-frac-add','7a-frac-sub','7a-frac-mul','7a-frac-div','7a-frac-mix','7a-frac-abs','7a-eqn','7b-subst','7b-elim','7b-linepic','7b-chain','7b-ratio','7b-prop','7b-dirprop','7b-invprop','7b-ineq','7b-stat','8a-mulform','8a-sq-sum','8a-sq-diff','8a-diff-sq','8b-arith-seq','8b-arith-series','9a-ratio-chain','9a-trig'];
   const JR_NUM_TOPICS  = ['7a-gcd-lcm','7a-prime','7a-int-exp'];
   const hasFrac  = params.topics.some(t => t.startsWith('frac') || t === 'mix-fd' || JR_FRAC_TOPICS.includes(t));
