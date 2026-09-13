@@ -3076,6 +3076,62 @@ function _7bElim(level) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+//  七下 ▸ 聯立方程式應用問題
+// ═══════════════════════════════════════════════════════════════════
+function gen7bEqnApp(level){
+  for(let i=0;i<30;i++){const q=_7bEqnApp(level);if(q)return q;}
+  return _7bEqnApp('basic');
+}
+function _7bEqnApp(level){
+  if(level==='basic'){
+    const t=randInt(0,2);
+    if(t===0){
+      const a=randInt(5,30),b=randInt(1,a-1);
+      return{question:`兩數之和為 \\(${a+b}\\)，差為 \\(${a-b}\\)，求較大的數`,answer:a,type:'number',answerPrefix:'較大的數'};
+    }
+    if(t===1){
+      const b=randInt(3,20),k=randInt(2,5);
+      return{question:`兩數之和為 \\(${(k+1)*b}\\)，其中一數是另一數的 \\(${k}\\) 倍，求較小的數`,answer:b,type:'number',answerPrefix:'較小的數'};
+    }
+    const qa=randInt(2,6),qb=randInt(2,6),pa=randInt(2,8)*5,pb=randInt(2,8)*5;
+    if(pa===pb)return null;
+    return{question:`甲、乙兩種商品共 \\(${qa+qb}\\) 件，共花 \\(${qa*pa+qb*pb}\\) 元，甲每件 \\(${pa}\\) 元，乙每件 \\(${pb}\\) 元，求甲商品幾件`,answer:qa,type:'number',answerPrefix:'甲商品（件）'};
+  }
+  if(level==='medium'){
+    const t=randInt(0,2);
+    if(t===0){
+      const va=randInt(3,8),vb=randInt(3,8),T=randInt(1,4);
+      if(va===vb)return null;
+      return{question:`甲乙兩地相距 \\(${(va+vb)*T}\\) 公里，甲從甲地、乙從乙地同時相向而行，甲速 \\(${va}\\) 公里/時，乙速 \\(${vb}\\) 公里/時，幾小時後相遇？`,answer:T,type:'number',answerPrefix:'小時'};
+    }
+    if(t===1){
+      const childAge=randInt(5,15),mult=randInt(2,4),diff=randInt(18,35);
+      const fatherAge=childAge+diff;
+      const num=fatherAge-mult*childAge,den=mult-1;
+      if(num<=0||num%den!==0)return null;
+      const k=num/den; if(k<1||k>25)return null;
+      return{question:`父親現年 \\(${fatherAge}\\) 歲，兒子現年 \\(${childAge}\\) 歲，幾年後父親年齡恰好是兒子的 \\(${mult}\\) 倍？`,answer:k,type:'number',answerPrefix:'年後'};
+    }
+    const daysA=randInt(3,10),daysB=randInt(3,10);
+    const nW=daysA*daysB,dW=daysA+daysB;
+    if(nW%dW!==0)return null;
+    return{question:`一項工程，甲獨立需 \\(${daysA}\\) 天，乙獨立需 \\(${daysB}\\) 天，合作需幾天完成？`,answer:nW/dW,type:'number',answerPrefix:'天'};
+  }
+  const t=randInt(0,1);
+  if(t===0){
+    const c1=randInt(1,4)*10,c2=randInt(5,9)*10,cMix=randInt(c1/10+1,c2/10-1)*10;
+    const total=randInt(2,6)*100;
+    const x=total*(c2-cMix)/(c2-c1);
+    if(!Number.isInteger(x)||x<=0||x>=total)return null;
+    return{question:`濃度 \\(${c1}\\%\\) 與 \\(${c2}\\%\\) 的食鹽水混合成濃度 \\(${cMix}\\%\\) 共 \\(${total}\\) 克，需要 \\(${c1}\\%\\) 的食鹽水幾克？`,answer:x,type:'number',answerPrefix:`${c1}% 食鹽水（克）`};
+  }
+  const va=randInt(2,5),H=randInt(1,3),vb=va+randInt(1,4);
+  const T=va*H/(vb-va);
+  if(!Number.isInteger(T)||T<1||T>20)return null;
+  return{question:`甲先出發，速 \\(${va}\\) 公里/時，\\(${H}\\) 小時後乙以 \\(${vb}\\) 公里/時追趕，乙需幾小時追上甲？`,answer:T,type:'number',answerPrefix:'小時'};
+}
+
+// ═══════════════════════════════════════════════════════════════════
 //  七下 ▸ 二元一次多項式（化簡求係數）
 // ═══════════════════════════════════════════════════════════════════
 function gen7bPoly(level) {
@@ -5670,6 +5726,12 @@ function _8aPolyMul(level) {
       {q:'展開 \\(-\\dfrac{1}{3}(9x^2+6x-15)\\)', type:'poly',a2:-3,a1:-2,a0:5,pfx:''},
       {q:'展開 \\((x+\\dfrac{3}{2})(2x-4)\\)', type:'poly',a2:2,a1:-1,a0:-6,pfx:''},
       {q:'展開 \\((-3x+1)(2x-5)\\)', type:'poly',a2:-6,a1:17,a0:-5,pfx:''},
+      {q:'展開 \\((x+3)(x-5)\\)', type:'poly',a2:1,a1:-2,a0:-15,pfx:''},
+      {q:'展開 \\((2x+1)(x-4)\\)', type:'poly',a2:2,a1:-7,a0:-4,pfx:''},
+      {q:'展開 \\((3x-2)(x+5)\\)', type:'poly',a2:3,a1:13,a0:-10,pfx:''},
+      {q:'化簡 \\(2x(x+3)-3x(x-1)\\)', type:'poly',a2:-1,a1:9,a0:0,pfx:''},
+      {q:'化簡 \\((x+1)(x+2)-(x-1)(x-2)\\)', type:'poly',a2:0,a1:6,a0:0,pfx:''},
+      {q:'化簡 \\((x+4)(x-4)+3x\\)', type:'poly',a2:1,a1:3,a0:-16,pfx:''},
     ];
     const bi=jrQPickOnce(bpool,_pmBQ); if(bi!==null) return ret(bi);
     // 動態：整數係數 / 分數×一次式 / 分數×二次式（各 1/3 機率）
@@ -5704,6 +5766,11 @@ function _8aPolyMul(level) {
       {q:'展開 \\((2x+\\dfrac{5}{3})(3x-6)\\)', type:'poly',a2:6,a1:-7,a0:-10,pfx:''},
       {q:'展開 \\((-2x+\\dfrac{1}{3})(3x+9)\\)', type:'poly',a2:-6,a1:-17,a0:3,pfx:''},
       {q:'展開 \\((x-\\dfrac{3}{2})(2x+8)\\)', type:'poly',a2:2,a1:5,a0:-12,pfx:''},
+      {q:'若 \\((2x+a)(3x-b)=6x^2-x-2\\)，求 \\(a+b\\)', type:'number',ans:3,pfx:'\\(a+b\\)'},
+      {q:'已知 \\(x(x-4)=7\\)，求 \\((x+2)(x-6)\\)', type:'number',ans:-5,pfx:''},
+      {q:'化簡 \\((x+3)(x-3)-(x-2)^2\\)', type:'poly',a2:0,a1:4,a0:-13,pfx:''},
+      {q:'化簡 \\((2x+1)^2-3(x+2)(x-1)\\)', type:'poly',a2:1,a1:1,a0:7,pfx:''},
+      {q:'若 \\((x+m)(x+n)=x^2+5x-6\\)，求 \\(m^2+n^2\\)', type:'number',ans:37,pfx:'\\(m^2+n^2\\)'},
     ];
     const mi=jrQPickOnce(mpool,_pmMQ); if(mi!==null) return ret(mi);
     const fStr=(p,q)=>p<0?`-\\dfrac{${-p}}{${q}}`:`\\dfrac{${p}}{${q}}`;
@@ -5739,6 +5806,9 @@ function _8aPolyMul(level) {
     {q:'已知 \\((x^2+mx+n)(x^2-3x+6)\\) 展開後，\\(x^2\\) 項的係數和常數項都是 \\(0\\)，則 \\(m+n=\\)', type:'number',ans:2,pfx:'\\(m+n\\)'},
     {q:'求多項式 \\((3x^2+9-5x)(4x^2-6x+7)-(-x+9x^2-4)\\) 的係數總和為', type:'number',ans:31,pfx:'係數總和'},
     {q:'若 \\(x\\) 是實數，且 \\(x^2+2x-5=0\\)，則 \\((x+7)(x+3)(x-1)(x-5)=\\)', type:'number',ans:-60,pfx:''},
+    {q:'若 \\(x^2+x-1=0\\)，則 \\(x^4+x^3+x^2+1=\\)', type:'number',ans:3,pfx:''},
+    {q:'展開 \\((2x+1)(3x-2)(x-4)\\) 後，\\(x^2\\) 項的係數為', type:'number',ans:-25,pfx:'\\(x^2\\) 項係數'},
+    {q:'若 \\((x^2+ax+b)(x+c)=x^3+5x^2-2x-24\\)，求 \\(a+b+c\\)', type:'number',ans:-1,pfx:'\\(a+b+c\\)'},
   ];
   const hi=jrQPickOnce(hpool,_pmHQ); if(hi!==null) return ret(hi);
   const t=randInt(0,2);
@@ -5801,6 +5871,10 @@ function _8aPolyDiv(level) {
       {q:'已知有一多項式除以 \\((x-2)\\) 得商式為 \\((2x-3)\\)，餘式為 \\(3\\)，則此多項式除以 \\((x-5)\\) 得商式為', type:'poly',a2:0,a1:2,a0:3,pfx:''},
       {q:'若多項式 \\(A\\) 除以 \\(2x-1\\)，得商式為 \\(x+3\\)，餘式為 \\(4\\)，則多項式 \\(A=\\)', type:'poly',a2:2,a1:5,a0:1,pfx:''},
       {q:'化簡 \\((4x^2-6x) \\div 2x\\)', type:'poly',a2:0,a1:2,a0:-3,pfx:''},
+      {q:'化簡 \\((6x^2+9x) \\div 3x\\)', type:'poly',a2:0,a1:2,a0:3,pfx:''},
+      {q:'化簡 \\((10x^2-15x) \\div 5x\\)', type:'poly',a2:0,a1:2,a0:-3,pfx:''},
+      {q:'化簡 \\((12x^2-8x+4) \\div 4\\)', type:'poly',a2:3,a1:-2,a0:1,pfx:''},
+      {q:'若多項式 \\(A\\) 除以 \\((x+2)\\) 得商式為 \\((2x-3)\\)，餘式為 \\(1\\)，則多項式 \\(A=\\)', type:'poly',a2:2,a1:1,a0:-5,pfx:''},
     ];
     const bi=jrQPickOnce(bpool,_pdBQ); if(bi!==null) return ret(bi);
     const k=rp(2,6), a=k*rnzInt(-5,5), b=k*randInt(-6,6);
@@ -5816,6 +5890,9 @@ function _8aPolyDiv(level) {
       {q:'若 \\(\\dfrac{6x^2-19x+9}{B}=2x-3-\\dfrac{6}{B}\\)，則多項式 \\(B\\) 為', type:'poly',a2:0,a1:3,a0:-5,pfx:''},
       {q:'若多項式 \\(A\\) 除以 \\(x-2\\)，得到商式為 \\(x-3\\)，餘式為 \\(-4\\)，則多項式 \\(A=\\)', type:'poly',a2:1,a1:-5,a0:2,pfx:''},
       {q:'已知 \\(A\\)、\\(B\\) 均為多項式，其中 \\(B\\neq 0\\)，若 \\(A\\div B\\) 的商式為 \\(4x+5\\)，餘式為 \\(x+8\\)，則 \\(A\\div 3B\\) 得到的商式為', type:'text',ans:'(4x+5)/3',pfx:''},
+      {q:'若一長方形面積為 \\((6x^2+x-12)\\)，一邊長為 \\((2x+3)\\)，求另一邊長', type:'poly',a2:0,a1:3,a0:-4,pfx:''},
+      {q:'已知多項式 \\(A\\) 除以 \\((x+1)\\) 的商式為 \\((3x-2)\\)，餘式為 \\(5\\)，求多項式 \\(A\\)', type:'poly',a2:3,a1:1,a0:3,pfx:''},
+      {q:'若多項式 \\(P\\) 除以 \\((2x-1)\\) 的商式為 \\((x+4)\\)，餘式為 \\(3\\)，求多項式 \\(P\\)', type:'poly',a2:2,a1:7,a0:-1,pfx:''},
     ];
     const mi=jrQPickOnce(mpool,_pdMQ); if(mi!==null) return ret(mi);
     if(randInt(0,1)===0){
@@ -5844,6 +5921,9 @@ function _8aPolyDiv(level) {
     {q:'利用多項式的除法，\\([(ax^2+bx+c)-(-x^2+3x-2)]\\div(3x-2)\\) 後，得商式為 \\(2x-4\\)，餘式為 \\(-1\\)，則 \\(a+2b+c=\\)', type:'number',ans:-16,pfx:'\\(a+2b+c\\)'},
     {q:'若 \\(6x^4-11x^3+Px^2+2x+Q\\) 可以被 \\(2x^2-x-1\\) 整除，則 \\(P=\\)【\\(\\quad\\quad\\)】，\\(Q=\\)【\\(\\quad\\quad\\)】', type:'text',ans:'5;-2',pfx:''},
     {q:'若 \\((2x^3+8x^2-ax+3)\\div(2x^2-1)\\) 得餘式 \\(2x+b\\)，則 \\(a=\\)【\\(\\quad\\quad\\)】，\\(b=\\)【\\(\\quad\\quad\\)】', type:'text',ans:'-1;7',pfx:''},
+    {q:'若多項式 \\(f(x)\\) 除以 \\((x-2)\\) 的餘式為 \\(7\\)，除以 \\((x+3)\\) 的餘式為 \\(2\\)，設 \\(f(x)=(x-2)(x+3)q(x)+px+r\\)，求 \\(p\\)', type:'number',ans:1,pfx:'\\(p\\)'},
+    {q:'已知 \\((x^2+ax+b)\\cdot(x-2)=x^3-x^2-4x+4\\)，求 \\(a+b\\)', type:'number',ans:-1,pfx:'\\(a+b\\)'},
+    {q:'若 \\(f(x)=(x-1)(x+3)q(x)+ax+b\\)，且 \\(f(1)=8\\)，\\(f(-3)=4\\)，求 \\(a-b\\)', type:'number',ans:-6,pfx:'\\(a-b\\)'},
   ];
   const hi=jrQPickOnce(hpool,_pdHQ); if(hi!==null) return ret(hi);
   // 長除法（困難）：非首一三次 ax³+... ÷ (x+k)
@@ -5950,7 +6030,7 @@ function gen8aSqrtBasic(level) {
 }
 function _8aSqrtBasic(level) {
   if(level==='basic'){
-    const t=randInt(0,3);
+    const t=randInt(0,7);
     if(t===0){
       // 完全平方數（擴充到 900）
       const n=pick([4,9,16,25,36,49,64,81,100,121,144,169,196,225,256,289,324,361,400,
@@ -5967,12 +6047,40 @@ function _8aSqrtBasic(level) {
       const n=randInt(a*a+1,(a+1)*(a+1)-1);
       return {question:`整數 \\(a\\) 滿足 \\(a&lt;\\sqrt{${n}}&lt;a+1\\)，求 \\(a\\)`, answer:a, type:'number'};
     }
-    // t=3：(√n)² = n
-    const n=randInt(3,200);
-    return {question:`計算 \\(\\left(\\sqrt{${n}}\\right)^2\\)`, answer:n, type:'number'};
+    if(t===3){
+      // (√n)² = n
+      const n=randInt(3,200);
+      return {question:`計算 \\(\\left(\\sqrt{${n}}\\right)^2\\)`, answer:n, type:'number'};
+    }
+    if(t===4){
+      // 逆向化簡：a√m = √n，求 n
+      const a=randInt(2,9),m=pick([2,3,5,6,7]);
+      return {question:`\\(${a}\\sqrt{${m}}=\\sqrt{n}\\)，求 \\(n\\)`, answer:a*a*m, type:'number', answerPrefix:'n'};
+    }
+    if(t===5){
+      // 使√(ax-b)有意義的最小正整數 x（x ≥ b/a）
+      const a=pick([1,2,3]),b=randInt(1,10)*a;
+      const minX=b/a;
+      const expr=a===1?`x-${b}`:`${a}x-${b}`;
+      return {question:`使 \\(\\sqrt{${expr}}\\) 有意義的最小正整數 \\(x\\) 為`, answer:minX, type:'number', answerPrefix:'x'};
+    }
+    if(t===6){
+      // 平方根個數：正數2個、0有1個、負數0個
+      const r=randInt(0,3);
+      if(r===0) return {question:`\\(0\\) 的平方根共有幾個？`, answer:1, type:'number'};
+      if(r===1){
+        const k=randInt(1,6);
+        return {question:`\\(-${k*k}\\) 的平方根共有幾個（在實數範圍內）？`, answer:0, type:'number'};
+      }
+      const n=pick([4,9,16,25,36,49,64,81,100]);
+      return {question:`\\(${n}\\) 的平方根共有幾個？`, answer:2, type:'number'};
+    }
+    // t===7: 化簡 √((-k)²) = k
+    const k=randInt(2,15);
+    return {question:`計算 \\(\\sqrt{(-${k})^2}\\)`, answer:k, type:'number'};
   }
   if(level==='medium'){
-    const t=randInt(0,3);
+    const t=randInt(0,6);
     if(t===0){
       const k=randInt(3,20),m=pick([2,3,5,6,7]);
       return {question:`化簡 \\(\\sqrt{${k*k*m}}\\)，根號外係數為`, answer:k, type:'number'};
@@ -5986,12 +6094,31 @@ function _8aSqrtBasic(level) {
                     676,729,784,841,900,961,1024]);
       return {question:`計算 \\(\\sqrt{${n}}\\)`, answer:Math.sqrt(n), type:'number'};
     }
-    // 整數部分（中等範圍 10~40）
-    const a=randInt(10,40);
-    const n=randInt(a*a+1,(a+1)*(a+1)-1);
-    return {question:`\\(\\sqrt{${n}}\\) 的整數部分為`, answer:a, type:'number'};
+    if(t===3){
+      // 整數部分（中等範圍 10~40）
+      const a=randInt(10,40);
+      const n=randInt(a*a+1,(a+1)*(a+1)-1);
+      return {question:`\\(\\sqrt{${n}}\\) 的整數部分為`, answer:a, type:'number'};
+    }
+    if(t===4){
+      // 化簡 √(a²) - a，a 為負整數 → (-a) - a = -2a = 2|a|
+      const k=randInt(2,12);
+      return {question:`若 \\(a=-${k}\\)，計算 \\(\\sqrt{a^2}-a\\)`, answer:2*k, type:'number'};
+    }
+    if(t===5){
+      // ax² = b 的正值解（b/a 為完全平方數）
+      const x=randInt(2,10),a=pick([1,2,3,4,5]);
+      const b=a*x*x;
+      const exprA=a===1?'':`${a}`;
+      return {question:`方程式 \\(${exprA}x^2=${b}\\) 的正值解為`, answer:x, type:'number'};
+    }
+    // t===6: 滿足 a ≤ √n < b 的正整數 n 有幾個
+    const a=randInt(2,6),diff=randInt(2,4);
+    const b=a+diff;
+    const count=b*b-a*a; // n ∈ {a²,a²+1,...,b²-1}，共 b²-a² 個
+    return {question:`滿足 \\(${a}\\leq\\sqrt{n}&lt;${b}\\) 的正整數 \\(n\\) 共有幾個？`, answer:count, type:'number'};
   }
-  const t=randInt(0,3);
+  const t=randInt(0,6);
   if(t===0){
     const a=randInt(15,60);
     const n=randInt(a*a+1,(a+1)*(a+1)-1);
@@ -6005,8 +6132,33 @@ function _8aSqrtBasic(level) {
     const k=randInt(8,25),m=pick([2,3,5,7]);
     return {question:`化簡 \\(\\sqrt{${k*k*m}}\\)，根號內最簡值為`, answer:m, type:'number'};
   }
-  const k=randInt(6,20),m=pick([2,3,5,6,7]);
-  return {question:`\\(a\\sqrt{${m}}\\) 化為 \\(\\sqrt{${k*k*m}}\\)，求 \\(a\\)`, answer:k, type:'number'};
+  if(t===3){
+    const k=randInt(6,20),m=pick([2,3,5,6,7]);
+    return {question:`\\(a\\sqrt{${m}}\\) 化為 \\(\\sqrt{${k*k*m}}\\)，求 \\(a\\)`, answer:k, type:'number'};
+  }
+  if(t===4){
+    // 使√(m-x²)有意義的最大正整數 x（x² ≤ m → x ≤ √m）
+    const mOpts=[5,8,10,13,17,20,26,29,34,37];
+    const m=pick(mOpts);
+    const maxX=Math.floor(Math.sqrt(m));
+    return {question:`使 \\(\\sqrt{${m}-x^2}\\) 有意義的最大正整數 \\(x\\) 為`, answer:maxX, type:'number', answerPrefix:'x'};
+  }
+  if(t===5){
+    // 小數部分性質：設 √n 整數部分為 a，小數部分為 x，x²+2ax = n-a²
+    const nOpts=[
+      {n:2,a:1},{n:3,a:1},{n:5,a:2},{n:6,a:2},{n:7,a:2},
+      {n:10,a:3},{n:11,a:3},{n:12,a:3},{n:13,a:3},{n:14,a:3},
+      {n:17,a:4},{n:19,a:4},{n:21,a:4},{n:23,a:4}
+    ];
+    const {n,a}=pick(nOpts);
+    const res=n-a*a;
+    return {question:`設 \\(\\sqrt{${n}}\\) 的整數部分為 \\(${a}\\)，小數部分為 \\(x\\)，求 \\(x^2+${2*a}x\\)`,
+      answer:res, type:'number'};
+  }
+  // t===6: 化簡 √(k²m) = k√m，求 k+m
+  const k=randInt(4,15),m=pick([2,3,5,6,7]);
+  return {question:`\\(\\sqrt{${k*k*m}}\\) 化為 \\(p\\sqrt{q}\\)（\\(q\\) 無平方因數），求 \\(p+q\\)`,
+    answer:k+m, type:'number', answerPrefix:'p+q'};
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -6018,16 +6170,43 @@ function gen8aSqrtAdd(level) {
 }
 function _8aSqrtAdd(level) {
   if(level==='basic'){
+    const t=randInt(0,2);
+    if(t===0){
+      // a√m ± b√m = c√m，求c
+      const m=pick([2,3,5,6,7]);
+      const a=randInt(3,15),b=randInt(1,a-1);
+      const neg=randInt(0,1)===0;
+      const coeff=neg?a-b:a+b;
+      if(coeff<=0) return null;
+      const q=neg?`${a}\\sqrt{${m}}-${b}\\sqrt{${m}}`:`${a}\\sqrt{${m}}+${b}\\sqrt{${m}}`;
+      return {question:`計算 \\(${q}\\)，結果 \\(=c\\sqrt{${m}}\\)，求 \\(c\\)`, answer:coeff, type:'number', answerPrefix:'c'};
+    }
+    if(t===1){
+      // 化簡√(a²m) ± b√m = c√m，求c（先化簡再加減）
+      const m=pick([2,3,5]);
+      const a=randInt(2,6),b=randInt(1,8);
+      const neg=randInt(0,1)===0;
+      const coeff=neg?a-b:a+b;
+      if(neg&&coeff<=0) return null;
+      const n=a*a*m;
+      const q=neg?`\\sqrt{${n}}-${b}\\sqrt{${m}}`:`\\sqrt{${n}}+${b}\\sqrt{${m}}`;
+      return {question:`化簡 \\(${q}\\)，結果 \\(=c\\sqrt{${m}}\\)，求 \\(c\\)`, answer:coeff, type:'number', answerPrefix:'c'};
+    }
+    // t===2: (p+a√m) ± (q∓a√m)，根號項消去，求整數結果
     const m=pick([2,3,5,6,7]);
-    const a=randInt(3,15),b=randInt(1,a-1);
-    const neg=randInt(0,1)===0;
-    const coeff=neg?a-b:a+b;
-    if(coeff<=0) return null;
-    const q=neg?`${a}\\sqrt{${m}}-${b}\\sqrt{${m}}`:`${a}\\sqrt{${m}}+${b}\\sqrt{${m}}`;
-    return {question:`計算 \\(${q}\\)，結果 \\(=c\\sqrt{${m}}\\)，求 \\(c\\)`, answer:coeff, type:'number', answerPrefix:'c'};
+    const p=randInt(2,12),q=randInt(2,12),a=randInt(1,5);
+    const add=randInt(0,1)===0;
+    // (p+a√m) + (q-a√m) = p+q；(p-a√m) - (q-a√m) = p-q
+    const result=add?p+q:p-q;
+    if(result===0) return null;
+    if(add){
+      return {question:`計算 \\((${p}+${a}\\sqrt{${m}})+(${q}-${a}\\sqrt{${m}})\\)`, answer:result, type:'number'};
+    }
+    if(p<=q) return null;
+    return {question:`計算 \\((${p}-${a}\\sqrt{${m}})-(${q}-${a}\\sqrt{${m}})\\)`, answer:result, type:'number'};
   }
   if(level==='medium'){
-    const t=randInt(0,4);
+    const t=randInt(0,5);
     if(t===0){
       const m=pick([2,3,5]);
       const a=randInt(2,10),b=randInt(1,8);
@@ -6074,19 +6253,32 @@ function _8aSqrtAdd(level) {
       const op=neg?'-':'+';
       return {question:`化簡 \\(\\dfrac{\\sqrt{${n1}}${op}\\sqrt{${n2}}}{\\sqrt{${m}}}\\)`, answer:coeff, type:'number'};
     }
-    // t===4：括號 a√m + {b√n - c√m}，結果為兩根號
-    const mOpts=[2,3,5,6];
-    const m=pick(mOpts), n=pick(mOpts.filter(x=>x!==m));
-    const [sm,sn]=m<=n?[m,n]:[n,m];
-    const a=randInt(2,6), b=randInt(2,5), c=randInt(1,a-1);
-    const resm=a-c;
-    if(resm<=0) return null;
-    const N1=a*a*m, N2=b*b*n, N3=c*c*m;
-    if(N1===N3) return null;
-    const [rsm,rsn]=m===sm?[resm,b]:[b,resm];
-    const cStr=c===1?'':`${c}`;
-    return {question:`化簡 \\(\\sqrt{${N1}} + \\left\\{\\sqrt{${N2}} - ${cStr}\\sqrt{${m}}\\right\\}\\)`,
-      type:'radical2',coeffA:rsm,radA:sm,coeffB:rsn,radB:sn};
+    if(t===4){
+      // 括號 a√m + {b√n - c√m}，結果為兩根號
+      const mOpts=[2,3,5,6];
+      const m=pick(mOpts), n=pick(mOpts.filter(x=>x!==m));
+      const [sm,sn]=m<=n?[m,n]:[n,m];
+      const a=randInt(2,6), b=randInt(2,5), c=randInt(1,a-1);
+      const resm=a-c;
+      if(resm<=0) return null;
+      const N1=a*a*m, N2=b*b*n, N3=c*c*m;
+      if(N1===N3) return null;
+      const [rsm,rsn]=m===sm?[resm,b]:[b,resm];
+      const cStr=c===1?'':`${c}`;
+      return {question:`化簡 \\(\\sqrt{${N1}} + \\left\\{\\sqrt{${N2}} - ${cStr}\\sqrt{${m}}\\right\\}\\)`,
+        type:'radical2',coeffA:rsm,radA:sm,coeffB:rsn,radB:sn};
+    }
+    // t===5: (p+a√m) ± (q±b√m)，含整數項的根號加減（radical-mix 答案）
+    const m=pick([2,3,5,6,7]);
+    const p=randInt(1,8),q=randInt(1,8),a=randInt(1,5),b=randInt(1,5);
+    const addOuter=randInt(0,1)===0,addInner=randInt(0,1)===0;
+    const rat=addOuter?p+q:p-q;
+    const rad=addOuter?(addInner?a+b:a-b):(addInner?a-b:a+b);
+    if(rad===0) return null;
+    const innerSign=addInner?`+${b}`:`-${b}`;
+    const outerOp=addOuter?'+':'-';
+    return {question:`化簡 \\((${p}+${a}\\sqrt{${m}})${outerOp}(${q}${innerSign}\\sqrt{${m}})\\)`,
+      type:'radical-mix',rational:rat,radCoeff:rad,radM:m};
   }
   const t=randInt(0,4);
   if(t===0){
@@ -6166,7 +6358,7 @@ function gen8aSqrtMul(level) {
 }
 function _8aSqrtMul(level) {
   if(level==='basic'){
-    const t=randInt(0,2);
+    const t=randInt(0,3);
     if(t===0){
       // √a × √b = integer（擴充至 28 組，含較大數字）
       const pairs=[
@@ -6186,14 +6378,33 @@ function _8aSqrtMul(level) {
       const a=randInt(2,12),m=pick([2,3,5,6,7,10,11,13]);
       return {question:`計算 \\(\\sqrt{${a*a*m}}\\div\\sqrt{${m}}\\)`, answer:a, type:'number'};
     }
-    // t===2: k√m × a = ka√m（有理數係數與根號相乘）
-    const m=pick([2,3,5,6,7,10,11,13]);
-    const k=randInt(2,9),a=randInt(2,7);
-    return {question:`計算 \\(${k}\\sqrt{${m}}\\times${a}\\)`,
-      type:'radical-mix',rational:0,radCoeff:k*a,radM:m};
+    if(t===2){
+      // k√m × a = ka√m（有理數係數與根號相乘）
+      const m=pick([2,3,5,6,7,10,11,13]);
+      const k=randInt(2,9),a=randInt(2,7);
+      return {question:`計算 \\(${k}\\sqrt{${m}}\\times${a}\\)`,
+        type:'radical-mix',rational:0,radCoeff:k*a,radM:m};
+    }
+    // t===3: √a × √b × √c = r（三個根號連乘，abc 為完全平方數）
+    const triples=[
+      {a:2,b:3,c:6,r:6},   // 36=6²
+      {a:3,b:5,c:15,r:15}, // 225=15²
+      {a:2,b:2,c:4,r:4},   // 16=4²
+      {a:3,b:3,c:9,r:9},   // 81=9²
+      {a:2,b:8,c:4,r:8},   // 64=8²
+      {a:5,b:5,c:4,r:10},  // 100=10²
+      {a:2,b:6,c:12,r:12}, // 144=12²
+      {a:3,b:3,c:16,r:12}, // 144=12²
+      {a:5,b:20,c:4,r:20}, // 400=20²
+      {a:6,b:6,c:4,r:12},  // 144=12²
+      {a:7,b:7,c:4,r:14},  // 196=14²
+      {a:3,b:4,c:12,r:12}, // 144=12²
+    ];
+    const tr=pick(triples);
+    return {question:`計算 \\(\\sqrt{${tr.a}}\\times\\sqrt{${tr.b}}\\times\\sqrt{${tr.c}}\\)`, answer:tr.r, type:'number'};
   }
   if(level==='medium'){
-    const t=randInt(0,4);
+    const t=randInt(0,5);
     if(t===0){
       // a√m × b√m = abm（擴大係數與 m 範圍）
       const m=pick([2,3,5,6,7,10,11,13]);
@@ -6241,9 +6452,23 @@ function _8aSqrtMul(level) {
       {p:6,q:35,c:1,d:210},{p:7,q:21,c:7,d:3},{p:22,q:6,c:2,d:33}
     ];
     const {p,q,c,d}=pick(radPairs);
-    const a=randInt(2,5),b=randInt(2,4);
-    return {question:`計算 \\(${a}\\sqrt{${p}}\\times${b}\\sqrt{${q}}\\)`,
-      type:'radical-mix',rational:0,radCoeff:a*b*c,radM:d};
+    if(t===4){
+      const a=randInt(2,5),b=randInt(2,4);
+      return {question:`計算 \\(${a}\\sqrt{${p}}\\times${b}\\sqrt{${q}}\\)`,
+        type:'radical-mix',rational:0,radCoeff:a*b*c,radM:d};
+    }
+    // t===5: 混合先乘後加：√a×√b + c√d（測試運算順序）= integer + c√d，求整數部分
+    const primes=[2,3,5,7];
+    const m=pick(primes),n=pick(primes.filter(x=>x!==m));
+    const mn=m*n; // mn 不是完全平方，a×√m×√n = a√(mn)
+    // 改用：a√m × b√n where m×n = perfect square → integer
+    const mPairs2=[{m:2,n:8,r:4},{m:3,n:12,r:6},{m:5,n:20,r:10},{m:6,n:24,r:12},{m:2,n:18,r:6}];
+    const mp2=pick(mPairs2);
+    const a2=randInt(2,5),b2=randInt(2,5),c2=randInt(2,6),x2=pick([2,3,5,6,7]);
+    // 題目：a√m × b√n + c√x = a*b*r + c√x，求整數部分
+    const intPart=a2*b2*mp2.r;
+    return {question:`計算 \\(${a2}\\sqrt{${mp2.m}}\\times${b2}\\sqrt{${mp2.n}}+${c2}\\sqrt{${x2}}\\) 的整數部分`,
+      answer:intPart,type:'number',answerPrefix:'整數部分'};
   }
   // hard
   const t=randInt(0,4);
@@ -6293,14 +6518,33 @@ function gen8aSqrtMix(level) {
 }
 function _8aSqrtMix(level) {
   if(level==='basic'){
-    const a=randInt(2,15);
-    const bOpts=[2,3,5,6,7,10,11,13,14].filter(x=>x<a*a);
-    if(!bOpts.length) return null;
-    const b=pick(bOpts);
-    return {question:`展開 \\((${a}+\\sqrt{${b}})(${a}-\\sqrt{${b}})\\)`, answer:a*a-b, type:'number'};
+    const t=randInt(0,3);
+    if(t===0){
+      // (a+√b)(a-√b) = a²-b
+      const a=randInt(2,15);
+      const bOpts=[2,3,5,6,7,10,11,13,14].filter(x=>x<a*a);
+      if(!bOpts.length) return null;
+      const b=pick(bOpts);
+      return {question:`展開 \\((${a}+\\sqrt{${b}})(${a}-\\sqrt{${b}})\\)`, answer:a*a-b, type:'number'};
+    }
+    if(t===1){
+      // (a√m+b)(a√m-b) = a²m-b²（含係數的共軛乘積）
+      const m=pick([2,3,5,6,7]);
+      const a=randInt(2,5),b=randInt(1,6);
+      return {question:`展開 \\((${a}\\sqrt{${m}}+${b})(${a}\\sqrt{${m}}-${b})\\)`, answer:a*a*m-b*b, type:'number'};
+    }
+    if(t===2){
+      // √m × √m + a√m = m + a√m，求整數部分（m）
+      const m=pick([2,3,5,6,7]),a=randInt(2,6);
+      return {question:`計算 \\(\\sqrt{${m}}\\times\\sqrt{${m}}+${a}\\sqrt{${m}}\\) 的整數部分`, answer:m, type:'number', answerPrefix:'整數部分'};
+    }
+    // t===3: (√m+a)(√m+b) = (m+ab) + (a+b)√m，求整數部分（m+ab）
+    const m=pick([2,3,5,6,7]);
+    const a=randInt(1,5),b=randInt(1,5);
+    return {question:`展開 \\((\\sqrt{${m}}+${a})(\\sqrt{${m}}+${b})\\)，其整數部分為`, answer:m+a*b, type:'number', answerPrefix:'整數部分'};
   }
   if(level==='medium'){
-    const t=randInt(0,3);
+    const t=randInt(0,4);
     if(t===0){
       // a√m(b+c√m) = acm + ab√m
       const m=pick([2,3,5]);
@@ -6323,13 +6567,19 @@ function _8aSqrtMix(level) {
       return {question:`化簡 \\((\\sqrt{${m}}+${a})^2-(\\sqrt{${m}}-${a})^2\\)`,
         type:'radical-mix',rational:0,radCoeff:4*a,radM:m};
     }
-    // t===3: 有理化 a/(√m+b)，a=k×|m-b²|，答案 k√m - kb（rational=-kb, irrational=k）
-    const conPairs=[{m:3,b:1,diff:2},{m:7,b:2,diff:3},{m:11,b:3,diff:2},{m:5,b:2,diff:1},{m:2,b:1,diff:1}];
-    const {m,b,diff}=pick(conPairs);
-    const k=randInt(1,3);
-    const a=k*diff;
-    return {question:`有理化分母 \\(\\dfrac{${a}}{\\sqrt{${m}}+${b}}\\)`,
-      type:'radical-mix',rational:-k*b,radCoeff:k,radM:m};
+    if(t===3){
+      // 有理化 a/(√m+b)，a=k×|m-b²|，答案 k√m - kb（rational=-kb, irrational=k）
+      const conPairs=[{m:3,b:1,diff:2},{m:7,b:2,diff:3},{m:11,b:3,diff:2},{m:5,b:2,diff:1},{m:2,b:1,diff:1}];
+      const {m,b,diff}=pick(conPairs);
+      const k=randInt(1,3);
+      const a=k*diff;
+      return {question:`有理化分母 \\(\\dfrac{${a}}{\\sqrt{${m}}+${b}}\\)`,
+        type:'radical-mix',rational:-k*b,radCoeff:k,radM:m};
+    }
+    // t===4: 代入求值 x=a+√m → x²-2ax = m-a²（純整數答案）
+    const m=pick([2,3,5,6,7,10,11,13]);
+    const a=randInt(1,5);
+    return {question:`設 \\(x=${a}+\\sqrt{${m}}\\)，計算 \\(x^2-${2*a}x\\)`, answer:m-a*a, type:'number'};
   }
   const t=randInt(0,3);
   if(t===0){
@@ -6375,16 +6625,44 @@ function _8aPyth(level) {
     {a:6,b:8,c:10},{a:9,b:12,c:15},{a:10,b:24,c:26},{a:20,b:21,c:29}
   ];
   if(level==='basic'){
-    const tr=pick(intTriples);
-    if(randInt(0,1)===0){
+    const t=randInt(0,4);
+    if(t===0){
+      const tr=pick(intTriples);
       const [l1,l2]=randInt(0,1)===0?[tr.a,tr.b]:[tr.b,tr.a];
       return {question:`直角三角形兩股長為 \\(${l1}\\) 和 \\(${l2}\\)，求斜邊長`, answer:tr.c, type:'number'};
     }
-    const [kn,uk]=randInt(0,1)===0?[tr.a,tr.b]:[tr.b,tr.a];
-    return {question:`直角三角形斜邊長 \\(${tr.c}\\)，一股長 \\(${kn}\\)，求另一股長`, answer:uk, type:'number'};
+    if(t===1){
+      const tr=pick(intTriples);
+      const [kn,uk]=randInt(0,1)===0?[tr.a,tr.b]:[tr.b,tr.a];
+      return {question:`直角三角形斜邊長 \\(${tr.c}\\)，一股長 \\(${kn}\\)，求另一股長`, answer:uk, type:'number'};
+    }
+    if(t===2){
+      // 判斷直角三角形
+      if(randInt(0,1)===0){
+        const tr=pick(intTriples);
+        const sides=[tr.a,tr.b,tr.c].sort((x,y)=>x-y);
+        return {question:`三角形三邊長為 \\(${sides[0]}\\)、\\(${sides[1]}\\)、\\(${sides[2]}\\)，此三角形是否為直角三角形？（填「是」或「否」）`,
+          answer:'是', type:'text'};
+      }
+      const nonTriples=[[3,4,6],[5,6,9],[4,5,7],[6,8,11],[3,5,6],[5,7,9]];
+      const s=pick(nonTriples);
+      return {question:`三角形三邊長為 \\(${s[0]}\\)、\\(${s[1]}\\)、\\(${s[2]}\\)，此三角形是否為直角三角形？（填「是」或「否」）`,
+        answer:'否', type:'text'};
+    }
+    if(t===3){
+      // 正方形對角線 = 邊長 × √2
+      const a=randInt(2,10);
+      return {question:`正方形的邊長為 \\(${a}\\)，求其對角線長`,
+        type:'radical-mix', rational:0, radCoeff:a, radM:2};
+    }
+    // t===4: 梯子問題（整數三元組）
+    const tr=pick(intTriples);
+    const [foot,height]=randInt(0,1)===0?[tr.a,tr.b]:[tr.b,tr.a];
+    return {question:`一把梯子長 \\(${tr.c}\\) 公尺，梯腳距牆壁 \\(${foot}\\) 公尺，求梯頂距地面的高度`,
+      answer:height, type:'number'};
   }
   if(level==='medium'){
-    const t=randInt(0,3);
+    const t=randInt(0,5);
     if(t===0){
       const a=randInt(2,9),b=randInt(2,9);
       const c2=a*a+b*b,c=Math.sqrt(c2);
@@ -6402,17 +6680,35 @@ function _8aPyth(level) {
       const [kn,uk]=randInt(0,1)===0?[tr.a,tr.b]:[tr.b,tr.a];
       return {question:`直角三角形斜邊長 \\(${tr.c}\\)，一股長 \\(${kn}\\)，求另一股長`, answer:uk, type:'number'};
     }
-    // t===3: 兩股為共軛 a±√b，斜邊² = 2(a²+b)
-    const irrPairs=[
-      {a:2,b:2,hC:2,hM:3},{a:3,b:5,hC:2,hM:7},{a:3,b:7,hC:4,hM:2},
-      {a:4,b:2,hC:6,hM:0},{a:5,b:7,hC:8,hM:0},{a:4,b:6,hC:2,hM:11},{a:5,b:2,hC:3,hM:6}
+    if(t===3){
+      // 兩股為共軛 a±√b，斜邊² = 2(a²+b)
+      const irrPairs=[
+        {a:2,b:2,hC:2,hM:3},{a:3,b:5,hC:2,hM:7},{a:3,b:7,hC:4,hM:2},
+        {a:4,b:2,hC:6,hM:0},{a:5,b:7,hC:8,hM:0},{a:4,b:6,hC:2,hM:11},{a:5,b:2,hC:3,hM:6}
+      ];
+      const {a,b,hC,hM}=pick(irrPairs);
+      const q=`直角三角形兩股長分別為 \\(${a}+\\sqrt{${b}}\\) 和 \\(${a}-\\sqrt{${b}}\\)，求斜邊長`;
+      if(hM===0) return {question:q, answer:hC, type:'number'};
+      return {question:q, type:'radical-mix',rational:0,radCoeff:hC,radM:hM};
+    }
+    if(t===4){
+      // 直角三角形面積 = a×b/2（整數三元組必為整數）
+      const tr=pick(intTriples);
+      const area=tr.a*tr.b/2;
+      return {question:`直角三角形兩股長分別為 \\(${tr.a}\\) 和 \\(${tr.b}\\)，求此三角形的面積`,
+        answer:area, type:'number'};
+    }
+    // t===5: 菱形——已知邊長與一對角線，求另一對角線
+    const rhombusCases=[
+      {r:5,d1:6,d2:8},{r:5,d1:8,d2:6},{r:10,d1:12,d2:16},{r:10,d1:16,d2:12},
+      {r:13,d1:10,d2:24},{r:13,d1:24,d2:10},{r:17,d1:16,d2:30},{r:25,d1:14,d2:48}
     ];
-    const {a,b,hC,hM}=pick(irrPairs);
-    const q=`直角三角形兩股長分別為 \\(${a}+\\sqrt{${b}}\\) 和 \\(${a}-\\sqrt{${b}}\\)，求斜邊長`;
-    if(hM===0) return {question:q, answer:hC, type:'number'};
-    return {question:q, type:'radical-mix',rational:0,radCoeff:hC,radM:hM};
+    const {r,d1,d2}=pick(rhombusCases);
+    return {question:`菱形的邊長為 \\(${r}\\)，一條對角線長為 \\(${d1}\\)，求另一條對角線的長度`,
+      answer:d2, type:'number'};
   }
-  const t=randInt(0,4);
+  // hard
+  const t=randInt(0,6);
   if(t===0){
     const isoTris=[
       {a:5,b:6,h:4},{a:5,b:8,h:3},{a:10,b:12,h:8},
@@ -6434,7 +6730,7 @@ function _8aPyth(level) {
     return {question:`直角三角形斜邊長 \\(${tr.c}\\)，一股長 \\(${tr.a}\\)，求另一股長`, answer:tr.b, type:'number'};
   }
   if(t===3){
-    // 座標距離，答案為 c√m（irrational）
+    // 座標距離，答案為 c√m
     const distPairs=[
       {dx:2,dy:2,c:2,m:2},{dx:2,dy:4,c:2,m:5},{dx:3,dy:3,c:3,m:2},
       {dx:2,dy:6,c:2,m:10},{dx:3,dy:6,c:3,m:5},{dx:4,dy:4,c:4,m:2},{dx:4,dy:6,c:2,m:13}
@@ -6444,12 +6740,34 @@ function _8aPyth(level) {
     return {question:`座標平面上 \\(A(${x1},\\,${y1})\\) 和 \\(B(${x1+dx},\\,${y1+dy})\\) 的距離為`,
       type:'radical-mix',rational:0,radCoeff:c,radM:m};
   }
-  // t===4: 正方形邊長 a+b√2，對角線 = (a+b√2)√2 = 2b + a√2
-  {
+  if(t===4){
+    // 正方形邊長 a+b√2，對角線 = (a+b√2)√2 = 2b + a√2
     const a=randInt(2,5),b=randInt(2,4);
     return {question:`正方形邊長為 \\(${a}+${b}\\sqrt{2}\\)，求對角線長`,
       type:'radical-mix',rational:2*b,radCoeff:a,radM:2};
   }
+  if(t===5){
+    // 代數型：三邊含 x，解方程求 x
+    const algCases=[
+      {question:'直角三角形三邊長分別為 \\(x-1\\)、\\(x\\) 和 \\(x+1\\)，求 \\(x\\)', answer:4},
+      {question:'直角三角形三邊長分別為 \\(x\\)、\\(x+2\\) 和 \\(x+4\\)，求 \\(x\\)', answer:6},
+      {question:'直角三角形三邊長分別為 \\(x\\)、\\(x+7\\) 和 \\(x+8\\)，求 \\(x\\)', answer:5},
+      {question:'直角三角形兩股長分別為 \\(3x\\) 和 \\(4x\\)，斜邊長為 \\(25\\)，求 \\(x\\)', answer:5},
+      {question:'直角三角形兩股長分別為 \\(5x\\) 和 \\(12x\\)，斜邊長為 \\(26\\)，求 \\(x\\)', answer:2},
+      {question:'直角三角形兩股長分別為 \\(3x\\) 和 \\(4x\\)，斜邊長為 \\(20\\)，求 \\(x\\)', answer:4},
+    ];
+    const c=pick(algCases);
+    return {question:c.question, answer:c.answer, type:'number', answerPrefix:'\\(x =\\)'};
+  }
+  // t===6: 菱形面積——已知邊長與一對角線，求面積
+  const rhombusAreaCases=[
+    {r:5,d1:6,area:24},{r:5,d1:8,area:24},{r:10,d1:12,area:96},
+    {r:13,d1:10,area:120},{r:13,d1:24,area:120},
+    {r:17,d1:16,area:240},{r:25,d1:14,area:336}
+  ];
+  const {r,d1,area}=pick(rhombusAreaCases);
+  return {question:`菱形的邊長為 \\(${r}\\)，一條對角線長為 \\(${d1}\\)，求菱形的面積`,
+    answer:area, type:'number'};
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -6678,56 +6996,116 @@ function gen8bQuad2(level){
   return _8bQuad2('basic');
 }
 function _8bQuad2(level){
-  if(level==='basic'){
-    // 配方法：x²+2px+c=0 → (x+p)²=q，問整數 p, q
-    const p=randInt(3,10),q=randInt(1,p*p-1);
-    const c=p*p-q;
-    let eqn=`x^2+${2*p}x`;
-    if(c>0)eqn+=`+${c}`; else if(c<0)eqn+=`${c}`;
-    return{question:`解方程式 \\(${eqn}=0\\)，配方後得 \\((x+p)^2=q\\)，`,
-      answerParts:[{prefix:'p',answer:p,type:'number'},{prefix:'q',answer:q,type:'number'}]};
-  }
   function qrq(question,root1,root2){
     return{question,type:'quad-roots',root1,root2,answerPrefix:'x'};
   }
+  function eqnStr(B,C){
+    let s='x^2';
+    if(B>0)s+=`+${B}x`; else if(B<0)s+=`${B}x`;
+    if(C>0)s+=`+${C}`; else if(C<0)s+=`${C}`;
+    return s;
+  }
+  if(level==='basic'){
+    const t=randInt(0,3);
+    if(t===0){
+      // 直接開方法：(x+a)²=b（b為完全平方數）→ 求兩根
+      const a=randInt(1,8),sqrtB=randInt(1,6),b=sqrtB*sqrtB;
+      return qrq(`解方程式 \\((x+${a})^2=${b}\\)（直接開方），求兩根`,frac(-a+sqrtB,1),frac(-a-sqrtB,1));
+    }
+    if(t===1){
+      // 配方法：x²+2px+c=0 → (x+p)²=q，問整數 p, q
+      const p=randInt(3,10),q=randInt(1,p*p-1);
+      const c=p*p-q;
+      let eqn=`x^2+${2*p}x`;
+      if(c>0)eqn+=`+${c}`; else if(c<0)eqn+=`${c}`;
+      return{question:`解方程式 \\(${eqn}=0\\)，配方後得 \\((x+p)^2=q\\)，`,
+        answerParts:[{prefix:'p',answer:p,type:'number'},{prefix:'q',answer:q,type:'number'}]};
+    }
+    if(t===2){
+      // 判別式：x²+bx+c=0，求 b²-4ac
+      const b2=randInt(2,10),c2=randInt(-6,6);
+      const disc=b2*b2-4*c2;
+      const cStr=c2>0?`+${c2}`:c2<0?`${c2}`:'';
+      return{question:`方程式 \\(x^2+${b2}x${cStr}=0\\) 的判別式 \\(b^2-4ac=\\)`,answer:disc,type:'number',answerPrefix:'判別式'};
+    }
+    // t===3: 重根條件：x²+kx+c=0（c為完全平方數），求正整數k使有重根
+    const sqrtC=randInt(2,7),c3=sqrtC*sqrtC;
+    return{question:`方程式 \\(x^2+kx+${c3}=0\\) 有兩個相等的根（重根），求正整數 \\(k\\)`,answer:2*sqrtC,type:'number',answerPrefix:'k'};
+  }
   if(level==='medium'){
-    if(randInt(0,1)===0){
+    const t=randInt(0,4);
+    if(t===0){
       // 整數根（大係數）：x²+2kx+(k²-d²)=0，roots -k±d
       const k=randInt(8,18),d=randInt(1,Math.min(k-1,6));
       const c=k*k-d*d;
       if(c<=0)return null;
       return qrq(`解方程式 \\(x^2+${2*k}x+${c}=0\\)（公式解），求兩根`,frac(-k-d,1),frac(-k+d,1));
     }
-    // 一分數根一整數根：(2x+p)(x+q)=0，p 為奇數
-    const p=randInt(2,10)*2+1; // 奇數 5,7,...,21
-    const q=randInt(3,15);
-    return qrq(`解方程式 \\(2x^2+${2*q+p}x+${p*q}=0\\)（公式解），求兩根`,frac(-p,2),frac(-q,1));
+    if(t===1){
+      // 一分數根一整數根：(2x+p)(x+q)=0，p 為奇數
+      const p=randInt(2,10)*2+1;
+      const q=randInt(3,15);
+      return qrq(`解方程式 \\(2x^2+${2*q+p}x+${p*q}=0\\)（公式解），求兩根`,frac(-p,2),frac(-q,1));
+    }
+    if(t===2){
+      // 韋達定理：兩根之和 = -b/a
+      const r1=randInt(-6,6),r2=randInt(-6,6);
+      if(r1===r2)return null;
+      const S=r1+r2,P=r1*r2;
+      return{question:`方程式 \\(${eqnStr(-S,P)}=0\\) 的兩根之和為`,answer:S,type:'number',answerPrefix:'兩根之和'};
+    }
+    if(t===3){
+      // 韋達定理：兩根之積 = c/a
+      const r1=randInt(-6,6),r2=randInt(-6,6);
+      if(r1===r2||r1===0||r2===0)return null;
+      const S=r1+r2,P=r1*r2;
+      return{question:`方程式 \\(${eqnStr(-S,P)}=0\\) 的兩根之積為`,answer:P,type:'number',answerPrefix:'兩根之積'};
+    }
+    // t===4: 已知一根求k：x²-kx+c=0有一根r，k = r + c/r（r整除c）
+    const r=randInt(2,6),m=randInt(2,6);
+    return{question:`方程式 \\(x^2-kx+${r*m}=0\\) 有一根為 \\(${r}\\)，求 \\(k\\)`,answer:r+m,type:'number',answerPrefix:'k'};
   }
-  // hard：三種類型均等分配（ht=0,1 公式解，ht=2 配方法）
-  const ht=randInt(0,2);
+  // hard：六種類型（ht=0,1,2 原有，ht=3,4,5 韋達定理應用）
+  const ht=randInt(0,5);
   if(ht===0){
-    // 公式解，整數大根：x²+2kx+(k²-d²)=0，常數≥100
     const k=randInt(11,20),d=randInt(1,Math.min(k-1,7));
     const c=k*k-d*d;
     if(c<100)return null;
     return qrq(`解方程式 \\(x^2+${2*k}x+${c}=0\\)（公式解），求兩根`,frac(-k-d,1),frac(-k+d,1));
   }
   if(ht===1){
-    // 公式解，一分數根：(2x+p)(x+q)=0，p 為奇數，pq≥100
-    const p=randInt(3,12)*2+1; // 奇數 7,9,...,25
+    const p=randInt(3,12)*2+1;
     const q=randInt(5,20);
     if(p*q<100)return null;
     return qrq(`解方程式 \\(2x^2+${2*q+p}x+${p*q}=0\\)（公式解），求兩根`,frac(-p,2),frac(-q,1));
   }
-  // ht===2：配方法，分數 p,q：兩負整數根（一奇一偶），常數≥100
-  // r1=-2ra, r2=-(2rb+1) → x²+(2ra+2rb+1)x+2ra(2rb+1)=0
-  // 配方後 (x+b/2)²=(2ra-2rb-1)²/4
-  const ra=randInt(4,9),rb=randInt(3,9);
-  const b=2*ra+2*rb+1,c=2*ra*(2*rb+1);
-  if(c<100)return null;
-  const diff=2*ra-2*rb-1;
-  return{question:`解方程式 \\(x^2+${b}x+${c}=0\\)，配方後得 \\(\\left(x+p\\right)^2=q\\)，\\(p,\\,q\\) 可能為分數，`,
-    answerParts:[{prefix:'p',answer:frac(b,2),type:'fraction'},{prefix:'q',answer:frac(diff*diff,4),type:'fraction'}]};
+  if(ht===2){
+    const ra=randInt(4,9),rb=randInt(3,9);
+    const b=2*ra+2*rb+1,c=2*ra*(2*rb+1);
+    if(c<100)return null;
+    const diff=2*ra-2*rb-1;
+    return{question:`解方程式 \\(x^2+${b}x+${c}=0\\)，配方後得 \\(\\left(x+p\\right)^2=q\\)，\\(p,\\,q\\) 可能為分數，`,
+      answerParts:[{prefix:'p',answer:frac(b,2),type:'fraction'},{prefix:'q',answer:frac(diff*diff,4),type:'fraction'}]};
+  }
+  if(ht===3){
+    // 韋達定理：設兩根為α、β，求 α²+β² = (α+β)²-2αβ
+    const r1=randInt(-6,6),r2=randInt(-6,6);
+    if(r1===r2)return null;
+    const S=r1+r2,P=r1*r2;
+    return{question:`設方程式 \\(${eqnStr(-S,P)}=0\\) 的兩根為 \\(\\alpha\\)、\\(\\beta\\)，求 \\(\\alpha^2+\\beta^2\\)`,answer:S*S-2*P,type:'number',answerPrefix:'\\(\\alpha^2+\\beta^2\\)'};
+  }
+  if(ht===4){
+    // 韋達定理：求 (α-β)² = (α+β)²-4αβ
+    const r1=randInt(-6,6),r2=randInt(-6,6);
+    if(r1===r2)return null;
+    const S=r1+r2,P=r1*r2;
+    return{question:`設方程式 \\(${eqnStr(-S,P)}=0\\) 的兩根為 \\(\\alpha\\)、\\(\\beta\\)，求 \\((\\alpha-\\beta)^2\\)`,answer:S*S-4*P,type:'number',answerPrefix:'\\((\\alpha-\\beta)^2\\)'};
+  }
+  // ht===5: 韋達定理：求 1/α+1/β = (α+β)/(αβ)（正整數根）
+  const r1=randInt(1,6),r2=randInt(1,6);
+  if(r1===r2)return null;
+  const S5=r1+r2,P5=r1*r2;
+  return{question:`設方程式 \\(${eqnStr(-S5,P5)}=0\\) 的兩根為 \\(\\alpha\\)、\\(\\beta\\)，求 \\(\\dfrac{1}{\\alpha}+\\dfrac{1}{\\beta}\\)`,answer:frac(S5,P5),type:'fraction',answerPrefix:'\\(\\tfrac{1}{\\alpha}+\\tfrac{1}{\\beta}\\)'};
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -8636,6 +9014,13 @@ function _9aPropSeg(level){
       {q:'如圖，若 \\(\\triangle ABC\\) 的面積：\\(\\triangle ABD\\) 的面積 \\(=2:3\\)，已知 \\(\\overline{AC}=14\\)，則 \\(\\overline{BD}=\\)',ans:21,type:'number',pfx:'\\(\\overline{BD}\\)'},
       {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 的中點，\\(F\\) 點為 \\(\\overline{AE}\\) 的中點，若 \\(\\overline{AB}+\\overline{BE}=54\\)，\\(\\overline{AC}=24\\)，則 \\(\\triangle ADF\\) 的周長為',ans:33,type:'number',pfx:'周長'},
       {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，若 \\(\\overline{AD}=2x-1\\)，\\(\\overline{AE}=3x-9\\)，\\(\\overline{BD}=3\\)，\\(\\overline{AC}=8\\)，則 \\(\\overline{CE}=\\)',ans:2,type:'number',pfx:'\\(\\overline{CE}\\)'},
+      {q:'在比例式 \\(3:5=12:x\\) 中，求 \\(x\\)',ans:20,type:'number',pfx:'x'},
+      {q:'在比例式 \\(x:6=4:8\\) 中，求 \\(x\\)',ans:3,type:'number',pfx:'x'},
+      {q:'在比例式 \\(5:x=10:6\\) 中，求 \\(x\\)',ans:3,type:'number',pfx:'x'},
+      {q:'若 \\(2:x=x:8\\)（\\(x>0\\)），求 \\(x\\)（比例中項）',ans:4,type:'number',pfx:'x'},
+      {q:'若 \\(3:x=x:12\\)（\\(x>0\\)），求 \\(x\\)（比例中項）',ans:6,type:'number',pfx:'x'},
+      {q:'\\(\\triangle ABD\\) 與 \\(\\triangle ACD\\) 共頂點 \\(A\\)，\\(\\overline{BD}=4\\)，\\(\\overline{DC}=6\\)，\\(\\triangle ABD\\) 的面積為 \\(20\\)，則 \\(\\triangle ACD\\) 的面積為',ans:30,type:'number',pfx:'面積'},
+      {q:'\\(L_1//L_2//L_3\\)，截線 \\(M_1\\) 上 \\(\\overline{AB}=6\\)、\\(\\overline{BC}=9\\)，截線 \\(M_2\\) 上 \\(\\overline{DE}=4\\)，則 \\(\\overline{EF}=\\)',ans:6,type:'number',pfx:'\\(\\overline{EF}\\)'},
     ];
     const item=jrQPick(pool,_psBQ);
     return {question:item.q,answer:item.ans,type:item.type,answerPrefix:item.pfx};
@@ -8657,6 +9042,13 @@ function _9aPropSeg(level){
       {q:'\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 兩點分別在 \\(\\overline{AC}\\)、\\(\\overline{BD}\\) 上，\\(\\overline{AD}:\\overline{DC}=\\overline{BE}:\\overline{DE}=3:2\\)，則 \\(\\triangle BCE\\) 面積：\\(\\triangle ABC\\) 面積的比值為',ans:frac(6,25),type:'fraction',pfx:'比值'},
       {q:'如圖，\\(\\overline{AD}//\\overline{BE}//\\overline{CF}\\)，若 \\(\\overline{AB}=4\\)，\\(\\overline{BC}=5\\)，\\(\\overline{DE}=4x-1\\)，\\(\\overline{EF}=3x+2\\)，則 \\(x=\\)',ans:frac(13,8),type:'fraction',pfx:'\\(x\\)'},
       {q:'如圖，四邊形 \\(ABCD\\) 為矩形，\\(\\overline{AD}=3\\)，\\(\\overline{AB}=2\\)，\\(2\\overline{BE}=\\overline{EF}=\\overline{FD}\\)，則 \\(\\triangle CEF\\) 面積為',ans:frac(6,5),type:'fraction',pfx:'面積（平方單位）'},
+      {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{AD}\\) 平分 \\(\\angle A\\)，\\(\\overline{AB}=8\\)，\\(\\overline{AC}=6\\)，\\(\\overline{BC}=7\\)，則 \\(\\overline{BD}=\\)',ans:4,type:'number',pfx:'\\(\\overline{BD}\\)'},
+      {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{AD}\\) 平分 \\(\\angle A\\)，\\(\\overline{AB}=10\\)，\\(\\overline{AC}=6\\)，\\(\\overline{BC}=16\\)，則 \\(\\overline{BD}=\\)',ans:10,type:'number',pfx:'\\(\\overline{BD}\\)'},
+      {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{AD}\\) 平分 \\(\\angle A\\)，\\(\\overline{AB}=12\\)，\\(\\overline{AC}=8\\)，\\(\\overline{BD}=6\\)，則 \\(\\overline{DC}=\\)',ans:4,type:'number',pfx:'\\(\\overline{DC}\\)'},
+      {q:'若 \\(a:b=3:5\\)，且 \\(a+b=24\\)，則 \\(b=\\)',ans:15,type:'number',pfx:'b'},
+      {q:'若 \\(a:b=2:7\\)，且 \\(a+b=36\\)，則 \\(a=\\)',ans:8,type:'number',pfx:'a'},
+      {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，\\(\\overline{AE}:\\overline{EC}=2:3\\)，\\(\\triangle ABC\\) 的面積為 \\(50\\)，則 \\(\\triangle ADE\\) 的面積為',ans:8,type:'number',pfx:'\\(\\triangle ADE\\) 面積'},
+      {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{AD}\\) 平分 \\(\\angle A\\)，\\(\\overline{AB}=4\\)，\\(\\overline{AC}=6\\)，\\(\\triangle ABD\\) 的面積為 \\(12\\)，則 \\(\\triangle ACD\\) 的面積為',ans:18,type:'number',pfx:'\\(\\triangle ACD\\) 面積'},
     ];
     const item=jrQPick(pool,_psMQ);
     return {question:item.q,answer:item.ans,type:item.type,answerPrefix:item.pfx};
@@ -8683,6 +9075,10 @@ function _9aPropSeg(level){
     {q:'梯形 \\(ABCD\\) 中，\\(\\overline{AD}//\\overline{BC}\\)，\\(\\overline{AD}=6\\)，\\(\\overline{BC}=10\\)，\\(E\\) 為 \\(\\overline{AB}\\) 中點，\\(F\\) 為 \\(\\overline{CD}\\) 中點，則中線 \\(\\overline{EF}=\\)',ans:8,type:'number',pfx:'\\(\\overline{EF}\\)'},
     {q:'在 \\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 的中點，若 \\(\\triangle ADE\\) 的面積為 \\(9\\)，則 \\(\\triangle ABC\\) 的面積為',ans:36,type:'number',pfx:'\\(\\triangle ABC\\) 面積'},
     {q:'在 \\(\\triangle ABC\\) 中，\\(D\\) 在 \\(\\overline{AB}\\) 上且 \\(\\overline{AD}=2\\overline{DB}\\)，\\(E\\) 為 \\(\\overline{AC}\\) 中點，若 \\(\\triangle ADE\\) 的面積為 \\(6\\)，則 \\(\\triangle ABC\\) 的面積為',ans:18,type:'number',pfx:'\\(\\triangle ABC\\) 面積'},
+    {q:'在 \\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 兩點在 \\(\\overline{BC}\\) 上，\\(\\overline{BD}:\\overline{DE}:\\overline{EC}=1:2:3\\)，若 \\(\\triangle ABD\\) 的面積為 \\(4\\)，則 \\(\\triangle ABC\\) 的面積為',ans:24,type:'number',pfx:'\\(\\triangle ABC\\) 面積'},
+    {q:'若正數 \\(x\\)、\\(x+4\\)、\\(x+12\\) 成等比，即 \\((x+4)^2=x(x+12)\\)，求 \\(x\\)',ans:4,type:'number',pfx:'x'},
+    {q:'在梯形 \\(ABCD\\) 中，\\(\\overline{AD}//\\overline{BC}\\)，\\(\\overline{AD}=3\\)，\\(\\overline{BC}=5\\)，對角線交於點 \\(O\\)，則 \\(\\triangle AOD\\) 面積：\\(\\triangle BOC\\) 面積 \\(=\\)',ans:'9:25',type:'text',pfx:'面積比'},
+    {q:'\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\)、\\(F\\) 分別為三邊中點（中位三角形），若 \\(\\triangle DEF\\) 的面積為 \\(3\\)，則 \\(\\triangle ABC\\) 的面積為',ans:12,type:'number',pfx:'\\(\\triangle ABC\\) 面積'},
   ];
   const item=jrQPick(pool,_psHQ);
   return {question:item.q,answer:item.ans,type:item.type,answerPrefix:item.pfx};
@@ -9069,6 +9465,69 @@ function _9aCircleAngle(level){
 }
 
 // ═══════════════════════════════════════════════════════════════════
+//  九上 ▸ 弦切角
+// ═══════════════════════════════════════════════════════════════════
+function gen9aCircChorTan(level){
+  for(let i=0;i<30;i++){const q=_9aCircChorTan(level);if(q)return q;}
+  return _9aCircChorTan('basic');
+}
+function _9aCircChorTan(level){
+  if(level==='basic'){
+    const t=randInt(0,2);
+    if(t===0){
+      // 弦切角 = 同弧圓周角
+      const ang=randInt(2,8)*10;
+      return{question:`\\(AT\\) 為圓 \\(O\\) 的切線，\\(A\\) 為切點，\\(AB\\) 為弦，\\(\\angle TAB=${ang}^\\circ\\)，點 \\(C\\) 在弦 \\(AB\\) 另一側的弧上，求圓周角 \\(\\angle ACB\\)`,
+        answer:ang,type:'number',answerPrefix:'\\(\\angle ACB\\)'};
+    }
+    if(t===1){
+      // 弦切角 = ½ 圓心角
+      const central=randInt(2,8)*20;
+      return{question:`\\(AT\\) 為圓 \\(O\\) 的切線，\\(A\\) 為切點，\\(AB\\) 為弦，圓心角 \\(\\angle AOB=${central}^\\circ\\)，求弦切角 \\(\\angle TAB\\)`,
+        answer:central/2,type:'number',answerPrefix:'\\(\\angle TAB\\)'};
+    }
+    // t===2: 切線直線上兩弦切角互補
+    const ang2=randInt(25,80);
+    return{question:`直線 \\(T'AT\\) 與圓 \\(O\\) 相切於 \\(A\\)，\\(AB\\) 為弦，\\(\\angle TAB=${ang2}^\\circ\\)，求 \\(\\angle T'AB\\)`,
+      answer:180-ang2,type:'number',answerPrefix:'\\(\\angle T\'AB\\)'};
+  }
+  if(level==='medium'){
+    const t=randInt(0,1);
+    if(t===0){
+      // 代數：∠TAB = ∠ACB，解 x
+      const xv=randInt(2,10),av=randInt(1,3),bv=randInt(10,40);
+      const angV=av*xv+bv;
+      if(angV>=89)return null;
+      const cv=randInt(1,2),dv=angV-cv*xv;
+      if(dv<=5)return null;
+      return{question:`\\(AT\\) 為圓 \\(O\\) 切線，\\(A\\) 為切點，\\(AB\\) 為弦，弦切角 \\(\\angle TAB=(${av}x+${bv})^\\circ\\)，同弧圓周角 \\(\\angle ACB=(${cv}x+${dv})^\\circ\\)，求 \\(x\\)`,
+        answer:xv,type:'number',answerPrefix:'\\(x\\)'};
+    }
+    // t===1: 圓內三角形+切線：∠TAB=α，∠BAC=β，由∠ACB=∠TAB求∠ABC
+    const alpha=randInt(20,50),beta=randInt(25,65);
+    if(alpha+beta>=170)return null;
+    return{question:`\\(AT\\) 為圓 \\(O\\) 切線，\\(A\\) 為切點，\\(B\\)、\\(C\\) 在圓上，\\(\\angle TAB=${alpha}^\\circ\\)，\\(\\angle BAC=${beta}^\\circ\\)，由弦切角定理知 \\(\\angle ACB=\\angle TAB=${alpha}^\\circ\\)，求 \\(\\angle ABC\\)`,
+      answer:180-alpha-beta,type:'number',answerPrefix:'\\(\\angle ABC\\)'};
+  }
+  // hard
+  const t=randInt(0,1);
+  if(t===0){
+    // D 在弦切角所夾弧（同側），∠ADB = 180 - ∠TAB，代數求 x
+    const alpha=randInt(25,70);
+    const dAngV=180-alpha;
+    const xv=randInt(2,8),av=randInt(1,3),bv=dAngV-av*xv;
+    if(bv<=5)return null;
+    return{question:`\\(AT\\) 為圓 \\(O\\) 切線，\\(A\\) 為切點，\\(AB\\) 為弦，\\(\\angle TAB=${alpha}^\\circ\\)，點 \\(D\\) 在弦切角 \\(\\angle TAB\\) 所夾的弧上，\\(\\angle ADB=(${av}x+${bv})^\\circ\\)，求 \\(x\\)`,
+      answer:xv,type:'number',answerPrefix:'\\(x\\)'};
+  }
+  // t===1: △ATB 三角和：∠TAB + ∠ABT + ∠ATB = 180
+  const alpha2=randInt(20,55),beta2=randInt(20,55);
+  if(alpha2+beta2>=165)return null;
+  return{question:`\\(AT\\) 為圓 \\(O\\) 切線，\\(A\\) 為切點，\\(B\\) 在圓上，\\(T\\) 在切線上，\\(\\angle TAB=${alpha2}^\\circ\\)，\\(\\angle ABT=${beta2}^\\circ\\)，求 \\(\\angle ATB\\)`,
+    answer:180-alpha2-beta2,type:'number',answerPrefix:'\\(\\angle ATB\\)'};
+}
+
+// ═══════════════════════════════════════════════════════════════════
 //  九上 ▸ 三角形的心
 // ═══════════════════════════════════════════════════════════════════
 function gen9aTriCenter(level){
@@ -9077,7 +9536,7 @@ function gen9aTriCenter(level){
 }
 function _9aTriCenter(level){
   if(level==='basic'){
-    const t=randInt(0,3);
+    const t=randInt(0,6);
     if(t===0){
       // 重心：AG=2GM，給AG求GM
       const AG=randInt(4,16)*2;
@@ -9093,12 +9552,36 @@ function _9aTriCenter(level){
       const r=randInt(3,12);
       return {question:`\\(\\triangle ABC\\) 的外心為 \\(O\\)，外接圓半徑為 \\(${r}\\)，求 \\(OA\\)`,answer:r,type:'number',answerPrefix:'\\(OA\\)'};
     }
-    // t===3: 內心：∠BIC = 90°+∠A/2
-    const A=randInt(4,12)*10;
-    return {question:`\\(\\triangle ABC\\) 的內心為 \\(I\\)，\\(\\angle A=${A}^\\circ\\)，求 \\(\\angle BIC\\)`,answer:90+A/2,type:'number',answerPrefix:'\\(\\angle BIC\\)'};
+    if(t===3){
+      // 內心：∠BIC = 90°+∠A/2
+      const A=randInt(4,12)*10;
+      return {question:`\\(\\triangle ABC\\) 的內心為 \\(I\\)，\\(\\angle A=${A}^\\circ\\)，求 \\(\\angle BIC\\)`,answer:90+A/2,type:'number',answerPrefix:'\\(\\angle BIC\\)'};
+    }
+    if(t===4){
+      // 直角三角形外心在斜邊中點，外接圓半徑 R = 斜邊/2
+      const hyp=randInt(3,15)*2;
+      return {question:`直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，斜邊 \\(\\overline{AB}=${hyp}\\)，則外接圓半徑 \\(R=\\)`,answer:hyp/2,type:'number',answerPrefix:'\\(R\\)'};
+    }
+    if(t===5){
+      // 外心角：圓心角 = 2 × 圓周角，∠BOC = 2∠A
+      const A=randInt(25,80);
+      return {question:`\\(\\triangle ABC\\) 的外心為 \\(O\\)，\\(\\angle A=${A}^\\circ\\)，求 \\(\\angle BOC\\)`,answer:2*A,type:'number',answerPrefix:'\\(\\angle BOC\\)'};
+    }
+    // t===6: 重心坐標公式 G = ((x1+x2+x3)/3, (y1+y2+y3)/3)
+    const gCases=[
+      {ax:0,ay:0,bx:6,by:0,cx:0,cy:6,gx:2,gy:2},
+      {ax:0,ay:0,bx:9,by:0,cx:0,cy:9,gx:3,gy:3},
+      {ax:1,ay:2,bx:7,by:2,cx:4,cy:8,gx:4,gy:4},
+      {ax:0,ay:0,bx:6,by:0,cx:3,cy:9,gx:3,gy:3},
+      {ax:2,ay:1,bx:8,by:1,cx:5,cy:7,gx:5,gy:3},
+      {ax:0,ay:3,bx:6,by:3,cx:3,cy:9,gx:3,gy:5},
+    ];
+    const gc=pick(gCases);
+    const askX=randInt(0,1)===0;
+    return {question:`\\(\\triangle ABC\\) 的頂點為 \\(A(${gc.ax},${gc.ay})\\)、\\(B(${gc.bx},${gc.by})\\)、\\(C(${gc.cx},${gc.cy})\\)，求重心 \\(G\\) 的${askX?'橫':'縱'}坐標`,answer:askX?gc.gx:gc.gy,type:'number',answerPrefix:askX?'橫坐標':'縱坐標'};
   }
   if(level==='medium'){
-    const t=randInt(0,3);
+    const t=randInt(0,8);
     if(t===0){
       // 重心代數：AG=(ax+b)，GM=(cx+d)，AG=2GM，求x
       const xv=randInt(2,8),av=randInt(2,4),bv=randInt(1,8),cv=randInt(1,2),dv=randInt(1,6);
@@ -9121,12 +9604,43 @@ function _9aTriCenter(level){
       if(bv<=0)return null;
       return {question:`\\(\\triangle ABC\\) 的內心為 \\(I\\)，\\(\\angle A=${A}^\\circ\\)，\\(\\angle BIC=(${av}x+${bv})^\\circ\\)，求 \\(x\\)`,answer:xv,type:'number',answerPrefix:'\\(x\\)'};
     }
-    // t===3: 垂心：∠BHC = 180°-∠A
-    const A2=randInt(30,80);
-    return {question:`\\(\\triangle ABC\\) 的垂心為 \\(H\\)，\\(\\angle A=${A2}^\\circ\\)，求 \\(\\angle BHC\\)`,answer:180-A2,type:'number',answerPrefix:'\\(\\angle BHC\\)'};
+    if(t===3){
+      // 垂心：∠BHC = 180°-∠A
+      const A2=randInt(30,80);
+      return {question:`\\(\\triangle ABC\\) 的垂心為 \\(H\\)，\\(\\angle A=${A2}^\\circ\\)，求 \\(\\angle BHC\\)`,answer:180-A2,type:'number',answerPrefix:'\\(\\angle BHC\\)'};
+    }
+    if(t===4){
+      // 重心將△分成三個等面積三角形
+      const sArea=randInt(4,15)*2;
+      return {question:`\\(\\triangle ABC\\) 的重心為 \\(G\\)，若 \\(\\triangle ABG\\) 的面積為 \\(${sArea}\\)，則 \\(\\triangle ABC\\) 的面積為`,answer:3*sArea,type:'number',answerPrefix:'\\(\\triangle ABC\\) 面積'};
+    }
+    if(t===5){
+      // 重心 + 中位線面積：△ADE（D、E為兩邊中點）= △ABC/4，再結合重心
+      const bigArea=randInt(3,9)*12;
+      return {question:`\\(\\triangle ABC\\) 的重心為 \\(G\\)，\\(D\\)、\\(E\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 的中點，\\(\\triangle ABC\\) 的面積為 \\(${bigArea}\\)，則 \\(\\triangle GDE\\) 的面積為`,answer:bigArea/12,type:'number',answerPrefix:'\\(\\triangle GDE\\) 面積'};
+    }
+    if(t===6){
+      // 外心角代數：∠BOC = 2∠A，代數求x
+      const A=randInt(25,70),BOC=2*A;
+      const xv=randInt(2,8),av=randInt(1,3),bv=BOC-av*xv;
+      if(bv<=0)return null;
+      return {question:`\\(\\triangle ABC\\) 的外心為 \\(O\\)，\\(\\angle A=${A}^\\circ\\)，\\(\\angle BOC=(${av}x+${bv})^\\circ\\)，求 \\(x\\)`,answer:xv,type:'number',answerPrefix:'\\(x\\)'};
+    }
+    if(t===7){
+      // 直角三角形內切圓半徑 r = (a+b-c)/2
+      const rCases=[
+        {a:3,b:4,c:5,r:1},{a:5,b:12,c:13,r:2},{a:8,b:15,c:17,r:3},
+        {a:6,b:8,c:10,r:2},{a:9,b:12,c:15,r:3},{a:20,b:21,c:29,r:6}
+      ];
+      const rc=pick(rCases);
+      return {question:`直角 \\(\\triangle ABC\\) 兩股長分別為 \\(${rc.a}\\) 和 \\(${rc.b}\\)，斜邊為 \\(${rc.c}\\)，求內切圓半徑 \\(r\\)`,answer:rc.r,type:'number',answerPrefix:'\\(r\\)'};
+    }
+    // t===8: 垂心 ∠BHC = ∠B + ∠C（等價於 180° - ∠A）
+    const B3=randInt(30,70),C3=randInt(20,90-B3);
+    return {question:`\\(\\triangle ABC\\) 的垂心為 \\(H\\)，\\(\\angle B=${B3}^\\circ\\)，\\(\\angle C=${C3}^\\circ\\)，求 \\(\\angle BHC\\)`,answer:B3+C3,type:'number',answerPrefix:'\\(\\angle BHC\\)'};
   }
   // hard
-  const t=randInt(0,1);
+  const t=randInt(0,4);
   if(t===0){
     // 內心角代數：∠A=(ax+b)°，∠BIC=(cx+d)°，利用關係求x
     const xv=randInt(2,8),av=randInt(1,3),bv=randInt(20,50),cv=randInt(1,2);
@@ -9136,11 +9650,163 @@ function _9aTriCenter(level){
     if(dv<=0)return null;
     return {question:`\\(\\triangle ABC\\) 的內心為 \\(I\\)，\\(\\angle A=(${av}x+${bv})^\\circ\\)，\\(\\angle BIC=(${cv}x+${dv})^\\circ\\)，求 \\(x\\)`,answer:xv,type:'number',answerPrefix:'\\(x\\)'};
   }
-  // 重心：給兩段代數，求中線長
-  const xv=randInt(2,8),av=randInt(1,3),bv=randInt(1,6);
-  const GM_val=av*xv+bv;
-  const AM=3*GM_val;
-  return {question:`\\(\\triangle ABC\\) 的重心為 \\(G\\)，\\(M\\) 為 \\(BC\\) 中點，\\(GM=(${av}x+${bv})\\)，中線 \\(AM=${AM}\\)，求 \\(x\\)`,answer:xv,type:'number',answerPrefix:'\\(x\\)'};
+  if(t===1){
+    // 重心：給兩段代數，求中線長
+    const xv=randInt(2,8),av=randInt(1,3),bv=randInt(1,6);
+    const GM_val=av*xv+bv;
+    const AM=3*GM_val;
+    return {question:`\\(\\triangle ABC\\) 的重心為 \\(G\\)，\\(M\\) 為 \\(BC\\) 中點，\\(GM=(${av}x+${bv})\\)，中線 \\(AM=${AM}\\)，求 \\(x\\)`,answer:xv,type:'number',answerPrefix:'\\(x\\)'};
+  }
+  if(t===2){
+    // 外接圓半徑R，∠BOC=90°，△OBC為等腰直角△，面積 = R²/2
+    const R=pick([4,6,8,10]);
+    return {question:`\\(\\triangle ABC\\) 的外心為 \\(O\\)，外接圓半徑 \\(R=${R}\\)，\\(\\angle BOC=90^\\circ\\)，求 \\(\\triangle BOC\\) 的面積`,answer:R*R/2,type:'number',answerPrefix:'面積'};
+  }
+  if(t===3){
+    // 垂心代數：∠A=(ax+b)°，∠BHC=(cx+d)°，∠BHC=180-∠A，求x
+    const xv=randInt(2,8),av=randInt(1,3),bv=randInt(30,80),cv=randInt(1,2);
+    const A_val=av*xv+bv;
+    if(A_val>=160)return null;
+    const BHC_val=180-A_val;
+    const dv=BHC_val-cv*xv;
+    if(dv<=0)return null;
+    return {question:`\\(\\triangle ABC\\) 的垂心為 \\(H\\)，\\(\\angle A=(${av}x+${bv})^\\circ\\)，\\(\\angle BHC=(${cv}x+${dv})^\\circ\\)，求 \\(x\\)`,answer:xv,type:'number',answerPrefix:'\\(x\\)'};
+  }
+  // t===4: 外心O，△OBC等腰（OB=OC=R），給∠BOC求底角∠OBC
+  const BOC4=pick([40,60,80,100,120,140]);
+  return {question:`\\(\\triangle ABC\\) 的外心為 \\(O\\)，\\(\\angle BOC=${BOC4}^\\circ\\)，則 \\(\\angle OBC=\\)`,answer:(180-BOC4)/2,type:'number',answerPrefix:'\\(\\angle OBC\\)'};
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  九下 ▸ 二次函數
+// ═══════════════════════════════════════════════════════════════════
+function gen9bQuadFunc(level){
+  for(let i=0;i<30;i++){const q=_9bQuadFunc(level);if(q)return q;}
+  return _9bQuadFunc('basic');
+}
+function _9bQuadFunc(level){
+  function ac(a){return a===1?'':(a===-1?'-':`${a}`);}
+  function sk(k){return k>=0?`+${k}`:`${k}`;}
+  function ht(h){return h>=0?`-${h}`:`+${-h}`;}
+  if(level==='basic'){
+    const t=randInt(0,2);
+    if(t===0){
+      const h=randInt(-6,6),k=randInt(-6,6);
+      return{question:`二次函數 \\(y=(x${ht(h)})^2${sk(k)}\\) 的頂點橫座標為`,answer:h,type:'number',answerPrefix:'頂點 \\(x\\)'};
+    }
+    if(t===1){
+      const a=pick([-3,-2,-1,1,2,3]),k=randInt(-8,8);
+      return{question:`二次函數 \\(y=${ac(a)}x^2${sk(k)}\\) 的頂點縱座標為`,answer:k,type:'number',answerPrefix:'頂點 \\(y\\)'};
+    }
+    const a=pick([-2,-1,1,2]),h=randInt(-5,5),k=randInt(-5,5);
+    return{question:`二次函數 \\(y=${ac(a)}(x${ht(h)})^2${sk(k)}\\) 的對稱軸為 \\(x=\\)`,answer:h,type:'number',answerPrefix:'\\(x=\\)'};
+  }
+  if(level==='medium'){
+    const t=randInt(0,1);
+    if(t===0){
+      const a=pick([-2,-1,1,2]),h=randInt(-5,5),k=randInt(-8,8);
+      const B=-2*a*h,C=a*h*h+k;
+      const bPart=B===0?'':(B>0?`+${B}x`:`${B}x`);
+      const cPart=C>=0?`+${C}`:`${C}`;
+      return{question:`二次函數 \\(y=${ac(a)}x^2${bPart}${cPart}\\) 的對稱軸（頂點橫座標）為 \\(x=\\)`,answer:h,type:'number',answerPrefix:'\\(x=\\)'};
+    }
+    const a=pick([-2,-1,1,2]),h=randInt(-4,4),k=randInt(-8,8);
+    const ext=a>0?'最小值':'最大值';
+    return{question:`二次函數 \\(y=${ac(a)}(x${ht(h)})^2${sk(k)}\\) 的${ext}為`,answer:k,type:'number',answerPrefix:ext};
+  }
+  // hard: 給頂點和過一點，求 a
+  const h=randInt(-3,3),k=randInt(-6,6);
+  const xDiff=pick([-3,-2,-1,1,2,3]),a=pick([-3,-2,-1,1,2,3]);
+  const x0=h+xDiff,y0=a*xDiff*xDiff+k;
+  return{question:`拋物線頂點為 \\((${h},\\ ${k})\\)，且過點 \\((${x0},\\ ${y0})\\)，求 \\(y=a(x${ht(h)})^2${sk(k)}\\) 中 \\(a\\) 的值`,answer:a,type:'number',answerPrefix:'\\(a\\)'};
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  九下 ▸ 統計
+// ═══════════════════════════════════════════════════════════════════
+function gen9bStat(level){
+  for(let i=0;i<30;i++){const q=_9bStat(level);if(q)return q;}
+  return _9bStat('basic');
+}
+function _9bStat(level){
+  if(level==='basic'){
+    const t=randInt(0,2);
+    if(t===0){
+      const n=pick([5,7,9]);
+      const data=Array.from({length:n},()=>randInt(10,50)).sort((a,b)=>a-b);
+      return{question:`資料 \\(${data.join(',\\ ')}\\) 的中位數為`,answer:data[Math.floor(n/2)],type:'number',answerPrefix:'中位數'};
+    }
+    if(t===1){
+      const avg=randInt(8,20),n=pick([4,5]);
+      const data=Array.from({length:n-1},()=>randInt(5,30));
+      const last=avg*n-data.reduce((s,x)=>s+x,0);
+      if(last<1||last>60)return null;
+      data.push(last); data.sort(()=>Math.random()-0.5);
+      return{question:`資料 \\(${data.join(',\\ ')}\\) 的平均數為`,answer:avg,type:'number',answerPrefix:'平均數'};
+    }
+    const raw=Array.from({length:8},()=>randInt(10,60)).sort((a,b)=>a-b);
+    const q1=(raw[1]+raw[2])/2;
+    if(!Number.isInteger(q1))return null;
+    return{question:`資料（由小到大）\\(${raw.join(',\\ ')}\\) 的第一四分位數 \\(Q_1\\) 為`,answer:q1,type:'number',answerPrefix:'\\(Q_1\\)'};
+  }
+  if(level==='medium'){
+    const t=randInt(0,1);
+    if(t===0){
+      const raw=Array.from({length:8},()=>randInt(10,80)).sort((a,b)=>a-b);
+      const q1=(raw[1]+raw[2])/2,q3=(raw[5]+raw[6])/2;
+      if(!Number.isInteger(q1)||!Number.isInteger(q3))return null;
+      return{question:`資料（由小到大）\\(${raw.join(',\\ ')}\\) 的四分位距 \\(Q_3-Q_1\\) 為`,answer:q3-q1,type:'number',answerPrefix:'四分位距'};
+    }
+    const avg=randInt(10,25),n=pick([4,5,6]);
+    const data=Array.from({length:n-1},()=>randInt(5,30));
+    const last=avg*n-data.reduce((s,x)=>s+x,0);
+    if(last<1||last>60)return null;
+    return{question:`\\(${n}\\) 筆資料中已知 \\(${n-1}\\) 筆為 \\(${data.join(',\\ ')}\\)，若平均為 \\(${avg}\\)，求第 \\(${n}\\) 筆資料`,answer:last,type:'number',answerPrefix:'第'+n+'筆'};
+  }
+  // hard: 合併平均
+  const m=randInt(2,5),n=randInt(2,5),a=randInt(60,90),b=randInt(60,90);
+  const total=m*a+n*b;
+  if(total%(m+n)!==0)return null;
+  return{question:`甲組 \\(${m}\\) 人平均 \\(${a}\\) 分，乙組 \\(${n}\\) 人平均 \\(${b}\\) 分，兩組合併後的平均為`,answer:total/(m+n),type:'number',answerPrefix:'合併平均（分）'};
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  九下 ▸ 機率
+// ═══════════════════════════════════════════════════════════════════
+function gen9bProb(level){
+  for(let i=0;i<30;i++){const q=_9bProb(level);if(q)return q;}
+  return _9bProb('basic');
+}
+function _9bProb(level){
+  if(level==='basic'){
+    const t=randInt(0,2);
+    if(t===0){
+      const scenarios=[
+        {q:'出現偶數點',f:3},{q:'出現點數大於4',f:2},{q:'出現點數小於3',f:2},
+        {q:'出現3的倍數的點數',f:2},{q:'出現質數點數',f:3},{q:'出現1或6',f:2},
+      ];
+      const s=pick(scenarios);
+      return{question:`擲一個公正骰子，${s.q}的機率為`,answer:frac(s.f,6),type:'fraction',answerPrefix:'機率'};
+    }
+    if(t===1){
+      const r=randInt(2,5),b=randInt(2,5);
+      return{question:`袋中有 \\(${r}\\) 個紅球、\\(${b}\\) 個藍球，隨機取一球，取到紅球的機率為`,answer:frac(r,r+b),type:'fraction',answerPrefix:'機率'};
+    }
+    return{question:`拋一枚公正硬幣，出現正面的機率為`,answer:frac(1,2),type:'fraction',answerPrefix:'機率'};
+  }
+  if(level==='medium'){
+    const t=randInt(0,1);
+    if(t===0){
+      const r=randInt(2,6),b=randInt(2,6);
+      return{question:`袋中有 \\(${r}\\) 個紅球、\\(${b}\\) 個藍球，隨機取一球，不取到紅球的機率為`,answer:frac(b,r+b),type:'fraction',answerPrefix:'機率'};
+    }
+    const suits=['\\spadesuit（黑桃）','\\heartsuit（紅心）','\\diamondsuit（方塊）','\\clubsuit（梅花）'];
+    const s=pick(suits);
+    return{question:`一副撲克牌（不含鬼牌）共 \\(52\\) 張，隨機抽一張，抽到 \\(${s}\\) 的機率為`,answer:frac(1,4),type:'fraction',answerPrefix:'機率'};
+  }
+  // hard: 互斥事件加法
+  const r=randInt(2,4),b=randInt(2,4),g=randInt(2,4);
+  return{question:`袋中有 \\(${r}\\) 個紅球、\\(${b}\\) 個藍球、\\(${g}\\) 個綠球，隨機取一球，取到紅球或藍球的機率為`,answer:frac(r+b,r+b+g),type:'fraction',answerPrefix:'機率'};
 }
 
 // ─── 對外介面 ──────────────────────────────────────────────────────
@@ -9227,5 +9893,15 @@ const JR_GENERATORS = {
   '9a-trig':           gen9aTrig,
   '9a-circle-line':    gen9aCircleLine,
   '9a-circle-angle':   gen9aCircleAngle,
+  '9a-circle-chord-tan': gen9aCircChorTan,
   '9a-tri-center':     gen9aTriCenter,
+  // 八下（梯形・箏形單獨出題）
+  '8b-trap':           gen8bTrapezoid,
+  '8b-kite':           gen8bKite,
+  // 七下應用
+  '7b-eqn-app':        gen7bEqnApp,
+  // 九下
+  '9b-quad-func':      gen9bQuadFunc,
+  '9b-stat':           gen9bStat,
+  '9b-prob':           gen9bProb,
 };

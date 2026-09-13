@@ -57,6 +57,7 @@ const TOPIC_NAMES = {
   // 七下
   '7b-subst':     '七下·代入消去法',
   '7b-elim':      '七下·加減消去法',
+  '7b-eqn-app':   '七下·聯立方程式應用問題',
   '7b-poly':      '七下·二元一次多項式',
   '7b-coord':     '七下·平面座標',
   '7b-linepic':   '七下·二元一次方程式圖形',
@@ -98,6 +99,8 @@ const TOPIC_NAMES = {
   '8b-parallel':       '八下·平行線與截角',
   '8b-parallelogram':  '八下·平行四邊形',
   '8b-special-quad':   '八下·特殊四邊形',
+  '8b-trap':           '八下·梯形',
+  '8b-kite':           '八下·箏形',
   // 九上
   '9a-ratio-chain':    '九上·連比',
   '9a-prop-seg':       '九上·比例線段',
@@ -105,7 +108,12 @@ const TOPIC_NAMES = {
   '9a-trig':           '九上·三角比',
   '9a-circle-line':    '九上·點線圓',
   '9a-circle-angle':   '九上·圓心角與圓周角',
+  '9a-circle-chord-tan': '九上·弦切角',
   '9a-tri-center':     '九上·三角形的心',
+  // 九下
+  '9b-quad-func':  '九下·二次函數',
+  '9b-stat':       '九下·統計',
+  '9b-prob':       '九下·機率',
   // 第一冊（高一上）
   'b1-decimal-term': '一冊·有限小數與循環小數',
   'b1-abs-calc':     '一冊·絕對值運算',
@@ -520,8 +528,8 @@ function renderQuiz(questions, params) {
 
   // 答題格式提示
   const ELEM_TOPICS = ['int-arith','gcd-lcm','ratio-val','rate','unit','area','volume'];
-  const JR_INT_TOPICS  = ['7a-int-sign','7a-int-add','7a-int-sub','7a-int-mul','7a-int-div','7a-int-mix','7a-int-abs','7a-poly','7a-eqn-app','7b-poly','7b-coord','8a-poly-add','8a-poly-mul','8a-poly-div','8a-sqrt-basic','8a-sqrt-add','8a-sqrt-mul','8a-pyth','8a-quad3','8b-geo-seq','8b-linear-func'];
-  const JR_FRAC_TOPICS = ['7a-frac-sign','7a-frac-add','7a-frac-sub','7a-frac-mul','7a-frac-div','7a-frac-mix','7a-frac-abs','7a-eqn','7b-subst','7b-elim','7b-linepic','7b-chain','7b-ratio','7b-prop','7b-dirprop','7b-invprop','7b-ineq','7b-stat','8a-mulform','8a-sq-sum','8a-sq-diff','8a-diff-sq','8b-arith-seq','8b-arith-series','9a-ratio-chain','9a-trig'];
+  const JR_INT_TOPICS  = ['7a-int-sign','7a-int-add','7a-int-sub','7a-int-mul','7a-int-div','7a-int-mix','7a-int-abs','7a-poly','7a-eqn-app','7b-poly','7b-coord','7b-eqn-app','8a-poly-add','8a-poly-mul','8a-poly-div','8a-sqrt-basic','8a-sqrt-add','8a-sqrt-mul','8a-pyth','8a-quad3','8b-geo-seq','8b-linear-func','8b-trap','8b-kite','9a-circle-chord-tan','9b-quad-func','9b-stat'];
+  const JR_FRAC_TOPICS = ['7a-frac-sign','7a-frac-add','7a-frac-sub','7a-frac-mul','7a-frac-div','7a-frac-mix','7a-frac-abs','7a-eqn','7b-subst','7b-elim','7b-linepic','7b-chain','7b-ratio','7b-prop','7b-dirprop','7b-invprop','7b-ineq','7b-stat','8a-mulform','8a-sq-sum','8a-sq-diff','8a-diff-sq','8b-arith-seq','8b-arith-series','9a-ratio-chain','9a-trig','9b-prob'];
   const JR_NUM_TOPICS  = ['7a-gcd-lcm','7a-prime','7a-int-exp'];
   const hasFrac  = params.topics.some(t => t.startsWith('frac') || t === 'mix-fd' || JR_FRAC_TOPICS.includes(t));
   const hasDec   = params.topics.some(t => t.startsWith('dec'));
