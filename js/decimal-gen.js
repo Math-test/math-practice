@@ -138,7 +138,7 @@ function genDecMul(level) {
 
 function _decMul(level) {
   if (level === 'basic') {
-    const t = randInt(0, 2);
+    const t = randInt(0, 3);
     if (t === 0) {
       // 一位小數 × 整數
       const a = randDec1(0.1, 9.9), n = randInt(2, 12);
@@ -149,17 +149,22 @@ function _decMul(level) {
       const n = randInt(2, 12), b = randDec1(0.1, 9.9);
       return { question:`\\(${n} \\times ${dStr(b)}\\)`,
                answer: roundTo(n * b, 2), type:'decimal', places:2 };
-    } else {
+    } else if (t === 2) {
       // 一位小數 × 一位小數
       const a = randDec1(0.1, 9.9), b = randDec1(0.1, 9.9);
       return { question:`\\(${dStr(a)} \\times ${dStr(b)}\\)`,
                answer: roundTo(a * b, 2), type:'decimal', places:2 };
+    } else {
+      // 兩位小數 × 整數
+      const a = randDec2(0.01, 9.99), n = randInt(2, 12);
+      return { question:`\\(${dStr(a)} \\times ${n}\\)`,
+               answer: roundTo(a * n, 2), type:'decimal', places:2 };
     }
   } else {
     const t = randInt(0, 2);
     if (t === 0) {
-      // 兩位小數 × 整數
-      const a = randDec2(0.01, 9.99), n = randInt(2, 12);
+      // 兩位小數 × 整數（較大數值）
+      const a = randDec2(0.01, 99.99), n = randInt(2, 20);
       return { question:`\\(${dStr(a)} \\times ${n}\\)`,
                answer: roundTo(a * n, 2), type:'decimal', places:2 };
     } else if (t === 1) {
@@ -169,7 +174,7 @@ function _decMul(level) {
                answer: roundTo(a * b, 3), type:'decimal', places:3 };
     } else {
       // 兩位小數 × 兩位小數
-      const a = randDec2(0.01, 5.99), b = randDec2(0.01, 5.99);
+      const a = randDec2(0.01, 9.99), b = randDec2(0.01, 9.99);
       return { question:`\\(${dStr(a)} \\times ${dStr(b)}\\)`,
                answer: roundTo(a * b, 4), type:'decimal', places:4 };
     }
@@ -190,7 +195,7 @@ function genDecDiv(level) {
 
 function _decDiv(level) {
   if (level === 'basic') {
-    const t = randInt(0, 2);
+    const t = randInt(0, 3);
     if (t === 0) {
       // 整數 ÷ 整數 = 一位小數（設計整除）
       const n = randInt(1, 9), ans = randDec1(0.1, 9.9);
@@ -205,13 +210,20 @@ function _decDiv(level) {
       const a = roundTo(n * ans, 1);
       return { question:`\\(${dStr(a)} \\div ${n}\\)`,
                answer: roundTo(a / n, 2), type:'decimal', places:2 };
-    } else {
+    } else if (t === 2) {
       // 兩位小數 ÷ 整數（整除）
       const n = randInt(2, 8);
       const ans = randDec2(0.01, 9.99);
       const a = roundTo(n * ans, 2);
       return { question:`\\(${dStr(a)} \\div ${n}\\)`,
                answer: roundTo(a / n, 2), type:'decimal', places:2 };
+    } else {
+      // 兩位小數 ÷ 兩位小數（設計整數答案）
+      const b = randDec2(0.01, 4.99), ans = randInt(2, 8);
+      const a = roundTo(b * ans, 2);
+      if (a <= 0) return null;
+      return { question:`\\(${dStr(a)} \\div ${dStr(b)}\\)`,
+               answer: ans, type:'decimal', places:0 };
     }
   } else {
     const t = randInt(0, 2);
@@ -222,18 +234,19 @@ function _decDiv(level) {
       return { question:`\\(${dStr(a)} \\div ${dStr(b)}\\)`,
                answer: ans, type:'decimal', places:0 };
     } else if (t === 1) {
-      // 一位小數 ÷ 一位小數
-      const b = randDec1(0.1, 9.9), ans = randInt(1, 12);
-      const a = roundTo(b * ans, 1);
-      return { question:`\\(${dStr(a)} \\div ${dStr(b)}\\)`,
-               answer: ans, type:'decimal', places:0 };
-    } else {
-      // 小數 ÷ 小數（設計整除或一位小數結果）
-      const b = randDec1(0.1, 4.9);
-      const ans = randDec1(0.1, 5.9);
+      // 兩位小數 ÷ 兩位小數（設計一位小數答案）
+      const b = randDec2(0.01, 4.99), ans = randDec1(0.2, 5.9);
       const a = roundTo(b * ans, 2);
+      if (a <= 0) return null;
       return { question:`\\(${dStr(a)} \\div ${dStr(b)}\\)`,
-               answer: roundTo(a / b, 1), type:'decimal', places:1 };
+               answer: roundTo(ans, 1), type:'decimal', places:1 };
+    } else {
+      // 兩位小數 ÷ 一位小數（設計兩位小數答案）
+      const b = randDec1(0.1, 4.9), ans = randDec2(0.01, 9.99);
+      const a = roundTo(b * ans, 3);
+      if (a <= 0) return null;
+      return { question:`\\(${dStr(a)} \\div ${dStr(b)}\\)`,
+               answer: roundTo(a / b, 2), type:'decimal', places:2 };
     }
   }
 }
@@ -315,16 +328,24 @@ function _decMix(level) {
 
 // 常用小數對應分數（精確可互換）
 const _CLEAN = [
-  { d: 0.5,  f: () => frac(1,2)  },
-  { d: 0.25, f: () => frac(1,4)  },
-  { d: 0.75, f: () => frac(3,4)  },
-  { d: 0.2,  f: () => frac(1,5)  },
-  { d: 0.4,  f: () => frac(2,5)  },
-  { d: 0.6,  f: () => frac(3,5)  },
-  { d: 0.8,  f: () => frac(4,5)  },
-  { d: 0.1,  f: () => frac(1,10) },
-  { d: 0.3,  f: () => frac(3,10) },
-  { d: 0.7,  f: () => frac(7,10) },
+  { d: 0.5,  f: () => frac(1,2)   },
+  { d: 0.25, f: () => frac(1,4)   },
+  { d: 0.75, f: () => frac(3,4)   },
+  { d: 0.2,  f: () => frac(1,5)   },
+  { d: 0.4,  f: () => frac(2,5)   },
+  { d: 0.6,  f: () => frac(3,5)   },
+  { d: 0.8,  f: () => frac(4,5)   },
+  { d: 0.1,  f: () => frac(1,10)  },
+  { d: 0.3,  f: () => frac(3,10)  },
+  { d: 0.7,  f: () => frac(7,10)  },
+  // 兩位小數
+  { d: 0.05, f: () => frac(1,20)  },
+  { d: 0.15, f: () => frac(3,20)  },
+  { d: 0.35, f: () => frac(7,20)  },
+  { d: 0.45, f: () => frac(9,20)  },
+  { d: 0.12, f: () => frac(3,25)  },
+  { d: 0.24, f: () => frac(6,25)  },
+  { d: 0.48, f: () => frac(12,25) },
 ];
 
 function genMixFD(level) {
@@ -337,49 +358,70 @@ function genMixFD(level) {
 
 function _mixFD(level) {
   if (level === 'basic') {
-    const t = randInt(0, 3);
+    const t = randInt(0, 5);
     if (t === 0) {
-      // 真分數 + 小數
-      const p = pick(_CLEAN), d = pick([2,3,4,5,6]);
+      // 真分數 + 小數（含兩位數分母、兩位小數）
+      const p = pick(_CLEAN), d = pick([2,3,4,5,6,10,12,15]);
       const a = randInt(1, d-1);
       const ans = fadd(frac(a,d), p.f());
+      if (ans.den > 60) return null;
       return { question:`\\(${qfrac(a,d)} + ${p.d}\\)`,
                answer: ans, type:'fraction' };
     } else if (t === 1) {
-      // 小數 + 真分數
-      const p = pick(_CLEAN), d = pick([2,3,4,5,6]);
+      // 小數 - 真分數（含兩位數分母、兩位小數）
+      const p = pick(_CLEAN), d = pick([2,4,5,10,12,20]);
       const a = randInt(1, d-1);
-      const ans = fadd(p.f(), frac(a,d));
-      return { question:`\\(${p.d} + ${qfrac(a,d)}\\)`,
+      const ans = fsub(p.f(), frac(a,d));
+      if (ans.num <= 0 || ans.den > 60) return null;
+      return { question:`\\(${p.d} - ${qfrac(a,d)}\\)`,
                answer: ans, type:'fraction' };
     } else if (t === 2) {
-      // 整數 - 分數 - 小數
-      const p = pick(_CLEAN), d = pick([2,4,5,10]);
+      // 整數 - 分數 - 小數（含兩位數分母、兩位小數）
+      const p = pick(_CLEAN), d = pick([2,4,5,10,12,20]);
       const a = randInt(1, d-1), w = randInt(2, 8);
       const ans = fsub(fsub(frac(w), frac(a,d)), p.f());
-      if (ans.num <= 0) return null;
+      if (ans.num <= 0 || ans.den > 60) return null;
       return { question:`\\(${w} - ${qfrac(a,d)} - ${p.d}\\)`,
                answer: ans, type:'fraction' };
-    } else {
-      // 帶分數 + 小數
-      const p = pick(_CLEAN), d = pick([2,4,5]), w = randInt(1,5);
+    } else if (t === 3) {
+      // 帶分數 + 小數（含兩位數分母、兩位小數）
+      const p = pick(_CLEAN), d = pick([2,4,5,10,12,20]), w = randInt(1,5);
       const a = randInt(1, d-1);
       const ans = fadd(frac(w*d+a, d), p.f());
+      if (ans.den > 60) return null;
       return { question:`\\(${qmixed(w,a,d)} + ${p.d}\\)`,
+               answer: ans, type:'fraction' };
+    } else if (t === 4) {
+      // 真分數 × 小數（含兩位數分母、兩位小數）
+      const p = pick(_CLEAN), d = pick([2,4,5,6,10,12,15,20,25]);
+      const a = randInt(1, d-1);
+      const ans = fmul(frac(a,d), p.f());
+      if (ans.den > 60) return null;
+      return { question:`\\(${qfrac(a,d)} \\times ${p.d}\\)`,
+               answer: ans, type:'fraction' };
+    } else {
+      // 小數 ÷ 真分數（含兩位數分母、兩位小數）
+      const p = pick(_CLEAN.filter(x => x.d >= 0.2));
+      const d = pick([2,4,5,10,12,20]);
+      const a = randInt(1, d-1);
+      const ans = fdiv(p.f(), frac(a,d));
+      if (ans.den > 60) return null;
+      return { question:`\\(${p.d} \\div ${qfrac(a,d)}\\)`,
                answer: ans, type:'fraction' };
     }
   } else {
-    const t = randInt(0, 3);
+    const t = randInt(0, 5);
     if (t === 0) {
-      // 分數 × 小數
-      const p = pick(_CLEAN), d = pick([2,3,4,5,6]);
-      const a = randInt(1, d-1);
-      const ans = fmul(frac(a,d), p.f());
-      return { question:`\\(${qfrac(a,d)} \\times ${p.d}\\)`,
+      // 帶分數 × 小數（含兩位數分母、兩位小數）
+      const p = pick(_CLEAN), d = pick([2,4,5,10,12,20]);
+      const w = randInt(1,3), a = randInt(1, d-1);
+      const ans = fmul(frac(w*d+a, d), p.f());
+      if (ans.den > 60) return null;
+      return { question:`\\(${qmixed(w,a,d)} \\times ${p.d}\\)`,
                answer: ans, type:'fraction' };
     } else if (t === 1) {
-      // (分數 + 小數) × 整數
-      const p = pick(_CLEAN), d = pick([2,4,5,10]);
+      // (真分數 + 小數) × 整數（含兩位數分母、兩位小數）
+      const p = pick(_CLEAN), d = pick([2,4,5,10,12,20]);
       const a = randInt(1, d-1), n = randInt(2,8);
       const inner = fadd(frac(a,d), p.f());
       const ans = fmul(inner, frac(n));
@@ -387,23 +429,43 @@ function _mixFD(level) {
       return { question:`\\(\\left(${qfrac(a,d)} + ${p.d}\\right) \\times ${n}\\)`,
                answer: ans, type:'fraction' };
     } else if (t === 2) {
-      // 帶分數 × 小數 + 真分數
-      const p = pick(_CLEAN), d1 = pick([2,4,5]), w = randInt(1,3);
-      const a = randInt(1, d1-1), d2 = pick([2,3,4,5]);
+      // 帶分數 × 小數 + 真分數（含兩位數分母、兩位小數）
+      const p = pick(_CLEAN), d1 = pick([2,4,5,10,20]), w = randInt(1,3);
+      const a = randInt(1, d1-1), d2 = pick([2,3,4,5,10,12]);
       const b = randInt(1, d2-1);
       const ans = fadd(fmul(frac(w*d1+a,d1), p.f()), frac(b,d2));
       if (ans.den > 60) return null;
       return { question:`\\(${qmixed(w,a,d1)} \\times ${p.d} + ${qfrac(b,d2)}\\)`,
                answer: ans, type:'fraction' };
-    } else {
-      // 整數 ÷ 小數 - 帶分數
+    } else if (t === 3) {
+      // 整數 ÷ 小數 - 帶分數（含兩位數分母、兩位小數）
       const p = pick(_CLEAN.filter(x => x.d >= 0.2));
-      const n = randInt(1,5), d = pick([2,4,5]), w2 = randInt(1,3);
+      const n = randInt(1,5), d = pick([2,4,5,10,20]), w2 = randInt(1,3);
       const a = randInt(1, d-1);
       const divR = fdiv(frac(n), p.f());
       const ans  = fsub(divR, frac(w2*d+a, d));
       if (ans.num <= 0 || ans.den > 60) return null;
       return { question:`\\(${n} \\div ${p.d} - ${qmixed(w2,a,d)}\\)`,
+               answer: ans, type:'fraction' };
+    } else if (t === 4) {
+      // (帶分數 + 小數) ÷ 整數（含兩位數分母、兩位小數）
+      const p = pick(_CLEAN), d = pick([2,4,5,10,12,20]), w = randInt(1,3);
+      const a = randInt(1, d-1), n = randInt(2,5);
+      const inner = fadd(frac(w*d+a, d), p.f());
+      const ans = fdiv(inner, frac(n));
+      if (ans.den > 60) return null;
+      return { question:`\\(\\left(${qmixed(w,a,d)} + ${p.d}\\right) \\div ${n}\\)`,
+               answer: ans, type:'fraction' };
+    } else {
+      // 帶分數 ÷ 小數 × 真分數（含兩位數分母、兩位小數）
+      const p = pick(_CLEAN.filter(x => x.d >= 0.2));
+      const d1 = pick([2,4,5,10,20]), w = randInt(1,3);
+      const a = randInt(1, d1-1), d2 = pick([2,3,5,10,12]);
+      const b = randInt(1, d2-1);
+      const divR = fdiv(frac(w*d1+a, d1), p.f());
+      const ans  = fmul(divR, frac(b, d2));
+      if (ans.den > 60) return null;
+      return { question:`\\(${qmixed(w,a,d1)} \\div ${p.d} \\times ${qfrac(b,d2)}\\)`,
                answer: ans, type:'fraction' };
     }
   }

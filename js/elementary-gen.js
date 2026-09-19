@@ -52,7 +52,7 @@ function _intArith(level) {
       return { question:`\\(${b*q2} \\div ${b}\\)`, answer: q2, type:'number' };
     }
   } else {
-    const t = randInt(0, 3);
+    const t = randInt(0, 5);
     if (t === 0) {
       // 2位 × 2位
       const a = randInt(12,99), b = randInt(12,99);
@@ -68,7 +68,7 @@ function _intArith(level) {
       return sub
         ? { question:`\\(${c} - ${a} \\times ${b}\\)`, answer: c-a*b, type:'number' }
         : { question:`\\(${a} \\times ${b} + ${c}\\)`, answer: a*b+c, type:'number' };
-    } else {
+    } else if (t === 3) {
       // 括號優先
       const a = randInt(10,99), b = randInt(10,99), c = randInt(2,9);
       const add = randInt(0,1) === 0;
@@ -76,6 +76,20 @@ function _intArith(level) {
       return add
         ? { question:`\\((${a} + ${b}) \\times ${c}\\)`, answer: (a+b)*c, type:'number' }
         : { question:`\\((${a} - ${b}) \\times ${c}\\)`, answer: (a-b)*c, type:'number' };
+    } else if (t === 4) {
+      // 兩個乘法相加減
+      const a = randInt(12,30), b = randInt(12,25), c = randInt(12,25), d = randInt(2,9);
+      const sub = randInt(0,1) === 0;
+      if (sub && a*b < c*d) return null;
+      return sub
+        ? { question:`\\(${a} \\times ${b} - ${c} \\times ${d}\\)`, answer: a*b-c*d, type:'number' }
+        : { question:`\\(${a} \\times ${b} + ${c} \\times ${d}\\)`, answer: a*b+c*d, type:'number' };
+    } else {
+      // (a+b)×c - d 多步四則
+      const a = randInt(10,50), b = randInt(10,50), c = randInt(12,25), d = randInt(100,500);
+      const ans = (a+b)*c - d;
+      if (ans <= 0) return null;
+      return { question:`\\((${a} + ${b}) \\times ${c} - ${d}\\)`, answer: ans, type:'number' };
     }
   }
 }
@@ -107,7 +121,7 @@ function _gcdLcm(level) {
       return { question:`${a} 和 ${b} 的最小公倍數是多少？`, answer: lcm(a,b), type:'number' };
     }
   } else {
-    const t = randInt(0, 2);
+    const t = randInt(0, 4);
     if (t === 0) {
       const g = pick([2,3,4,5,6]);
       const m1 = randInt(2,5), m2 = randInt(2,5), m3 = randInt(2,5);
@@ -118,13 +132,33 @@ function _gcdLcm(level) {
       const l = lcm(lcm(a,b),c);
       if (l > 180) return null;
       return { question:`${a}、${b} 和 ${c} 的最小公倍數是多少？`, answer: l, type:'number' };
-    } else {
+    } else if (t === 2) {
       const g = pick([2,3,4,5,6]);
       const [p, q2] = pick(COPRIME_PAIRS.filter(pr => pr[0]>=2 && pr[1]>=2));
       const a = g*p, b = g*q2;
       return {
         question:`某數和 ${a} 的最大公因數是 ${g}，最小公倍數是 ${lcm(a,b)}，求某數。`,
         answer: b, type:'number'
+      };
+    } else if (t === 3) {
+      // 磁磚問題
+      const g = pick([2,3,4,5,6,8]);
+      const m1 = randInt(2,6), m2 = randInt(2,6);
+      if (m1 === m2) return null;
+      const a = g*m1, b = g*m2;
+      return {
+        question:`長 ${a} 公分、寬 ${b} 公分的長方形地板，要用正方形磁磚鋪滿（不切割），最大磁磚的邊長是幾公分？`,
+        answer: gcd(a,b), type:'number'
+      };
+    } else {
+      // 燈閃爍問題
+      const a = pick([2,3,4,5,6]), b = pick([2,3,4,5,6]);
+      if (a === b) return null;
+      const l = lcm(a,b);
+      if (l > 60) return null;
+      return {
+        question:`甲燈每 ${a} 秒閃一次，乙燈每 ${b} 秒閃一次，兩燈同時閃後，再過幾秒會再次同時閃？`,
+        answer: l, type:'number'
       };
     }
   }
@@ -172,7 +206,7 @@ function _ratioVal(level) {
         : { question:`${roundTo(pct/100,2)} ＝ ？％`, answer: pct, type:'number' };
     }
   } else {
-    const t = randInt(0, 2);
+    const t = randInt(0, 4);
     if (t === 0) {
       // 化簡比，求前項
       const g = pick([2,3,4,5,6,7,8]);
@@ -182,7 +216,7 @@ function _ratioVal(level) {
         answer: a, type:'number'
       };
     } else if (t === 1) {
-      // 按比例分配
+      // 按比例分配（兩人）
       const [a, b] = pick([[1,2],[1,3],[2,3],[1,4],[3,4],[2,5],[3,5],[3,7],[4,5]]);
       const total = randInt(5,25)*(a+b);
       const askFirst = randInt(0,1) === 0;
@@ -191,7 +225,7 @@ function _ratioVal(level) {
         question:`甲和乙按 ${a}：${b} 分配 ${total} 元，${askFirst?'甲':'乙'}得幾元？`,
         answer: share, type:'number'
       };
-    } else {
+    } else if (t === 2) {
       // 已知比值求後項（或前項）
       const [a, b, val] = pick(RATIO_DEC_PAIRS);
       const k = randInt(2,6);
@@ -199,6 +233,30 @@ function _ratioVal(level) {
       return {
         question:`前項為 ${front}，比值為 ${val}，後項為多少？`,
         answer: b*k, type:'number'
+      };
+    } else if (t === 3) {
+      // 連比（三人按比例分配）
+      const ra = pick([1,2,3,4]), rb = pick([2,3,4,5]);
+      const rc = pick([2,3,4,5]);
+      if (ra === rb || rb === rc) return null;
+      const total = randInt(3,8)*(ra+rb+rc);
+      const askW = pick(['甲','乙','丙']);
+      const val = askW === '甲' ? total*ra/(ra+rb+rc)
+                : askW === '乙' ? total*rb/(ra+rb+rc)
+                :                 total*rc/(ra+rb+rc);
+      if (!Number.isInteger(val)) return null;
+      return {
+        question:`甲、乙、丙三人按 ${ra}：${rb}：${rc} 分配 ${total} 元，${askW}得幾元？`,
+        answer: val, type:'number'
+      };
+    } else {
+      // 折扣問題
+      const original = pick([100,200,300,400,500,600,800,1000]);
+      const tenths = pick([6,7,8,9]);
+      const price = original * tenths / 10;
+      return {
+        question:`一件商品原價 ${original} 元，打 ${tenths} 折後售價幾元？`,
+        answer: price, type:'number'
       };
     }
   }
@@ -230,7 +288,7 @@ function _rate(level) {
       return { question:`共走 ${dist} 公里，走了 ${time} 小時，平均速度每小時幾公里？`, answer: speed, type:'number' };
     }
   } else {
-    const t = randInt(0, 2);
+    const t = randInt(0, 4);
     if (t === 0) {
       // 含半小時或1.5倍時間
       const speed = pick([40,50,60,80,100]);
@@ -246,7 +304,7 @@ function _rate(level) {
       if (ask === 0) return { question:`速度每分鐘 ${spd} 公尺，走 ${min} 分鐘，共走幾公尺？`, answer: dist, type:'number' };
       if (ask === 1) return { question:`走了 ${dist} 公尺，速度每分鐘 ${spd} 公尺，花了幾分鐘？`, answer: min, type:'number' };
       return { question:`走了 ${dist} 公尺，花了 ${min} 分鐘，速度每分鐘幾公尺？`, answer: spd, type:'number' };
-    } else {
+    } else if (t === 2) {
       // 流量問題
       const rate = pick([3,4,5,6,8,10,12,15]);
       const time2 = pick([4,5,6,8,10,12,15,20]);
@@ -254,6 +312,23 @@ function _rate(level) {
       return ask2
         ? { question:`水管每分鐘流 ${rate} 公升，${time2} 分鐘共流幾公升？`, answer: rate*time2, type:'number' }
         : { question:`共流 ${rate*time2} 公升，水管每分鐘流 ${rate} 公升，花了幾分鐘？`, answer: time2, type:'number' };
+    } else if (t === 3) {
+      // 兩人相遇問題
+      const s1 = pick([40,50,60,70,80]), s2 = pick([30,40,50,60]);
+      const time = pick([1,2,3,4]);
+      const dist = (s1+s2)*time;
+      const askD = randInt(0,1) === 0;
+      return askD
+        ? { question:`甲乙兩人相向出發，甲每小時 ${s1} 公里，乙每小時 ${s2} 公里，走了 ${time} 小時後相遇，兩人出發地相距幾公里？`, answer: dist, type:'number' }
+        : { question:`甲乙兩人相向出發相距 ${dist} 公里，甲每小時 ${s1} 公里，乙每小時 ${s2} 公里，幾小時後相遇？`, answer: time, type:'number' };
+    } else {
+      // 兩段行程
+      const s1 = pick([40,50,60,80]), t1 = pick([1,2,3]);
+      const s2 = pick([60,80,100,120]), t2 = pick([1,2]);
+      return {
+        question:`小明先以每小時 ${s1} 公里走 ${t1} 小時，再以每小時 ${s2} 公里走 ${t2} 小時，共走幾公里？`,
+        answer: s1*t1 + s2*t2, type:'number'
+      };
     }
   }
 }
@@ -265,49 +340,62 @@ function _rate(level) {
 // {from, to, factor}：1 from = factor to
 const UNIT_TABLE = [
   // 長度
-  { cat:'長度', from:'公里',   to:'公尺',   factor:1000    },
-  { cat:'長度', from:'公尺',   to:'公分',   factor:100     },
-  { cat:'長度', from:'公分',   to:'公釐',   factor:10      },
-  { cat:'長度', from:'公尺',   to:'公釐',   factor:1000    },
+  { cat:'長度', from:'公里',     to:'公尺',     factor:1000  },
+  { cat:'長度', from:'公尺',     to:'公分',     factor:100   },
+  { cat:'長度', from:'公分',     to:'公釐',     factor:10    },
+  { cat:'長度', from:'公尺',     to:'公釐',     factor:1000  },
   // 重量
-  { cat:'重量', from:'公噸',   to:'公斤',   factor:1000    },
-  { cat:'重量', from:'公斤',   to:'公克',   factor:1000    },
+  { cat:'重量', from:'公噸',     to:'公斤',     factor:1000  },
+  { cat:'重量', from:'公斤',     to:'公克',     factor:1000  },
   // 容量
-  { cat:'容量', from:'公升',   to:'毫升',   factor:1000    },
-  { cat:'容量', from:'公升',   to:'分升',   factor:10      },
+  { cat:'容量', from:'公升',     to:'毫升',     factor:1000  },
   // 時間
-  { cat:'時間', from:'小時',   to:'分鐘',   factor:60      },
-  { cat:'時間', from:'分鐘',   to:'秒',     factor:60      },
-  { cat:'時間', from:'天',     to:'小時',   factor:24      },
-  { cat:'時間', from:'週',     to:'天',     factor:7       },
-  { cat:'時間', from:'年',     to:'個月',   factor:12      },
-  { cat:'時間', from:'年',     to:'天',     factor:365     },
+  { cat:'時間', from:'小時',     to:'分鐘',     factor:60    },
+  { cat:'時間', from:'分鐘',     to:'秒',       factor:60    },
+  { cat:'時間', from:'天',       to:'小時',     factor:24    },
+  { cat:'時間', from:'週',       to:'天',       factor:7     },
+  { cat:'時間', from:'年',       to:'個月',     factor:12    },
   // 面積
-  { cat:'面積', from:'公尺²',  to:'公分²',  factor:10000   },
-  { cat:'面積', from:'公頃',   to:'公尺²',  factor:10000   },
-  { cat:'面積', from:'公里²',  to:'公頃',   factor:100     },
+  { cat:'面積', from:'平方公尺', to:'平方公分', factor:10000 },
 ];
 
-// 常見有意義的換算題（含小數）
+// 常見固定換算題（含複合單位）
 const UNIT_FIXED = [
-  { q:'1.5 公里 ＝ ？ 公尺',    a:1500   },
-  { q:'2.5 公斤 ＝ ？ 公克',    a:2500   },
-  { q:'3.5 公升 ＝ ？ 毫升',    a:3500   },
-  { q:'0.5 公尺 ＝ ？ 公分',    a:50     },
-  { q:'1.5 小時 ＝ ？ 分鐘',    a:90     },
-  { q:'2.5 小時 ＝ ？ 分鐘',    a:150    },
-  { q:'0.5 公里 ＝ ？ 公尺',    a:500    },
-  { q:'2400 公克 ＝ ？ 公斤',   a:2.4    },
-  { q:'4500 公尺 ＝ ？ 公里',   a:4.5    },
-  { q:'180 分鐘 ＝ ？ 小時',    a:3      },
-  { q:'90 分鐘 ＝ ？ 小時',     a:1.5    },
-  { q:'3600 秒 ＝ ？ 小時',     a:1      },
-  { q:'1800 秒 ＝ ？ 分鐘',     a:30     },
-  { q:'500 公分 ＝ ？ 公尺',    a:5      },
-  { q:'250 公分 ＝ ？ 公尺',    a:2.5    },
-  { q:'3000 毫升 ＝ ？ 公升',   a:3      },
-  { q:'1500 毫升 ＝ ？ 公升',   a:1.5    },
-  { q:'2.5 噸 ＝ ？ 公斤（1噸＝1000公斤）', a:2500 },
+  // 小數換算
+  { q:'1.5 公里 ＝ ？ 公尺',          a:1500  },
+  { q:'0.5 公里 ＝ ？ 公尺',          a:500   },
+  { q:'2.5 公斤 ＝ ？ 公克',          a:2500  },
+  { q:'3.5 公升 ＝ ？ 毫升',          a:3500  },
+  { q:'0.5 公尺 ＝ ？ 公分',          a:50    },
+  { q:'1.5 公尺 ＝ ？ 公分',          a:150   },
+  { q:'1.5 小時 ＝ ？ 分鐘',          a:90    },
+  { q:'2.5 小時 ＝ ？ 分鐘',          a:150   },
+  // 逆向換算
+  { q:'2400 公克 ＝ ？ 公斤',         a:2.4   },
+  { q:'3500 公克 ＝ ？ 公斤',         a:3.5   },
+  { q:'4500 公尺 ＝ ？ 公里',         a:4.5   },
+  { q:'2500 公尺 ＝ ？ 公里',         a:2.5   },
+  { q:'180 分鐘 ＝ ？ 小時',          a:3     },
+  { q:'90 分鐘 ＝ ？ 小時',           a:1.5   },
+  { q:'500 公分 ＝ ？ 公尺',          a:5     },
+  { q:'250 公分 ＝ ？ 公尺',          a:2.5   },
+  { q:'3000 毫升 ＝ ？ 公升',         a:3     },
+  { q:'1500 毫升 ＝ ？ 公升',         a:1.5   },
+  { q:'1800 秒 ＝ ？ 分鐘',           a:30    },
+  { q:'3600 秒 ＝ ？ 分鐘',           a:60    },
+  // 複合單位換算
+  { q:'2 公尺 50 公分 ＝ ？ 公分',    a:250   },
+  { q:'3 公尺 20 公分 ＝ ？ 公分',    a:320   },
+  { q:'1 公里 500 公尺 ＝ ？ 公尺',   a:1500  },
+  { q:'2 公里 300 公尺 ＝ ？ 公尺',   a:2300  },
+  { q:'3 公斤 500 公克 ＝ ？ 公克',   a:3500  },
+  { q:'1 公斤 800 公克 ＝ ？ 公克',   a:1800  },
+  { q:'2 公升 500 毫升 ＝ ？ 毫升',   a:2500  },
+  { q:'1 小時 30 分鐘 ＝ ？ 分鐘',    a:90    },
+  { q:'2 小時 15 分鐘 ＝ ？ 分鐘',    a:135   },
+  { q:'1 小時 45 分鐘 ＝ ？ 分鐘',    a:105   },
+  { q:'1 分鐘 30 秒 ＝ ？ 秒',        a:90    },
+  { q:'2 分鐘 40 秒 ＝ ？ 秒',        a:160   },
 ];
 
 function genUnitConvert(level) {
@@ -320,43 +408,56 @@ function genUnitConvert(level) {
 
 function _unitConvert(level) {
   if (level === 'basic') {
-    // 大單位 → 小單位，整數係數
-    const conv = pick(UNIT_TABLE.filter(u => u.factor <= 1000));
-    const n = randInt(1, Math.min(15, Math.floor(9999 / conv.factor)));
-    return {
-      question:`${n} ${conv.from} ＝ ？ ${conv.to}　（${conv.cat}）`,
-      answer: n * conv.factor, type:'number'
-    };
-  } else {
     const t = randInt(0, 2);
     if (t === 0) {
-      // 小單位 → 大單位（整除）
+      // 大單位 → 小單位，整數係數
+      const conv = pick(UNIT_TABLE);
+      const n = randInt(1, Math.min(10, Math.floor(9999 / conv.factor)));
+      return {
+        question:`${n} ${conv.from} ＝ ？ ${conv.to}　（${conv.cat}）`,
+        answer: n * conv.factor, type:'number'
+      };
+    } else if (t === 1) {
+      // 小單位 → 大單位（整除，整數答案）
       const conv = pick(UNIT_TABLE.filter(u => u.factor <= 1000));
-      const n = randInt(1, 15);
+      const n = randInt(1, 10);
       return {
         question:`${n * conv.factor} ${conv.to} ＝ ？ ${conv.from}　（${conv.cat}）`,
         answer: n, type:'number'
       };
-    } else if (t === 1) {
+    } else {
+      // 固定常見題（整數答案）
+      const item = pick(UNIT_FIXED.filter(f => Number.isInteger(f.a)));
+      return { question: item.q, answer: item.a, type:'number' };
+    }
+  } else {
+    const t = randInt(0, 2);
+    if (t === 0) {
       // 大 → 小，含小數
       const conv = pick(UNIT_TABLE.filter(u => u.factor <= 1000));
-      const frac2 = pick([0.5, 1.5, 2.5, 0.25, 1.25, 2.25, 0.75]);
-      const n = randInt(1,5) + frac2;
+      const half = pick([0.5, 1.5, 2.5, 0.25, 1.25, 2.25, 0.75]);
+      const n = randInt(1, 4) + half;
       return {
         question:`${n} ${conv.from} ＝ ？ ${conv.to}　（${conv.cat}）`,
         answer: roundTo(n * conv.factor, 2), type:'number'
       };
+    } else if (t === 1) {
+      // 小 → 大，小數答案
+      const conv = pick(UNIT_TABLE.filter(u => u.factor <= 1000));
+      const half = pick([0.5, 1.5, 2.5, 1.25, 2.25, 0.75]);
+      const n = randInt(1, 4) + half;
+      const bigVal = Math.round(n * conv.factor);
+      return {
+        question:`${bigVal} ${conv.to} ＝ ？ ${conv.from}　（${conv.cat}）`,
+        answer: n, type:'number'
+      };
     } else {
-      // 固定常見題
-      return { question: pick(UNIT_FIXED).q, answer: pick(UNIT_FIXED).a, type:'number' };
+      // 固定複合單位或小數換算題
+      const item = pick(UNIT_FIXED);
+      return { question: item.q, answer: item.a, type:'number' };
     }
   }
 }
-
-// 確保 UNIT_FIXED 裡每題都正確對應
-(function fixUnitFixed() {
-  // 重新用 pick 隨機取，每次出題從 pool 抽，不用靜態對應
-})();
 
 // ═══════════════════════════════════════════════════════════════════
 //  面積
@@ -387,7 +488,7 @@ function _area(level) {
       return { question:`三角形，底 ${base} ${u}，高 ${h} ${u}，求面積（${u2}）`, answer: base*h/2, type:'number' };
     }
   } else {
-    const t = randInt(0, 3);
+    const t = randInt(0, 5);
     if (t === 0) {
       const base = randInt(3,20), h = randInt(3,15);
       return { question:`平行四邊形，底 ${base} ${u}，高 ${h} ${u}，求面積（${u2}）`, answer: base*h, type:'number' };
@@ -397,7 +498,7 @@ function _area(level) {
     } else if (t === 2) {
       const r = pick([3,4,5,6,7,8,10]);
       return { question:`圓形，半徑 ${r} ${u}，求面積（圓周率 3.14，${u2}）`, answer: roundTo(PI*r*r,2), type:'number' };
-    } else {
+    } else if (t === 3) {
       const l = randInt(4,20), w = randInt(3,15);
       const askL = randInt(0,1) === 0;
       return {
@@ -405,6 +506,22 @@ function _area(level) {
           ? `長方形，面積 ${l*w} ${u2}，寬 ${w} ${u}，求長（${u}）`
           : `長方形，面積 ${l*w} ${u2}，長 ${l} ${u}，求寬（${u}）`,
         answer: askL ? l : w, type:'number'
+      };
+    } else if (t === 4) {
+      // L形組合圖形（大矩形 - 小矩形）
+      const L = randInt(10,20), W = randInt(8,15);
+      const l2 = randInt(3, Math.floor(L/2)), w2 = randInt(2, Math.floor(W/2));
+      return {
+        question:`一個 L 形圖案，大長方形長 ${L} ${u}、寬 ${W} ${u}，從一個角落挖去長 ${l2} ${u}、寬 ${w2} ${u} 的小長方形，L 形面積是多少${u2}？`,
+        answer: L*W - l2*w2, type:'number'
+      };
+    } else {
+      // 圓環面積（大圓 - 小圓）
+      const R = pick([6,7,8,10]), r2 = pick([2,3,4,5]);
+      if (r2 >= R) return null;
+      return {
+        question:`圓環，外圓半徑 ${R} ${u}，內圓半徑 ${r2} ${u}，求圓環面積（圓周率 3.14，${u2}）`,
+        answer: roundTo(PI*(R*R - r2*r2), 2), type:'number'
       };
     }
   }
@@ -435,27 +552,110 @@ function _volume(level) {
       return { question:`正方體，邊長 ${s} ${u}，求體積（${u3}）`, answer: s*s*s, type:'number' };
     }
   } else {
-    const t = randInt(0, 2);
+    const t = randInt(0, 4);
     if (t === 0) {
       const l = randInt(3,12), w = randInt(3,10), h = randInt(3,10);
       return { question:`長方體，長 ${l} ${u}，寬 ${w} ${u}，高 ${h} ${u}，求表面積（${u2}）`, answer: 2*(l*w+l*h+w*h), type:'number' };
     } else if (t === 1) {
       const s = randInt(3,12);
       return { question:`正方體，邊長 ${s} ${u}，求表面積（${u2}）`, answer: 6*s*s, type:'number' };
-    } else {
+    } else if (t === 2) {
       const r = pick([3,4,5,6,7,8,10]), h = randInt(3,15);
       return { question:`圓柱，底面半徑 ${r} ${u}，高 ${h} ${u}，求體積（圓周率 3.14，${u3}）`, answer: roundTo(PI*r*r*h,2), type:'number' };
+    } else if (t === 3) {
+      // 已知體積反求邊長
+      const l = randInt(3,10), w = randInt(3,8), h = randInt(3,8);
+      const vol = l*w*h;
+      const ask = pick([0,1,2]);
+      if (ask === 0) return { question:`長方體體積 ${vol} ${u3}，寬 ${w} ${u}，高 ${h} ${u}，求長（${u}）`, answer: l, type:'number' };
+      if (ask === 1) return { question:`長方體體積 ${vol} ${u3}，長 ${l} ${u}，高 ${h} ${u}，求寬（${u}）`, answer: w, type:'number' };
+      return { question:`長方體體積 ${vol} ${u3}，長 ${l} ${u}，寬 ${w} ${u}，求高（${u}）`, answer: h, type:'number' };
+    } else {
+      // 注水問題
+      const l = randInt(3,12), w = randInt(3,10), wh = randInt(3,15);
+      return {
+        question:`長 ${l} ${u}、寬 ${w} ${u} 的水槽，注水到高 ${wh} ${u}，水的體積是多少${u3}？`,
+        answer: l*w*wh, type:'number'
+      };
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  比例尺
+// ═══════════════════════════════════════════════════════════════════
+
+function genMapScale(level) {
+  for (let i = 0; i < 30; i++) {
+    const q = _mapScale(level);
+    if (q && q.answer > 0) return q;
+  }
+  return _mapScale('basic');
+}
+
+function _mapScale(level) {
+  if (level === 'basic') {
+    const t = randInt(0, 1);
+    if (t === 0) {
+      // 已知比例尺＋圖上距離，求實際距離（公尺）
+      const sc = pick([100, 500, 1000, 5000, 10000]);
+      const mapCm = randInt(1, 8);
+      const actualM = mapCm * sc / 100;
+      return {
+        question:`比例尺為 1：${sc}，圖上距離 ${mapCm} 公分，實際距離幾公尺？`,
+        answer: actualM, type:'number'
+      };
+    } else {
+      // 已知比例尺＋實際距離，求圖上距離（公分）
+      const sc = pick([100, 500, 1000, 5000, 10000]);
+      const mapCm = randInt(1, 8);
+      const actualM = mapCm * sc / 100;
+      return {
+        question:`比例尺為 1：${sc}，實際距離 ${actualM} 公尺，圖上距離幾公分？`,
+        answer: mapCm, type:'number'
+      };
+    }
+  } else {
+    const t = randInt(0, 2);
+    if (t === 0) {
+      // 求比例尺（1：？）
+      const mapCm = randInt(1, 5);
+      const sc = pick([5000, 10000, 20000, 50000]);
+      const actualM = mapCm * sc / 100;
+      const qStr = actualM >= 1000
+        ? `圖上距離 ${mapCm} 公分，實際距離 ${actualM / 1000} 公里，此地圖的比例尺為 1：？`
+        : `圖上距離 ${mapCm} 公分，實際距離 ${actualM} 公尺，此地圖的比例尺為 1：？`;
+      return { question: qStr, answer: sc, type:'number' };
+    } else if (t === 1) {
+      // 大比例尺，求實際距離（公里）
+      const sc = pick([20000, 50000, 100000]);
+      const mapCm = randInt(1, 6);
+      const actualKm = roundTo(mapCm * sc / 100000, 2);
+      return {
+        question:`比例尺為 1：${sc}，圖上距離 ${mapCm} 公分，實際距離幾公里？`,
+        answer: actualKm, type:'number'
+      };
+    } else {
+      // 比例尺與面積（面積比＝比例尺的平方）
+      const sc = pick([1000, 2000, 5000]);
+      const mapArea = randInt(1, 6);
+      const actualM2 = mapArea * (sc / 100) * (sc / 100);
+      return {
+        question:`比例尺為 1：${sc}，圖上面積 ${mapArea} 平方公分，實際面積幾平方公尺？`,
+        answer: actualM2, type:'number'
+      };
     }
   }
 }
 
 // ─── 對外介面 ──────────────────────────────────────────────────────
 const ELEM_GENERATORS = {
-  'int-arith': genIntArith,
-  'gcd-lcm':   genGcdLcm,
-  'ratio-val': genRatioVal,
-  'rate':      genRate,
-  'unit':      genUnitConvert,
-  'area':      genArea,
-  'volume':    genVolume,
+  'int-arith':  genIntArith,
+  'gcd-lcm':    genGcdLcm,
+  'ratio-val':  genRatioVal,
+  'rate':       genRate,
+  'unit':       genUnitConvert,
+  'map-scale':  genMapScale,
+  'area':       genArea,
+  'volume':     genVolume,
 };

@@ -3256,6 +3256,226 @@ function _b1DblRad(level) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  第一冊 ▸ 第一章　根式有理化
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ── b1-rationalize：根式有理化 ────────────────────────────────────
+// Pools track which questions have been shown (shuffle-queue style)
+let _b1RatBQ = [], _b1RatMQ = [], _b1RatHQ = [];
+
+function genB1Rationalize(level) {
+  for (let i = 0; i < 30; i++) { const q = _b1Rationalize(level); if (q) return q; }
+  return _b1Rationalize('basic');
+}
+
+function _b1Rationalize(level) {
+  if (level === 'basic') {
+    // All answers have integer coefficients (no fractional radicals)
+    // Verify: (√6+√2)/(√6-√2) = (√6+√2)²/4 = (8+4√12)/4 = 2+√12 = 2+2√3 → rational=2,rc=1,rm=3 ✓
+    const POOL = [
+      { q:'化簡 \\(\\dfrac{\\sqrt{2}+1}{\\sqrt{2}-1}\\)',
+        type:'radical-mix', rational:3, radCoeff:2, radM:2 },
+      { q:'化簡 \\(\\dfrac{\\sqrt{3}+\\sqrt{2}}{\\sqrt{3}-\\sqrt{2}}\\)',
+        type:'radical-mix', rational:5, radCoeff:2, radM:6 },
+      { q:'化簡 \\(\\dfrac{1}{2-\\sqrt{3}}\\)',
+        type:'radical-mix', rational:2, radCoeff:1, radM:3 },
+      { q:'化簡 \\(\\dfrac{1}{\\sqrt{5}-2}\\)',
+        type:'radical-mix', rational:2, radCoeff:1, radM:5 },
+      { q:'化簡 \\(\\dfrac{1}{\\sqrt{2}+1}\\)',
+        type:'radical-mix', rational:-1, radCoeff:1, radM:2 },
+      { q:'化簡 \\(\\dfrac{2}{\\sqrt{3}-1}\\)',
+        type:'radical-mix', rational:1, radCoeff:1, radM:3 },
+      { q:'化簡 \\(\\dfrac{2+\\sqrt{3}}{2-\\sqrt{3}}\\)',
+        type:'radical-mix', rational:7, radCoeff:4, radM:3 },
+      { q:'化簡 \\(\\dfrac{3}{\\sqrt{5}+2}\\)',
+        type:'radical-mix', rational:-6, radCoeff:3, radM:5 },
+      { q:'化簡 \\(\\dfrac{\\sqrt{6}+\\sqrt{2}}{\\sqrt{6}-\\sqrt{2}}\\)',
+        type:'radical-mix', rational:2, radCoeff:1, radM:3 },
+      { q:'化簡 \\(\\dfrac{1}{\\sqrt{3}+\\sqrt{2}}\\)',
+        type:'radical2', coeffA:1, radA:3, coeffB:-1, radB:2 },
+      { q:'化簡 \\(\\dfrac{1}{\\sqrt{7}-\\sqrt{6}}\\)',
+        type:'radical2', coeffA:1, radA:7, coeffB:1, radB:6 },
+      { q:'化簡 \\(\\dfrac{\\sqrt{5}+\\sqrt{4}}{\\sqrt{5}-\\sqrt{4}}\\)（即 \\(\\dfrac{\\sqrt{5}+2}{\\sqrt{5}-2}\\)）',
+        type:'radical-mix', rational:9, radCoeff:4, radM:5 },
+    ];
+    const item = srQPick(POOL, _b1RatBQ);
+    const { q: qs, ...ans } = item;
+    return { question: qs + ' \\(=\\)', ...ans };
+  }
+
+  if (level === 'medium') {
+    // Verify: a=2+√3, b=2-√3, a²-b² = (a+b)(a-b) = 4·2√3 = 8√3 ✓
+    // Verify: a²+b² = (a+b)²-2ab = 16-2(4-3) = 14 ✓
+    // Verify: 1/(√3+√2)+1/(√2+1) = (√3-√2)+(√2-1) = √3-1 → rational=-1,rc=1,rm=3 ✓
+    // Verify: ab where a=√3+1, b=1/(√3-1)=(√3+1)/2 → ab=(√3+1)²/2=(4+2√3)/2=2+√3 ✓
+    const POOL = [
+      { q:'化簡 \\(\\dfrac{\\sqrt{3}+1}{\\sqrt{3}-1}+\\dfrac{\\sqrt{3}-1}{\\sqrt{3}+1}\\)',
+        answer:4, type:'number' },
+      { q:'化簡 \\(\\dfrac{\\sqrt{5}+\\sqrt{3}}{\\sqrt{5}-\\sqrt{3}}+\\dfrac{\\sqrt{5}-\\sqrt{3}}{\\sqrt{5}+\\sqrt{3}}\\)',
+        answer:8, type:'number' },
+      { q:'化簡 \\(\\dfrac{1}{\\sqrt{2}-1}-\\dfrac{1}{\\sqrt{2}+1}\\)',
+        answer:2, type:'number' },
+      { q:'化簡 \\(\\dfrac{1}{\\sqrt{3}-\\sqrt{2}}-\\dfrac{1}{\\sqrt{3}+\\sqrt{2}}\\)',
+        type:'radical-mix', rational:0, radCoeff:2, radM:2 },
+      { q:'化簡 \\(\\dfrac{\\sqrt{5}+1}{\\sqrt{5}-1}-\\dfrac{\\sqrt{5}-1}{\\sqrt{5}+1}\\)',
+        type:'radical-mix', rational:0, radCoeff:1, radM:5 },
+      { q:'求 \\(\\dfrac{1}{\\sqrt{1}+\\sqrt{2}}+\\dfrac{1}{\\sqrt{2}+\\sqrt{3}}+\\cdots+\\dfrac{1}{\\sqrt{8}+\\sqrt{9}}\\) 的值',
+        answer:2, type:'number' },
+      { q:'設 \\(a=\\sqrt{5}+2\\)，求 \\(a-\\dfrac{1}{a}\\) 的值',
+        answer:4, type:'number' },
+      { q:'設 \\(a=2+\\sqrt{3}\\)，\\(b=2-\\sqrt{3}\\)，求 \\(a^2-b^2\\) 的值',
+        type:'radical-mix', rational:0, radCoeff:8, radM:3 },
+      { q:'設 \\(a=2+\\sqrt{3}\\)，\\(b=2-\\sqrt{3}\\)，求 \\(a^2+b^2\\) 的值',
+        answer:14, type:'number' },
+      { q:'化簡 \\(\\dfrac{1}{\\sqrt{3}+\\sqrt{2}}+\\dfrac{1}{\\sqrt{2}+1}\\)',
+        type:'radical-mix', rational:-1, radCoeff:1, radM:3 },
+      { q:'求 \\((\\sqrt{2}+1)^{100}\\times(\\sqrt{2}-1)^{100}\\) 的值',
+        answer:1, type:'number' },
+      { q:'設 \\(a=\\sqrt{3}+1\\)，\\(b=\\dfrac{1}{\\sqrt{3}-1}\\)，求 \\(ab\\) 的值',
+        type:'radical-mix', rational:2, radCoeff:1, radM:3 },
+    ];
+    const item = srQPick(POOL, _b1RatMQ);
+    const { q: qs, ...ans } = item;
+    return { question: qs + ' \\(=\\)', ...ans };
+  }
+
+  // ── 困難 ──────────────────────────────────────────────────────
+  // Verify: (√x+1/√x)² = x+2+1/x = 9 → x+1/x = 7 ✓
+  // Verify: telescoping 1/(√k+√(k+1)) = √(k+1)-√k → sum k=1..99 = √100-1 = 9 ✓
+  // Verify: a(√6+√5)+b(√6-√5)=√6 → (a+b)=1, (a-b)=0 → a+b=1
+  // Verify: x=(√5+1)/2 → x²-x-1=0 ✓ (golden ratio)
+  // Verify: x=√3+√2, y=√3-√2, xy=1, x²+y²=10, x³y+xy³=xy(x²+y²)=10 ✓
+  // Verify: (√6+√5)/(√6-√5)-(√6-√5)/(√6+√5) = [(√6+√5)²-(√6-√5)²]/1 = 4√30 → rc=4,rm=30 ✓
+  const HPOOL = [
+    { q:'設正實數 \\(x\\) 滿足 \\(\\sqrt{x}+\\dfrac{1}{\\sqrt{x}}=3\\)，求 \\(x+\\dfrac{1}{x}\\) 的值',
+      answer:7, type:'number' },
+    { q:'求 \\(\\dfrac{1}{\\sqrt{1}+\\sqrt{2}}+\\dfrac{1}{\\sqrt{2}+\\sqrt{3}}+\\cdots+\\dfrac{1}{\\sqrt{99}+\\sqrt{100}}\\) 的值',
+      answer:9, type:'number' },
+    { q:'已知 \\(\\dfrac{a}{\\sqrt{6}-\\sqrt{5}}+\\dfrac{b}{\\sqrt{6}+\\sqrt{5}}=\\sqrt{6}\\)，其中 \\(a,b\\) 為有理數，求 \\(a+b\\)',
+      answer:1, type:'number' },
+    { q:'設 \\(x=\\dfrac{\\sqrt{5}+1}{2}\\)，求 \\(x^2-x-1\\) 的值',
+      answer:0, type:'number' },
+    { q:'設 \\(x=\\sqrt{3}+\\sqrt{2}\\)，\\(y=\\sqrt{3}-\\sqrt{2}\\)，求 \\(x^3y+xy^3\\) 的值',
+      answer:10, type:'number' },
+    { q:'化簡 \\(\\dfrac{\\sqrt{6}+\\sqrt{5}}{\\sqrt{6}-\\sqrt{5}}-\\dfrac{\\sqrt{6}-\\sqrt{5}}{\\sqrt{6}+\\sqrt{5}}\\)',
+      type:'radical-mix', rational:0, radCoeff:4, radM:30 },
+  ];
+  const item = srQPick(HPOOL, _b1RatHQ);
+  const { q: qs, ...ans } = item;
+  return { question: qs + ' \\(=\\)', ...ans };
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  第一冊 ▸ 第一章　分式運算
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ── b1-frac-expr：分式運算（有理式的化簡與四則）────────────────────
+let _b1FracEBQ = [], _b1FracEMQ = [], _b1FracEHQ = [];
+
+function genB1FracExpr(level) {
+  for (let i = 0; i < 30; i++) { const q = _b1FracExpr(level); if (q) return q; }
+  return _b1FracExpr('basic');
+}
+
+function _b1FracExpr(level) {
+  if (level === 'basic') {
+    // Answers given as exact text strings; student types the shown format.
+    // Verify: (x²-4)/(x+2) = (x+2)(x-2)/(x+2) = x-2 ✓
+    // Verify: (x²+x-6)/(x²-4) = (x+3)(x-2)/((x+2)(x-2)) = (x+3)/(x+2) ✓
+    // Verify: (x²-x)/(x²-1) = x(x-1)/((x+1)(x-1)) = x/(x+1) ✓
+    // Verify: (x+3)/(x²-9) = (x+3)/((x+3)(x-3)) = 1/(x-3) ✓
+    const BPOOL = [
+      { q:'化簡 \\(\\dfrac{x^2-4}{x+2}\\)（格式：x-N）',           answer:'x-2',         type:'text' },
+      { q:'化簡 \\(\\dfrac{x^2-9}{x-3}\\)（格式：x+N）',           answer:'x+3',         type:'text' },
+      { q:'化簡 \\(\\dfrac{x^2-1}{x-1}\\)（格式：x+N）',           answer:'x+1',         type:'text' },
+      { q:'化簡 \\(\\dfrac{x^2-6x+9}{x-3}\\)（格式：x-N）',        answer:'x-3',         type:'text' },
+      { q:'化簡 \\(\\dfrac{x^2+4x+4}{x+2}\\)（格式：x+N）',        answer:'x+2',         type:'text' },
+      { q:'化簡 \\(\\dfrac{2x^2-8}{2x-4}\\)（格式：x+N）',         answer:'x+2',         type:'text' },
+      { q:'化簡 \\(\\dfrac{x^2-2x}{x-2}\\)（格式：x）',            answer:'x',           type:'text' },
+      { q:'化簡 \\(\\dfrac{x^3-1}{x^2+x+1}\\)（格式：x-N）',       answer:'x-1',         type:'text' },
+      { q:'化簡 \\(\\dfrac{x^3+8}{x^2-2x+4}\\)（格式：x+N）',      answer:'x+2',         type:'text' },
+      { q:'化簡 \\(\\dfrac{x^2+x-6}{x^2-4}\\)（格式：(x+N)/(x+N)）', answer:'(x+3)/(x+2)', type:'text' },
+      { q:'化簡 \\(\\dfrac{x^2-x}{x^2-1}\\)（格式：x/(x+N)）',     answer:'x/(x+1)',     type:'text' },
+      { q:'化簡 \\(\\dfrac{x+3}{x^2-9}\\)（格式：1/(x-N)）',       answer:'1/(x-3)',     type:'text' },
+      { q:'計算 \\(\\dfrac{x}{x-2}-\\dfrac{2}{x-2}\\) 的化簡結果', answer:1,             type:'number' },
+      { q:'計算 \\(\\dfrac{x}{x+1}+\\dfrac{1}{x+1}\\) 的化簡結果', answer:1,             type:'number' },
+    ];
+    const item = srQPick(BPOOL, _b1FracEBQ);
+    const { q: qs, ...ans } = item;
+    return { question: qs, ...ans };
+  }
+
+  if (level === 'medium') {
+    // Verify: (x²-4)/(x+2) × 1/(x-2) = (x-2)(x+2)/(x+2) × 1/(x-2) = 1 ✓
+    // Verify: (x/(x-1)-1)÷(1/(x-1)) = (1/(x-1))×(x-1) = 1 ✓
+    // Verify: (1/x-1/(x+1))×x(x+1) = (1/(x(x+1)))×x(x+1) = 1 ✓
+    // Verify: x/(x+1)+1/(x-1)-2/(x²-1) = [x(x-1)+(x+1)-2]/(x²-1) = (x²-1)/(x²-1) = 1 ✓
+    // Verify: (x²-4)/(x²+4x+4) = (x-2)(x+2)/(x+2)² = (x-2)/(x+2) ✓
+    // Verify: (x²-1)/(x+1)÷(x-1)/(x+1) = (x-1)×(x+1)/(x+1) × 1/(x-1) = 1... wait
+    //         = [(x+1)(x-1)/(x+1)] ÷ [(x-1)/(x+1)] = (x-1)×(x+1)/(x-1) = x+1 ✓
+    // Verify: (1-1/(x+1))×(x+1) = (x/(x+1))×(x+1) = x ✓
+    // Verify: (x+1)/(x-1)-(x-1)/(x+1) = [(x+1)²-(x-1)²]/(x²-1) = 4x/(x²-1) ✓
+    // Verify: (x²-x-6)/(x²-9) at x=1 = (1-1-6)/(1-9) = -6/-8 = 3/4... not 2
+    //   Actually: (x-3)(x+2)/((x-3)(x+3)) = (x+2)/(x+3), at x=1 = 3/4. Fix answer.
+    // Verify: 1/(a-b)+1/(b-a) = 1/(a-b)-1/(a-b) = 0 ✓
+    const MPOOL = [
+      { q:'計算 \\(\\dfrac{x^2-4}{x+2}\\times\\dfrac{1}{x-2}\\)（化簡結果）',
+        answer:1, type:'number' },
+      { q:'計算 \\(\\left(\\dfrac{x}{x-1}-1\\right)\\div\\dfrac{1}{x-1}\\)（化簡結果）',
+        answer:1, type:'number' },
+      { q:'計算 \\(\\left(\\dfrac{1}{x}-\\dfrac{1}{x+1}\\right)\\times x(x+1)\\)（化簡結果）',
+        answer:1, type:'number' },
+      { q:'計算 \\(\\dfrac{x}{x+1}+\\dfrac{1}{x-1}-\\dfrac{2}{x^2-1}\\)（化簡結果）',
+        answer:1, type:'number' },
+      { q:'化簡 \\(\\dfrac{x^2-4}{x^2+4x+4}\\)（格式：(x-N)/(x+N)）',
+        answer:'(x-2)/(x+2)', type:'text' },
+      { q:'化簡 \\(\\dfrac{x^2-1}{x+1}\\div\\dfrac{x-1}{x+1}\\)（格式：x+N）',
+        answer:'x+1', type:'text' },
+      { q:'計算 \\(\\left(1-\\dfrac{1}{x+1}\\right)\\times(x+1)\\)（格式：x）',
+        answer:'x', type:'text' },
+      { q:'化簡 \\(\\dfrac{a^2-b^2}{a+b}\\)（格式：a-b）',
+        answer:'a-b', type:'text' },
+      { q:'計算 \\(\\dfrac{x+1}{x-1}-\\dfrac{x-1}{x+1}\\)（格式：4x/(x^2-1)）',
+        answer:'4x/(x^2-1)', type:'text' },
+      { q:'化簡 \\(\\dfrac{x^2-x-6}{x^2-9}\\)（格式：(x+N)/(x+N)）',
+        answer:'(x+2)/(x+3)', type:'text' },
+      { q:'化簡 \\(\\dfrac{1}{a-b}+\\dfrac{1}{b-a}\\)（化簡結果）',
+        answer:0, type:'number' },
+      { q:'計算 \\(\\dfrac{1}{x(x+1)}+\\dfrac{1}{(x+1)(x+2)}\\)（格式：2/(x(x+N))）',
+        answer:'2/(x(x+2))', type:'text' },
+    ];
+    const item = srQPick(MPOOL, _b1FracEMQ);
+    const { q: qs, ...ans } = item;
+    return { question: qs, ...ans };
+  }
+
+  // ── 困難 ──────────────────────────────────────────────────────
+  // Verify繁分式: num=x-x²/(x+1)=x/(x+1); den=x²/(x-1)-x=x/(x-1)
+  //   → [x/(x+1)] / [x/(x-1)] = (x-1)/(x+1) ✓
+  // Verify: (1/(x-1)-2/(x²-1))×(x+1)
+  //   = [(x+1-2)/((x+1)(x-1))] × (x+1) = (x-1)/((x+1)(x-1)) × (x+1) = 1 ✓
+  // Verify: x/(x+1) ÷ x²/(x²-1) = x/(x+1) × (x+1)(x-1)/x² = (x-1)/x ✓
+  // Verify: (x²/(x²-1)-1)×(x²-1) = [x²-(x²-1)] = 1 ✓
+  const HPOOL = [
+    { q:'化簡繁分式 \\(\\dfrac{x-\\dfrac{x^2}{x+1}}{\\dfrac{x^2}{x-1}-x}\\)（格式：(x-N)/(x+N)）',
+      answer:'(x-1)/(x+1)', type:'text' },
+    { q:'計算 \\(\\left(\\dfrac{1}{x-1}-\\dfrac{2}{x^2-1}\\right)\\times(x+1)\\)（化簡結果）',
+      answer:1, type:'number' },
+    { q:'化簡 \\(\\dfrac{x}{x+1}\\div\\dfrac{x^2}{x^2-1}\\)（格式：(x-N)/x）',
+      answer:'(x-1)/x', type:'text' },
+    { q:'計算 \\(\\left(\\dfrac{x^2}{x^2-1}-1\\right)\\times(x^2-1)\\)（化簡結果）',
+      answer:1, type:'number' },
+    { q:'化簡 \\(\\dfrac{x^2+2x-3}{x^2-1}\\)（格式：(x+N)/(x-N)）',
+      answer:'(x+3)/(x+1)', type:'text' },
+    { q:'計算 \\(\\dfrac{x^2-4}{x+2}\\div(x-2)\\)（化簡結果）',
+      answer:1, type:'number' },
+  ];
+  const item = srQPick(HPOOL, _b1FracEHQ);
+  const { q: qs, ...ans } = item;
+  return { question: qs, ...ans };
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  第二冊 ▸ 第三章　三角比
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -4596,6 +4816,8 @@ const SR_GENERATORS = {
   'b1-line-app':     genB1LineApp,
   'b1-div-pt':       genB1DivPt,
   'b1-dbl-rad':      genB1DblRad,
+  'b1-rationalize':  genB1Rationalize,
+  'b1-frac-expr':    genB1FracExpr,
   'b2-trig':         genB2Trig,
   'b3a-arc':         genB3aArc,
   'b3a-trig-add':    genB3aTrigAdd,

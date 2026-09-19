@@ -42,29 +42,48 @@ function _fracAdd(level) {
                answer: fadd(fadd(frac(a,d), frac(b,d)), frac(c,d)), type:'fraction' };
     }
   } else {
-    const t = randInt(0, 2);
+    const t = randInt(0, 3);
     if (t === 0) {
-      // 帶分數 + 真分數
-      const w = randInt(1,5), d1 = pick([2,3,4,5,6]);
+      // 帶分數 + 真分數（含兩位數分母）
+      const w = randInt(1,5), d1 = pick([2,3,4,5,6,10,12,15]);
       const a = randInt(1,d1-1);
-      const d2 = pick([2,3,4,5,6,8].filter(x=>x!==d1));
+      const d2 = pick([2,3,4,5,6,8,10,12,15,18].filter(x=>x!==d1));
       const b = randInt(1,d2-1);
+      const ans = fadd(frac(w*d1+a,d1), frac(b,d2));
+      if (ans.den > 60) return null;
       return { question:`\\(${qmixed(w,a,d1)} + ${qfrac(b,d2)}\\)`,
-               answer: fadd(frac(w*d1+a,d1), frac(b,d2)), type:'fraction' };
+               answer: ans, type:'fraction' };
     } else if (t === 1) {
-      // 帶分數 + 帶分數
+      // 帶分數 + 帶分數（含兩位數分母）
       const w1 = randInt(1,4), w2 = randInt(1,4);
-      const d1 = pick([2,3,4,5,6]), d2 = pick([2,3,4,5,6]);
+      const d1 = pick([2,3,4,5,6,10,12,15]), d2 = pick([2,3,4,5,6,10,12,15]);
       const a = randInt(1,d1-1), b = randInt(1,d2-1);
+      const ans = fadd(frac(w1*d1+a,d1), frac(w2*d2+b,d2));
+      if (ans.den > 60) return null;
       return { question:`\\(${qmixed(w1,a,d1)} + ${qmixed(w2,b,d2)}\\)`,
-               answer: fadd(frac(w1*d1+a,d1), frac(w2*d2+b,d2)), type:'fraction' };
-    } else {
-      // 三個異分母分數相加
-      const triple = pick([[2,3,6],[2,4,8],[3,4,12],[2,3,4],[2,5,10]]);
+               answer: ans, type:'fraction' };
+    } else if (t === 2) {
+      // 三個異分母分數相加（含兩位數分母）
+      const triple = pick([[2,3,6],[2,4,8],[3,4,12],[2,3,4],[2,5,10],
+                           [4,6,12],[3,5,15],[4,10,20],[6,10,30],[5,10,20],[6,9,18]]);
       const [d1,d2,d3] = triple;
       const a = randInt(1,d1-1), b = randInt(1,d2-1), c = randInt(1,d3-1);
+      const ans = fadd(fadd(frac(a,d1),frac(b,d2)),frac(c,d3));
+      if (ans.den > 60) return null;
       return { question:`\\(${qfrac(a,d1)} + ${qfrac(b,d2)} + ${qfrac(c,d3)}\\)`,
-               answer: fadd(fadd(frac(a,d1),frac(b,d2)),frac(c,d3)), type:'fraction' };
+               answer: ans, type:'fraction' };
+    } else {
+      // 帶分數 + 真分數 + 真分數（三數異分母，含兩位數分母）
+      const w1 = randInt(1,4), d1 = pick([2,3,4,5,6,10,12]);
+      const a = randInt(1,d1-1);
+      const d2 = pick([2,3,4,5,6,8,10,12,15].filter(x=>x!==d1));
+      const b = randInt(1,d2-1);
+      const d3 = pick([2,3,4,6,10,12].filter(x=>x!==d1&&x!==d2));
+      const c = randInt(1,d3-1);
+      const ans = fadd(fadd(frac(w1*d1+a,d1), frac(b,d2)), frac(c,d3));
+      if (ans.den > 60) return null;
+      return { question:`\\(${qmixed(w1,a,d1)} + ${qfrac(b,d2)} + ${qfrac(c,d3)}\\)`,
+               answer: ans, type:'fraction' };
     }
   }
 }
@@ -116,33 +135,45 @@ function _fracSub(level) {
                answer: fsub(frac(w1), frac(w2*d+a,d)), type:'fraction' };
     }
   } else {
-    const t = randInt(0, 2);
+    const t = randInt(0, 3);
     if (t === 0) {
-      // 帶分數 - 真分數（可能需借位）
-      const w = randInt(1,6), d1 = pick([2,3,4,5,6]);
+      // 帶分數 - 真分數（含兩位數分母，可能需借位）
+      const w = randInt(1,6), d1 = pick([2,3,4,5,6,10,12,15]);
       const a = randInt(1,d1-1);
-      const d2 = pick([2,3,4,5,6,8].filter(x=>x!==d1));
+      const d2 = pick([2,3,4,5,6,8,10,12,15,18].filter(x=>x!==d1));
       const b = randInt(1,d2-1);
       const ans = fsub(frac(w*d1+a,d1), frac(b,d2));
-      if (ans.num <= 0) return null;
+      if (ans.num <= 0 || ans.den > 60) return null;
       return { question:`\\(${qmixed(w,a,d1)} - ${qfrac(b,d2)}\\)`,
                answer: ans, type:'fraction' };
     } else if (t === 1) {
-      // 帶分數 - 帶分數
+      // 帶分數 - 帶分數（含兩位數分母）
       const w1 = randInt(2,6), w2 = randInt(1,w1);
-      const d1 = pick([2,3,4,5,6]), d2 = pick([2,3,4,5,6]);
+      const d1 = pick([2,3,4,5,6,10,12,15]), d2 = pick([2,3,4,5,6,10,12,15]);
       const a = randInt(1,d1-1), b = randInt(1,d2-1);
       const ans = fsub(frac(w1*d1+a,d1), frac(w2*d2+b,d2));
-      if (ans.num <= 0) return null;
+      if (ans.num <= 0 || ans.den > 60) return null;
       return { question:`\\(${qmixed(w1,a,d1)} - ${qmixed(w2,b,d2)}\\)`,
                answer: ans, type:'fraction' };
-    } else {
-      // 整數 - 帶分數（中等）
+    } else if (t === 2) {
+      // 整數 - 帶分數（含兩位數分母）
       const w1 = randInt(3,10), w2 = randInt(1,w1-1);
-      const d = pick([2,3,4,5,6,8]);
+      const d = pick([2,3,4,5,6,8,10,12,15]);
       const a = randInt(1,d-1);
       return { question:`\\(${w1} - ${qmixed(w2,a,d)}\\)`,
                answer: fsub(frac(w1), frac(w2*d+a,d)), type:'fraction' };
+    } else {
+      // 帶分數 - 真分數 - 真分數（含兩位數分母）
+      const w = randInt(3,8), d1 = pick([2,3,4,5,6,10,12]);
+      const a = randInt(1,d1-1);
+      const d2 = pick([2,3,4,6,10,12].filter(x=>x!==d1));
+      const b = randInt(1,d2-1);
+      const d3 = pick([2,3,4,6,10].filter(x=>x!==d1&&x!==d2));
+      const c = randInt(1,d3-1);
+      const ans = fsub(fsub(frac(w*d1+a,d1), frac(b,d2)), frac(c,d3));
+      if (ans.num <= 0 || ans.den > 60) return null;
+      return { question:`\\(${qmixed(w,a,d1)} - ${qfrac(b,d2)} - ${qfrac(c,d3)}\\)`,
+               answer: ans, type:'fraction' };
     }
   }
 }
@@ -185,25 +216,31 @@ function _fracMul(level) {
   } else {
     const t = randInt(0, 2);
     if (t === 0) {
-      // 帶分數 × 整數
-      const w = randInt(1,4), d = pick([2,3,4,5,6]);
+      // 帶分數 × 整數（含兩位數分母）
+      const w = randInt(1,4), d = pick([2,3,4,5,6,8,10,12]);
       const a = randInt(1,d-1), n = randInt(2,8);
+      const ans = fmul(frac(w*d+a,d), frac(n));
+      if (ans.den > 60) return null;
       return { question:`\\(${qmixed(w,a,d)} \\times ${n}\\)`,
-               answer: fmul(frac(w*d+a,d), frac(n)), type:'fraction' };
+               answer: ans, type:'fraction' };
     } else if (t === 1) {
-      // 帶分數 × 真分數
-      const w = randInt(1,4), d1 = pick([2,3,4,5,6]);
-      const a = randInt(1,d1-1), d2 = pick([2,3,4,5,6,8]);
+      // 帶分數 × 真分數（含兩位數分母）
+      const w = randInt(1,4), d1 = pick([2,3,4,5,6,10,12]);
+      const a = randInt(1,d1-1), d2 = pick([2,3,4,5,6,8,10,12,15]);
       const b = randInt(1,d2-1);
+      const ans = fmul(frac(w*d1+a,d1), frac(b,d2));
+      if (ans.den > 60) return null;
       return { question:`\\(${qmixed(w,a,d1)} \\times ${qfrac(b,d2)}\\)`,
-               answer: fmul(frac(w*d1+a,d1), frac(b,d2)), type:'fraction' };
+               answer: ans, type:'fraction' };
     } else {
-      // 帶分數 × 帶分數
+      // 帶分數 × 帶分數（含兩位數分母）
       const w1 = randInt(1,3), w2 = randInt(1,3);
-      const d1 = pick([2,3,4,5]), d2 = pick([2,3,4,5]);
+      const d1 = pick([2,3,4,5,6,8,10]), d2 = pick([2,3,4,5,6,8,10]);
       const a = randInt(1,d1-1), b = randInt(1,d2-1);
+      const ans = fmul(frac(w1*d1+a,d1), frac(w2*d2+b,d2));
+      if (ans.den > 60) return null;
       return { question:`\\(${qmixed(w1,a,d1)} \\times ${qmixed(w2,b,d2)}\\)`,
-               answer: fmul(frac(w1*d1+a,d1), frac(w2*d2+b,d2)), type:'fraction' };
+               answer: ans, type:'fraction' };
     }
   }
 }
@@ -247,27 +284,29 @@ function _fracDiv(level) {
   } else {
     const t = randInt(0, 2);
     if (t === 0) {
-      // 帶分數 ÷ 整數
-      const w = randInt(1,5), d = pick([2,3,4,5,6]);
+      // 帶分數 ÷ 整數（含兩位數分母）
+      const w = randInt(1,5), d = pick([2,3,4,5,6,8,10,12]);
       const a = randInt(1,d-1), n = randInt(2,8);
+      const ans = fdiv(frac(w*d+a,d), frac(n));
+      if (ans.den > 60) return null;
       return { question:`\\(${qmixed(w,a,d)} \\div ${n}\\)`,
-               answer: fdiv(frac(w*d+a,d), frac(n)), type:'fraction' };
+               answer: ans, type:'fraction' };
     } else if (t === 1) {
-      // 帶分數 ÷ 真分數
-      const w = randInt(1,4), d1 = pick([2,3,4,5,6]);
-      const a = randInt(1,d1-1), d2 = pick([2,3,4,5,6]);
+      // 帶分數 ÷ 真分數（含兩位數分母）
+      const w = randInt(1,4), d1 = pick([2,3,4,5,6,10,12]);
+      const a = randInt(1,d1-1), d2 = pick([2,3,4,5,6,8,10,12]);
       const b = randInt(1,d2-1);
       const ans = fdiv(frac(w*d1+a,d1), frac(b,d2));
-      if (ans.den > 30) return null;
+      if (ans.den > 60) return null;
       return { question:`\\(${qmixed(w,a,d1)} \\div ${qfrac(b,d2)}\\)`,
                answer: ans, type:'fraction' };
     } else {
-      // 帶分數 ÷ 帶分數
+      // 帶分數 ÷ 帶分數（含兩位數分母）
       const w1 = randInt(1,4), w2 = randInt(1,3);
-      const d1 = pick([2,3,4,5]), d2 = pick([2,3,4,5]);
+      const d1 = pick([2,3,4,5,6,8,10]), d2 = pick([2,3,4,5,6,8,10]);
       const a = randInt(1,d1-1), b = randInt(1,d2-1);
       const ans = fdiv(frac(w1*d1+a,d1), frac(w2*d2+b,d2));
-      if (ans.den > 30) return null;
+      if (ans.den > 60) return null;
       return { question:`\\(${qmixed(w1,a,d1)} \\div ${qmixed(w2,b,d2)}\\)`,
                answer: ans, type:'fraction' };
     }
@@ -328,11 +367,11 @@ function _fracMix(level) {
   } else {
     const t = randInt(0, 3);
     if (t === 0) {
-      // 帶分數 × 真分數 + 帶分數 × 真分數
-      const w1=randInt(1,3), d1=pick([2,3,4,6]), a=randInt(1,d1-1);
-      const w2=randInt(1,3), d2=pick([2,3,4,6]), b=randInt(1,d2-1);
-      const d3=pick([2,3,4,6]), c=randInt(1,d3-1);
-      const d4=pick([2,3,4,6]), e=randInt(1,d4-1);
+      // 帶分數 × 真分數 + 帶分數 × 真分數（含兩位數分母）
+      const w1=randInt(1,3), d1=pick([2,3,4,6,10,12]), a=randInt(1,d1-1);
+      const w2=randInt(1,3), d2=pick([2,3,4,6,10,12]), b=randInt(1,d2-1);
+      const d3=pick([2,3,4,6,10,12]), c=randInt(1,d3-1);
+      const d4=pick([2,3,4,6,10,12]), e=randInt(1,d4-1);
       const ans = fadd(
         fmul(frac(w1*d1+a,d1), frac(c,d3)),
         fmul(frac(w2*d2+b,d2), frac(e,d4))
@@ -341,10 +380,10 @@ function _fracMix(level) {
       return { question:`\\(${qmixed(w1,a,d1)} \\times ${qfrac(c,d3)} + ${qmixed(w2,b,d2)} \\times ${qfrac(e,d4)}\\)`,
                answer: ans, type:'fraction' };
     } else if (t === 1) {
-      // (帶分數 - 真分數) ÷ 真分數
-      const w=randInt(2,5), d1=pick([2,3,4,6]), a=randInt(1,d1-1);
-      const d2=pick([2,3,4,6,8]), b=randInt(1,d2-1);
-      const d3=pick([2,3,4,6]), c=randInt(1,d3-1);
+      // (帶分數 - 真分數) ÷ 真分數（含兩位數分母）
+      const w=randInt(2,5), d1=pick([2,3,4,6,10,12]), a=randInt(1,d1-1);
+      const d2=pick([2,3,4,6,8,10,12]), b=randInt(1,d2-1);
+      const d3=pick([2,3,4,6,10,12]), c=randInt(1,d3-1);
       const inner = fsub(frac(w*d1+a,d1), frac(b,d2));
       if (inner.num <= 0) return null;
       const ans = fdiv(inner, frac(c,d3));
@@ -352,11 +391,11 @@ function _fracMix(level) {
       return { question:`\\(\\left(${qmixed(w,a,d1)} - ${qfrac(b,d2)}\\right) \\div ${qfrac(c,d3)}\\)`,
                answer: ans, type:'fraction' };
     } else if (t === 2) {
-      // 帶分數 ÷ 真分數 - 帶分數 × 真分數
-      const w1=randInt(1,3), d1=pick([2,3,4,6]), a=randInt(1,d1-1);
-      const d2=pick([2,3,4,6]), b=randInt(1,d2-1);
-      const w2=randInt(1,2), d3=pick([2,3,4,6]), c=randInt(1,d3-1);
-      const d4=pick([2,3,4,6]), e=randInt(1,d4-1);
+      // 帶分數 ÷ 真分數 - 帶分數 × 真分數（含兩位數分母）
+      const w1=randInt(1,3), d1=pick([2,3,4,6,10,12]), a=randInt(1,d1-1);
+      const d2=pick([2,3,4,6,10,12]), b=randInt(1,d2-1);
+      const w2=randInt(1,2), d3=pick([2,3,4,6,10,12]), c=randInt(1,d3-1);
+      const d4=pick([2,3,4,6,10,12]), e=randInt(1,d4-1);
       const part1 = fdiv(frac(w1*d1+a,d1), frac(b,d2));
       const part2 = fmul(frac(w2*d3+c,d3), frac(e,d4));
       const ans = fsub(part1, part2);
@@ -364,11 +403,11 @@ function _fracMix(level) {
       return { question:`\\(${qmixed(w1,a,d1)} \\div ${qfrac(b,d2)} - ${qmixed(w2,c,d3)} \\times ${qfrac(e,d4)}\\)`,
                answer: ans, type:'fraction' };
     } else {
-      // n × (帶分數 + 真分數) - 真分數
+      // n × (帶分數 + 真分數) - 真分數（含兩位數分母）
       const n=randInt(2,4), w=randInt(1,3);
-      const d1=pick([2,3,4,6]), a=randInt(1,d1-1);
-      const d2=pick([2,3,4,6]), b=randInt(1,d2-1);
-      const d3=pick([2,3,4,6]), c=randInt(1,d3-1);
+      const d1=pick([2,3,4,6,10,12]), a=randInt(1,d1-1);
+      const d2=pick([2,3,4,6,10,12]), b=randInt(1,d2-1);
+      const d3=pick([2,3,4,6,10,12]), c=randInt(1,d3-1);
       const inner = fadd(frac(w*d1+a,d1), frac(b,d2));
       const ans = fsub(fmul(frac(n), inner), frac(c,d3));
       if (ans.num <= 0 || ans.den > 60) return null;

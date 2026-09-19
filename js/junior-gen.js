@@ -5709,6 +5709,15 @@ function _8aPolyMul(level) {
     return t.map((e,i)=>(i===0?(e.s<0?'-':'')+e.v:(e.s<0?'-':'+')+e.v)).join('');
   };
   const poly=(q,a2,a1,a0)=>({question:q,type:'poly',polyA2:a2,polyA1:a1,polyA0:a0});
+  const cb=(a3,a2,a1,a0)=>{
+    const t=[];
+    if(a3!==0){const ab=Math.abs(a3);t.push({s:a3>0?1:-1,v:ab===1?'x^3':`${ab}x^3`});}
+    if(a2!==0){const ab=Math.abs(a2);t.push({s:a2>0?1:-1,v:ab===1?'x^2':`${ab}x^2`});}
+    if(a1!==0){const ab=Math.abs(a1);t.push({s:a1>0?1:-1,v:ab===1?'x':`${ab}x`});}
+    if(a0!==0){t.push({s:a0>0?1:-1,v:`${Math.abs(a0)}`});}
+    if(!t.length) return '0';
+    return t.map((e,i)=>(i===0?(e.s<0?'-':'')+e.v:(e.s<0?'-':'+')+e.v)).join('');
+  };
 
   if(level==='basic'){
     const bpool=[
@@ -5771,10 +5780,14 @@ function _8aPolyMul(level) {
       {q:'化簡 \\((x+3)(x-3)-(x-2)^2\\)', type:'poly',a2:0,a1:4,a0:-13,pfx:''},
       {q:'化簡 \\((2x+1)^2-3(x+2)(x-1)\\)', type:'poly',a2:1,a1:1,a0:7,pfx:''},
       {q:'若 \\((x+m)(x+n)=x^2+5x-6\\)，求 \\(m^2+n^2\\)', type:'number',ans:37,pfx:'\\(m^2+n^2\\)'},
+      {q:'展開 \\((x+2)(x^2-3x+1)\\) 後，\\(x^2\\) 的係數為', type:'number',ans:-1,pfx:'\\(x^2\\) 的係數'},
+      {q:'展開 \\((2x-1)(x^2+x-3)\\) 後，\\(x^2\\) 的係數為', type:'number',ans:1,pfx:'\\(x^2\\) 的係數'},
+      {q:'已知 \\((x+a)(x^2-2x+3)\\) 展開後不含 \\(x^2\\) 項，則 \\(a=\\)', type:'number',ans:2,pfx:'\\(a\\)'},
+      {q:'展開 \\((x-3)(x^2+2x-1)\\) 後，\\(x^2\\) 的係數為', type:'number',ans:-1,pfx:'\\(x^2\\) 的係數'},
     ];
     const mi=jrQPickOnce(mpool,_pmMQ); if(mi!==null) return ret(mi);
     const fStr=(p,q)=>p<0?`-\\dfrac{${-p}}{${q}}`:`\\dfrac{${p}}{${q}}`;
-    const t=randInt(0,3);
+    const t=randInt(0,5);
     if(t===0){
       const k=rnzInt(-5,5),a=rnzInt(-6,6),b=rnzInt(-8,8);
       return poly(`展開 \\(${ni(k)}x\\cdot(${ps(0,a,b)})\\)`, k*a, k*b, 0);
@@ -5797,10 +5810,29 @@ function _8aPolyMul(level) {
       return poly(`展開 \\(${fStr(fr.p,fr.q)}(${ps(fr.q*A2,fr.q*A1,fr.q*A0)})\\)`, fr.p*A2, fr.p*A1, fr.p*A0);
     }
     // t===3: 二項相乘（含負係數）
-    const a=rnzInt(-5,5),b=rnzInt(-6,6),c=rnzInt(-5,5),d=rnzInt(-6,6);
-    const x2=a*c,xc=a*d+b*c,con=b*d;
-    if(Math.abs(x2)>25||Math.abs(xc)>30||Math.abs(con)>36) return null;
-    return poly(`展開 \\((${ps(0,a,b)})(${ps(0,c,d)})\\)`, x2, xc, con);
+    if(t===3){
+      const a=rnzInt(-5,5),b=rnzInt(-6,6),c=rnzInt(-5,5),d=rnzInt(-6,6);
+      const x2=a*c,xc=a*d+b*c,con=b*d;
+      if(Math.abs(x2)>25||Math.abs(xc)>30||Math.abs(con)>36) return null;
+      return poly(`展開 \\((${ps(0,a,b)})(${ps(0,c,d)})\\)`, x2, xc, con);
+    }
+    // t===4: 分數一次式 × 整數一次式 → 二次式
+    if(t===4){
+      const fracs4=[{p:1,q:2},{p:1,q:3},{p:2,q:3},{p:-1,q:2},{p:-1,q:3},{p:3,q:4},{p:-3,q:4}];
+      const fr4=pick(fracs4);
+      const t4a=randInt(-4,4), t4b=rnzInt(-4,4), t4c=randInt(-5,5);
+      const t4x2=fr4.p*t4b/fr4.q, t4x1=fr4.p*t4c/fr4.q+t4a*t4b, t4x0=t4a*t4c;
+      if(Math.abs(t4x2)>14||Math.abs(t4x1)>22||Math.abs(t4x0)>20) return null;
+      const fxc=fr4.p===1?`\\dfrac{1}{${fr4.q}}x`:fr4.p===-1?`-\\dfrac{1}{${fr4.q}}x`:(fr4.p>0?`\\dfrac{${fr4.p}}{${fr4.q}}x`:`-\\dfrac{${-fr4.p}}{${fr4.q}}x`);
+      const f1=`${fxc}${t4a>0?'+'+t4a:t4a<0?t4a:''}`;
+      return poly(`展開 \\((${f1})(${ps(0,t4b,t4c)})\\)`, t4x2, t4x1, t4x0);
+    }
+    // t===5: 整數一次式 × 整數二次式，求 x² 係數
+    const t5a=rnzInt(-4,4), t5b=randInt(-5,5), t5c=rnzInt(-3,3), t5d=randInt(-4,4), t5e=randInt(-5,5);
+    if(t5c===0) return null;
+    const t5x2=t5a*t5d+t5b*t5c;
+    if(Math.abs(t5x2)>24) return null;
+    return {question:`展開 \\((${ps(0,t5a,t5b)})(${ps(t5c,t5d,t5e)})\\) 後，\\(x^2\\) 的係數為`,type:'number',answer:t5x2,answerPrefix:'\\(x^2\\) 的係數'};
   }
   const hpool=[
     {q:'已知 \\((x^2+mx+n)(x^2-3x+6)\\) 展開後，\\(x^2\\) 項的係數和常數項都是 \\(0\\)，則 \\(m+n=\\)', type:'number',ans:2,pfx:'\\(m+n\\)'},
@@ -5809,9 +5841,12 @@ function _8aPolyMul(level) {
     {q:'若 \\(x^2+x-1=0\\)，則 \\(x^4+x^3+x^2+1=\\)', type:'number',ans:3,pfx:''},
     {q:'展開 \\((2x+1)(3x-2)(x-4)\\) 後，\\(x^2\\) 項的係數為', type:'number',ans:-25,pfx:'\\(x^2\\) 項係數'},
     {q:'若 \\((x^2+ax+b)(x+c)=x^3+5x^2-2x-24\\)，求 \\(a+b+c\\)', type:'number',ans:-1,pfx:'\\(a+b+c\\)'},
+    {q:'展開 \\((x-2)(x^3+x^2-x+4)\\) 後，\\(x^2\\) 的係數為', type:'number',ans:-3,pfx:'\\(x^2\\) 的係數'},
+    {q:'展開 \\((2x+1)(x^3-x^2+3x-2)\\) 後，\\(x^2\\) 的係數為', type:'number',ans:5,pfx:'\\(x^2\\) 的係數'},
+    {q:'展開 \\((x^2-2x+1)(x^3+x^2-x+3)\\) 後，\\(x^3\\) 的係數為', type:'number',ans:-2,pfx:'\\(x^3\\) 的係數'},
   ];
   const hi=jrQPickOnce(hpool,_pmHQ); if(hi!==null) return ret(hi);
-  const t=randInt(0,2);
+  const t=randInt(0,4);
   if(t===0){
     const a=rnzInt(-8,8),b=rnzInt(-10,10),c=rnzInt(-8,8),d=rnzInt(-10,10);
     const x2=a*c,xc=a*d+b*c,con=b*d;
@@ -5824,11 +5859,29 @@ function _8aPolyMul(level) {
     if(Math.abs(xc)>80) return null;
     return poly(`展開 \\((${ps(0,a,b)})^2\\)`, a*a, xc, b*b);
   }
-  const k=pick([-3,-2,2,3]);
-  const a=rnzInt(-5,5),b=rnzInt(-6,6),c=rnzInt(-5,5),d=rnzInt(-6,6);
-  const x2=k*a*c,xc=k*(a*d+b*c),con=k*b*d;
-  if(Math.abs(x2)>60||Math.abs(xc)>80||Math.abs(con)>100) return null;
-  return poly(`展開 \\(${ni(k)}(${ps(0,a,b)})(${ps(0,c,d)})\\)`, x2, xc, con);
+  if(t===2){
+    const k=pick([-3,-2,2,3]);
+    const a=rnzInt(-5,5),b=rnzInt(-6,6),c=rnzInt(-5,5),d=rnzInt(-6,6);
+    const x2=k*a*c,xc=k*(a*d+b*c),con=k*b*d;
+    if(Math.abs(x2)>60||Math.abs(xc)>80||Math.abs(con)>100) return null;
+    return poly(`展開 \\(${ni(k)}(${ps(0,a,b)})(${ps(0,c,d)})\\)`, x2, xc, con);
+  }
+  // t===3: 一次式×三次式，求 x² 係數
+  if(t===3){
+    const h3a=rnzInt(-4,4),h3b=randInt(-5,5);
+    const h3c=rnzInt(-3,3),h3d=randInt(-4,4),h3e=randInt(-4,4),h3f=randInt(-5,5);
+    if(h3c===0) return null;
+    const h3x2=h3a*h3e+h3b*h3d;
+    if(Math.abs(h3x2)>30) return null;
+    return {question:`展開 \\((${ps(0,h3a,h3b)})(${cb(h3c,h3d,h3e,h3f)})\\) 後，\\(x^2\\) 的係數為`,type:'number',answer:h3x2,answerPrefix:'\\(x^2\\) 的係數'};
+  }
+  // t===4: 二次式×三次式，求 x³ 係數
+  const h4a=rnzInt(-3,3),h4b=randInt(-4,4),h4c=randInt(-4,4);
+  const h4d=rnzInt(-3,3),h4e=randInt(-4,4),h4f=randInt(-4,4),h4g=randInt(-5,5);
+  if(h4a===0||h4d===0) return null;
+  const h4x3=h4a*h4f+h4b*h4e+h4c*h4d;
+  if(Math.abs(h4x3)>36) return null;
+  return {question:`展開 \\((${ps(h4a,h4b,h4c)})(${cb(h4d,h4e,h4f,h4g)})\\) 後，\\(x^3\\) 的係數為`,type:'number',answer:h4x3,answerPrefix:'\\(x^3\\) 的係數'};
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -5841,6 +5894,7 @@ function gen8aPolyDiv(level) {
 }
 function _8aPolyDiv(level) {
   const ret=it=>{
+    if(it.answerParts) return {question:it.q,answerParts:it.answerParts};
     if(it.type==='poly') return {question:it.q,type:'poly',polyA2:it.a2,polyA1:it.a1,polyA0:it.a0,answerPrefix:it.pfx||''};
     return {question:it.q,type:it.type,answer:it.ans,answerPrefix:it.pfx||''};
   };
@@ -5862,6 +5916,16 @@ function _8aPolyDiv(level) {
     return t2.map((e,i)=>(i===0?(e.s<0?'-':'')+e.v:(e.s<0?'-':'+')+e.v)).join('');
   };
   const poly=(q,a2,a1,a0)=>({question:q,type:'poly',polyA2:a2,polyA1:a1,polyA0:a0});
+  const cq=(a4,a3,a2,a1,a0)=>{
+    const t2=[];
+    if(a4!==0){const ab=Math.abs(a4);t2.push({s:a4>0?1:-1,v:ab===1?'x^4':`${ab}x^4`});}
+    if(a3!==0){const ab=Math.abs(a3);t2.push({s:a3>0?1:-1,v:ab===1?'x^3':`${ab}x^3`});}
+    if(a2!==0){const ab=Math.abs(a2);t2.push({s:a2>0?1:-1,v:ab===1?'x^2':`${ab}x^2`});}
+    if(a1!==0){const ab=Math.abs(a1);t2.push({s:a1>0?1:-1,v:ab===1?'x':`${ab}x`});}
+    if(a0!==0){t2.push({s:a0>0?1:-1,v:`${Math.abs(a0)}`});}
+    if(!t2.length) return '0';
+    return t2.map((e,i)=>(i===0?(e.s<0?'-':'')+e.v:(e.s<0?'-':'+')+e.v)).join('');
+  };
 
   if(level==='basic'){
     const bpool=[
@@ -5873,19 +5937,25 @@ function _8aPolyDiv(level) {
       {q:'化簡 \\((4x^2-6x) \\div 2x\\)', type:'poly',a2:0,a1:2,a0:-3,pfx:''},
       {q:'化簡 \\((6x^2+9x) \\div 3x\\)', type:'poly',a2:0,a1:2,a0:3,pfx:''},
       {q:'化簡 \\((10x^2-15x) \\div 5x\\)', type:'poly',a2:0,a1:2,a0:-3,pfx:''},
-      {q:'化簡 \\((12x^2-8x+4) \\div 4\\)', type:'poly',a2:3,a1:-2,a0:1,pfx:''},
       {q:'若多項式 \\(A\\) 除以 \\((x+2)\\) 得商式為 \\((2x-3)\\)，餘式為 \\(1\\)，則多項式 \\(A=\\)', type:'poly',a2:2,a1:1,a0:-5,pfx:''},
+      {q:'計算 \\((4x^2-5x) \\div (2x-3)\\) 的商式與餘式',answerParts:[{prefix:'商',type:'poly',answer:{a2:0,a1:2,a0:0.5}},{prefix:'餘式',type:'fraction',answer:frac(3,2)}]},
+      {q:'計算 \\((6x^2+2x+2) \\div (2x+1)\\) 的商式與餘式',answerParts:[{prefix:'商',type:'poly',answer:{a2:0,a1:3,a0:-0.5}},{prefix:'餘式',type:'fraction',answer:frac(5,2)}]},
+      {q:'計算 \\((4x^2+x-1) \\div (2x-1)\\) 的商式與餘式',answerParts:[{prefix:'商',type:'poly',answer:{a2:0,a1:2,a0:1.5}},{prefix:'餘式',type:'fraction',answer:frac(1,2)}]},
+      {q:'計算 \\((6x^2+x-1) \\div (4x-2)\\) 的商式與餘式',answerParts:[{prefix:'商',type:'poly',answer:{a2:0,a1:1.5,a0:1}},{prefix:'餘式',type:'number',answer:1}]},
+      {q:'計算 \\((9x^2-3x+2) \\div (6x-2)\\) 的商式與餘式',answerParts:[{prefix:'商',type:'poly',answer:{a2:0,a1:1.5,a0:0}},{prefix:'餘式',type:'number',answer:2}]},
+      {q:'計算 \\((6x^2+5x) \\div (4x+2)\\) 的商式與餘式',answerParts:[{prefix:'商',type:'poly',answer:{a2:0,a1:1.5,a0:0.5}},{prefix:'餘式',type:'number',answer:-1}]},
     ];
     const bi=jrQPickOnce(bpool,_pdBQ); if(bi!==null) return ret(bi);
-    const k=rp(2,6), a=k*rnzInt(-5,5), b=k*randInt(-6,6);
-    return poly(`化簡 \\((${ps(0,a,b)}) \\div ${k}\\)`, 0, a/k, b/k);
+    // 動態：二次式÷單項式 cx，答案為整數係數
+    const bc=pick([2,3,5]), bm=rnzInt(-5,5), bn=randInt(-6,6);
+    return poly(`化簡 \\((${ps(bc*bm,bc*bn,0)}) \\div ${bc}x\\)`, 0, bm, bn);
   }
   if(level==='medium'){
     const mpool=[
       {q:'若梯形的上底為 \\(2x+1\\)，下底為 \\(4x-3\\)，面積為 \\((12x^2+11x-5)\\) 平方單位，試以 \\(x\\) 的多項式表示此梯形的高為', type:'poly',a2:0,a1:4,a0:5,pfx:''},
       {q:'多項式 \\(6x^2-10x-9\\) 除以某個多項式後，得商式為 \\(3x+1\\)，餘式為 \\(-5\\)，試求此多項式為', type:'poly',a2:0,a1:2,a0:-4,pfx:''},
       {q:'若一個長方形的長為 \\((4x+3)\\)，面積為 \\((8x^2-6x-9)\\)，則此長方形的寬為', type:'poly',a2:0,a1:2,a0:-3,pfx:''},
-      {q:'已知一多項式 \\(W\\)，如果 \\(W\\div(x+1)\\) 的餘式為 \\(1\\)，則 \\([W\\times x(x-1)]\\div(x+1)\\) 所得的餘式為', type:'number',ans:-2,pfx:'餘式'},
+
       {q:'計算 \\((8x^2+2x-7)\\div 2x\\) 的商式為【\\(\\quad\\quad\\)】，餘式為【\\(\\quad\\quad\\)】', type:'text',ans:'4x+1;-7',pfx:''},
       {q:'若 \\(\\dfrac{6x^2-19x+9}{B}=2x-3-\\dfrac{6}{B}\\)，則多項式 \\(B\\) 為', type:'poly',a2:0,a1:3,a0:-5,pfx:''},
       {q:'若多項式 \\(A\\) 除以 \\(x-2\\)，得到商式為 \\(x-3\\)，餘式為 \\(-4\\)，則多項式 \\(A=\\)', type:'poly',a2:1,a1:-5,a0:2,pfx:''},
@@ -5895,19 +5965,32 @@ function _8aPolyDiv(level) {
       {q:'若多項式 \\(P\\) 除以 \\((2x-1)\\) 的商式為 \\((x+4)\\)，餘式為 \\(3\\)，求多項式 \\(P\\)', type:'poly',a2:2,a1:7,a0:-1,pfx:''},
     ];
     const mi=jrQPickOnce(mpool,_pdMQ); if(mi!==null) return ret(mi);
-    if(randInt(0,1)===0){
-      const c=rp(2,6), a=c*rnzInt(-5,5), b=c*randInt(-6,6);
-      return poly(`化簡 \\((${ps(a,b,0)}) \\div ${c}x\\)`, 0, a/c, b/c);
+    // 動態：t=0 三次式÷一次式；t=1 三次式÷二次式
+    const mt=randInt(0,1);
+    if(mt===0){
+      // 三次式÷一次式：Q=ma·x²+mb·x+mc, R=mr, 除式=(x+mk)
+      const ma=pick([1,1,2]), mb=randInt(-4,4), mc=randInt(-4,4), mk=randInt(-5,5), mr=randInt(-5,5);
+      const mB=mb+ma*mk, mC=mc+mb*mk, mD=mc*mk+mr;
+      if(Math.abs(mB)>12||Math.abs(mC)>16||Math.abs(mD)>20) return null;
+      return {
+        question:`計算 \\((${cb(ma,mB,mC,mD)}) \\div (${ps(0,1,mk)})\\) 的商式與餘式`,
+        answerParts:[
+          {prefix:'商', type:'poly', answer:{a2:ma, a1:mb, a0:mc}},
+          {prefix:'餘式', type:'number', answer:mr}
+        ]
+      };
     }
-    // 長除法（中等）：首一三次 ÷ (x+k)，小係數
-    const k=rnzInt(-3,3), p=randInt(-4,4), q=randInt(-5,5), r=randInt(-6,6);
-    const b=p+k, c=q+k*p, d=k*q+r;
-    if(Math.abs(b)>8||Math.abs(c)>12||Math.abs(d)>16) return null;
+    // mt===1：三次式÷二次式：Q=x+qq, R=re·x+rf, 除式=x²+da·x+dc
+    const mda=randInt(-3,3), mdc=randInt(-3,3);
+    if(mda===0&&mdc===0) return null;
+    const mqq=randInt(-4,4), mre=randInt(-3,3), mrf=randInt(-3,3);
+    const mB2=mqq+mda, mC2=mda*mqq+mdc+mre, mD2=mdc*mqq+mrf;
+    if(Math.abs(mB2)>7||Math.abs(mC2)>10||Math.abs(mD2)>12) return null;
     return {
-      question:`計算 \\((${cb(1,b,c,d)}) \\div (${ps(0,1,k)})\\) 的商式與餘式`,
+      question:`計算 \\((${cb(1,mB2,mC2,mD2)}) \\div (${ps(1,mda,mdc)})\\) 的商式與餘式`,
       answerParts:[
-        {prefix:'商', type:'poly', answer:{a2:1, a1:p, a0:q}},
-        {prefix:'餘式', type:'number', answer:r}
+        {prefix:'商', type:'poly', answer:{a2:0, a1:1, a0:mqq}},
+        {prefix:'餘式', type:'poly', answer:{a2:0, a1:mre, a0:mrf}}
       ]
     };
   }
@@ -5923,19 +6006,51 @@ function _8aPolyDiv(level) {
     {q:'若 \\((2x^3+8x^2-ax+3)\\div(2x^2-1)\\) 得餘式 \\(2x+b\\)，則 \\(a=\\)【\\(\\quad\\quad\\)】，\\(b=\\)【\\(\\quad\\quad\\)】', type:'text',ans:'-1;7',pfx:''},
     {q:'若多項式 \\(f(x)\\) 除以 \\((x-2)\\) 的餘式為 \\(7\\)，除以 \\((x+3)\\) 的餘式為 \\(2\\)，設 \\(f(x)=(x-2)(x+3)q(x)+px+r\\)，求 \\(p\\)', type:'number',ans:1,pfx:'\\(p\\)'},
     {q:'已知 \\((x^2+ax+b)\\cdot(x-2)=x^3-x^2-4x+4\\)，求 \\(a+b\\)', type:'number',ans:-1,pfx:'\\(a+b\\)'},
-    {q:'若 \\(f(x)=(x-1)(x+3)q(x)+ax+b\\)，且 \\(f(1)=8\\)，\\(f(-3)=4\\)，求 \\(a-b\\)', type:'number',ans:-6,pfx:'\\(a-b\\)'},
+
   ];
   const hi=jrQPickOnce(hpool,_pdHQ); if(hi!==null) return ret(hi);
-  // 長除法（困難）：非首一三次 ax³+... ÷ (x+k)
-  const a=pick([2,3]);
-  const k=rnzInt(-5,5), p=randInt(-6,6), q=randInt(-8,8), r=randInt(-10,10);
-  const b=p+a*k, c=q+p*k, d=q*k+r;
-  if(Math.abs(b)>18||Math.abs(c)>25||Math.abs(d)>35) return null;
+  // 長除法（困難）：三種類型
+  const ht2=randInt(0,2);
+  if(ht2===0){
+    // 三次式÷二次式：Q=x+h0qq, R=h0re·x+h0rf, 除式=x²+h0da·x+h0dc
+    const h0da=randInt(-3,3),h0dc=randInt(-4,4);
+    if(h0da===0&&h0dc===0) return null;
+    const h0qq=randInt(-4,4),h0re=randInt(-3,3),h0rf=randInt(-4,4);
+    const h0B=h0qq+h0da,h0C=h0da*h0qq+h0dc+h0re,h0D=h0dc*h0qq+h0rf;
+    if(Math.abs(h0B)>8||Math.abs(h0C)>14||Math.abs(h0D)>20) return null;
+    return {
+      question:`計算 \\((${cb(1,h0B,h0C,h0D)}) \\div (${ps(1,h0da,h0dc)})\\) 的商式與餘式`,
+      answerParts:[
+        {prefix:'商', type:'poly', answer:{a2:0, a1:1, a0:h0qq}},
+        {prefix:'餘式', type:'poly', answer:{a2:0, a1:h0re, a0:h0rf}}
+      ]
+    };
+  }
+  if(ht2===1){
+    // 四次式÷三次式：Q=x+qq, R=ra·x²+rb·x+rc, 除式=x³+da·x²+db·x+dc
+    const h1da=randInt(-2,2),h1db=randInt(-3,3),h1dc=randInt(-3,3);
+    const h1q=randInt(-3,3),h1ra=randInt(-2,2),h1rb=randInt(-3,3),h1rc=randInt(-4,4);
+    const h1B=h1q+h1da,h1C=h1da*h1q+h1db+h1ra,h1D=h1db*h1q+h1dc+h1rb,h1E=h1dc*h1q+h1rc;
+    if(Math.abs(h1B)>7||Math.abs(h1C)>12||Math.abs(h1D)>14||Math.abs(h1E)>18) return null;
+    return {
+      question:`計算 \\((${cq(1,h1B,h1C,h1D,h1E)}) \\div (${cb(1,h1da,h1db,h1dc)})\\) 的商式與餘式`,
+      answerParts:[
+        {prefix:'商', type:'poly', answer:{a2:0, a1:1, a0:h1q}},
+        {prefix:'餘式', type:'poly', answer:{a2:h1ra, a1:h1rb, a0:h1rc}}
+      ]
+    };
+  }
+  // ht2===2: 四次式÷二次式：Q=x²+qa·x+qb, R=rc·x+rd, 除式=x²+da·x+db
+  const h2da=randInt(-3,3),h2db=randInt(-4,4);
+  if(h2da===0&&h2db===0) return null;
+  const h2qa=randInt(-3,3),h2qb=randInt(-3,3),h2rc=randInt(-3,3),h2rd=randInt(-4,4);
+  const h2B=h2qa+h2da,h2C=h2qb+h2da*h2qa+h2db,h2D=h2da*h2qb+h2db*h2qa+h2rc,h2E=h2db*h2qb+h2rd;
+  if(Math.abs(h2B)>8||Math.abs(h2C)>14||Math.abs(h2D)>16||Math.abs(h2E)>24) return null;
   return {
-    question:`計算 \\((${cb(a,b,c,d)}) \\div (${ps(0,1,k)})\\) 的商式與餘式`,
+    question:`計算 \\((${cq(1,h2B,h2C,h2D,h2E)}) \\div (${ps(1,h2da,h2db)})\\) 的商式與餘式`,
     answerParts:[
-      {prefix:'商', type:'poly', answer:{a2:a, a1:p, a0:q}},
-      {prefix:'餘式', type:'number', answer:r}
+      {prefix:'商', type:'poly', answer:{a2:1, a1:h2qa, a0:h2qb}},
+      {prefix:'餘式', type:'poly', answer:{a2:0, a1:h2rc, a0:h2rd}}
     ]
   };
 }

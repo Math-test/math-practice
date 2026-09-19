@@ -68,6 +68,7 @@
       <label class="topic-label"><input type="checkbox" value="ratio-val"> 比與比值</label>
       <label class="topic-label"><input type="checkbox" value="rate">      速率</label>
       <label class="topic-label"><input type="checkbox" value="unit">      單位換算</label>
+      <label class="topic-label"><input type="checkbox" value="map-scale"> 比例尺</label>
     </div>
 
     <!-- 幾何 -->
@@ -105,9 +106,19 @@
     </div>
   </div>
 
+  <!-- 選擇題數 -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="card-title">選擇題數</div>
+    <div class="level-group">
+      <label class="level-label selected"><input type="radio" name="count" value="20" checked> 20 題</label>
+      <label class="level-label"><input type="radio" name="count" value="40"> 40 題</label>
+      <label class="level-label"><input type="radio" name="count" value="80"> 80 題</label>
+    </div>
+  </div>
+
   <!-- 出題按鈕 -->
   <button class="btn-primary" id="btn-start" disabled>
-    ▶ 開始出題（20 題）
+    ▶ 開始出題
   </button>
 
   <div id="error-msg" style="color:#C62828;font-size:.9rem;text-align:center;margin-top:8px;display:none;">
@@ -123,11 +134,18 @@
   const errorMsg   = document.getElementById('error-msg');
 
   // 難度選取高亮
-  const levelLabels = document.querySelectorAll('.level-label[data-level]');
-  levelLabels.forEach(label => {
+  document.querySelectorAll('.level-label[data-level]').forEach(label => {
     label.addEventListener('click', () => {
-      levelLabels.forEach(l => l.classList.remove('selected'));
+      document.querySelectorAll('.level-label[data-level]').forEach(l => l.classList.remove('selected'));
       label.classList.add('selected');
+    });
+  });
+
+  // 題數選取高亮
+  document.querySelectorAll('input[name="count"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelectorAll('label:has(input[name="count"])').forEach(l => l.classList.remove('selected'));
+      radio.closest('label').classList.add('selected');
     });
   });
 
@@ -147,7 +165,8 @@
     const selected = [...checkboxes].filter(cb => cb.checked).map(cb => cb.value);
     if (!selected.length) { errorMsg.style.display = 'block'; return; }
     const level = document.querySelector('input[name=level]:checked')?.value || 'basic';
-    window.location.href = `quiz.html?topics=${selected.join(',')}&level=${level}&count=20`;
+    const count = document.querySelector('input[name="count"]:checked')?.value || '20';
+    window.location.href = `quiz.html?topics=${selected.join(',')}&level=${level}&count=${count}`;
   });
 </script>
 
