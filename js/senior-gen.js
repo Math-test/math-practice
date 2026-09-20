@@ -460,6 +460,10 @@ function _b1AbsIneq(level) {
 }
 
 // ── b1-expr：式的運算 ───────────────────────────────────────────
+// Shuffle queues for type selection — ensures all types cycle before repeating
+let _b1ExprBTQ = [], _b1ExprMTQ = [], _b1ExprHTQ = [];
+// Sub-pool queues for static option pools within each type
+let _b1ExprM4Q = [], _b1ExprH1Q = [], _b1ExprH2Q = [], _b1ExprH3Q = [], _b1ExprH5Q = [];
 
 function genB1Expr(level) {
   for (let i = 0; i < 30; i++) { const q = _b1Expr(level); if (q) return q; }
@@ -470,7 +474,8 @@ function _b1Expr(level) {
 
   // ── 基礎 ──────────────────────────────────────────────────────
   if (level === 'basic') {
-    const t = srRandInt(0, 3);
+    // Cycle through all 4 types before any repeats
+    const t = srQPick([0,1,2,3], _b1ExprBTQ);
 
     if (t === 0) {
       // x+1/x=k → x²+1/x² = k²-2
@@ -500,7 +505,8 @@ function _b1Expr(level) {
 
   // ── 中等 ──────────────────────────────────────────────────────
   if (level === 'medium') {
-    const t = srRandInt(0, 5);
+    // Cycle through all 6 types before any repeats
+    const t = srQPick([0,1,2,3,4,5], _b1ExprMTQ);
 
     if (t === 0) {
       // x+1/x=k (整數) → x³+1/x³ = k³-3k
@@ -543,6 +549,7 @@ function _b1Expr(level) {
 
     if (t === 4) {
       // a³=√N → (a-1)(a+1)(a²-a+1)(a²+a+1) = a⁶-1 = N-1
+      // Use shuffle queue so each option appears before repeating
       const opts = [
         {kStr:'\\sqrt{2}',ans:1},{kStr:'\\sqrt{3}',ans:2},{kStr:'2',ans:3},
         {kStr:'\\sqrt{5}',ans:4},{kStr:'\\sqrt{6}',ans:5},{kStr:'\\sqrt{7}',ans:6},
@@ -550,7 +557,7 @@ function _b1Expr(level) {
         {kStr:'\\sqrt{11}',ans:10},{kStr:'2\\sqrt{3}',ans:11},{kStr:'\\sqrt{13}',ans:12},
         {kStr:'\\sqrt{14}',ans:13},{kStr:'\\sqrt{15}',ans:14},{kStr:'4',ans:15},
       ];
-      const r = opts[srRandInt(0, opts.length-1)];
+      const r = srQPick(opts, _b1ExprM4Q);
       return { question:`已知 \\(a^3=${r.kStr}\\)，試求 \\((a-1)(a+1)(a^2-a+1)(a^2+a+1)\\) 的值？`, answer:r.ans, type:'number', answerPrefix:'' };
     }
 
@@ -560,7 +567,8 @@ function _b1Expr(level) {
   }
 
   // ── 困難 ──────────────────────────────────────────────────────
-  const ht = srRandInt(0, 5);
+  // Cycle through all 6 hard types before any repeats
+  const ht = srQPick([0,1,2,3,4,5], _b1ExprHTQ);
 
   if (ht === 0) {
     // 望遠鏡求和：Σ 1/(√(k+1)+√k), k=p² to q²-1，答案=q-p（整數）
@@ -575,8 +583,11 @@ function _b1Expr(level) {
 
   if (ht === 1) {
     // a+1/a=√N → a²+1/a²=N-2 → a⁴+1/a⁴=(N-2)²-2（兩步驟）
-    const Nv = [6,8,10,12,18,20,22];
-    const N = Nv[srRandInt(0, Nv.length-1)];
+    // Use shuffle queue so each N value appears before repeating
+    const Nv = [
+      {N:6},{N:8},{N:10},{N:12},{N:18},{N:20},{N:22}
+    ];
+    const {N} = srQPick(Nv, _b1ExprH1Q);
     const s1 = N-2;
     return { question:`設 \\(a>1\\)，且 \\(a+\\dfrac{1}{a}=\\sqrt{${N}}\\)，求 \\(a^4+\\dfrac{1}{a^4}\\) 的值？`, answer:s1*s1-2, type:'number', answerPrefix:'' };
   }
@@ -588,7 +599,7 @@ function _b1Expr(level) {
       {n:5,m:2},{n:6,m:2},{n:7,m:2},
       {n:10,m:3},{n:11,m:3},{n:13,m:3},{n:14,m:3},{n:15,m:3}
     ];
-    const sv = sqrts[srRandInt(0, sqrts.length-1)];
+    const sv = srQPick(sqrts, _b1ExprH2Q);
     return { question:`設 \\(x=\\sqrt{${sv.n}}\\) 的小數部分為 \\(b\\)，則 \\(b(b+${2*sv.m})\\) 的值？`, answer:sv.n-sv.m*sv.m, type:'number', answerPrefix:'' };
   }
 
@@ -609,7 +620,7 @@ function _b1Expr(level) {
       { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+4y=8\\)，\\(x^3+64y^3=128\\)，試求 \\(x^2+16y^2\\) 的值？`, ans:32 },
       { q:`設實數 \\(x\\)、\\(y\\) 滿足 \\(x+3y=9\\)，\\(x^3+27y^3=243\\)，試求 \\(x^2+9y^2\\) 的值？`, ans:45 },
     ];
-    const e = simTbl[srRandInt(0, simTbl.length-1)];
+    const e = srQPick(simTbl, _b1ExprH3Q);
     return { question:e.q, answer:e.ans, type:'number', answerPrefix:'' };
   }
 
@@ -631,7 +642,7 @@ function _b1Expr(level) {
     {n:3, s:4},  // x+1/x=4 → x²+1/x²=14, x⁴+1/x⁴=194
     {n:5, s:3},  // x+1/x=3 → x²+1/x²=7,  x⁴+1/x⁴=47
   ];
-  const c5 = cases5[srRandInt(0, cases5.length-1)];
+  const c5 = srQPick(cases5, _b1ExprH5Q);
   const ask5 = srRandInt(0, 1); // 0: x²+1/x², 1: x⁴+1/x⁴
   const step1 = c5.s*c5.s - 2;
   const step2 = step1*step1 - 2;
