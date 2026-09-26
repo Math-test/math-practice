@@ -3487,6 +3487,404 @@ function _b1FracExpr(level) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  第一冊 ▸ 第二章　圓方程式 & 圓與直線
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// 格式化工具
+function _cStd(h, k, r2) {
+  const cx = h === 0 ? 'x^2' : `(x${h > 0 ? `-${h}` : `+${-h}`})^2`;
+  const cy = k === 0 ? 'y^2' : `(y${k > 0 ? `-${k}` : `+${-k}`})^2`;
+  return `${cx}+${cy}=${r2}`;
+}
+function _gft(c, v) { // general-form term: "+3x", "-2y" (c always even, never ±1)
+  return c === 0 ? '' : (c > 0 ? `+${c}${v}` : `${c}${v}`);
+}
+function _gfc(c) { // general-form constant
+  return c === 0 ? '' : (c > 0 ? `+${c}` : `${c}`);
+}
+
+// ── b1-circ-eq：圓的定義與圓方程式 ──────────────────────────────
+let _cEqBQ = [], _cEqHQ = [];
+function genB1CircEq(level) {
+  for (let i = 0; i < 40; i++) { const q = _b1CircEq(level); if (q) return q; }
+  return _b1CircEq('basic');
+}
+function _b1CircEq(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0, 3);
+
+    if (t === 0) {
+      // 一般式配方 → 圓心和半徑
+      const h = srRnz(-4, 4), k = srRnz(-4, 4), r = srRandInt(2, 6);
+      const D = -2 * h, E = -2 * k, F = h * h + k * k - r * r;
+      const eq = `x^2+y^2${_gft(D,'x')}${_gft(E,'y')}${_gfc(F)}=0`;
+      return {
+        question: `求方程式 \\(${eq}\\) 所表示的圓的圓心與半徑。`,
+        answerParts: [
+          { prefix: '圓心 \\(x\\) 坐標', answer: h, type: 'number' },
+          { prefix: '圓心 \\(y\\) 坐標', answer: k, type: 'number' },
+          { prefix: '半徑 \\(r\\)',       answer: r, type: 'number' },
+        ]
+      };
+    }
+
+    if (t === 1) {
+      // 圓心(h,k)，圓過一點P，求r²
+      const pyths = [
+        {dx:3,dy:4,r2:25},{dx:4,dy:3,r2:25},{dx:6,dy:8,r2:100},{dx:8,dy:6,r2:100},
+        {dx:2,dy:4,r2:20},{dx:4,dy:2,r2:20},{dx:1,dy:2,r2:5},{dx:2,dy:1,r2:5},
+        {dx:3,dy:2,r2:13},{dx:2,dy:3,r2:13},{dx:1,dy:4,r2:17},{dx:4,dy:1,r2:17},
+      ];
+      const pt = pyths[srRandInt(0, pyths.length - 1)];
+      const h = srRandInt(-3, 3), k = srRandInt(-3, 3);
+      const x0 = h + pt.dx, y0 = k + pt.dy;
+      return {
+        question: `已知圓心為 \\((${h},\\ ${k})\\)，且圓通過點 \\(P(${x0},\\ ${y0})\\)，求此圓方程式中 \\(r^2\\) 的值。`,
+        answer: pt.r2, type: 'number', answerPrefix: '\\(r^2\\)'
+      };
+    }
+
+    if (t === 2) {
+      // 直徑端點A,B → r²
+      const dCases = [
+        {dx:6,dy:8,r2:25},{dx:8,dy:6,r2:25},{dx:4,dy:6,r2:13},{dx:6,dy:4,r2:13},
+        {dx:4,dy:4,r2:8},{dx:8,dy:0,r2:16},{dx:0,dy:8,r2:16},{dx:6,dy:0,r2:9},
+        {dx:0,dy:6,r2:9},{dx:10,dy:0,r2:25},{dx:4,dy:8,r2:20},{dx:8,dy:4,r2:20},
+      ];
+      const cs = dCases[srRandInt(0, dCases.length - 1)];
+      const x1 = srRandInt(-3, 2), y1 = srRandInt(-3, 2);
+      const x2 = x1 + cs.dx, y2 = y1 + cs.dy;
+      return {
+        question: `以 \\(A(${x1},\\ ${y1})\\) 和 \\(B(${x2},\\ ${y2})\\) 為直徑兩端點，求此圓的 \\(r^2\\)。`,
+        answer: cs.r2, type: 'number', answerPrefix: '\\(r^2\\)'
+      };
+    }
+
+    // t===3: 判斷點在圓內/圓上/圓外
+    {
+      const h = srRandInt(-2, 2), k = srRandInt(-2, 2);
+      const r = 5; // fixed r=5 for clean Pythagorean cases
+      const rel = srRandInt(0, 2);
+      let x0, y0, ans;
+      if (rel === 0) {
+        // 圓上: (3,4) or (4,3) from center
+        const onOpts = [[3,4],[4,3],[3,-4],[-3,4],[-4,3],[4,-3],[-3,-4],[-4,-3],[5,0],[-5,0],[0,5],[0,-5]];
+        const [dx, dy] = onOpts[srRandInt(0, onOpts.length - 1)];
+        x0 = h + dx; y0 = k + dy; ans = '圓上';
+      } else if (rel === 1) {
+        // 圓內: choose small offset
+        const inOpts = [[0,0],[1,0],[0,1],[1,1],[2,0],[0,2],[-1,0],[0,-1],[2,2],[1,2],[2,1]];
+        const [dx, dy] = inOpts[srRandInt(0, inOpts.length - 1)];
+        x0 = h + dx; y0 = k + dy;
+        const d2 = (x0-h)*(x0-h)+(y0-k)*(y0-k);
+        if (d2 >= 25) return null;
+        ans = '圓內';
+      } else {
+        // 圓外
+        const outOpts = [[6,0],[0,6],[5,3],[3,5],[6,1],[1,6],[4,4],[-6,0],[0,-6]];
+        const [dx, dy] = outOpts[srRandInt(0, outOpts.length - 1)];
+        x0 = h + dx; y0 = k + dy;
+        const d2 = (x0-h)*(x0-h)+(y0-k)*(y0-k);
+        if (d2 <= 25) return null;
+        ans = '圓外';
+      }
+      return {
+        question: `判斷點 \\(P(${x0},\\ ${y0})\\) 與圓 \\(${_cStd(h, k, 25)}\\) 的位置關係。（填「圓內」、「圓上」或「圓外」）`,
+        answer: ans, type: 'text', answerPrefix: '位置'
+      };
+    }
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 3);
+
+    if (t === 0) {
+      // x²+y²+Dx+Ey+k=0，求使其表示圓的 k 的最大整數值
+      // 條件: D²+E²-4k>0 → k < (D²+E²)/4 = a²+b² (with D=-2a,E=-2b)
+      const a = srRandInt(1, 4), b = srRandInt(1, 4);
+      const D = -2 * a, E = -2 * b, threshold = a * a + b * b;
+      const eq = `x^2+y^2${_gft(D,'x')}${_gft(E,'y')}+k=0`;
+      return {
+        question: `方程式 \\(${eq}\\) 表示一個圓（非點圓），求 \\(k\\) 的最大整數值。`,
+        answer: threshold - 1, type: 'number', answerPrefix: '最大整數值'
+      };
+    }
+
+    if (t === 1) {
+      // 圓心在y軸上，過A(a,b)B(-a,c)（b,c同奇偶保整數），求圓心y坐標
+      // Center(0,m): (a²+(b-m)²)=(a²+(c-m)²) → m=(b+c)/2
+      const a = srRandInt(1, 5);
+      const b = srRandInt(-4, 4) * 2, c = srRandInt(-4, 4) * 2; // both even → m integer
+      if (b === c) return null;
+      const m = (b + c) / 2;
+      return {
+        question: `一圓的圓心在 \\(y\\) 軸上，且圓通過點 \\(A(${a},\\ ${b})\\) 與 \\(B(${-a},\\ ${c})\\)，求圓心的 \\(y\\) 坐標。`,
+        answer: m, type: 'number', answerPrefix: '\\(y\\) 坐標'
+      };
+    }
+
+    if (t === 2) {
+      // 過O(0,0), A(2a,0), B(0,2b) 三點，求r²=a²+b²
+      const abCases = [
+        {a:3,b:4,r2:25},{a:4,b:3,r2:25},{a:6,b:8,r2:100},{a:8,b:6,r2:100},
+        {a:2,b:3,r2:13},{a:3,b:2,r2:13},{a:1,b:2,r2:5},{a:2,b:1,r2:5},
+        {a:2,b:4,r2:20},{a:4,b:2,r2:20},{a:1,b:4,r2:17},{a:4,b:1,r2:17},
+      ];
+      const cs = abCases[srRandInt(0, abCases.length - 1)];
+      return {
+        question: `求通過三點 \\(O(0,0)\\)、\\(A(${2*cs.a},\\ 0)\\)、\\(B(0,\\ ${2*cs.b})\\) 的圓方程式中 \\(r^2\\) 的值。`,
+        answer: cs.r2, type: 'number', answerPrefix: '\\(r^2\\)'
+      };
+    }
+
+    // t===3: 圓與x軸相切，圓心橫座標h，且過點(x0,y0)，求r
+    // r=k（圓心y坐標），由 (x0-h)²+(y0-k)²=k² → k=((x0-h)²+y0²)/(2y0)
+    {
+      const goodCases = [
+        {h:0,x0:3,y0:3,r:3},{h:1,x0:3,y0:2,r:2},{h:2,x0:6,y0:2,r:5},
+        {h:3,x0:7,y0:4,r:4},{h:0,x0:4,y0:2,r:5},{h:4,x0:8,y0:2,r:5},
+      ];
+      const cs = goodCases[srRandInt(0, goodCases.length - 1)];
+      return {
+        question: `一個圓與 \\(x\\) 軸相切，圓心橫座標為 \\(${cs.h}\\)，且圓通過點 \\(P(${cs.x0},\\ ${cs.y0})\\)，求圓的半徑 \\(r\\)。`,
+        answer: cs.r, type: 'number', answerPrefix: '\\(r\\)'
+      };
+    }
+  }
+
+  // hard
+  const ht = srRandInt(0, 1);
+
+  if (ht === 0) {
+    // 兩圓公共弦斜率（pool）
+    // 公共弦方程式 = C1 - C2（展開一般式相減）
+    const pool = [
+      // C1:x²+y²=25(F1=-25), C2:x²+y²-6x+8y=0 → 6x-8y-25=0, slope=3/4
+      { c1:'x^2+y^2=25', c2:'x^2+y^2-6x+8y=0', sN:3, sD:4 },
+      // C1:x²+y²=4(F1=-4), C2:x²+y²-4x+2y-4=0 → 4x-2y=0, slope=2
+      { c1:'x^2+y^2=4', c2:'x^2+y^2-4x+2y-4=0', sN:2, sD:1 },
+      // C1:x²+y²-2x-4y=0(D1=-2,E1=-4,F1=0), C2:x²+y²+2x-2y-8=0 → -4x-2y+8=0 → 2x+y=4, slope=-2
+      { c1:'x^2+y^2-2x-4y=0', c2:'x^2+y^2+2x-2y-8=0', sN:-2, sD:1 },
+      // C1:x²+y²=5(F1=-5), C2:x²+y²-4x+6y-5=0 → 4x-6y=0, slope=2/3
+      { c1:'x^2+y^2=5', c2:'x^2+y^2-4x+6y-5=0', sN:2, sD:3 },
+    ];
+    const item = srQPick(pool, _cEqHQ);
+    const ans = item.sD === 1 ? item.sN : frac(item.sN, item.sD);
+    return {
+      question: `已知兩圓 \\(${item.c1}\\) 與 \\(${item.c2}\\) 相交，求其公共弦的斜率。`,
+      answer: ans, type: item.sD === 1 ? 'number' : 'fraction', answerPrefix: '斜率'
+    };
+  }
+
+  // ht===1: 圓心在直線上且過兩點，求r²
+  const hPool = [
+    // 圓心在y=x+1，過A(2,0)B(0,4)：center(1,2), r²=5
+    { line: 'y=x+1', A:[2,0], B:[0,4], r2:5 },
+    // 圓心在x軸(y=0)，過A(1,2)B(5,2)：center(3,0), r²=8
+    { line: 'x 軸（即 \\(y=0\\)）', A:[1,2], B:[5,2], r2:8 },
+    // 圓心在y=-x+2，過A(0,0)B(4,0)：center(2,0), r²=4
+    { line: 'y=-x+2', A:[0,0], B:[4,0], r2:4 },
+    // 圓心在y=2x-1，過A(0,1)B(2,1)：center(h,2h-1), dist相等: h²+(2h-2)²=(h-2)²+(2h-2)²→h²=(h-2)²→h=1, center(1,1), r²=0+0=0... degenerate
+    // Use: 圓心在y=x，過A(0,4)B(6,4)：center(h,h): (h²+(h-4)²)=((h-6)²+(h-4)²)→h²=(h-6)²→h=3, center(3,3), r²=9+1=10
+    { line: 'y=x', A:[0,4], B:[6,4], r2:10 },
+  ];
+  const hp = hPool[srRandInt(0, hPool.length - 1)];
+  return {
+    question: `一個圓的圓心在直線 \\(${hp.line}\\) 上，且通過點 \\(A(${hp.A[0]},\\ ${hp.A[1]})\\) 與 \\(B(${hp.B[0]},\\ ${hp.B[1]})\\)，求此圓的 \\(r^2\\)。`,
+    answer: hp.r2, type: 'number', answerPrefix: '\\(r^2\\)'
+  };
+}
+
+// ── b1-circ-line：圓與直線的關係 ────────────────────────────────
+let _cLineMQ = [], _cLineHQ = [];
+function genB1CircLine(level) {
+  for (let i = 0; i < 40; i++) { const q = _b1CircLine(level); if (q) return q; }
+  return _b1CircLine('basic');
+}
+function _b1CircLine(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0, 2);
+
+    if (t === 0) {
+      // 判斷直線3x+4y+C=0與圓的位置關係
+      // d = |3h+4k+C|/5, compare with r
+      const h = srRandInt(-2, 3), k = srRandInt(-2, 3);
+      const r = [3, 4, 5][srRandInt(0, 2)];
+      const rel = srRandInt(0, 2);
+      const base = 3 * h + 4 * k;
+      let C, ans;
+      if (rel === 0) { // 相割: d = r-2
+        const d = r - 2;
+        C = (srRandInt(0, 1) === 0 ? 1 : -1) * 5 * d - base;
+        ans = '相割';
+      } else if (rel === 1) { // 相切: d = r
+        C = (srRandInt(0, 1) === 0 ? 1 : -1) * 5 * r - base;
+        ans = '相切';
+      } else { // 相離: d = r+2
+        C = (srRandInt(0, 1) === 0 ? 1 : -1) * 5 * (r + 2) - base;
+        ans = '相離';
+      }
+      const dCheck = Math.abs(base + C) / 5;
+      if (rel === 0 && dCheck >= r) return null;
+      if (rel === 1 && dCheck !== r) return null;
+      if (rel === 2 && dCheck <= r) return null;
+      const lineStr = C === 0 ? '3x+4y=0' : (C > 0 ? `3x+4y+${C}=0` : `3x+4y${C}=0`);
+      return {
+        question: `圓 \\(${_cStd(h, k, r*r)}\\) 與直線 \\(${lineStr}\\) 的位置關係為何？（填「相割」、「相切」或「相離」）`,
+        answer: ans, type: 'text', answerPrefix: '位置關係'
+      };
+    }
+
+    if (t === 1) {
+      // 切線段長 TL = √(dist²-r²)，使用畢氏數組保證整數
+      // (r, TL, dist) all integers: (3,4,5),(4,3,5),(6,8,10),(8,6,10),(5,12,13),(12,5,13)
+      const cases = [
+        {r:3,tl:4,dist:5,dpairs:[[3,4],[4,3],[5,0],[0,5]]},
+        {r:4,tl:3,dist:5,dpairs:[[3,4],[4,3],[5,0],[0,5]]},
+        {r:6,tl:8,dist:10,dpairs:[[6,8],[8,6],[10,0],[0,10]]},
+        {r:8,tl:6,dist:10,dpairs:[[6,8],[8,6],[10,0],[0,10]]},
+        {r:5,tl:12,dist:13,dpairs:[[5,12],[12,5],[13,0],[0,13]]},
+      ];
+      const cs = cases[srRandInt(0, cases.length - 1)];
+      const [dx, dy] = cs.dpairs[srRandInt(0, cs.dpairs.length - 1)];
+      const h = srRandInt(-2, 2), k = srRandInt(-2, 2);
+      const x1 = h + dx, y1 = k + dy;
+      return {
+        question: `點 \\(P(${x1},\\ ${y1})\\) 在圓 \\(${_cStd(h, k, cs.r*cs.r)}\\) 的外部，求 \\(P\\) 到圓的切線段長。`,
+        answer: cs.tl, type: 'number', answerPrefix: '切線段長'
+      };
+    }
+
+    // t===2: 已知斜率4/3（直線4x-3y+c=0），求與圓相切的c值（較大值）
+    // d = |4h-3k+c|/5 = r → c = 5r-4h+3k 或 c = -5r-4h+3k
+    {
+      const h = srRandInt(-3, 3), k = srRandInt(-3, 3), r = srRandInt(2, 5);
+      const c1 = 5 * r - 4 * h + 3 * k, c2 = -5 * r - 4 * h + 3 * k;
+      const cMax = Math.max(c1, c2);
+      return {
+        question: `求斜率為 \\(\\dfrac{4}{3}\\) 且與圓 \\(${_cStd(h, k, r*r)}\\) 相切的直線方程式（整理為 \\(4x-3y+c=0\\)），\\(c\\) 的較大值為何？`,
+        answer: cMax, type: 'number', answerPrefix: '\\(c\\)'
+      };
+    }
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 2);
+
+    if (t === 0) {
+      // 弦長 = 2√(r²-d²)，使用畢氏數組保證整數弦長
+      // (r,d,half) → chord=2×half: (5,3,4),(5,4,3),(10,6,8),(10,8,6),(13,5,12),(13,12,5)
+      const chordCases = [
+        {r:5,d:3,chord:8},{r:5,d:4,chord:6},{r:10,d:6,chord:16},
+        {r:10,d:8,chord:12},{r:13,d:5,chord:24},{r:13,d:12,chord:10},
+      ];
+      const cs = chordCases[srRandInt(0, chordCases.length - 1)];
+      // 直線 3x+4y+C=0，圓心(h,k)，d=|3h+4k+C|/5 = cs.d
+      const h = srRandInt(-2, 3), k = srRandInt(-2, 3);
+      const base = 3 * h + 4 * k;
+      const C = (srRandInt(0, 1) === 0 ? 1 : -1) * 5 * cs.d - base;
+      const dCheck = Math.abs(base + C) / 5;
+      if (dCheck !== cs.d) return null;
+      const lineStr = C === 0 ? '3x+4y=0' : (C > 0 ? `3x+4y+${C}=0` : `3x+4y${C}=0`);
+      return {
+        question: `求直線 \\(${lineStr}\\) 被圓 \\(${_cStd(h, k, cs.r*cs.r)}\\) 截得的弦長。`,
+        answer: cs.chord, type: 'number', answerPrefix: '弦長'
+      };
+    }
+
+    if (t === 1) {
+      // 過圓上一點的切線斜率（切線⊥半徑）
+      // 半徑方向 (dx,dy)，切線斜率 = -dx/dy（fraction）
+      const tCases = [
+        {dx:3,dy:4,r:5,sN:-3,sD:4},{dx:4,dy:3,r:5,sN:-4,sD:3},
+        {dx:6,dy:8,r:10,sN:-3,sD:4},{dx:8,dy:6,r:10,sN:-4,sD:3},
+        {dx:5,dy:12,r:13,sN:-5,sD:12},{dx:12,dy:5,r:13,sN:-12,sD:5},
+      ];
+      const cs = tCases[srRandInt(0, tCases.length - 1)];
+      const h = srRandInt(-2, 2), k = srRandInt(-2, 2);
+      const x0 = h + cs.dx, y0 = k + cs.dy;
+      return {
+        question: `圓 \\(${_cStd(h, k, cs.r*cs.r)}\\) 上有一點 \\(P(${x0},\\ ${y0})\\)，求圓在 \\(P\\) 點的切線斜率。`,
+        answer: frac(cs.sN, cs.sD), type: 'fraction', answerPrefix: '切線斜率'
+      };
+    }
+
+    // t===2: 一般式圓的切線段長（pool，已驗算）
+    {
+      const pool = [
+        // TL² = (x1-h)²+(y1-k)²-r²
+        { q:'P(3,-4)，圓 \\(x^2+y^2+2x-4y-11=0\\)', tl:6 },
+        // (x+1)²+(y-2)²=16; TL²=(4)²+(6)²-16=16+36-16=36, TL=6 ✓
+        { q:'P(7,1)，圓 \\(x^2+y^2=25\\)', tl:5 },
+        // TL²=49+1-25=25, TL=5 ✓
+        { q:'P(5,4)，圓 \\((x-1)^2+(y-2)^2=4\\)', tl:4 },
+        // TL²=16+4-4=16, TL=4 ✓
+        { q:'P(6,8)，圓 \\(x^2+y^2-4x-6y-12=0\\)', tl:4 },
+        // (x-2)²+(y-3)²=25; TL²=16+25-25=16, TL=4 ✓
+        { q:'P(-1,5)，圓 \\(x^2+y^2-4x+2y-4=0\\)', tl:6 },
+        // (x-2)²+(y+1)²=9; TL²=9+36-9=36, TL=6 ✓
+        { q:'P(6,7)，圓 \\(x^2+y^2-2x-4y-20=0\\)', tl:5 },
+        // (x-1)²+(y-2)²=25; TL²=25+25-25=25, TL=5 ✓
+      ];
+      const item = srQPick(pool, _cLineMQ);
+      return {
+        question: `${item.q}，求點 \\(P\\) 到圓的切線段長。`,
+        answer: item.tl, type: 'number', answerPrefix: '切線段長'
+      };
+    }
+  }
+
+  // hard
+  const ht = srRandInt(0, 1);
+
+  if (ht === 0) {
+    // 從外部點P向圓x²+y²=r²作兩切線，求兩斜率之積
+    // (x1²-r²)m²-2x1y1·m+(y1²-r²)=0 → m1×m2=(y1²-r²)/(x1²-r²)
+    const pool = [
+      { P:[7,1], r:5, prodN:-1, prodD:1 },
+      // (1-25)/(49-25)=-24/24=-1 ✓
+      { P:[6,0], r:3, prodN:-1, prodD:3 },
+      // (0-9)/(36-9)=-9/27=-1/3 ✓
+      { P:[4,0], r:2, prodN:-1, prodD:3 },
+      // (0-4)/(16-4)=-4/12=-1/3 ✓
+      { P:[0,4], r:2, prodN:-3, prodD:1 },
+      // (16-4)/(0-4)=-12/4=-3 ✓
+      { P:[5,0], r:3, prodN:-9, prodD:16 },
+      // (0-9)/(25-9)=-9/16 ✓
+      { P:[0,5], r:3, prodN:-16, prodD:9 },
+      // (25-9)/(0-9)=-16/9 ✓
+    ];
+    const item = srQPick(pool, _cLineHQ);
+    const { P, r, prodN, prodD } = item;
+    const ans = prodD === 1 ? prodN : frac(prodN, prodD);
+    return {
+      question: `從點 \\(P(${P[0]},\\ ${P[1]})\\) 向圓 \\(x^2+y^2=${r*r}\\) 作兩條切線，求兩切線斜率之積。`,
+      answer: ans, type: prodD === 1 ? 'number' : 'fraction', answerPrefix: '斜率之積'
+    };
+  }
+
+  // ht===1: 直線與圓相切的含參問題（pool）
+  {
+    const pool = [
+      // 圓(x-2)²+(y-1)²=9，直線3x-4y+k=0相切
+      // d=|6-4+k|/5=3 → |k+2|=15 → k=13或k=-17，較大k=13
+      { q:'圓 \\((x-2)^2+(y-1)^2=9\\)，直線 \\(3x-4y+k=0\\) 與此圓相切，求較大的 \\(k\\) 值。', ans:13 },
+      // 圓(x-1)²+(y+2)²=25，直線4x-3y+k=0相切
+      // d=|4+6+k|/5=5 → |k+10|=25 → k=15或k=-35，和=-20
+      { q:'圓 \\((x-1)^2+(y+2)^2=25\\)，直線 \\(4x-3y+k=0\\) 與此圓相切，求兩個 \\(k\\) 值之和。', ans:-20 },
+      // 圓x²+y²+2x-4y-4=0，即(x+1)²+(y-2)²=9，直線3x+4y+k=0相切
+      // d=|-3+8+k|/5=3 → |k+5|=15 → k=10或k=-20，積=-200
+      { q:'圓 \\(x^2+y^2+2x-4y-4=0\\)，直線 \\(3x+4y+k=0\\) 與此圓相切，求兩個 \\(k\\) 值之積。', ans:-200 },
+      // 圓x²+y²=25，直線3x-4y+k=0相切
+      // d=|k|/5=5 → k=±25，較大k=25
+      { q:'圓 \\(x^2+y^2=25\\)，直線 \\(3x-4y+k=0\\) 與此圓相切，求較大的 \\(k\\) 值。', ans:25 },
+    ];
+    const item = srQPick(pool, _cLineHQ);
+    return { question: item.q, answer: item.ans, type: 'number', answerPrefix: '答案' };
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  第二冊 ▸ 第三章　三角比
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -4829,6 +5227,8 @@ const SR_GENERATORS = {
   'b1-dbl-rad':      genB1DblRad,
   'b1-rationalize':  genB1Rationalize,
   'b1-frac-expr':    genB1FracExpr,
+  'b1-circ-eq':      genB1CircEq,
+  'b1-circ-line':    genB1CircLine,
   'b2-trig':         genB2Trig,
   'b3a-arc':         genB3aArc,
   'b3a-trig-add':    genB3aTrigAdd,
