@@ -9339,6 +9339,120 @@ function _9aSimilarPoly(level){
 }
 
 // ═══════════════════════════════════════════════════════════════════
+//  九上 ▸ 相似形應用題
+// ═══════════════════════════════════════════════════════════════════
+function gen9aSimilarApp(level){
+  for(let i=0;i<40;i++){const q=_9aSimilarApp(level);if(q)return q;}
+  return _9aSimilarApp('basic');
+}
+function _9aSimilarApp(level){
+  if(level==='basic'){
+    const t=randInt(0,2);
+
+    if(t===0){
+      // 影子測高：標竿與樹（最常考題型）
+      // 標竿高h1，影長s1；樹影長s2=s1×k，求樹高 = h1×k
+      const h1=randInt(1,5), s1=randInt(1,5), k=randInt(2,8);
+      const s2=s1*k, treeH=h1*k;
+      return {question:`某時刻，一根 \\(${h1}\\) 公尺高的標竿在陽光下影長為 \\(${s1}\\) 公尺；同一時刻，一棵大樹的影長為 \\(${s2}\\) 公尺。利用相似三角形求這棵大樹的高度（公尺）。`, answer:treeH, type:'number', answerPrefix:'樹高'};
+    }
+
+    if(t===1){
+      // 比例縮圖：比例尺 1:scale，圖上 l cm，求實際長度（m）
+      // 確保 l×scale 是 100 的倍數 → realCm/100 為整數
+      const scale=pick([100,200,500]);
+      const l=pick([2,3,4,5,6,8,10]);
+      const realCm=l*scale;
+      if(realCm%100!==0)return null;
+      return {question:`一張建築設計圖的比例尺為 \\(1:${scale}\\)，圖紙上某走廊長 \\(${l}\\) 公分，求走廊的實際長度（公尺）。`, answer:realCm/100, type:'number', answerPrefix:'實際長'};
+    }
+
+    // t===2: △ABC 中 DE//BC，求 BC（最基本平行截線型）
+    // △ADE∽△ABC (AA)，AD/AB = DE/BC → BC = DE×AB/AD
+    const AD=randInt(2,6), DB=randInt(1,5), DE=pick([2,3,4,6,8,10]);
+    const AB=AD+DB, BC=DE*(AD+DB)/AD;
+    if(!Number.isInteger(BC))return null;
+    return {question:`\\(\\triangle ABC\\) 中，\\(DE//BC\\)，其中 \\(D\\) 在 \\(AB\\) 上、\\(E\\) 在 \\(AC\\) 上，已知 \\(AD=${AD}\\)、\\(DB=${DB}\\)、\\(DE=${DE}\\)，求 \\(BC\\)。`, answer:BC, type:'number', answerPrefix:'\\(BC\\)'};
+  }
+
+  if(level==='medium'){
+    const t=randInt(0,3);
+
+    if(t===0){
+      // 人影與建築物（用公分，較貼近現實感）
+      // 人高persH，影長persS；建築物影長=persS×k → 建築物高=persH×k
+      const persH=pick([150,160,170,180]);
+      const persS=pick([80,100,120,150,200]);
+      const k=randInt(3,20);
+      const buildS=persS*k, buildH=persH*k;
+      return {question:`某時刻，一位身高 \\(${persH}\\) 公分的同學，影長為 \\(${persS}\\) 公分；同一時刻，一棟建築物的影長為 \\(${buildS}\\) 公分，求建築物的高度（公分）。`, answer:buildH, type:'number', answerPrefix:'建築物高'};
+    }
+
+    if(t===1){
+      // 鏡子測高（利用反射光線：入射角=反射角 → 相似三角形）
+      // 人眼高h，站距鏡d1；建築物距鏡d2=d1×k → 建築物高 = h×k
+      const h=pick([150,160,170,180]);
+      const d1=randInt(1,5)*10;
+      const k=randInt(3,12);
+      const d2=d1*k, buildH=h*k;
+      return {question:`小明眼高 \\(${h}\\) 公分，站在距平面鏡 \\(${d1}\\) 公分處，恰好從鏡中看到對面距鏡 \\(${d2}\\) 公分的建築物頂端（光反射：入射角＝反射角，形成相似三角形），求建築物高度（公分）。`, answer:buildH, type:'number', answerPrefix:'建築物高'};
+    }
+
+    if(t===2){
+      // 測量河寬（△ADE∽△ABC，DE//BC，A在對岸）
+      // AD/AB = DE/BC → BC = DE×AB/AD，AB=AD+DB
+      const AD=randInt(2,6), DB=randInt(2,8), DE=pick([2,3,4,6,8]);
+      const AB=AD+DB, BC=DE*AB/AD;
+      if(!Number.isInteger(BC))return null;
+      return {question:`為測量河寬 \\(BC\\)，在河對岸取目標點 \\(A\\)，沿 \\(AB\\) 方向走到近岸 \\(D\\)，再延長到 \\(B\\)（\\(DB=${DB}\\)）；在 \\(AC\\) 方向的 \\(E\\) 點作 \\(DE//BC\\)（\\(AD=${AD}\\)，\\(DE=${DE}\\)），由相似三角形求河寬 \\(BC\\)。`, answer:BC, type:'number', answerPrefix:'\\(BC\\)'};
+    }
+
+    // t===3: 縮圖面積（比例尺平方關係）
+    // 1cm = scale cm，1cm² = scale² cm² = scale²/10000 m²
+    const scale=pick([100,200,500]);
+    const imgArea=randInt(2,12);
+    const realCm2=imgArea*scale*scale;
+    const realM2=realCm2/10000;
+    if(!Number.isInteger(realM2))return null;
+    return {question:`某地圖的比例尺為 \\(1:${scale}\\)，地圖上一塊土地面積為 \\(${imgArea}\\) 平方公分，求這塊土地的實際面積（平方公尺）。`, answer:realM2, type:'number', answerPrefix:'實際面積'};
+  }
+
+  // hard
+  const t=randInt(0,2);
+
+  if(t===0){
+    // 已知兩物高度，和其中一物的影長，求另一物的影長
+    // h1×s2 = h2×s1 → s2 = s1×h1/h2
+    // 令 s1 = k×h2 → s2 = k×h1（保證整數）
+    const h1=randInt(2,8), h2=randInt(2,8);
+    if(h1===h2)return null;
+    const k=randInt(2,8);
+    const s1=k*h2, s2=k*h1;
+    return {question:`某時刻，一棵高 \\(${h1}\\) 公尺的大樹，影長為 \\(${s1}\\) 公尺；同一時刻，一棟高 \\(${h2}\\) 公尺的建築物，影長為多少公尺？`, answer:s2, type:'number', answerPrefix:'影長'};
+  }
+
+  if(t===1){
+    // △ABC 中 DE//BC，同時求 BC 和 EC（分兩步，只答 BC）
+    // △ADE∽△ABC → BC = DE×AB/AD，且 AE/AC = AD/AB → EC = AE×DB/AD
+    const AD=randInt(2,5), DB=randInt(2,6), DE=randInt(2,8);
+    const AB=AD+DB, BC=DE*AB/AD;
+    if(!Number.isInteger(BC))return null;
+    const AE=randInt(2,8)*AD, EC=AE*DB/AD;
+    if(!Number.isInteger(EC))return null;
+    return {question:`\\(\\triangle ABC\\) 中，\\(DE//BC\\)（\\(D\\) 在 \\(AB\\)、\\(E\\) 在 \\(AC\\)），\\(AD=${AD}\\)，\\(DB=${DB}\\)，\\(DE=${DE}\\)，\\(AE=${AE}\\)。求 \\(BC\\) 與 \\(EC\\) 的值（此題只填 \\(BC\\) 的答案）。`, answer:BC, type:'number', answerPrefix:'\\(BC\\)'};
+  }
+
+  // t===2: 鏡子測高延伸（改變站立位置，求新的視線距離）
+  // 原：人高h，站距鏡d1，看到距鏡d2的建築物頂（h/d1 = buildH/d2）
+  // 新：人改站距鏡 2×d1，問能看到距鏡多遠的同高建築物
+  // 新d2' = buildH × (2×d1) / h = (h×d2/d1) × 2×d1/h = 2×d2
+  const h=pick([150,160,170,180]);
+  const d1=randInt(1,4)*10, k=randInt(3,10);
+  const d2=d1*k, buildH=h*k;
+  return {question:`小明眼高 \\(${h}\\) 公分，站在距平面鏡 \\(${d1}\\) 公分處，恰好從鏡中看到距鏡 \\(${d2}\\) 公分的建築物頂端。若他改站在距鏡 \\(${2*d1}\\) 公分處，可看到距鏡多遠的同高建築物頂端（公分）？`, answer:2*d2, type:'number', answerPrefix:'距鏡距離'};
+}
+
+// ═══════════════════════════════════════════════════════════════════
 //  九上 ▸ 三角比
 // ═══════════════════════════════════════════════════════════════════
 function gen9aTrig(level){
@@ -9403,13 +9517,13 @@ function _9aTrig(level){
       return {question:`直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，\\(\\tan A=\\frac{${a}}{${b}}\\)，\\(b=${b*k}\\)，求 \\(a\\)`,
         answer:a*k,type:'number',answerPrefix:'\\(a\\)'};
     }
-    // t===2: 計算特殊角組合（結果為分數/整數）
+    // t===2: 計算特殊角組合（結果為分數/整數，僅保留九年級範圍內題型）
     const expr=pick([
       {q:'\\(4\\sin 30^\\circ - \\cos 60^\\circ\\)',ans:frac(3,2)},
       {q:'\\(\\tan 45^\\circ + \\sin 30^\\circ\\)',ans:frac(3,2)},
       {q:'\\(2\\cos 60^\\circ + 3\\sin 30^\\circ\\)',ans:frac(5,2)},
-      {q:'\\(\\sin^2 30^\\circ + \\cos^2 60^\\circ\\)',ans:frac(1,2)},
-      {q:'\\((\\sin 30^\\circ + \\cos 60^\\circ)^2\\)',ans:frac(1,1)},
+      {q:'\\(\\tan 45^\\circ - 2\\sin 30^\\circ\\)',ans:frac(0,1)},
+      {q:'\\(3\\tan 45^\\circ + 2\\cos 60^\\circ\\)',ans:frac(4,1)},
     ]);
     return {question:`求 ${expr.q} 的值`,answer:expr.ans,type:'fraction',answerPrefix:''};
   }
@@ -10005,6 +10119,7 @@ const JR_GENERATORS = {
   '9a-ratio-chain':    gen9aRatioChain,
   '9a-prop-seg':       gen9aPropSeg,
   '9a-similar-poly':   gen9aSimilarPoly,
+  '9a-similar-app':    gen9aSimilarApp,
   '9a-trig':           gen9aTrig,
   '9a-circle-line':    gen9aCircleLine,
   '9a-circle-angle':   gen9aCircleAngle,
