@@ -9347,19 +9347,17 @@ function gen9aSimilarApp(level){
 }
 function _9aSimilarApp(level){
   if(level==='basic'){
-    const t=randInt(0,2);
+    const t=randInt(0,4);
 
     if(t===0){
-      // 影子測高：標竿與樹（最常考題型）
-      // 標竿高h1，影長s1；樹影長s2=s1×k，求樹高 = h1×k
+      // 影子測高：標竿與樹
       const h1=randInt(1,5), s1=randInt(1,5), k=randInt(2,8);
       const s2=s1*k, treeH=h1*k;
       return {question:`某時刻，一根 \\(${h1}\\) 公尺高的標竿在陽光下影長為 \\(${s1}\\) 公尺；同一時刻，一棵大樹的影長為 \\(${s2}\\) 公尺。利用相似三角形求這棵大樹的高度（公尺）。`, answer:treeH, type:'number', answerPrefix:'樹高'};
     }
 
     if(t===1){
-      // 比例縮圖：比例尺 1:scale，圖上 l cm，求實際長度（m）
-      // 確保 l×scale 是 100 的倍數 → realCm/100 為整數
+      // 比例尺：圖上長度→實際長度（公尺）
       const scale=pick([100,200,500]);
       const l=pick([2,3,4,5,6,8,10]);
       const realCm=l*scale;
@@ -9367,20 +9365,40 @@ function _9aSimilarApp(level){
       return {question:`一張建築設計圖的比例尺為 \\(1:${scale}\\)，圖紙上某走廊長 \\(${l}\\) 公分，求走廊的實際長度（公尺）。`, answer:realCm/100, type:'number', answerPrefix:'實際長'};
     }
 
-    // t===2: △ABC 中 DE//BC，求 BC（最基本平行截線型）
-    // △ADE∽△ABC (AA)，AD/AB = DE/BC → BC = DE×AB/AD
-    const AD=randInt(2,6), DB=randInt(1,5), DE=pick([2,3,4,6,8,10]);
-    const AB=AD+DB, BC=DE*(AD+DB)/AD;
-    if(!Number.isInteger(BC))return null;
-    return {question:`\\(\\triangle ABC\\) 中，\\(DE//BC\\)，其中 \\(D\\) 在 \\(AB\\) 上、\\(E\\) 在 \\(AC\\) 上，已知 \\(AD=${AD}\\)、\\(DB=${DB}\\)、\\(DE=${DE}\\)，求 \\(BC\\)。`, answer:BC, type:'number', answerPrefix:'\\(BC\\)'};
+    if(t===2){
+      // △ABC 中 DE//BC，求 BC（平行截線型）
+      const AD=randInt(2,6), DB=randInt(1,5), DE=pick([2,3,4,6,8,10]);
+      const AB=AD+DB, BC=DE*(AD+DB)/AD;
+      if(!Number.isInteger(BC))return null;
+      return {question:`\\(\\triangle ABC\\) 中，\\(DE//BC\\)，\\(D\\) 在 \\(AB\\) 上、\\(E\\) 在 \\(AC\\) 上，\\(AD=${AD}\\)、\\(DB=${DB}\\)、\\(DE=${DE}\\)，求 \\(BC\\)。`, answer:BC, type:'number', answerPrefix:'\\(BC\\)'};
+    }
+
+    if(t===3){
+      // 模型比例：模型長→實際長（公分）
+      const k=pick([5,10,20,50]);
+      const lm=randInt(2,10);
+      const realCm=lm*k;
+      return {question:`一個玩具車模型的縮小比例為 \\(1:${k}\\)，模型長 \\(${lm}\\) 公分，求實際車身長度（公分）。`, answer:realCm, type:'number', answerPrefix:'實際車長'};
+    }
+
+    // t===4: 兩相似三角形求對應邊
+    // △ABC∽△PQR，AB:PQ = a:b → QR = BC×b/a
+    {
+      const a=randInt(2,5), b=randInt(2,5);
+      if(a===b)return null;
+      const k=randInt(1,4);
+      const AB=a*k, PQ=b*k, BC=randInt(2,8);
+      const QR=BC*b/a;
+      if(!Number.isInteger(QR))return null;
+      return {question:`\\(\\triangle ABC \\sim \\triangle PQR\\)，\\(AB=${AB}\\)，\\(PQ=${PQ}\\)，\\(BC=${BC}\\)，求 \\(QR\\)。`, answer:QR, type:'number', answerPrefix:'\\(QR\\)'};
+    }
   }
 
   if(level==='medium'){
-    const t=randInt(0,3);
+    const t=randInt(0,5);
 
     if(t===0){
-      // 人影與建築物（用公分，較貼近現實感）
-      // 人高persH，影長persS；建築物影長=persS×k → 建築物高=persH×k
+      // 人影與建築物（公分）
       const persH=pick([150,160,170,180]);
       const persS=pick([80,100,120,150,200]);
       const k=randInt(3,20);
@@ -9389,41 +9407,58 @@ function _9aSimilarApp(level){
     }
 
     if(t===1){
-      // 鏡子測高（利用反射光線：入射角=反射角 → 相似三角形）
-      // 人眼高h，站距鏡d1；建築物距鏡d2=d1×k → 建築物高 = h×k
+      // 鏡子測高（入射角＝反射角）
       const h=pick([150,160,170,180]);
       const d1=randInt(1,5)*10;
       const k=randInt(3,12);
       const d2=d1*k, buildH=h*k;
-      return {question:`小明眼高 \\(${h}\\) 公分，站在距平面鏡 \\(${d1}\\) 公分處，恰好從鏡中看到對面距鏡 \\(${d2}\\) 公分的建築物頂端（光反射：入射角＝反射角，形成相似三角形），求建築物高度（公分）。`, answer:buildH, type:'number', answerPrefix:'建築物高'};
+      return {question:`小明眼高 \\(${h}\\) 公分，站在距平面鏡 \\(${d1}\\) 公分處，恰好從鏡中看到對面距鏡 \\(${d2}\\) 公分的建築物頂端（入射角＝反射角），求建築物高度（公分）。`, answer:buildH, type:'number', answerPrefix:'建築物高'};
     }
 
     if(t===2){
-      // 測量河寬（△ADE∽△ABC，DE//BC，A在對岸）
-      // AD/AB = DE/BC → BC = DE×AB/AD，AB=AD+DB
+      // 測量河寬（△ADE∽△ABC）
       const AD=randInt(2,6), DB=randInt(2,8), DE=pick([2,3,4,6,8]);
       const AB=AD+DB, BC=DE*AB/AD;
       if(!Number.isInteger(BC))return null;
-      return {question:`為測量河寬 \\(BC\\)，在河對岸取目標點 \\(A\\)，沿 \\(AB\\) 方向走到近岸 \\(D\\)，再延長到 \\(B\\)（\\(DB=${DB}\\)）；在 \\(AC\\) 方向的 \\(E\\) 點作 \\(DE//BC\\)（\\(AD=${AD}\\)，\\(DE=${DE}\\)），由相似三角形求河寬 \\(BC\\)。`, answer:BC, type:'number', answerPrefix:'\\(BC\\)'};
+      return {question:`為測量河寬 \\(BC\\)，在河對岸取目標點 \\(A\\)，沿 \\(AB\\) 方向走到近岸 \\(D\\)，再延長到 \\(B\\)（\\(DB=${DB}\\)）；在 \\(AC\\) 方向的 \\(E\\) 點作 \\(DE//BC\\)（\\(AD=${AD}\\)，\\(DE=${DE}\\)），求河寬 \\(BC\\)。`, answer:BC, type:'number', answerPrefix:'\\(BC\\)'};
     }
 
-    // t===3: 縮圖面積（比例尺平方關係）
-    // 1cm = scale cm，1cm² = scale² cm² = scale²/10000 m²
-    const scale=pick([100,200,500]);
-    const imgArea=randInt(2,12);
-    const realCm2=imgArea*scale*scale;
-    const realM2=realCm2/10000;
-    if(!Number.isInteger(realM2))return null;
-    return {question:`某地圖的比例尺為 \\(1:${scale}\\)，地圖上一塊土地面積為 \\(${imgArea}\\) 平方公分，求這塊土地的實際面積（平方公尺）。`, answer:realM2, type:'number', answerPrefix:'實際面積'};
+    if(t===3){
+      // 縮圖面積（比例尺²）
+      const scale=pick([100,200,500]);
+      const imgArea=randInt(2,12);
+      const realCm2=imgArea*scale*scale;
+      const realM2=realCm2/10000;
+      if(!Number.isInteger(realM2))return null;
+      return {question:`某地圖的比例尺為 \\(1:${scale}\\)，地圖上一塊土地面積為 \\(${imgArea}\\) 平方公分，求這塊土地的實際面積（平方公尺）。`, answer:realM2, type:'number', answerPrefix:'實際面積'};
+    }
+
+    if(t===4){
+      // 相似三角形面積比（DE//BC → △ADE∽△ABC，面積比 = (AD/AB)²）
+      // AD:AB = p:q → 面積ADE/面積ABC = p²/q²
+      // 令面積ABC = n×q²，則面積ADE = n×p²（整數）
+      const p=randInt(1,4), q=randInt(p+1,5);
+      const n=randInt(1,8);
+      const Sabc=n*q*q, Sade=n*p*p;
+      return {question:`\\(\\triangle ABC\\) 中 \\(DE//BC\\)（\\(D\\) 在 \\(AB\\)、\\(E\\) 在 \\(AC\\)），\\(AD:AB=${p}:${q}\\)，已知 \\(\\triangle ABC\\) 的面積為 \\(${Sabc}\\)，求 \\(\\triangle ADE\\) 的面積。`, answer:Sade, type:'number', answerPrefix:'面積'};
+    }
+
+    // t===5: 比例尺逆向（已知實際長→求圖上長）
+    // 圖上(cm) = 實際(m)×100 / scale
+    {
+      const scale=pick([200,500,1000]);
+      const realM=randInt(2,10);
+      const imgCm=realM*100/scale;
+      if(!Number.isInteger(imgCm))return null;
+      return {question:`地圖比例尺為 \\(1:${scale}\\)，兩地實際距離為 \\(${realM}\\) 公尺，求在地圖上的距離（公分）。`, answer:imgCm, type:'number', answerPrefix:'圖上距離'};
+    }
   }
 
   // hard
-  const t=randInt(0,2);
+  const t=randInt(0,4);
 
   if(t===0){
-    // 已知兩物高度，和其中一物的影長，求另一物的影長
-    // h1×s2 = h2×s1 → s2 = s1×h1/h2
-    // 令 s1 = k×h2 → s2 = k×h1（保證整數）
+    // 已知兩物高度，求另一物影長
     const h1=randInt(2,8), h2=randInt(2,8);
     if(h1===h2)return null;
     const k=randInt(2,8);
@@ -9432,24 +9467,43 @@ function _9aSimilarApp(level){
   }
 
   if(t===1){
-    // △ABC 中 DE//BC，同時求 BC 和 EC（分兩步，只答 BC）
-    // △ADE∽△ABC → BC = DE×AB/AD，且 AE/AC = AD/AB → EC = AE×DB/AD
+    // △ABC 中 DE//BC，求 BC 與 EC（只填 BC）
     const AD=randInt(2,5), DB=randInt(2,6), DE=randInt(2,8);
     const AB=AD+DB, BC=DE*AB/AD;
     if(!Number.isInteger(BC))return null;
     const AE=randInt(2,8)*AD, EC=AE*DB/AD;
     if(!Number.isInteger(EC))return null;
-    return {question:`\\(\\triangle ABC\\) 中，\\(DE//BC\\)（\\(D\\) 在 \\(AB\\)、\\(E\\) 在 \\(AC\\)），\\(AD=${AD}\\)，\\(DB=${DB}\\)，\\(DE=${DE}\\)，\\(AE=${AE}\\)。求 \\(BC\\) 與 \\(EC\\) 的值（此題只填 \\(BC\\) 的答案）。`, answer:BC, type:'number', answerPrefix:'\\(BC\\)'};
+    return {question:`\\(\\triangle ABC\\) 中，\\(DE//BC\\)（\\(D\\) 在 \\(AB\\)、\\(E\\) 在 \\(AC\\)），\\(AD=${AD}\\)，\\(DB=${DB}\\)，\\(DE=${DE}\\)，\\(AE=${AE}\\)，求 \\(BC\\)（\\(EC\\) 可自行驗算）。`, answer:BC, type:'number', answerPrefix:'\\(BC\\)'};
   }
 
-  // t===2: 鏡子測高延伸（改變站立位置，求新的視線距離）
-  // 原：人高h，站距鏡d1，看到距鏡d2的建築物頂（h/d1 = buildH/d2）
-  // 新：人改站距鏡 2×d1，問能看到距鏡多遠的同高建築物
-  // 新d2' = buildH × (2×d1) / h = (h×d2/d1) × 2×d1/h = 2×d2
-  const h=pick([150,160,170,180]);
-  const d1=randInt(1,4)*10, k=randInt(3,10);
-  const d2=d1*k, buildH=h*k;
-  return {question:`小明眼高 \\(${h}\\) 公分，站在距平面鏡 \\(${d1}\\) 公分處，恰好從鏡中看到距鏡 \\(${d2}\\) 公分的建築物頂端。若他改站在距鏡 \\(${2*d1}\\) 公分處，可看到距鏡多遠的同高建築物頂端（公分）？`, answer:2*d2, type:'number', answerPrefix:'距鏡距離'};
+  if(t===2){
+    // 鏡子改站位置求新視線距離
+    const h=pick([150,160,170,180]);
+    const d1=randInt(1,4)*10, k=randInt(3,10);
+    const d2=d1*k, buildH=h*k;
+    return {question:`小明眼高 \\(${h}\\) 公分，站在距平面鏡 \\(${d1}\\) 公分處，恰好從鏡中看到距鏡 \\(${d2}\\) 公分的建築物頂端。若他改站在距鏡 \\(${2*d1}\\) 公分處，可看到距鏡多遠的同高建築物頂端（公分）？`, answer:2*d2, type:'number', answerPrefix:'距鏡距離'};
+  }
+
+  if(t===3){
+    // 角平分線定理：AD 為 △ABC 的 ∠A 角平分線，D 在 BC 上
+    // BD/DC = AB/AC = c/b → BD = BC×c/(b+c)
+    // 令 BC = mult×(b+c)，則 BD = mult×c（整數）
+    const b=randInt(2,6), c=randInt(2,6);
+    if(b===c)return null;
+    const mult=randInt(1,4);
+    const BC=mult*(b+c), BD=mult*c;
+    return {question:`\\(\\triangle ABC\\) 中，\\(AD\\) 為 \\(\\angle A\\) 的角平分線，\\(D\\) 在 \\(BC\\) 上，\\(AB=${c}\\)，\\(AC=${b}\\)，\\(BC=${BC}\\)，求 \\(BD\\)。`, answer:BD, type:'number', answerPrefix:'\\(BD\\)'};
+  }
+
+  // t===4: 相似三角形周長比
+  // △ABC∽△DEF，BC:EF = m:n → 周長DEF = 周長ABC×n/m
+  {
+    const m=randInt(2,6), n=randInt(2,6);
+    if(m===n)return null;
+    const P=randInt(2,8)*m;
+    const perimDEF=P*n/m;
+    return {question:`\\(\\triangle ABC \\sim \\triangle DEF\\)，對應邊 \\(BC:EF=${m}:${n}\\)，已知 \\(\\triangle ABC\\) 的周長為 \\(${P}\\)，求 \\(\\triangle DEF\\) 的周長。`, answer:perimDEF, type:'number', answerPrefix:'周長'};
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
