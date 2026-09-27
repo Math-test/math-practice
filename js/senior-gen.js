@@ -1585,6 +1585,318 @@ function _b1Log(level) {
   }
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  第一冊 ▸ 多項式的運算與應用
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ── b1-poly-op：餘式定理・因式定理・根與係數 ──────────────────────
+const _cPolyOpBQ = [], _cPolyOpMQ = [], _cPolyOpHQ = [];
+
+function genB1PolyOp(level, _n) {
+  for (let _i = 0; _i < 40; _i++) {
+    const q = _b1PolyOp(level);
+    if (q) return q;
+  }
+  return { question: '多項式計算', answer: 0, type: 'number', answerPrefix: '' };
+}
+
+function _b1PolyOp(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0, 3);
+
+    if (t === 0) {
+      // 餘式定理：f(x) ÷ (x−a) 的餘式 = f(a)
+      const pool = [
+        { f: 'x^3-2x^2+3x-1', a: 2,  r: 5  },
+        { f: 'x^3+x^2-5x+3',  a: 2,  r: 5  },
+        { f: 'x^3-x^2+2x-4',  a: 1,  r: -2 },
+        { f: 'x^3-3x+2',      a: 2,  r: 4  },
+        { f: 'x^2+3x-5',      a: -1, r: -7 },
+        { f: 'x^3+2x^2-x+1',  a: -1, r: 3  },
+        { f: '2x^2-5x+1',     a: 3,  r: 4  },
+        { f: 'x^3+x^2+x-3',   a: 1,  r: 0  },
+        { f: 'x^3-4x+3',      a: -2, r: 3  },
+        { f: '2x^3-3x^2+1',   a: 2,  r: 5  },
+      ];
+      const p = srQPick(pool, _cPolyOpBQ);
+      const div = p.a >= 0 ? `x-${p.a}` : `x+${-p.a}`;
+      return {
+        question: `多項式 \\(f(x)=${p.f}\\) 除以 \\(${div}\\) 的餘式為何？`,
+        answer: p.r, type: 'number', answerPrefix: '餘式'
+      };
+    }
+
+    if (t === 1) {
+      // 因式定理：(x−a) 是否為因式？
+      const pool = [
+        { f: 'x^2-5x+6',       a: 3,  is: true  },
+        { f: 'x^2-5x+6',       a: 4,  is: false },
+        { f: 'x^3-1',          a: 1,  is: true  },
+        { f: 'x^3+x+2',        a: -1, is: true  },
+        { f: 'x^3-x^2+2x+4',   a: 2,  is: false },
+        { f: 'x^3+x^2-x-1',    a: -1, is: true  },
+        { f: 'x^3-6x^2+11x-6', a: 2,  is: true  },
+        { f: '2x^2+x-3',       a: 1,  is: true  },
+        { f: '2x^2+x-3',       a: 2,  is: false },
+        { f: 'x^3+2x^2-x-2',   a: -2, is: true  },
+      ];
+      const p = srQPick(pool, _cPolyOpBQ);
+      const div = p.a >= 0 ? `(x-${p.a})` : `(x+${-p.a})`;
+      return {
+        question: `\\(${div}\\) 是否為多項式 \\(f(x)=${p.f}\\) 的因式？（填「是」或「不是」）`,
+        answer: p.is ? '是' : '不是', type: 'text', answerPrefix: ''
+      };
+    }
+
+    if (t === 2) {
+      // 含參數k，由餘式求k
+      const pool = [
+        { f: 'x^2+kx+1',      div: 'x-2', r: 7,  k: 1 },
+        { f: 'x^2+kx+3',      div: 'x-1', r: 5,  k: 1 },
+        { f: 'x^3+kx-5',      div: 'x-1', r: 0,  k: 4 },
+        { f: 'x^2+3x+k',      div: 'x+2', r: 1,  k: 3 },
+        { f: '2x^2-kx+1',     div: 'x-2', r: 3,  k: 3 },
+        { f: 'x^3+2x^2+kx-1', div: 'x-1', r: 5,  k: 3 },
+        { f: 'x^2-kx+2',      div: 'x-2', r: 2,  k: 2 },
+        { f: 'kx^2+x-1',      div: 'x+1', r: 2,  k: 4 },
+      ];
+      const p = srQPick(pool, _cPolyOpBQ);
+      return {
+        question: `多項式 \\(f(x)=${p.f}\\) 除以 \\(${p.div}\\) 的餘式為 \\(${p.r}\\)，求 \\(k\\)。`,
+        answer: p.k, type: 'number', answerPrefix: '\\(k\\)'
+      };
+    }
+
+    // t === 3: 根與係數基本（Vieta's）
+    {
+      const pool = [
+        { eq: 'x^2-5x+6=0',  q: 'x_1+x_2',   a: 5  },
+        { eq: 'x^2-5x+6=0',  q: 'x_1 x_2',   a: 6  },
+        { eq: 'x^2+4x+3=0',  q: 'x_1+x_2',   a: -4 },
+        { eq: 'x^2+4x+3=0',  q: 'x_1 x_2',   a: 3  },
+        { eq: 'x^2-3x-4=0',  q: 'x_1+x_2',   a: 3  },
+        { eq: 'x^2-3x-4=0',  q: 'x_1 x_2',   a: -4 },
+        { eq: 'x^2+x-6=0',   q: 'x_1+x_2',   a: -1 },
+        { eq: 'x^2+x-6=0',   q: 'x_1 x_2',   a: -6 },
+        { eq: '2x^2-6x+4=0', q: 'x_1+x_2',   a: 3  },
+        { eq: '2x^2-6x+4=0', q: 'x_1 x_2',   a: 2  },
+        { eq: '3x^2+9x-6=0', q: 'x_1+x_2',   a: -3 },
+        { eq: '3x^2+9x-6=0', q: 'x_1 x_2',   a: -2 },
+      ];
+      const p = srQPick(pool, _cPolyOpBQ);
+      return {
+        question: `設 \\(x_1, x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,
+        answer: p.a, type: 'number', answerPrefix: `\\(${p.q}\\)`
+      };
+    }
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 2);
+
+    if (t === 0) {
+      // 進階Vieta：x₁²+x₂²，1/x₁+1/x₂
+      const pool = [
+        { eq: 'x^2-5x+6=0', q: 'x_1^2+x_2^2',                     a: 13 },
+        { eq: 'x^2-3x+1=0', q: 'x_1^2+x_2^2',                     a: 7  },
+        { eq: 'x^2-4x+2=0', q: 'x_1^2+x_2^2',                     a: 12 },
+        { eq: 'x^2+2x-1=0', q: 'x_1^2+x_2^2',                     a: 6  },
+        { eq: 'x^2-5x+3=0', q: 'x_1^2+x_2^2',                     a: 19 },
+        { eq: 'x^2-6x+4=0', q: 'x_1^2+x_2^2',                     a: 28 },
+        { eq: 'x^2+3x-4=0', q: 'x_1^2+x_2^2',                     a: 17 },
+        { eq: 'x^2-2x-3=0', q: 'x_1^2+x_2^2',                     a: 10 },
+        { eq: 'x^2-5x+6=0', q: '\\dfrac{1}{x_1}+\\dfrac{1}{x_2}', num: 5, den: 6 },
+        { eq: 'x^2-3x+2=0', q: '\\dfrac{1}{x_1}+\\dfrac{1}{x_2}', num: 3, den: 2 },
+        { eq: 'x^2+3x-4=0', q: '\\dfrac{1}{x_1}+\\dfrac{1}{x_2}', num: 3, den: 4 },
+      ];
+      const p = srQPick(pool, _cPolyOpMQ);
+      if (p.num !== undefined) {
+        return {
+          question: `設 \\(x_1, x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,
+          answer: frac(p.num, p.den), type: 'fraction', answerPrefix: `\\(${p.q}\\)`
+        };
+      }
+      return {
+        question: `設 \\(x_1, x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,
+        answer: p.a, type: 'number', answerPrefix: `\\(${p.q}\\)`
+      };
+    }
+
+    if (t === 1) {
+      // 兩條件確定 f(x)=x²+ax+b，再求某值
+      const pool = [
+        { desc: '\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(3\\)，除以 \\(x+1\\) 餘 \\(7\\)', q: 'f(0)',  a: 4  },
+        { desc: '\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(2\\)，除以 \\(x+1\\) 餘 \\(4\\)', q: 'f(0)',  a: 2  },
+        { desc: '\\(f(x)=x^2+ax+b\\)，\\(x-1\\) 是其因式，除以 \\(x+1\\) 餘 \\(4\\)',         q: 'f(2)',  a: 1  },
+        { desc: '\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(5\\)，除以 \\(x-2\\) 餘 \\(8\\)', q: 'f(3)',  a: 13 },
+        { desc: '\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(3\\)，除以 \\(x-2\\) 餘 \\(8\\)', q: 'f(-1)', a: -1 },
+      ];
+      const p = srQPick(pool, _cPolyOpMQ);
+      return {
+        question: `設 ${p.desc}，求 \\(${p.q}\\)。`,
+        answer: p.a, type: 'number', answerPrefix: `\\(${p.q}\\)`
+      };
+    }
+
+    // t === 2: 除以 (x−a)(x−b) 的線性餘式 ax+b
+    {
+      const pool = [
+        { f: 'x^3+2x+1',  div: '(x-1)(x-2)', q: 'a',   ans: 9  },
+        { f: 'x^3-x+2',   div: '(x-1)(x-2)', q: 'a',   ans: 6  },
+        { f: 'x^3+x^2',   div: '(x-1)(x-2)', q: 'b',   ans: -8 },
+        { f: 'x^4+x-2',   div: '(x-1)(x-2)', q: 'a+b', ans: 0  },
+        { f: 'x^3-2x+3',  div: '(x-1)(x-2)', q: 'b',   ans: -3 },
+      ];
+      const p = srQPick(pool, _cPolyOpMQ);
+      return {
+        question: `多項式 \\(f(x)=${p.f}\\) 除以 \\(${p.div}\\) 的餘式為 \\(ax+b\\)，求 \\(${p.q}\\)。`,
+        answer: p.ans, type: 'number', answerPrefix: `\\(${p.q}\\)`
+      };
+    }
+  }
+
+  // hard
+  {
+    const ht = srRandInt(0, 1);
+
+    if (ht === 0) {
+      // 超進階Vieta：(x₁−x₂)², x₁³+x₂³, x₁²x₂+x₁x₂²
+      const pool = [
+        { eq: 'x^2-5x+6=0', q: '(x_1-x_2)^2',          a: 1   },
+        { eq: 'x^2-5x+3=0', q: '(x_1-x_2)^2',          a: 13  },
+        { eq: 'x^2-7x+5=0', q: '(x_1-x_2)^2',          a: 29  },
+        { eq: 'x^2-4x+1=0', q: '(x_1-x_2)^2',          a: 12  },
+        { eq: 'x^2-4x+2=0', q: 'x_1^3+x_2^3',          a: 40  },
+        { eq: 'x^2-3x+1=0', q: 'x_1^3+x_2^3',          a: 18  },
+        { eq: 'x^2-6x+4=0', q: 'x_1^3+x_2^3',          a: 144 },
+        { eq: 'x^2-5x+3=0', q: 'x_1^3+x_2^3',          a: 80  },
+        { eq: 'x^2-5x+6=0', q: 'x_1^2 x_2+x_1 x_2^2', a: 30  },
+        { eq: 'x^2-3x+2=0', q: 'x_1^2 x_2+x_1 x_2^2', a: 6   },
+      ];
+      const p = srQPick(pool, _cPolyOpHQ);
+      return {
+        question: `設 \\(x_1, x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,
+        answer: p.a, type: 'number', answerPrefix: `\\(${p.q}\\)`
+      };
+    }
+
+    // ht === 1: 三次方程根與係數
+    {
+      const pool = [
+        { eq: 'x^3-6x^2+11x-6=0', q: 'x_1+x_2+x_3',        a: 6  },
+        { eq: 'x^3-6x^2+11x-6=0', q: 'x_1 x_2 x_3',        a: 6  },
+        { eq: 'x^3-6x^2+11x-6=0', q: 'x_1^2+x_2^2+x_3^2',  a: 14 },
+        { eq: 'x^3-3x^2+2x=0',    q: 'x_1+x_2+x_3',        a: 3  },
+        { eq: 'x^3-3x^2+2x=0',    q: 'x_1 x_2 x_3',        a: 0  },
+        { eq: 'x^3-2x^2-x+2=0',   q: 'x_1+x_2+x_3',        a: 2  },
+        { eq: 'x^3-2x^2-x+2=0',   q: 'x_1 x_2 x_3',        a: -2 },
+        { eq: 'x^3-2x^2-x+2=0',   q: 'x_1^2+x_2^2+x_3^2',  a: 6  },
+      ];
+      const p = srQPick(pool, _cPolyOpHQ);
+      return {
+        question: `設 \\(x_1, x_2, x_3\\) 是方程式 \\(${p.eq}\\) 的三根，求 \\(${p.q}\\)。`,
+        answer: p.a, type: 'number', answerPrefix: `\\(${p.q}\\)`
+      };
+    }
+  }
+}
+
+// ── b1-poly-ineq：多項式不等式 ────────────────────────────────────
+const _cPolyIneqBQ = [], _cPolyIneqMQ = [], _cPolyIneqHQ = [];
+
+function genB1PolyIneq(level, _n) {
+  for (let _i = 0; _i < 40; _i++) {
+    const q = _b1PolyIneq(level);
+    if (q) return q;
+  }
+  return { question: '不等式', answer: '', type: 'text', answerPrefix: '' };
+}
+
+function _b1PolyIneq(level) {
+  if (level === 'basic') {
+    const pool = [
+      { ineq: 'x^2-4x+3>0',  ans: 'x < 1 或 x > 3',  fmt: 'x < a 或 x > b' },
+      { ineq: 'x^2-4x+3<0',  ans: '1 < x < 3',        fmt: 'a < x < b' },
+      { ineq: 'x^2-7x+10>0', ans: 'x < 2 或 x > 5',  fmt: 'x < a 或 x > b' },
+      { ineq: 'x^2-7x+10<0', ans: '2 < x < 5',        fmt: 'a < x < b' },
+      { ineq: 'x^2-3x-4>0',  ans: 'x < -1 或 x > 4', fmt: 'x < a 或 x > b' },
+      { ineq: 'x^2-3x-4<0',  ans: '-1 < x < 4',       fmt: 'a < x < b' },
+      { ineq: 'x^2+x-2>0',   ans: 'x < -2 或 x > 1', fmt: 'x < a 或 x > b' },
+      { ineq: 'x^2+x-2<0',   ans: '-2 < x < 1',       fmt: 'a < x < b' },
+      { ineq: 'x^2+x-6>0',   ans: 'x < -3 或 x > 2', fmt: 'x < a 或 x > b' },
+      { ineq: 'x^2+x-6<0',   ans: '-3 < x < 2',       fmt: 'a < x < b' },
+      { ineq: 'x^2-6x+8>0',  ans: 'x < 2 或 x > 4',  fmt: 'x < a 或 x > b' },
+      { ineq: 'x^2-6x+8<0',  ans: '2 < x < 4',        fmt: 'a < x < b' },
+    ];
+    const p = srQPick(pool, _cPolyIneqBQ);
+    return {
+      question: `解不等式 \\(${p.ineq}\\)（格式：${p.fmt}）`,
+      answer: p.ans, type: 'text', answerPrefix: ''
+    };
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 1);
+
+    if (t === 0) {
+      // 整數解個數
+      const pool = [
+        { ineq: 'x^2-9x+14<0',  n: 4 },
+        { ineq: 'x^2-5x+4<0',   n: 2 },
+        { ineq: 'x^2-6x+5<0',   n: 3 },
+        { ineq: 'x^2-8x+12<0',  n: 3 },
+        { ineq: 'x^2-10x+21<0', n: 3 },
+        { ineq: 'x^2-11x+24<0', n: 4 },
+        { ineq: 'x^2-x-6<0',    n: 4 },
+        { ineq: 'x^2-3x-10<0',  n: 6 },
+        { ineq: 'x^2+x-12<0',   n: 6 },
+      ];
+      const p = srQPick(pool, _cPolyIneqMQ);
+      return {
+        question: `不等式 \\(${p.ineq}\\) 的整數解共有幾個？`,
+        answer: p.n, type: 'number', answerPrefix: '整數解個數'
+      };
+    }
+
+    // t === 1: 恆成立條件，求k範圍
+    {
+      const pool = [
+        { ineq: 'x^2+kx+k>0 對所有實數 x 恆成立',     ans: '0 < k < 4',  fmt: 'a < k < b' },
+        { ineq: 'x^2+kx+1>0 對所有實數 x 恆成立',      ans: '-2 < k < 2', fmt: 'a < k < b' },
+        { ineq: 'x^2-2kx+(k+2)>0 對所有實數 x 恆成立', ans: '-1 < k < 2', fmt: 'a < k < b' },
+        { ineq: 'x^2+2x+k>0 對所有實數 x 恆成立',      ans: 'k > 1',      fmt: 'k > c' },
+        { ineq: 'x^2-4x+k>0 對所有實數 x 恆成立',      ans: 'k > 4',      fmt: 'k > c' },
+      ];
+      const p = srQPick(pool, _cPolyIneqMQ);
+      return {
+        question: `若 \\(${p.ineq}\\)，求 \\(k\\) 的範圍。（格式：${p.fmt}）`,
+        answer: p.ans, type: 'text', answerPrefix: '\\(k\\)'
+      };
+    }
+  }
+
+  // hard: 高次不等式（三次，因式分解）
+  {
+    const pool = [
+      { ineq: '(x-1)(x-2)(x-3)>0', ans: '1 < x < 2 或 x > 3',   fmt: 'a < x < b 或 x > c' },
+      { ineq: '(x-1)(x-2)(x-3)<0', ans: 'x < 1 或 2 < x < 3',   fmt: 'x < a 或 b < x < c' },
+      { ineq: '(x+1)(x-1)(x-3)>0', ans: '-1 < x < 1 或 x > 3',  fmt: 'a < x < b 或 x > c' },
+      { ineq: '(x+1)(x-1)(x-3)<0', ans: 'x < -1 或 1 < x < 3',  fmt: 'x < a 或 b < x < c' },
+      { ineq: '(x+2)(x-1)(x-4)>0', ans: '-2 < x < 1 或 x > 4',  fmt: 'a < x < b 或 x > c' },
+      { ineq: '(x+2)(x-1)(x-4)<0', ans: 'x < -2 或 1 < x < 4',  fmt: 'x < a 或 b < x < c' },
+      { ineq: '(x+1)(x-2)(x-5)>0', ans: '-1 < x < 2 或 x > 5',  fmt: 'a < x < b 或 x > c' },
+      { ineq: '(x+1)(x-2)(x-5)<0', ans: 'x < -1 或 2 < x < 5',  fmt: 'x < a 或 b < x < c' },
+      { ineq: '(x+3)(x+1)(x-2)>0', ans: '-3 < x < -1 或 x > 2', fmt: 'a < x < b 或 x > c' },
+      { ineq: '(x+3)(x+1)(x-2)<0', ans: 'x < -3 或 -1 < x < 2', fmt: 'x < a 或 b < x < c' },
+    ];
+    const p = srQPick(pool, _cPolyIneqHQ);
+    return {
+      question: `解不等式 \\(${p.ineq}\\)（格式：${p.fmt}）`,
+      answer: p.ans, type: 'text', answerPrefix: ''
+    };
+  }
+}
+
 // ── b1-line：直線方程式 ────────────────────────────────────────────
 function genB1Line(level, _n) {
   for (let _i = 0; _i < 40; _i++) {
@@ -5332,7 +5644,10 @@ const SR_GENERATORS = {
   'b1-expr':         genB1Expr,
   'b1-exp':          genB1Exp,
   'b1-log':          genB1Log,
-  'b1-line':         genB1Line,
+  'b1-poly-op':      genB1PolyOp,
+  'b1-poly-func':   makeStub('多項式函數'),
+  'b1-poly-ineq':   genB1PolyIneq,
+  'b1-line':        genB1Line,
   'b1-amgm':         genB1AmGm,
   'b1-line-dist':    genB1LineDist,
   'b1-line-sys':     genB1LineSys,
