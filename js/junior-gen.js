@@ -6228,7 +6228,7 @@ function _8aSqrtBasic(level) {
     const count=b*b-a*a; // n ∈ {a²,a²+1,...,b²-1}，共 b²-a² 個
     return {question:`滿足 \\(${a}\\leq\\sqrt{n}&lt;${b}\\) 的正整數 \\(n\\) 共有幾個？`, answer:count, type:'number'};
   }
-  const t=randInt(0,6);
+  const t=randInt(0,5);
   if(t===0){
     const a=randInt(15,60);
     const n=randInt(a*a+1,(a+1)*(a+1)-1);
@@ -6253,8 +6253,8 @@ function _8aSqrtBasic(level) {
     const maxX=Math.floor(Math.sqrt(m));
     return {question:`使 \\(\\sqrt{${m}-x^2}\\) 有意義的最大正整數 \\(x\\) 為`, answer:maxX, type:'number', answerPrefix:'x'};
   }
-  if(t===5){
-    // 小數部分性質：設 √n 整數部分為 a，小數部分為 x，x²+2ax = n-a²
+  // t===5: 小數部分性質：設 √n 整數部分為 a，小數部分為 x，x²+2ax = n-a²
+  {
     const nOpts=[
       {n:2,a:1},{n:3,a:1},{n:5,a:2},{n:6,a:2},{n:7,a:2},
       {n:10,a:3},{n:11,a:3},{n:12,a:3},{n:13,a:3},{n:14,a:3},
@@ -6265,10 +6265,6 @@ function _8aSqrtBasic(level) {
     return {question:`設 \\(\\sqrt{${n}}\\) 的整數部分為 \\(${a}\\)，小數部分為 \\(x\\)，求 \\(x^2+${2*a}x\\)`,
       answer:res, type:'number'};
   }
-  // t===6: 化簡 √(k²m) = k√m，求 k+m
-  const k=randInt(4,15),m=pick([2,3,5,6,7]);
-  return {question:`\\(\\sqrt{${k*k*m}}\\) 化為 \\(p\\sqrt{q}\\)（\\(q\\) 無平方因數），求 \\(p+q\\)`,
-    answer:k+m, type:'number', answerPrefix:'p+q'};
 }
 
 // ═══════════════════════════════════════════════════════════════════
