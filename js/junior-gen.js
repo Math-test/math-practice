@@ -6145,7 +6145,7 @@ function gen8aSqrtBasic(level) {
 }
 function _8aSqrtBasic(level) {
   if(level==='basic'){
-    const t=randInt(0,7);
+    const t=randInt(0,6);
     if(t===0){
       // 完全平方數（擴充到 900）
       const n=pick([4,9,16,25,36,49,64,81,100,121,144,169,196,225,256,289,324,361,400,
@@ -6168,18 +6168,13 @@ function _8aSqrtBasic(level) {
       return {question:`計算 \\(\\left(\\sqrt{${n}}\\right)^2\\)`, answer:n, type:'number'};
     }
     if(t===4){
-      // 逆向化簡：a√m = √n，求 n
-      const a=randInt(2,9),m=pick([2,3,5,6,7]);
-      return {question:`\\(${a}\\sqrt{${m}}=\\sqrt{n}\\)，求 \\(n\\)`, answer:a*a*m, type:'number', answerPrefix:'n'};
-    }
-    if(t===5){
       // 使√(ax-b)有意義的最小正整數 x（x ≥ b/a）
       const a=pick([1,2,3]),b=randInt(1,10)*a;
       const minX=b/a;
       const expr=a===1?`x-${b}`:`${a}x-${b}`;
       return {question:`使 \\(\\sqrt{${expr}}\\) 有意義的最小正整數 \\(x\\) 為`, answer:minX, type:'number', answerPrefix:'x'};
     }
-    if(t===6){
+    if(t===5){
       // 平方根個數：正數2個、0有1個、負數0個
       const r=randInt(0,3);
       if(r===0) return {question:`\\(0\\) 的平方根共有幾個？`, answer:1, type:'number'};
@@ -6190,7 +6185,7 @@ function _8aSqrtBasic(level) {
       const n=pick([4,9,16,25,36,49,64,81,100]);
       return {question:`\\(${n}\\) 的平方根共有幾個？`, answer:2, type:'number'};
     }
-    // t===7: 化簡 √((-k)²) = k
+    // t===6: 化簡 √((-k)²) = k
     const k=randInt(2,15);
     return {question:`計算 \\(\\sqrt{(-${k})^2}\\)`, answer:k, type:'number'};
   }
