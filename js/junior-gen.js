@@ -6190,70 +6190,50 @@ function _8aSqrtBasic(level) {
     return {question:`計算 \\(\\sqrt{(-${k})^2}\\)`, answer:k, type:'number'};
   }
   if(level==='medium'){
-    const t=randInt(0,6);
+    const t=randInt(0,4);
     if(t===0){
-      const k=randInt(3,20),m=pick([2,3,5,6,7]);
-      return {question:`化簡 \\(\\sqrt{${k*k*m}}\\)，根號外係數為`, answer:k, type:'number'};
-    }
-    if(t===1){
-      const k=randInt(3,18),m=pick([2,3,5,6,7]);
-      return {question:`化簡 \\(\\sqrt{${k*k*m}}\\)，根號內最簡值為`, answer:m, type:'number'};
-    }
-    if(t===2){
       const n=pick([169,196,225,256,289,324,361,400,441,484,529,576,625,
                     676,729,784,841,900,961,1024]);
       return {question:`計算 \\(\\sqrt{${n}}\\)`, answer:Math.sqrt(n), type:'number'};
     }
-    if(t===3){
+    if(t===1){
       // 整數部分（中等範圍 10~40）
       const a=randInt(10,40);
       const n=randInt(a*a+1,(a+1)*(a+1)-1);
       return {question:`\\(\\sqrt{${n}}\\) 的整數部分為`, answer:a, type:'number'};
     }
-    if(t===4){
+    if(t===2){
       // 化簡 √(a²) - a，a 為負整數 → (-a) - a = -2a = 2|a|
       const k=randInt(2,12);
       return {question:`若 \\(a=-${k}\\)，計算 \\(\\sqrt{a^2}-a\\)`, answer:2*k, type:'number'};
     }
-    if(t===5){
+    if(t===3){
       // ax² = b 的正值解（b/a 為完全平方數）
       const x=randInt(2,10),a=pick([1,2,3,4,5]);
       const b=a*x*x;
       const exprA=a===1?'':`${a}`;
       return {question:`方程式 \\(${exprA}x^2=${b}\\) 的正值解為`, answer:x, type:'number'};
     }
-    // t===6: 滿足 a ≤ √n < b 的正整數 n 有幾個
+    // t===4: 滿足 a ≤ √n < b 的正整數 n 有幾個
     const a=randInt(2,6),diff=randInt(2,4);
     const b=a+diff;
-    const count=b*b-a*a; // n ∈ {a²,a²+1,...,b²-1}，共 b²-a² 個
+    const count=b*b-a*a;
     return {question:`滿足 \\(${a}\\leq\\sqrt{n}&lt;${b}\\) 的正整數 \\(n\\) 共有幾個？`, answer:count, type:'number'};
   }
-  const t=randInt(0,5);
+  const t=randInt(0,2);
   if(t===0){
     const a=randInt(15,60);
     const n=randInt(a*a+1,(a+1)*(a+1)-1);
     return {question:`\\(\\sqrt{${n}}\\) 的整數部分為`, answer:a, type:'number'};
   }
   if(t===1){
-    const k=randInt(10,30),m=pick([2,3,5,6,7]);
-    return {question:`化簡 \\(\\sqrt{${k*k*m}}\\)，根號外係數為`, answer:k, type:'number'};
-  }
-  if(t===2){
-    const k=randInt(8,25),m=pick([2,3,5,7]);
-    return {question:`化簡 \\(\\sqrt{${k*k*m}}\\)，根號內最簡值為`, answer:m, type:'number'};
-  }
-  if(t===3){
-    const k=randInt(6,20),m=pick([2,3,5,6,7]);
-    return {question:`\\(a\\sqrt{${m}}\\) 化為 \\(\\sqrt{${k*k*m}}\\)，求 \\(a\\)`, answer:k, type:'number'};
-  }
-  if(t===4){
     // 使√(m-x²)有意義的最大正整數 x（x² ≤ m → x ≤ √m）
     const mOpts=[5,8,10,13,17,20,26,29,34,37];
     const m=pick(mOpts);
     const maxX=Math.floor(Math.sqrt(m));
     return {question:`使 \\(\\sqrt{${m}-x^2}\\) 有意義的最大正整數 \\(x\\) 為`, answer:maxX, type:'number', answerPrefix:'x'};
   }
-  // t===5: 小數部分性質：設 √n 整數部分為 a，小數部分為 x，x²+2ax = n-a²
+  // t===2: 小數部分性質：設 √n 整數部分為 a，小數部分為 x，x²+2ax = n-a²
   {
     const nOpts=[
       {n:2,a:1},{n:3,a:1},{n:5,a:2},{n:6,a:2},{n:7,a:2},
