@@ -9622,22 +9622,44 @@ function _9aCircleLine(level){
       answer:xv,type:'number',answerPrefix:'\\(x\\)'};
   }
   // hard
-  const t=randInt(0,1);
+  const t=randInt(0,3);
   if(t===0){
     // 求半徑（知d和弦長）
     const [d,hl,r]=pick(PY3C);
-    const askR=randInt(0,1)===0;
-    if(askR){
-      return {question:`圓 \\(O\\) 的弦 \\(AB=${2*hl}\\)，圓心到 \\(AB\\) 的距離為 \\(${d}\\)，求半徑`,answer:r,type:'number',answerPrefix:'半徑'};
-    }
-    return {question:`圓 \\(O\\) 半徑為 \\(${r}\\)，點 \\(P\\) 到圓心距離為 \\(${r+randInt(1,5)}\\)，切線長 \\(PT\\) 滿足 \\(PT^2+${r}^2=${(r+randInt(1,5))*(r+randInt(1,5))}\\)，求 \\(PT\\)`,
-      answer:0,type:'number',answerPrefix:'\\(PT\\)'}; // fallback, will retry
+    return {question:`圓 \\(O\\) 的弦 \\(AB=${2*hl}\\)，圓心到 \\(AB\\) 的距離為 \\(${d}\\)，求半徑`,answer:r,type:'number',answerPrefix:'半徑'};
   }
-  // 兩弦相交：PA·PB = PC·PD
-  const a=randInt(2,6),b=randInt(2,6),c=randInt(2,6);
-  const d2=a*b/c;
-  if(!Number.isInteger(d2)||d2<1)return null;
-  return {question:`兩弦 \\(AB\\) 與 \\(CD\\) 在圓內交於點 \\(P\\)，\\(PA=${a}\\)，\\(PB=${b}\\)，\\(PC=${c}\\)，求 \\(PD\\)（相交弦定理：\\(PA \\cdot PB=PC \\cdot PD\\)）`,answer:d2,type:'number',answerPrefix:'\\(PD\\)'};
+  if(t===1){
+    // 相交弦定理：PA·PB=PC·PD（圓內交點）
+    const a=randInt(2,6),b=randInt(2,6),c=randInt(2,6);
+    const d2=a*b/c;
+    if(!Number.isInteger(d2)||d2<1)return null;
+    return {question:`兩弦 \\(AB\\) 與 \\(CD\\) 在圓內交於點 \\(P\\)，\\(PA=${a}\\)，\\(PB=${b}\\)，\\(PC=${c}\\)，求 \\(PD\\)（相交弦定理：\\(PA \\cdot PB=PC \\cdot PD\\)）`,answer:d2,type:'number',answerPrefix:'\\(PD\\)'};
+  }
+  if(t===2){
+    // 切割線定理：PT²=PA·PB（圓外切線＋割線）
+    const tanSecPool=[
+      {PT:6,PA:4,PB:9},{PT:4,PA:2,PB:8},{PT:6,PA:3,PB:12},
+      {PT:8,PA:4,PB:16},{PT:6,PA:2,PB:18},{PT:4,PA:1,PB:16},
+      {PT:9,PA:3,PB:27},{PT:8,PA:2,PB:32},{PT:10,PA:4,PB:25}
+    ];
+    const ts=pick(tanSecPool);
+    const askWhat=randInt(0,2);
+    if(askWhat===0)
+      return {question:`點 \\(P\\) 在圓外，\\(PT\\) 為切線（\\(T\\) 為切點），\\(PAB\\) 為割線，\\(PA=${ts.PA}\\)，\\(PB=${ts.PB}\\)，求切線長 \\(PT\\)（切割線定理：\\(PT^2=PA \\cdot PB\\)）`,answer:ts.PT,type:'number',answerPrefix:'\\(PT\\)'};
+    if(askWhat===1)
+      return {question:`點 \\(P\\) 在圓外，\\(PT\\) 為切線（\\(T\\) 為切點），\\(PT=${ts.PT}\\)，\\(PAB\\) 為割線，\\(PA=${ts.PA}\\)，求 \\(PB\\)（切割線定理：\\(PT^2=PA \\cdot PB\\)）`,answer:ts.PB,type:'number',answerPrefix:'\\(PB\\)'};
+    return {question:`點 \\(P\\) 在圓外，\\(PT\\) 為切線（\\(T\\) 為切點），\\(PT=${ts.PT}\\)，\\(PAB\\) 為割線，\\(PB=${ts.PB}\\)，求 \\(PA\\)（切割線定理：\\(PT^2=PA \\cdot PB\\)）`,answer:ts.PA,type:'number',answerPrefix:'\\(PA\\)'};
+  }
+  // t===3: 割線定理：PA·PB=PC·PD（圓外兩割線）
+  const secSecPool=[
+    {PA:2,PB:8,PC:1,PD:16},{PA:3,PB:12,PC:4,PD:9},{PA:2,PB:18,PC:3,PD:12},
+    {PA:4,PB:16,PC:2,PD:32},{PA:2,PB:12,PC:3,PD:8},{PA:3,PB:9,PC:1,PD:27}
+  ];
+  const ss=pick(secSecPool);
+  const askSS=randInt(0,1);
+  if(askSS===0)
+    return {question:`點 \\(P\\) 在圓外，兩割線 \\(PAB\\) 和 \\(PCD\\)（\\(A\\)、\\(C\\) 為近交點），\\(PA=${ss.PA}\\)，\\(PB=${ss.PB}\\)，\\(PC=${ss.PC}\\)，求 \\(PD\\)（割線定理：\\(PA \\cdot PB=PC \\cdot PD\\)）`,answer:ss.PD,type:'number',answerPrefix:'\\(PD\\)'};
+  return {question:`點 \\(P\\) 在圓外，兩割線 \\(PAB\\) 和 \\(PCD\\)（\\(A\\)、\\(C\\) 為近交點），\\(PA=${ss.PA}\\)，\\(PB=${ss.PB}\\)，\\(PD=${ss.PD}\\)，求 \\(PC\\)（割線定理：\\(PA \\cdot PB=PC \\cdot PD\\)）`,answer:ss.PC,type:'number',answerPrefix:'\\(PC\\)'};
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -9727,7 +9749,7 @@ function gen9aCircChorTan(level){
 }
 function _9aCircChorTan(level){
   if(level==='basic'){
-    const t=randInt(0,2);
+    const t=randInt(0,3);
     if(t===0){
       // 弦切角 = 同弧圓周角
       const ang=randInt(2,8)*10;
@@ -9740,13 +9762,19 @@ function _9aCircChorTan(level){
       return{question:`\\(AT\\) 為圓 \\(O\\) 的切線，\\(A\\) 為切點，\\(AB\\) 為弦，圓心角 \\(\\angle AOB=${central}^\\circ\\)，求弦切角 \\(\\angle TAB\\)`,
         answer:central/2,type:'number',answerPrefix:'\\(\\angle TAB\\)'};
     }
-    // t===2: 切線直線上兩弦切角互補
-    const ang2=randInt(25,80);
-    return{question:`直線 \\(T'AT\\) 與圓 \\(O\\) 相切於 \\(A\\)，\\(AB\\) 為弦，\\(\\angle TAB=${ang2}^\\circ\\)，求 \\(\\angle T'AB\\)`,
-      answer:180-ang2,type:'number',answerPrefix:'\\(\\angle T\'AB\\)'};
+    if(t===2){
+      // 切線直線上兩弦切角互補
+      const ang2=randInt(25,80);
+      return{question:`直線 \\(T'AT\\) 與圓 \\(O\\) 相切於 \\(A\\)，\\(AB\\) 為弦，\\(\\angle TAB=${ang2}^\\circ\\)，求 \\(\\angle T'AB\\)`,
+        answer:180-ang2,type:'number',answerPrefix:'\\(\\angle T\'AB\\)'};
+    }
+    // t===3: 兩切線性質：∠APB + ∠AOB = 180°
+    const angAOB=randInt(6,16)*10;
+    return{question:`點 \\(P\\) 在圓 \\(O\\) 外，\\(PA\\)、\\(PB\\) 均為圓的切線（切點為 \\(A\\)、\\(B\\)），\\(\\angle AOB=${angAOB}^\\circ\\)，求 \\(\\angle APB\\)（兩切線性質：\\(\\angle APB+\\angle AOB=180^\\circ\\)）`,
+      answer:180-angAOB,type:'number',answerPrefix:'\\(\\angle APB\\)'};
   }
   if(level==='medium'){
-    const t=randInt(0,1);
+    const t=randInt(0,2);
     if(t===0){
       // 代數：∠TAB = ∠ACB，解 x
       const xv=randInt(2,10),av=randInt(1,3),bv=randInt(10,40);
@@ -9757,14 +9785,26 @@ function _9aCircChorTan(level){
       return{question:`\\(AT\\) 為圓 \\(O\\) 切線，\\(A\\) 為切點，\\(AB\\) 為弦，弦切角 \\(\\angle TAB=(${av}x+${bv})^\\circ\\)，同弧圓周角 \\(\\angle ACB=(${cv}x+${dv})^\\circ\\)，求 \\(x\\)`,
         answer:xv,type:'number',answerPrefix:'\\(x\\)'};
     }
-    // t===1: 圓內三角形+切線：∠TAB=α，∠BAC=β，由∠ACB=∠TAB求∠ABC
-    const alpha=randInt(20,50),beta=randInt(25,65);
-    if(alpha+beta>=170)return null;
-    return{question:`\\(AT\\) 為圓 \\(O\\) 切線，\\(A\\) 為切點，\\(B\\)、\\(C\\) 在圓上，\\(\\angle TAB=${alpha}^\\circ\\)，\\(\\angle BAC=${beta}^\\circ\\)，由弦切角定理知 \\(\\angle ACB=\\angle TAB=${alpha}^\\circ\\)，求 \\(\\angle ABC\\)`,
-      answer:180-alpha-beta,type:'number',answerPrefix:'\\(\\angle ABC\\)'};
+    if(t===1){
+      // 圓內三角形+切線：∠TAB=α，∠BAC=β，由∠ACB=∠TAB求∠ABC
+      const alpha=randInt(20,50),beta=randInt(25,65);
+      if(alpha+beta>=170)return null;
+      return{question:`\\(AT\\) 為圓 \\(O\\) 切線，\\(A\\) 為切點，\\(B\\)、\\(C\\) 在圓上，\\(\\angle TAB=${alpha}^\\circ\\)，\\(\\angle BAC=${beta}^\\circ\\)，由弦切角定理知 \\(\\angle ACB=\\angle TAB=${alpha}^\\circ\\)，求 \\(\\angle ABC\\)`,
+        answer:180-alpha-beta,type:'number',answerPrefix:'\\(\\angle ABC\\)'};
+    }
+    // t===2: 兩切線等長：PA=PB，代數求x
+    const twoTanPool=[
+      {a1:3,b1:4,a2:1,b2:12,xv:4},{a1:2,b1:6,a2:1,b2:14,xv:8},
+      {a1:4,b1:5,a2:2,b2:15,xv:5},{a1:3,b1:2,a2:1,b2:18,xv:8},
+      {a1:5,b1:3,a2:2,b2:18,xv:5},{a1:2,b1:10,a2:1,b2:17,xv:7},
+      {a1:4,b1:2,a2:1,b2:20,xv:6},{a1:3,b1:8,a2:2,b2:14,xv:6}
+    ];
+    const tt=pick(twoTanPool);
+    return{question:`點 \\(P\\) 在圓 \\(O\\) 外，\\(PA\\)、\\(PB\\) 均為圓的切線（切點為 \\(A\\)、\\(B\\)），\\(PA=(${tt.a1}x+${tt.b1})\\)，\\(PB=(${tt.a2}x+${tt.b2})\\)，由兩切線等長求 \\(x\\)`,
+      answer:tt.xv,type:'number',answerPrefix:'\\(x\\)'};
   }
   // hard
-  const t=randInt(0,1);
+  const t=randInt(0,2);
   if(t===0){
     // D 在弦切角所夾弧（同側），∠ADB = 180 - ∠TAB，代數求 x
     const alpha=randInt(25,70);
@@ -9774,11 +9814,20 @@ function _9aCircChorTan(level){
     return{question:`\\(AT\\) 為圓 \\(O\\) 切線，\\(A\\) 為切點，\\(AB\\) 為弦，\\(\\angle TAB=${alpha}^\\circ\\)，點 \\(D\\) 在弦切角 \\(\\angle TAB\\) 所夾的弧上，\\(\\angle ADB=(${av}x+${bv})^\\circ\\)，求 \\(x\\)`,
       answer:xv,type:'number',answerPrefix:'\\(x\\)'};
   }
-  // t===1: △ATB 三角和：∠TAB + ∠ABT + ∠ATB = 180
-  const alpha2=randInt(20,55),beta2=randInt(20,55);
-  if(alpha2+beta2>=165)return null;
-  return{question:`\\(AT\\) 為圓 \\(O\\) 切線，\\(A\\) 為切點，\\(B\\) 在圓上，\\(T\\) 在切線上，\\(\\angle TAB=${alpha2}^\\circ\\)，\\(\\angle ABT=${beta2}^\\circ\\)，求 \\(\\angle ATB\\)`,
-    answer:180-alpha2-beta2,type:'number',answerPrefix:'\\(\\angle ATB\\)'};
+  if(t===1){
+    // △ATB 三角和：∠TAB + ∠ABT + ∠ATB = 180
+    const alpha2=randInt(20,55),beta2=randInt(20,55);
+    if(alpha2+beta2>=165)return null;
+    return{question:`\\(AT\\) 為圓 \\(O\\) 切線，\\(A\\) 為切點，\\(B\\) 在圓上，\\(T\\) 在切線上，\\(\\angle TAB=${alpha2}^\\circ\\)，\\(\\angle ABT=${beta2}^\\circ\\)，求 \\(\\angle ATB\\)`,
+      answer:180-alpha2-beta2,type:'number',answerPrefix:'\\(\\angle ATB\\)'};
+  }
+  // t===2: 兩切線∠APB + ∠AOB = 180°，代數求x
+  const angAPB=randInt(4,10)*10;
+  const angAOB2=180-angAPB;
+  const xv2=randInt(2,8),av2=randInt(1,3),bv2=angAOB2-av2*xv2;
+  if(bv2<=5)return null;
+  return{question:`點 \\(P\\) 在圓 \\(O\\) 外，\\(PA\\)、\\(PB\\) 均為圓的切線（切點為 \\(A\\)、\\(B\\)），\\(\\angle APB=${angAPB}^\\circ\\)，\\(\\angle AOB=(${av2}x+${bv2})^\\circ\\)，求 \\(x\\)（兩切線性質：\\(\\angle APB+\\angle AOB=180^\\circ\\)）`,
+    answer:xv2,type:'number',answerPrefix:'\\(x\\)'};
 }
 
 // ═══════════════════════════════════════════════════════════════════
