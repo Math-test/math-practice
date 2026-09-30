@@ -9577,7 +9577,13 @@ function gen9aCircleLine(level){
   return _9aCircleLine('basic');
 }
 function _9aCircleLine(level){
-  const PY3C=[[3,4,5],[4,3,5],[5,12,13],[6,8,10],[8,6,10],[9,12,15],[8,15,17]];
+  const PY3C=[
+    [3,4,5],[4,3,5],[5,12,13],[12,5,13],
+    [6,8,10],[8,6,10],[9,12,15],[12,9,15],
+    [8,15,17],[15,8,17],[7,24,25],[24,7,25],
+    [10,24,26],[24,10,26],[20,21,29],[21,20,29],
+    [12,16,20],[16,12,20],[15,20,25],[20,15,25]
+  ];
   if(level==='basic'){
     const t=randInt(0,3);
     if(t===0){
@@ -9601,7 +9607,11 @@ function _9aCircleLine(level){
       {r:10,d:6,rel:'圓內'},{r:10,d:10,rel:'圓上'},{r:10,d:13,rel:'圓外'},
       {r:8,d:5,rel:'圓內'},{r:8,d:8,rel:'圓上'},{r:8,d:11,rel:'圓外'},
       {r:13,d:5,rel:'圓內'},{r:13,d:13,rel:'圓上'},{r:13,d:15,rel:'圓外'},
-      {r:17,d:15,rel:'圓內'},{r:17,d:17,rel:'圓上'},{r:17,d:20,rel:'圓外'}
+      {r:17,d:15,rel:'圓內'},{r:17,d:17,rel:'圓上'},{r:17,d:20,rel:'圓外'},
+      {r:20,d:12,rel:'圓內'},{r:20,d:20,rel:'圓上'},{r:20,d:25,rel:'圓外'},
+      {r:25,d:7,rel:'圓內'},{r:25,d:25,rel:'圓上'},{r:25,d:29,rel:'圓外'},
+      {r:26,d:10,rel:'圓內'},{r:26,d:26,rel:'圓上'},{r:26,d:30,rel:'圓外'},
+      {r:29,d:21,rel:'圓內'},{r:29,d:29,rel:'圓上'},{r:29,d:35,rel:'圓外'}
     ];
     const pp=pick(posPool);
     return {question:`圓 \\(O\\) 的半徑為 \\(${pp.r}\\)，點 \\(P\\) 與圓心的距離為 \\(${pp.d}\\)，判斷點 \\(P\\) 與圓的位置關係`,answer:pp.rel,type:'text',answerPrefix:'位置關係'};
@@ -9657,7 +9667,10 @@ function _9aCircleLine(level){
     const tanSecPool=[
       {PT:6,PA:4,PB:9},{PT:4,PA:2,PB:8},{PT:6,PA:3,PB:12},
       {PT:8,PA:4,PB:16},{PT:6,PA:2,PB:18},{PT:4,PA:1,PB:16},
-      {PT:9,PA:3,PB:27},{PT:8,PA:2,PB:32},{PT:10,PA:4,PB:25}
+      {PT:9,PA:3,PB:27},{PT:8,PA:2,PB:32},{PT:10,PA:4,PB:25},
+      {PT:12,PA:4,PB:36},{PT:15,PA:5,PB:45},{PT:12,PA:6,PB:24},
+      {PT:10,PA:2,PB:50},{PT:15,PA:9,PB:25},{PT:18,PA:6,PB:54},
+      {PT:12,PA:3,PB:48},{PT:16,PA:4,PB:64},{PT:20,PA:10,PB:40}
     ];
     const ts=pick(tanSecPool);
     const askWhat=randInt(0,2);
@@ -9670,7 +9683,9 @@ function _9aCircleLine(level){
   // t===3: 割線定理：PA·PB=PC·PD（圓外兩割線）
   const secSecPool=[
     {PA:2,PB:8,PC:1,PD:16},{PA:3,PB:12,PC:4,PD:9},{PA:2,PB:18,PC:3,PD:12},
-    {PA:4,PB:16,PC:2,PD:32},{PA:2,PB:12,PC:3,PD:8},{PA:3,PB:9,PC:1,PD:27}
+    {PA:4,PB:16,PC:2,PD:32},{PA:2,PB:12,PC:3,PD:8},{PA:3,PB:9,PC:1,PD:27},
+    {PA:4,PB:9,PC:3,PD:12},{PA:5,PB:20,PC:4,PD:25},{PA:6,PB:24,PC:8,PD:18},
+    {PA:4,PB:25,PC:5,PD:20},{PA:5,PB:45,PC:9,PD:25},{PA:6,PB:16,PC:4,PD:24}
   ];
   const ss=pick(secSecPool);
   const askSS=randInt(0,1);
@@ -9691,24 +9706,24 @@ function _9aCircleAngle(level){
     const t=randInt(0,3);
     if(t===0){
       // 圓心角=2×圓周角，給圓心角求圓周角
-      const central=randInt(2,8)*10;
+      const central=randInt(2,17)*10;
       return {question:`圓 \\(O\\) 中，圓心角 \\(\\angle AOB=${central}^\\circ\\)，同弧上的圓周角 \\(\\angle ACB\\) 為`,
         answer:central/2,type:'number',answerPrefix:'\\(\\angle ACB\\)'};
     }
     if(t===1){
       // 給圓周角求圓心角
-      const inscribed=randInt(1,8)*10;
+      const inscribed=randInt(1,17)*5;
       return {question:`圓 \\(O\\) 中，圓周角 \\(\\angle ACB=${inscribed}^\\circ\\)，對應的圓心角 \\(\\angle AOB\\) 為`,
         answer:2*inscribed,type:'number',answerPrefix:'\\(\\angle AOB\\)'};
     }
     if(t===2){
       // 半圓上的圓周角=90°
-      const ang=randInt(30,60);
+      const ang=randInt(15,75);
       return {question:`圓 \\(O\\) 中，\\(AB\\) 為直徑，\\(C\\) 在圓上，\\(\\angle BAC=${ang}^\\circ\\)，求 \\(\\angle ABC\\)`,
         answer:90-ang,type:'number',answerPrefix:'\\(\\angle ABC\\)'};
     }
     // t===3: 等弦對等圓心角
-    const angVals=[45,50,55,60,65,70,75,80,85,90,100,110,120];
+    const angVals=[30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,130,140,150];
     const angV=pick(angVals);
     return {question:`同圓 \\(O\\) 中，弦 \\(AB=\\) 弦 \\(CD\\)，圓心角 \\(\\angle AOB=${angV}^\\circ\\)，求 \\(\\angle COD\\)（等弦對等圓心角）`,
       answer:angV,type:'number',answerPrefix:'\\(\\angle COD\\)'};
@@ -9752,7 +9767,7 @@ function _9aCircleAngle(level){
         answer:xv2,type:'number',answerPrefix:'\\(x\\)'};
     }
     // t===3: 直徑端點圓周角+圓心角組合
-    const angCAB=randInt(25,65);
+    const angCAB=randInt(20,70);
     return {question:`\\(\\triangle ABC\\) 內接於圓 \\(O\\)，\\(AB\\) 為直徑，\\(\\angle CAB=${angCAB}^\\circ\\)，求圓心角 \\(\\angle BOC\\)`,
       answer:2*angCAB,type:'number',answerPrefix:'\\(\\angle BOC\\)'};
   }
@@ -9760,7 +9775,7 @@ function _9aCircleAngle(level){
   const t=randInt(0,2);
   if(t===0){
     // 圓內接四邊形：對角互補
-    const A=randInt(60,120);
+    const A=randInt(45,135);
     return {question:`圓內接四邊形 \\(ABCD\\) 中，\\(\\angle A=${A}^\\circ\\)，求 \\(\\angle C\\)`,
       answer:180-A,type:'number',answerPrefix:'\\(\\angle C\\)'};
   }
@@ -9788,24 +9803,24 @@ function _9aCircChorTan(level){
     const t=randInt(0,3);
     if(t===0){
       // 弦切角 = 同弧圓周角
-      const ang=randInt(2,8)*10;
+      const ang=randInt(2,17)*5;
       return{question:`\\(AT\\) 為圓 \\(O\\) 的切線，\\(A\\) 為切點，\\(AB\\) 為弦，\\(\\angle TAB=${ang}^\\circ\\)，點 \\(C\\) 在弦 \\(AB\\) 另一側的弧上，求圓周角 \\(\\angle ACB\\)`,
         answer:ang,type:'number',answerPrefix:'\\(\\angle ACB\\)'};
     }
     if(t===1){
       // 弦切角 = ½ 圓心角
-      const central=randInt(2,8)*20;
+      const central=randInt(2,16)*10;
       return{question:`\\(AT\\) 為圓 \\(O\\) 的切線，\\(A\\) 為切點，\\(AB\\) 為弦，圓心角 \\(\\angle AOB=${central}^\\circ\\)，求弦切角 \\(\\angle TAB\\)`,
         answer:central/2,type:'number',answerPrefix:'\\(\\angle TAB\\)'};
     }
     if(t===2){
       // 切線直線上兩弦切角互補
-      const ang2=randInt(25,80);
+      const ang2=randInt(20,85);
       return{question:`直線 \\(T'AT\\) 與圓 \\(O\\) 相切於 \\(A\\)，\\(AB\\) 為弦，\\(\\angle TAB=${ang2}^\\circ\\)，求 \\(\\angle T'AB\\)`,
         answer:180-ang2,type:'number',answerPrefix:'\\(\\angle T\'AB\\)'};
     }
     // t===3: 兩切線性質：∠APB + ∠AOB = 180°
-    const angAOB=randInt(6,16)*10;
+    const angAOB=randInt(3,17)*10;
     return{question:`點 \\(P\\) 在圓 \\(O\\) 外，\\(PA\\)、\\(PB\\) 均為圓的切線（切點為 \\(A\\)、\\(B\\)），\\(\\angle AOB=${angAOB}^\\circ\\)，求 \\(\\angle APB\\)（兩切線性質：\\(\\angle APB+\\angle AOB=180^\\circ\\)）`,
       answer:180-angAOB,type:'number',answerPrefix:'\\(\\angle APB\\)'};
   }
