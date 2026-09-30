@@ -9579,7 +9579,7 @@ function gen9aCircleLine(level){
 function _9aCircleLine(level){
   const PY3C=[[3,4,5],[4,3,5],[5,12,13],[6,8,10],[8,6,10],[9,12,15],[8,15,17]];
   if(level==='basic'){
-    const t=randInt(0,2);
+    const t=randInt(0,3);
     if(t===0){
       // 弦長：d²+(l/2)²=r²，求弦長（知r和d）
       const [d,hl,r]=pick(PY3C);
@@ -9590,12 +9590,24 @@ function _9aCircleLine(level){
       const [d,hl,r]=pick(PY3C);
       return {question:`圓 \\(O\\) 半徑為 \\(${r}\\)，弦 \\(AB=${2*hl}\\)，求圓心 \\(O\\) 到弦 \\(AB\\) 的距離`,answer:d,type:'number',answerPrefix:'距離'};
     }
-    // t===2: 切線長：PT²=PO²-r²
-    const [l,r,PO]=pick(PY3C);
-    return {question:`點 \\(P\\) 在圓 \\(O\\) 外，\\(PO=${PO}\\)，圓半徑為 \\(${r}\\)，\\(PT\\) 為切線，求切線長 \\(PT\\)`,answer:l,type:'number',answerPrefix:'\\(PT\\)'};
+    if(t===2){
+      // 切線長：PT²=PO²-r²
+      const [l,r,PO]=pick(PY3C);
+      return {question:`點 \\(P\\) 在圓 \\(O\\) 外，\\(PO=${PO}\\)，圓半徑為 \\(${r}\\)，\\(PT\\) 為切線，求切線長 \\(PT\\)`,answer:l,type:'number',answerPrefix:'\\(PT\\)'};
+    }
+    // t===3: 點與圓的位置關係（比較PO與r）
+    const posPool=[
+      {r:5,d:3,rel:'圓內'},{r:5,d:5,rel:'圓上'},{r:5,d:7,rel:'圓外'},
+      {r:10,d:6,rel:'圓內'},{r:10,d:10,rel:'圓上'},{r:10,d:13,rel:'圓外'},
+      {r:8,d:5,rel:'圓內'},{r:8,d:8,rel:'圓上'},{r:8,d:11,rel:'圓外'},
+      {r:13,d:5,rel:'圓內'},{r:13,d:13,rel:'圓上'},{r:13,d:15,rel:'圓外'},
+      {r:17,d:15,rel:'圓內'},{r:17,d:17,rel:'圓上'},{r:17,d:20,rel:'圓外'}
+    ];
+    const pp=pick(posPool);
+    return {question:`圓 \\(O\\) 的半徑為 \\(${pp.r}\\)，點 \\(P\\) 與圓心的距離為 \\(${pp.d}\\)，判斷點 \\(P\\) 與圓的位置關係`,answer:pp.rel,type:'text',answerPrefix:'位置關係'};
   }
   if(level==='medium'){
-    const t=randInt(0,2);
+    const t=randInt(0,3);
     if(t===0){
       // 代數：d=(ax+b)，hl=c，r已知，求x
       const [d0,hl,r]=pick(PY3C);
@@ -9614,12 +9626,17 @@ function _9aCircleLine(level){
       const [d,hl,r]=pick(PY3C);
       return {question:`圓 \\(O\\) 半徑為 \\(${r}\\)，弦 \\(AB=CD=${2*hl}\\)，求圓心 \\(O\\) 到兩弦的距離`,answer:d,type:'number',answerPrefix:'距離'};
     }
-    // t===2: 切線長代數
-    const [l,r2,PO]=pick(PY3C);
-    const xv=randInt(2,8),av=randInt(1,3),bv2=l-av*xv;
-    if(bv2<=0)return null;
-    return {question:`點 \\(P\\) 在圓 \\(O\\) 外，\\(PO=${PO}\\)，半徑為 \\(${r2}\\)，切線長 \\(PT=(${av}x+${bv2})\\)，求 \\(x\\)`,
-      answer:xv,type:'number',answerPrefix:'\\(x\\)'};
+    if(t===2){
+      // 切線長代數
+      const [l,r2,PO]=pick(PY3C);
+      const xv=randInt(2,8),av=randInt(1,3),bv2=l-av*xv;
+      if(bv2<=0)return null;
+      return {question:`點 \\(P\\) 在圓 \\(O\\) 外，\\(PO=${PO}\\)，半徑為 \\(${r2}\\)，切線長 \\(PT=(${av}x+${bv2})\\)，求 \\(x\\)`,
+        answer:xv,type:'number',answerPrefix:'\\(x\\)'};
+    }
+    // t===3: 弦中垂線求半徑（OM⊥AB於M，給OM和MA求r）
+    const [d,hl,r]=pick(PY3C);
+    return {question:`圓 \\(O\\) 中，\\(M\\) 為弦 \\(AB\\) 的中點，\\(OM \\perp AB\\)，\\(OM=${d}\\)，\\(MA=${hl}\\)，求圓的半徑`,answer:r,type:'number',answerPrefix:'半徑'};
   }
   // hard
   const t=randInt(0,3);
@@ -9671,7 +9688,7 @@ function gen9aCircleAngle(level){
 }
 function _9aCircleAngle(level){
   if(level==='basic'){
-    const t=randInt(0,2);
+    const t=randInt(0,3);
     if(t===0){
       // 圓心角=2×圓周角，給圓心角求圓周角
       const central=randInt(2,8)*10;
@@ -9684,13 +9701,20 @@ function _9aCircleAngle(level){
       return {question:`圓 \\(O\\) 中，圓周角 \\(\\angle ACB=${inscribed}^\\circ\\)，對應的圓心角 \\(\\angle AOB\\) 為`,
         answer:2*inscribed,type:'number',answerPrefix:'\\(\\angle AOB\\)'};
     }
-    // t===2: 半圓上的圓周角=90°
-    const ang=randInt(30,60);
-    return {question:`圓 \\(O\\) 中，\\(AB\\) 為直徑，\\(C\\) 在圓上，\\(\\angle BAC=${ang}^\\circ\\)，求 \\(\\angle ABC\\)`,
-      answer:90-ang,type:'number',answerPrefix:'\\(\\angle ABC\\)'};
+    if(t===2){
+      // 半圓上的圓周角=90°
+      const ang=randInt(30,60);
+      return {question:`圓 \\(O\\) 中，\\(AB\\) 為直徑，\\(C\\) 在圓上，\\(\\angle BAC=${ang}^\\circ\\)，求 \\(\\angle ABC\\)`,
+        answer:90-ang,type:'number',answerPrefix:'\\(\\angle ABC\\)'};
+    }
+    // t===3: 等弦對等圓心角
+    const angVals=[45,50,55,60,65,70,75,80,85,90,100,110,120];
+    const angV=pick(angVals);
+    return {question:`同圓 \\(O\\) 中，弦 \\(AB=\\) 弦 \\(CD\\)，圓心角 \\(\\angle AOB=${angV}^\\circ\\)，求 \\(\\angle COD\\)（等弦對等圓心角）`,
+      answer:angV,type:'number',answerPrefix:'\\(\\angle COD\\)'};
   }
   if(level==='medium'){
-    const t=randInt(0,2);
+    const t=randInt(0,3);
     if(t===0){
       // 代數：圓心角=(ax+b)°，圓周角=(cx+d)°，求x
       const xv=randInt(2,10),av=randInt(2,4),bv=randInt(10,30),cv=randInt(1,2),dv=randInt(5,20);
@@ -9719,25 +9743,37 @@ function _9aCircleAngle(level){
       return {question:`圓 \\(O\\) 中，\\(C\\)、\\(D\\) 均在弧 \\(AB\\) 的同側，\\(\\angle ACB=${ang}^\\circ\\)，求 \\(\\angle ADB\\)`,
         answer:ang,type:'number',answerPrefix:'\\(\\angle ADB\\)'};
     }
-    // t===2: 求弧度角的應用
-    const central2=randInt(3,9)*20;
-    const xv2=randInt(2,8),av2=randInt(1,3),bv2=central2/2-av2*xv2;
-    if(bv2<=0)return null;
-    return {question:`圓 \\(O\\) 中，圓心角 \\(\\angle AOB=${central2}^\\circ\\)，同弧圓周角 \\(\\angle ACB=(${av2}x+${bv2})^\\circ\\)，求 \\(x\\)`,
-      answer:xv2,type:'number',answerPrefix:'\\(x\\)'};
+    if(t===2){
+      // 求弧度角的應用
+      const central2=randInt(3,9)*20;
+      const xv2=randInt(2,8),av2=randInt(1,3),bv2=central2/2-av2*xv2;
+      if(bv2<=0)return null;
+      return {question:`圓 \\(O\\) 中，圓心角 \\(\\angle AOB=${central2}^\\circ\\)，同弧圓周角 \\(\\angle ACB=(${av2}x+${bv2})^\\circ\\)，求 \\(x\\)`,
+        answer:xv2,type:'number',answerPrefix:'\\(x\\)'};
+    }
+    // t===3: 直徑端點圓周角+圓心角組合
+    const angCAB=randInt(25,65);
+    return {question:`\\(\\triangle ABC\\) 內接於圓 \\(O\\)，\\(AB\\) 為直徑，\\(\\angle CAB=${angCAB}^\\circ\\)，求圓心角 \\(\\angle BOC\\)`,
+      answer:2*angCAB,type:'number',answerPrefix:'\\(\\angle BOC\\)'};
   }
   // hard
-  const t=randInt(0,1);
+  const t=randInt(0,2);
   if(t===0){
     // 圓內接四邊形：對角互補
     const A=randInt(60,120);
     return {question:`圓內接四邊形 \\(ABCD\\) 中，\\(\\angle A=${A}^\\circ\\)，求 \\(\\angle C\\)`,
       answer:180-A,type:'number',answerPrefix:'\\(\\angle C\\)'};
   }
-  const A2=randInt(50,110),xv=randInt(2,8),av=randInt(1,3),bv=(180-A2)-av*xv;
-  if(bv<=0)return null;
-  return {question:`圓內接四邊形 \\(ABCD\\) 中，\\(\\angle A=${A2}^\\circ\\)，\\(\\angle C=(${av}x+${bv})^\\circ\\)，求 \\(x\\)`,
-    answer:xv,type:'number',answerPrefix:'\\(x\\)'};
+  if(t===1){
+    const A2=randInt(50,110),xv=randInt(2,8),av=randInt(1,3),bv=(180-A2)-av*xv;
+    if(bv<=0)return null;
+    return {question:`圓內接四邊形 \\(ABCD\\) 中，\\(\\angle A=${A2}^\\circ\\)，\\(\\angle C=(${av}x+${bv})^\\circ\\)，求 \\(x\\)`,
+      answer:xv,type:'number',answerPrefix:'\\(x\\)'};
+  }
+  // t===2: 圓內接四邊形外角 = 內對角
+  const A3=randInt(50,130);
+  return {question:`圓內接四邊形 \\(ABCD\\) 中，\\(\\angle A=${A3}^\\circ\\)，\\(E\\) 在 \\(DC\\) 的延長線上，求 \\(\\angle BCE\\)（外角等於內對角）`,
+    answer:A3,type:'number',answerPrefix:'\\(\\angle BCE\\)'};
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -9774,7 +9810,7 @@ function _9aCircChorTan(level){
       answer:180-angAOB,type:'number',answerPrefix:'\\(\\angle APB\\)'};
   }
   if(level==='medium'){
-    const t=randInt(0,2);
+    const t=randInt(0,3);
     if(t===0){
       // 代數：∠TAB = ∠ACB，解 x
       const xv=randInt(2,10),av=randInt(1,3),bv=randInt(10,40);
@@ -9792,16 +9828,28 @@ function _9aCircChorTan(level){
       return{question:`\\(AT\\) 為圓 \\(O\\) 切線，\\(A\\) 為切點，\\(B\\)、\\(C\\) 在圓上，\\(\\angle TAB=${alpha}^\\circ\\)，\\(\\angle BAC=${beta}^\\circ\\)，由弦切角定理知 \\(\\angle ACB=\\angle TAB=${alpha}^\\circ\\)，求 \\(\\angle ABC\\)`,
         answer:180-alpha-beta,type:'number',answerPrefix:'\\(\\angle ABC\\)'};
     }
-    // t===2: 兩切線等長：PA=PB，代數求x
-    const twoTanPool=[
-      {a1:3,b1:4,a2:1,b2:12,xv:4},{a1:2,b1:6,a2:1,b2:14,xv:8},
-      {a1:4,b1:5,a2:2,b2:15,xv:5},{a1:3,b1:2,a2:1,b2:18,xv:8},
-      {a1:5,b1:3,a2:2,b2:18,xv:5},{a1:2,b1:10,a2:1,b2:17,xv:7},
-      {a1:4,b1:2,a2:1,b2:20,xv:6},{a1:3,b1:8,a2:2,b2:14,xv:6}
+    if(t===2){
+      // 兩切線等長：PA=PB，代數求x
+      const twoTanPool=[
+        {a1:3,b1:4,a2:1,b2:12,xv:4},{a1:2,b1:6,a2:1,b2:14,xv:8},
+        {a1:4,b1:5,a2:2,b2:15,xv:5},{a1:3,b1:2,a2:1,b2:18,xv:8},
+        {a1:5,b1:3,a2:2,b2:18,xv:5},{a1:2,b1:10,a2:1,b2:17,xv:7},
+        {a1:4,b1:2,a2:1,b2:20,xv:6},{a1:3,b1:8,a2:2,b2:14,xv:6}
+      ];
+      const tt=pick(twoTanPool);
+      return{question:`點 \\(P\\) 在圓 \\(O\\) 外，\\(PA\\)、\\(PB\\) 均為圓的切線（切點為 \\(A\\)、\\(B\\)），\\(PA=(${tt.a1}x+${tt.b1})\\)，\\(PB=(${tt.a2}x+${tt.b2})\\)，由兩切線等長求 \\(x\\)`,
+        answer:tt.xv,type:'number',answerPrefix:'\\(x\\)'};
+    }
+    // t===3: 弦切角=½圓心角，代數逆用求x
+    const halvPool=[
+      {av:2,bv:10,cv:3,dv:25,xv:5},{av:3,bv:8,cv:5,dv:20,xv:4},
+      {av:2,bv:15,cv:5,dv:24,xv:6},{av:4,bv:15,cv:7,dv:35,xv:5},
+      {av:2,bv:25,cv:6,dv:40,xv:5},{av:3,bv:14,cv:7,dv:21,xv:7},
+      {av:5,bv:20,cv:8,dv:46,xv:3},{av:2,bv:30,cv:6,dv:52,xv:4}
     ];
-    const tt=pick(twoTanPool);
-    return{question:`點 \\(P\\) 在圓 \\(O\\) 外，\\(PA\\)、\\(PB\\) 均為圓的切線（切點為 \\(A\\)、\\(B\\)），\\(PA=(${tt.a1}x+${tt.b1})\\)，\\(PB=(${tt.a2}x+${tt.b2})\\)，由兩切線等長求 \\(x\\)`,
-      answer:tt.xv,type:'number',answerPrefix:'\\(x\\)'};
+    const hp=pick(halvPool);
+    return{question:`\\(AT\\) 為圓 \\(O\\) 切線，\\(A\\) 為切點，\\(AB\\) 為弦，弦切角 \\(\\angle TAB=(${hp.av}x+${hp.bv})^\\circ\\)，圓心角 \\(\\angle AOB=(${hp.cv}x+${hp.dv})^\\circ\\)，由弦切角＝½圓心角求 \\(x\\)`,
+      answer:hp.xv,type:'number',answerPrefix:'\\(x\\)'};
   }
   // hard
   const t=randInt(0,2);
