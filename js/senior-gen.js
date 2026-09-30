@@ -4066,7 +4066,7 @@ function _b1CircEq(level) {
 }
 
 // ── b1-circ-line：圓與直線的關係 ────────────────────────────────
-let _cLineMQ = [], _cLineHQ = [];
+let _cLineMQ = [], _cLineHQ0 = [], _cLineHQ1 = [], _cLineHQ2 = [];
 function genB1CircLine(level) {
   for (let i = 0; i < 40; i++) { const q = _b1CircLine(level); if (q) return q; }
   return _b1CircLine('basic');
@@ -4261,7 +4261,8 @@ function _b1CircLine(level) {
       { P:[0,5], r:3, prodN:-16, prodD:9 },
       // (25-9)/(0-9)=-16/9 ✓
     ];
-    const item = srQPick(pool, _cLineHQ);
+    const item = srQPick(pool, _cLineHQ0);
+    if (!item) return null;
     const { P, r, prodN, prodD } = item;
     const ans = prodD === 1 ? prodN : frac(prodN, prodD);
     return {
@@ -4272,18 +4273,14 @@ function _b1CircLine(level) {
 
   if (ht === 2) {
     // 已知弦長求直線3x+4y=C中C的較大值
-    // d=|3h+4k-C|/5, chord=2√(r²-d²)=given → d=√(r²-(chord/2)²), C=3h+4k±5d, larger C
     const chordPool = [
-      // (x-1)²+(y-2)²=25, chord=8, d=3, base=11, C=26 or -4, larger=26
       { circle:'(x-1)^2+(y-2)^2=25', h:1, k:2, r2:25, chord:8, d:3, larger:26 },
-      // (x-3)²+(y-1)²=25, chord=6, d=4, base=13, C=33 or -7, larger=33
       { circle:'(x-3)^2+(y-1)^2=25', h:3, k:1, r2:25, chord:6, d:4, larger:33 },
-      // x²+y²=100, chord=16, d=6, base=0, C=30 or -30, larger=30
       { circle:'x^2+y^2=100', h:0, k:0, r2:100, chord:16, d:6, larger:30 },
-      // (x-2)²+(y-1)²=169, chord=24, d=5, base=10, C=35 or -15, larger=35
       { circle:'(x-2)^2+(y-1)^2=169', h:2, k:1, r2:169, chord:24, d:5, larger:35 },
     ];
-    const cp = srQPick(chordPool, _cLineHQ);
+    const cp = srQPick(chordPool, _cLineHQ2);
+    if (!cp) return null;
     return {
       question: `直線 \\(3x+4y=C\\) 被圓 \\(${cp.circle}\\) 截出的弦長為 \\(${cp.chord}\\)，求 \\(C\\) 的較大值。`,
       answer: cp.larger, type: 'number', answerPrefix: '\\(C\\)'
@@ -4293,20 +4290,13 @@ function _b1CircLine(level) {
   // ht===1: 直線與圓相切的含參問題（pool）
   {
     const pool = [
-      // 圓(x-2)²+(y-1)²=9，直線3x-4y+k=0相切
-      // d=|6-4+k|/5=3 → |k+2|=15 → k=13或k=-17，較大k=13
       { q:'圓 \\((x-2)^2+(y-1)^2=9\\)，直線 \\(3x-4y+k=0\\) 與此圓相切，求較大的 \\(k\\) 值。', ans:13 },
-      // 圓(x-1)²+(y+2)²=25，直線4x-3y+k=0相切
-      // d=|4+6+k|/5=5 → |k+10|=25 → k=15或k=-35，和=-20
       { q:'圓 \\((x-1)^2+(y+2)^2=25\\)，直線 \\(4x-3y+k=0\\) 與此圓相切，求兩個 \\(k\\) 值之和。', ans:-20 },
-      // 圓x²+y²+2x-4y-4=0，即(x+1)²+(y-2)²=9，直線3x+4y+k=0相切
-      // d=|-3+8+k|/5=3 → |k+5|=15 → k=10或k=-20，積=-200
       { q:'圓 \\(x^2+y^2+2x-4y-4=0\\)，直線 \\(3x+4y+k=0\\) 與此圓相切，求兩個 \\(k\\) 值之積。', ans:-200 },
-      // 圓x²+y²=25，直線3x-4y+k=0相切
-      // d=|k|/5=5 → k=±25，較大k=25
       { q:'圓 \\(x^2+y^2=25\\)，直線 \\(3x-4y+k=0\\) 與此圓相切，求較大的 \\(k\\) 值。', ans:25 },
     ];
-    const item = srQPick(pool, _cLineHQ);
+    const item = srQPick(pool, _cLineHQ1);
+    if (!item) return null;
     return { question: item.q, answer: item.ans, type: 'number', answerPrefix: '答案' };
   }
 }
