@@ -6190,7 +6190,7 @@ function _8aSqrtBasic(level) {
     return {question:`計算 \\(\\sqrt{(-${k})^2}\\)`, answer:k, type:'number'};
   }
   if(level==='medium'){
-    const t=randInt(0,4);
+    const t=randInt(0,6);
     if(t===0){
       const n=pick([169,196,225,256,289,324,361,400,441,484,529,576,625,
                     676,729,784,841,900,961,1024]);
@@ -6214,11 +6214,23 @@ function _8aSqrtBasic(level) {
       const exprA=a===1?'':`${a}`;
       return {question:`方程式 \\(${exprA}x^2=${b}\\) 的正值解為`, answer:x, type:'number'};
     }
-    // t===4: 滿足 a ≤ √n < b 的正整數 n 有幾個
-    const a=randInt(2,6),diff=randInt(2,4);
-    const b=a+diff;
-    const count=b*b-a*a;
-    return {question:`滿足 \\(${a}\\leq\\sqrt{n}&lt;${b}\\) 的正整數 \\(n\\) 共有幾個？`, answer:count, type:'number'};
+    if(t===4){
+      const a=randInt(2,6),diff=randInt(2,4);
+      const b=a+diff;
+      const count=b*b-a*a;
+      return {question:`滿足 \\(${a}\\leq\\sqrt{n}&lt;${b}\\) 的正整數 \\(n\\) 共有幾個？`, answer:count, type:'number'};
+    }
+    if(t===5){
+      // 解方程 √(x+a) = b → x = b²-a
+      const b=randInt(2,7),a=randInt(1,b*b-1);
+      const x=b*b-a;
+      return {question:`解方程 \\(\\sqrt{x+${a}}=${b}\\)，求 \\(x\\)`, answer:x, type:'number', answerPrefix:'x'};
+    }
+    // t===6: 解方程 √x - a = b → x = (a+b)²
+    {
+      const a=randInt(1,5),b=randInt(2,6);
+      return {question:`解方程 \\(\\sqrt{x}-${a}=${b}\\)，求 \\(x\\)`, answer:(a+b)*(a+b), type:'number', answerPrefix:'x'};
+    }
   }
   const t=randInt(0,2);
   if(t===0){
@@ -6366,7 +6378,7 @@ function _8aSqrtAdd(level) {
     return {question:`化簡 \\((${p}+${a}\\sqrt{${m}})${outerOp}(${q}${innerSign}\\sqrt{${m}})\\)`,
       type:'radical-mix',rational:rat,radCoeff:rad,radM:m};
   }
-  const t=randInt(0,4);
+  const t=randInt(0,5);
   if(t===0){
     const m=pick([2,3,5]);
     const a=randInt(3,12),b=randInt(2,8),c=randInt(1,6);
@@ -6421,18 +6433,28 @@ function _8aSqrtAdd(level) {
     if(n1===n2||n2===n3||n1===n3) return null;
     return {question:`化簡 \\(\\dfrac{\\sqrt{${n1}}+\\sqrt{${n2}}-\\sqrt{${n3}}}{\\sqrt{${m}}}\\)`, answer:coeff, type:'number'};
   }
-  // t===4：括號 √n1 + {√n2 - [√n3 - √n4]}，兩個不同根號合併
-  const mOpts=[2,3,5,6];
-  const m=pick(mOpts), n=pick(mOpts.filter(x=>x!==m));
-  const [sm,sn]=m<=n?[m,n]:[n,m];
-  const a=randInt(2,6), b=randInt(2,5), c=randInt(2,5), d=randInt(1,3);
-  const resm=a-c, resn=b+d;
-  if(resm<=0) return null;
-  const N1=a*a*m, N2=b*b*n, N3=c*c*m, N4=d*d*n;
-  if(N1===N3||N2===N4||N1===N2||N3===N4) return null;
-  const [rsm,rsn]=m===sm?[resm,resn]:[resn,resm];
-  return {question:`化簡 \\(\\sqrt{${N1}} + \\left\\{\\sqrt{${N2}} - \\left[\\sqrt{${N3}} - \\sqrt{${N4}}\\right]\\right\\}\\)`,
-    type:'radical2',coeffA:rsm,radA:sm,coeffB:rsn,radB:sn};
+  if(t===4){
+    // 有理部分與無理部分分別相等，求未知係數 x
+    const m=pick([2,3,5,6,7]);
+    const p=randInt(1,8),a=randInt(2,8),b=randInt(1,5),diff=randInt(1,5);
+    const e=b+diff,x=diff,d=p+a;
+    return {question:`若 \\((${p}+${b}\\sqrt{${m}})+(${a}+x\\sqrt{${m}})=${d}+${e}\\sqrt{${m}}\\)，求 \\(x\\)`,
+      answer:x, type:'number', answerPrefix:'x'};
+  }
+  // t===5：括號 √n1 + {√n2 - [√n3 - √n4]}，兩個不同根號合併
+  {
+    const mOpts=[2,3,5,6];
+    const m=pick(mOpts), n=pick(mOpts.filter(x=>x!==m));
+    const [sm,sn]=m<=n?[m,n]:[n,m];
+    const a=randInt(2,6), b=randInt(2,5), c=randInt(2,5), d=randInt(1,3);
+    const resm=a-c, resn=b+d;
+    if(resm<=0) return null;
+    const N1=a*a*m, N2=b*b*n, N3=c*c*m, N4=d*d*n;
+    if(N1===N3||N2===N4||N1===N2||N3===N4) return null;
+    const [rsm,rsn]=m===sm?[resm,resn]:[resn,resm];
+    return {question:`化簡 \\(\\sqrt{${N1}} + \\left\\{\\sqrt{${N2}} - \\left[\\sqrt{${N3}} - \\sqrt{${N4}}\\right]\\right\\}\\)`,
+      type:'radical2',coeffA:rsm,radA:sm,coeffB:rsn,radB:sn};
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -6490,7 +6512,7 @@ function _8aSqrtMul(level) {
     return {question:`計算 \\(\\sqrt{${tr.a}}\\times\\sqrt{${tr.b}}\\times\\sqrt{${tr.c}}\\)`, answer:tr.r, type:'number'};
   }
   if(level==='medium'){
-    const t=randInt(0,5);
+    const t=randInt(0,6);
     if(t===0){
       // a√m × b√m = abm（擴大係數與 m 範圍）
       const m=pick([2,3,5,6,7,10,11,13]);
@@ -6543,18 +6565,22 @@ function _8aSqrtMul(level) {
       return {question:`計算 \\(${a}\\sqrt{${p}}\\times${b}\\sqrt{${q}}\\)`,
         type:'radical-mix',rational:0,radCoeff:a*b*c,radM:d};
     }
-    // t===5: 混合先乘後加：√a×√b + c√d（測試運算順序）= integer + c√d，求整數部分
-    const primes=[2,3,5,7];
-    const m=pick(primes),n=pick(primes.filter(x=>x!==m));
-    const mn=m*n; // mn 不是完全平方，a×√m×√n = a√(mn)
-    // 改用：a√m × b√n where m×n = perfect square → integer
-    const mPairs2=[{m:2,n:8,r:4},{m:3,n:12,r:6},{m:5,n:20,r:10},{m:6,n:24,r:12},{m:2,n:18,r:6}];
-    const mp2=pick(mPairs2);
-    const a2=randInt(2,5),b2=randInt(2,5),c2=randInt(2,6),x2=pick([2,3,5,6,7]);
-    // 題目：a√m × b√n + c√x = a*b*r + c√x，求整數部分
-    const intPart=a2*b2*mp2.r;
-    return {question:`計算 \\(${a2}\\sqrt{${mp2.m}}\\times${b2}\\sqrt{${mp2.n}}+${c2}\\sqrt{${x2}}\\) 的整數部分`,
-      answer:intPart,type:'number',answerPrefix:'整數部分'};
+    if(t===5){
+      // 混合先乘後加：a√m × b√n + c√x，求整數部分
+      const mPairs2=[{m:2,n:8,r:4},{m:3,n:12,r:6},{m:5,n:20,r:10},{m:6,n:24,r:12},{m:2,n:18,r:6}];
+      const mp2=pick(mPairs2);
+      const a2=randInt(2,5),b2=randInt(2,5),c2=randInt(2,6),x2=pick([2,3,5,6,7]);
+      const intPart=a2*b2*mp2.r;
+      return {question:`計算 \\(${a2}\\sqrt{${mp2.m}}\\times${b2}\\sqrt{${mp2.n}}+${c2}\\sqrt{${x2}}\\) 的整數部分`,
+        answer:intPart,type:'number',answerPrefix:'整數部分'};
+    }
+    // t===6: 解方程 √x × √m = k，求 x
+    {
+      const m=pick([2,3,5,6,7]);
+      const c=randInt(2,6);
+      const x=c*c*m,k=c*m;
+      return {question:`解方程 \\(\\sqrt{x}\\times\\sqrt{${m}}=${k}\\)，求 \\(x\\)`, answer:x, type:'number', answerPrefix:'x'};
+    }
   }
   // hard
   const t=randInt(0,4);
