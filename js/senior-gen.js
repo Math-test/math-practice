@@ -1586,314 +1586,820 @@ function _b1Log(level) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  第一冊 ▸ 多項式的運算與應用
+//  第一冊 ▸ 多項式
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// ── b1-poly-op：餘式定理・因式定理・根與係數 ──────────────────────
-const _cPolyOpBQ = [], _cPolyOpMQ = [], _cPolyOpHQ = [];
+// ── b1-poly-basic：多項式基礎與除法原理 ─────────────────────────
+const _pbB0Q=[],_pbB1Q=[],_pbB2Q=[],_pbB3Q=[];
+const _pbM0Q=[],_pbM1Q=[],_pbM2Q=[];
+const _pbH0Q=[],_pbH1Q=[];
 
-function genB1PolyOp(level, _n) {
-  for (let _i = 0; _i < 40; _i++) {
-    const q = _b1PolyOp(level);
-    if (q) return q;
+function genB1PolyBasic(level,_n){
+  for(let i=0;i<40;i++){const q=_b1PolyBasic(level);if(q)return q;}
+  return{question:'多項式計算',answer:0,type:'number',answerPrefix:''};
+}
+function _b1PolyBasic(level){
+  if(level==='basic'){
+    const t=srRandInt(0,3);
+    if(t===0){
+      const pool=[
+        {f:'x^3-2x^2+3x-1',a:2,r:5},{f:'x^3+x^2-5x+3',a:2,r:5},
+        {f:'x^3-x^2+2x-4',a:1,r:-2},{f:'x^3-3x+2',a:-2,r:0},
+        {f:'x^2+3x-5',a:3,r:13},{f:'x^3+2x^2-x+1',a:-1,r:3},
+        {f:'2x^2-5x+1',a:3,r:4},{f:'x^3+x^2+x-3',a:1,r:0},
+        {f:'x^3-4x+3',a:-2,r:3},{f:'2x^3-3x^2+1',a:2,r:5},
+        {f:'x^2-4x+7',a:5,r:12},{f:'x^3+3x-2',a:1,r:2},
+      ];
+      const p=srQPick(pool,_pbB0Q);if(!p)return null;
+      const av=p.a>=0?`${p.a}`:`(${p.a})`;
+      return{question:`設 \\(f(x)=${p.f}\\)，求 \\(f(${av})\\)。`,answer:p.r,type:'number',answerPrefix:`\\(f(${av})\\)`};
+    }
+    if(t===1){
+      const pool=[
+        {desc:'\\((x^3+2x)(x^2-1)\\) 的次數',a:5},
+        {desc:'\\((x^2+3)(x^3-x+1)\\) 的次數',a:5},
+        {desc:'\\((2x^4-1)(x^2+x+1)\\) 的次數',a:6},
+        {desc:'\\((x^3-2x+1)^2\\) 的次數',a:6},
+        {desc:'\\((x^2+1)(x^3+x^2+1)\\) 的次數',a:5},
+        {desc:'\\((x^4-2x+3)(x^2+5)\\) 的最高次項係數',a:1},
+        {desc:'\\((3x^2+x)(2x^3-x+1)\\) 的最高次項係數',a:6},
+        {desc:'\\((x^3+2x^2)(x^2-3x+1)\\) 的次數',a:5},
+        {desc:'\\((x^3+1)^2\\) 的最高次項係數',a:1},
+      ];
+      const p=srQPick(pool,_pbB1Q);if(!p)return null;
+      return{question:`求 ${p.desc}。`,answer:p.a,type:'number',answerPrefix:''};
+    }
+    if(t===2){
+      const pool=[
+        {f:'x^3+2x^2-3x+1',coeff:'x^2',a:2},{f:'x^3-4x^2+5x-2',coeff:'x^2',a:-4},
+        {f:'2x^3+x^2-6x+3',coeff:'x',a:-6},{f:'x^3-5x+7',coeff:'x^2',a:0},
+        {f:'3x^2-2x+5',coeff:'x',a:-2},{f:'x^4-3x^2+2',coeff:'x^3',a:0},
+        {f:'x^3+4x^2+x-2',coeff:'x',a:1},{f:'2x^2+7x-4',coeff:'x',a:7},
+        {f:'x^3-3x^2+5',coeff:'x',a:0},
+      ];
+      const p=srQPick(pool,_pbB2Q);if(!p)return null;
+      return{question:`多項式 \\(${p.f}\\) 中 \\(${p.coeff}\\) 的係數為何？`,answer:p.a,type:'number',answerPrefix:`\\(${p.coeff}\\) 的係數`};
+    }
+    {
+      const pool=[
+        {desc:'\\((x^3-2x^2+5)+(2x^2+3x-1)\\) 中 \\(x^2\\) 的係數',a:0},
+        {desc:'\\((x^3+4x-2)-(x^3-x+3)\\) 中 \\(x\\) 的係數',a:5},
+        {desc:'\\((2x^2-3x+1)+(x^2+5x-4)\\) 中 \\(x\\) 的係數',a:2},
+        {desc:'\\((x^3-x^2+2)-(2x^3+x^2-x)\\) 中 \\(x^2\\) 的係數',a:-2},
+        {desc:'\\((3x^2+x-1)+(x^2-2x+3)\\) 的常數項',a:2},
+        {desc:'\\((x^3+2x^2-1)-(x^2-x+2)\\) 的常數項',a:-3},
+        {desc:'\\((2x^2-x+4)-(x^2+x-1)\\) 中 \\(x\\) 的係數',a:-2},
+        {desc:'\\((x^3-3x+2)+(x^2+3x-5)\\) 的常數項',a:-3},
+      ];
+      const p=srQPick(pool,_pbB3Q);if(!p)return null;
+      return{question:`求 ${p.desc}。`,answer:p.a,type:'number',answerPrefix:''};
+    }
   }
-  return { question: '多項式計算', answer: 0, type: 'number', answerPrefix: '' };
+  if(level==='medium'){
+    const t=srRandInt(0,2);
+    if(t===0){
+      const pool=[
+        {desc:'\\(x^3-3x^2+5x-2=(x-1)q(x)+r\\)',a:1,hint:'代 \\(x=1\\)'},
+        {desc:'\\(x^3+x^2-4x+2=(x-2)q(x)+r\\)',a:6,hint:'代 \\(x=2\\)'},
+        {desc:'\\(x^3-2x+3=(x+1)q(x)+r\\)',a:4,hint:'代 \\(x=-1\\)'},
+        {desc:'\\(2x^2-5x+1=(x-3)q(x)+r\\)',a:4,hint:'代 \\(x=3\\)'},
+        {desc:'\\(x^3+3x-2=(x-1)q(x)+r\\)',a:2,hint:'代 \\(x=1\\)'},
+        {desc:'\\(x^3-x^2+2x-4=(x+2)q(x)+r\\)',a:-20,hint:'代 \\(x=-2\\)'},
+        {desc:'\\(x^2+4x-3=(x-2)q(x)+r\\)',a:9,hint:'代 \\(x=2\\)'},
+        {desc:'\\(x^3-2x^2+x-1=(x-3)q(x)+r\\)',a:11,hint:'代 \\(x=3\\)'},
+      ];
+      const p=srQPick(pool,_pbM0Q);if(!p)return null;
+      return{question:`已知 ${p.desc}（${p.hint}），求 \\(r\\)。`,answer:p.a,type:'number',answerPrefix:'\\(r\\)'};
+    }
+    if(t===1){
+      const pool=[
+        {desc:'\\((x+1)(x^2-x+2)\\) 中 \\(x\\) 的係數',a:1},
+        {desc:'\\((x-2)(x^2+2x+4)\\) 的常數項',a:-8},
+        {desc:'\\((2x+1)(x^2-3x+1)\\) 中 \\(x^2\\) 的係數',a:-5},
+        {desc:'\\((x+3)(x^2-3x+9)\\) 的常數項',a:27},
+        {desc:'\\((x-1)(x^2+x+1)\\) 中 \\(x\\) 的係數',a:0},
+        {desc:'\\((x+2)^3\\) 中 \\(x^2\\) 的係數',a:6},
+        {desc:'\\((x-3)^3\\) 的常數項',a:-27},
+        {desc:'\\((2x-1)(3x^2+x-2)\\) 中 \\(x^2\\) 的係數',a:-1},
+        {desc:'\\((x^2-1)(x^2+1)\\) 中 \\(x^2\\) 的係數',a:0},
+      ];
+      const p=srQPick(pool,_pbM1Q);if(!p)return null;
+      return{question:`求 ${p.desc}。`,answer:p.a,type:'number',answerPrefix:''};
+    }
+    {
+      const pool=[
+        {f:'x^4-3x^2+1',g:'x^2-1',label:'商的次數',a:2},
+        {f:'x^3-8',g:'x-2',label:'商的最高次項係數',a:1},
+        {f:'2x^3+x^2',g:'x+1',label:'商的最高次項係數',a:2},
+        {f:'x^4-1',g:'x^2-1',label:'商的次數',a:2},
+        {f:'x^3-3x^2+3x-1',g:'x-1',label:'商的次數',a:2},
+        {f:'x^5+x^3',g:'x^2+1',label:'商的次數',a:3},
+      ];
+      const p=srQPick(pool,_pbM2Q);if(!p)return null;
+      return{question:`多項式 \\(${p.f}\\) 除以 \\(${p.g}\\)，求${p.label}。`,answer:p.a,type:'number',answerPrefix:p.label};
+    }
+  }
+  {
+    const ht=srRandInt(0,1);
+    if(ht===0){
+      const pool=[
+        {eq:'x^2+5x+6=(x+a)(x+b)',q:'a+b',a:5},
+        {eq:'x^3-1=(x-1)(x^2+ax+1)',q:'a',a:1},
+        {eq:'x^3+8=(x+2)(x^2+ax+4)',q:'a',a:-2},
+        {eq:'2x^2+x-3=(2x+3)(x+a)',q:'a',a:-1},
+        {eq:'x^3-x^2-x+1=(x-1)^2(x+a)',q:'a',a:1},
+        {eq:'x^3+3x^2-4=(x-1)(x^2+ax+4)',q:'a',a:4},
+        {eq:'x^4-1=(x^2-1)(x^2+a)',q:'a',a:1},
+        {eq:'x^3-6x^2+11x-6=(x-1)(x-2)(x+a)',q:'a',a:-3},
+      ];
+      const p=srQPick(pool,_pbH0Q);if(!p)return null;
+      return{question:`若 \\(${p.eq}\\)，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
+    }
+    {
+      const pool=[
+        {desc:'\\(f(x)=x^3+ax^2-x+2\\) 能被 \\((x-1)\\) 整除',q:'a',a:-2},
+        {desc:'\\(f(x)=x^2+bx-6\\) 能被 \\((x+3)\\) 整除',q:'b',a:1},
+        {desc:'\\(f(x)=2x^3+ax-4\\) 能被 \\((x-1)\\) 整除',q:'a',a:2},
+        {desc:'\\(f(x)=x^3-x^2+ax+4\\) 能被 \\((x+1)\\) 整除',q:'a',a:2},
+        {desc:'\\(f(x)=x^3+3x^2+ax-4\\) 能被 \\((x-1)\\) 整除',q:'a',a:0},
+        {desc:'\\(f(x)=x^2+ax+3\\) 能被 \\((x-3)\\) 整除',q:'a',a:-4},
+        {desc:'\\(f(x)=x^3-2x^2+ax+6\\) 能被 \\((x+1)\\) 整除',q:'a',a:3},
+        {desc:'\\(f(x)=x^3+x^2-ax+2\\) 能被 \\((x-1)\\) 整除',q:'a',a:4},
+      ];
+      const p=srQPick(pool,_pbH1Q);if(!p)return null;
+      return{question:`若 ${p.desc}，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
+    }
+  }
 }
 
-function _b1PolyOp(level) {
-  if (level === 'basic') {
-    const t = srRandInt(0, 3);
+// ── b1-poly-synth：綜合除法 ──────────────────────────────────────
+const _psB0Q=[],_psB1Q=[];
+const _psM0Q=[],_psM1Q=[];
+const _psH0Q=[],_psH1Q=[];
 
-    if (t === 0) {
-      // 餘式定理：f(x) ÷ (x−a) 的餘式 = f(a)
-      const pool = [
-        { f: 'x^3-2x^2+3x-1', a: 2,  r: 5  },
-        { f: 'x^3+x^2-5x+3',  a: 2,  r: 5  },
-        { f: 'x^3-x^2+2x-4',  a: 1,  r: -2 },
-        { f: 'x^3-3x+2',      a: 2,  r: 4  },
-        { f: 'x^2+3x-5',      a: -1, r: -7 },
-        { f: 'x^3+2x^2-x+1',  a: -1, r: 3  },
-        { f: '2x^2-5x+1',     a: 3,  r: 4  },
-        { f: 'x^3+x^2+x-3',   a: 1,  r: 0  },
-        { f: 'x^3-4x+3',      a: -2, r: 3  },
-        { f: '2x^3-3x^2+1',   a: 2,  r: 5  },
+function genB1PolySynth(level,_n){
+  for(let i=0;i<40;i++){const q=_b1PolySynth(level);if(q)return q;}
+  return{question:'綜合除法',answer:0,type:'number',answerPrefix:''};
+}
+function _b1PolySynth(level){
+  if(level==='basic'){
+    const t=srRandInt(0,1);
+    if(t===0){
+      // 綜合除法求餘式（等同代入求值）
+      const pool=[
+        {f:'x^3-2x^2+3x-4',a:2,r:2},{f:'x^3+x^2-x-5',a:1,r:-4},
+        {f:'x^3-3x^2+2x+1',a:2,r:1},{f:'x^2+3x-7',a:2,r:3},
+        {f:'x^3+2x-3',a:-1,r:-6},{f:'x^3-2x^2+x-3',a:3,r:9},
+        {f:'x^2-5x+4',a:1,r:0},{f:'2x^3-x^2+3x-1',a:1,r:3},
+        {f:'x^3-7x+6',a:-3,r:0},{f:'x^3+4x^2-x-2',a:2,r:20},
       ];
-      const p = srQPick(pool, _cPolyOpBQ);
-      const div = p.a >= 0 ? `x-${p.a}` : `x+${-p.a}`;
-      return {
-        question: `多項式 \\(f(x)=${p.f}\\) 除以 \\(${div}\\) 的餘式為何？`,
-        answer: p.r, type: 'number', answerPrefix: '餘式'
-      };
+      const p=srQPick(pool,_psB0Q);if(!p)return null;
+      const divStr=p.a>=0?`x-${p.a}`:`x+${-p.a}`;
+      return{question:`用綜合除法求 \\(${p.f}\\) 除以 \\(${divStr}\\) 的餘式。`,answer:p.r,type:'number',answerPrefix:'餘式'};
     }
-
-    if (t === 1) {
-      // 因式定理：(x−a) 是否為因式？
-      const pool = [
-        { f: 'x^2-5x+6',       a: 3,  is: true  },
-        { f: 'x^2-5x+6',       a: 4,  is: false },
-        { f: 'x^3-1',          a: 1,  is: true  },
-        { f: 'x^3+x+2',        a: -1, is: true  },
-        { f: 'x^3-x^2+2x+4',   a: 2,  is: false },
-        { f: 'x^3+x^2-x-1',    a: -1, is: true  },
-        { f: 'x^3-6x^2+11x-6', a: 2,  is: true  },
-        { f: '2x^2+x-3',       a: 1,  is: true  },
-        { f: '2x^2+x-3',       a: 2,  is: false },
-        { f: 'x^3+2x^2-x-2',   a: -2, is: true  },
-      ];
-      const p = srQPick(pool, _cPolyOpBQ);
-      const div = p.a >= 0 ? `(x-${p.a})` : `(x+${-p.a})`;
-      return {
-        question: `\\(${div}\\) 是否為多項式 \\(f(x)=${p.f}\\) 的因式？（填「是」或「不是」）`,
-        answer: p.is ? '是' : '不是', type: 'text', answerPrefix: ''
-      };
-    }
-
-    if (t === 2) {
-      // 含參數k，由餘式求k
-      const pool = [
-        { f: 'x^2+kx+1',      div: 'x-2', r: 7,  k: 1 },
-        { f: 'x^2+kx+3',      div: 'x-1', r: 5,  k: 1 },
-        { f: 'x^3+kx-5',      div: 'x-1', r: 0,  k: 4 },
-        { f: 'x^2+3x+k',      div: 'x+2', r: 1,  k: 3 },
-        { f: '2x^2-kx+1',     div: 'x-2', r: 3,  k: 3 },
-        { f: 'x^3+2x^2+kx-1', div: 'x-1', r: 5,  k: 3 },
-        { f: 'x^2-kx+2',      div: 'x-2', r: 2,  k: 2 },
-        { f: 'kx^2+x-1',      div: 'x+1', r: 2,  k: 4 },
-      ];
-      const p = srQPick(pool, _cPolyOpBQ);
-      return {
-        question: `多項式 \\(f(x)=${p.f}\\) 除以 \\(${p.div}\\) 的餘式為 \\(${p.r}\\)，求 \\(k\\)。`,
-        answer: p.k, type: 'number', answerPrefix: '\\(k\\)'
-      };
-    }
-
-    // t === 3: 根與係數基本（Vieta's）
     {
-      const pool = [
-        { eq: 'x^2-5x+6=0',  q: 'x_1+x_2',   a: 5  },
-        { eq: 'x^2-5x+6=0',  q: 'x_1 x_2',   a: 6  },
-        { eq: 'x^2+4x+3=0',  q: 'x_1+x_2',   a: -4 },
-        { eq: 'x^2+4x+3=0',  q: 'x_1 x_2',   a: 3  },
-        { eq: 'x^2-3x-4=0',  q: 'x_1+x_2',   a: 3  },
-        { eq: 'x^2-3x-4=0',  q: 'x_1 x_2',   a: -4 },
-        { eq: 'x^2+x-6=0',   q: 'x_1+x_2',   a: -1 },
-        { eq: 'x^2+x-6=0',   q: 'x_1 x_2',   a: -6 },
-        { eq: '2x^2-6x+4=0', q: 'x_1+x_2',   a: 3  },
-        { eq: '2x^2-6x+4=0', q: 'x_1 x_2',   a: 2  },
-        { eq: '3x^2+9x-6=0', q: 'x_1+x_2',   a: -3 },
-        { eq: '3x^2+9x-6=0', q: 'x_1 x_2',   a: -2 },
+      // 綜合除法：求商式的常數項
+      const pool=[
+        {f:'x^3+x^2-4x-4',a:-2,qc:-2},{f:'x^3-7x+6',a:2,qc:-3},
+        {f:'x^3-1',a:1,qc:1},{f:'x^3+8',a:-2,qc:4},
+        {f:'x^3-3x^2+3x-1',a:1,qc:1},{f:'x^3+x^2-x-1',a:-1,qc:-1},
+        {f:'x^3-6x^2+11x-6',a:1,qc:6},{f:'2x^3+3x^2-11x-6',a:2,qc:3},
       ];
-      const p = srQPick(pool, _cPolyOpBQ);
-      return {
-        question: `設 \\(x_1, x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,
-        answer: p.a, type: 'number', answerPrefix: `\\(${p.q}\\)`
-      };
+      const p=srQPick(pool,_psB1Q);if(!p)return null;
+      const divStr=p.a>=0?`x-${p.a}`:`x+${-p.a}`;
+      return{question:`用綜合除法求 \\(${p.f}\\) 除以 \\(${divStr}\\) 所得商式的常數項。`,answer:p.qc,type:'number',answerPrefix:'商式常數項'};
     }
   }
-
-  if (level === 'medium') {
-    const t = srRandInt(0, 2);
-
-    if (t === 0) {
-      // 進階Vieta：x₁²+x₂²，1/x₁+1/x₂
-      const pool = [
-        { eq: 'x^2-5x+6=0', q: 'x_1^2+x_2^2',                     a: 13 },
-        { eq: 'x^2-3x+1=0', q: 'x_1^2+x_2^2',                     a: 7  },
-        { eq: 'x^2-4x+2=0', q: 'x_1^2+x_2^2',                     a: 12 },
-        { eq: 'x^2+2x-1=0', q: 'x_1^2+x_2^2',                     a: 6  },
-        { eq: 'x^2-5x+3=0', q: 'x_1^2+x_2^2',                     a: 19 },
-        { eq: 'x^2-6x+4=0', q: 'x_1^2+x_2^2',                     a: 28 },
-        { eq: 'x^2+3x-4=0', q: 'x_1^2+x_2^2',                     a: 17 },
-        { eq: 'x^2-2x-3=0', q: 'x_1^2+x_2^2',                     a: 10 },
-        { eq: 'x^2-5x+6=0', q: '\\dfrac{1}{x_1}+\\dfrac{1}{x_2}', num: 5, den: 6 },
-        { eq: 'x^2-3x+2=0', q: '\\dfrac{1}{x_1}+\\dfrac{1}{x_2}', num: 3, den: 2 },
-        { eq: 'x^2+3x-4=0', q: '\\dfrac{1}{x_1}+\\dfrac{1}{x_2}', num: 3, den: 4 },
+  if(level==='medium'){
+    const t=srRandInt(0,1);
+    if(t===0){
+      // 含未知k，由餘式求k
+      const pool=[
+        {f:'x^3+kx^2-2x+3',a:1,r:5,k:3},{f:'x^3-kx+2',a:2,r:6,k:2},
+        {f:'kx^2+3x-1',a:1,r:5,k:3},{f:'x^3+2x^2+kx-4',a:2,r:12,k:0},
+        {f:'x^3-x^2+2x+k',a:-1,r:3,k:7},{f:'2x^2-5x+k',a:3,r:4,k:1},
+        {f:'x^2+kx+5',a:2,r:13,k:2},{f:'x^3+kx^2+x-2',a:-2,r:-4,k:2},
       ];
-      const p = srQPick(pool, _cPolyOpMQ);
-      if (p.num !== undefined) {
-        return {
-          question: `設 \\(x_1, x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,
-          answer: frac(p.num, p.den), type: 'fraction', answerPrefix: `\\(${p.q}\\)`
-        };
+      const p=srQPick(pool,_psM0Q);if(!p)return null;
+      const divStr=p.a>=0?`x-${p.a}`:`x+${-p.a}`;
+      return{question:`多項式 \\(f(x)=${p.f}\\) 除以 \\(${divStr}\\) 的餘式為 \\(${p.r}\\)，求 \\(k\\)。`,answer:p.k,type:'number',answerPrefix:'\\(k\\)'};
+    }
+    {
+      // 先做綜合除法得商q(x)，再求q(a)
+      const pool=[
+        {f:'x^3-7x+6',a:2,qa:-1,qval:-4,desc:'代 \\(x=-1\\)'},
+        {f:'x^3+x^2-4x-4',a:-2,qa:1,qval:-2,desc:'代 \\(x=1\\)'},
+        {f:'x^3-6x^2+11x-6',a:1,qa:2,qval:0,desc:'代 \\(x=2\\)'},
+        {f:'x^3-1',a:1,qa:-1,qval:1,desc:'代 \\(x=-1\\)'},
+        {f:'x^3+8',a:-2,qa:2,qval:4,desc:'代 \\(x=2\\)'},
+      ];
+      const p=srQPick(pool,_psM1Q);if(!p)return null;
+      const divStr=p.a>=0?`x-${p.a}`:`x+${-p.a}`;
+      const qaStr=p.qa>=0?`${p.qa}`:`(${p.qa})`;
+      return{question:`\\(f(x)=${p.f}\\) 除以 \\(${divStr}\\) 得商式 \\(q(x)\\)，求 \\(q(${qaStr})\\)。（${p.desc}）`,answer:p.qval,type:'number',answerPrefix:`\\(q(${qaStr})\\)`};
+    }
+  }
+  {
+    const ht=srRandInt(0,1);
+    if(ht===0){
+      // 連續兩次綜合除法
+      const pool=[
+        {f:'x^3-6x^2+11x-6',a1:1,a2:2,r:0,desc:'先除以 \\((x-1)\\) 得 \\(q_1(x)\\)，再除以 \\((x-2)\\) 得餘式'},
+        {f:'x^3+x^2-4x-4',a1:-2,a2:-1,r:0,desc:'先除以 \\((x+2)\\) 得 \\(q_1(x)\\)，再除以 \\((x+1)\\) 得餘式'},
+        {f:'x^3-7x+6',a1:2,a2:-3,r:0,desc:'先除以 \\((x-2)\\) 得 \\(q_1(x)\\)，再除以 \\((x+3)\\) 得餘式'},
+        {f:'x^3-3x^2+3x-1',a1:1,a2:1,r:1,desc:'先除以 \\((x-1)\\) 得 \\(q_1(x)\\)，再除以 \\((x-1)\\) 得餘式'},
+      ];
+      const p=srQPick(pool,_psH0Q);if(!p)return null;
+      return{question:`\\(f(x)=${p.f}\\)：${p.desc}為何？`,answer:p.r,type:'number',answerPrefix:'餘式'};
+    }
+    {
+      // 綜合除法求商式，再做因式判斷
+      const pool=[
+        {f:'x^3-6x^2+11x-6',a:1,qf:'x^2-5x+6',root:2,desc:'所得商式以 \\((x-2)\\) 是否整除？（填「是」或「不是」）',ans:'是'},
+        {f:'x^3+x^2-4x-4',a:-2,qf:'x^2-x-2',root:2,desc:'所得商式以 \\((x-2)\\) 是否整除？（填「是」或「不是」）',ans:'是'},
+        {f:'x^3-2x^2-x+2',a:1,qf:'x^2-x-2',root:-1,desc:'所得商式以 \\((x+1)\\) 是否整除？（填「是」或「不是」）',ans:'是'},
+        {f:'x^3+2x^2-5x-6',a:-1,qf:'x^2+x-6',root:3,desc:'所得商式以 \\((x-3)\\) 是否整除？（填「是」或「不是」）',ans:'是'},
+      ];
+      const p=srQPick(pool,_psH1Q);if(!p)return null;
+      const divStr=p.a>=0?`x-${p.a}`:`x+${-p.a}`;
+      return{question:`\\(f(x)=${p.f}\\) 除以 \\(${divStr}\\) 得商式 \\(q(x)\\)，${p.desc}`,answer:p.ans,type:'text',answerPrefix:''};
+    }
+  }
+}
+
+// ── b1-poly-rem：餘式定理 ────────────────────────────────────────
+const _prB0Q=[],_prB1Q=[],_prB2Q=[];
+const _prM0Q=[],_prM1Q=[];
+const _prH0Q=[],_prH1Q=[];
+
+function genB1PolyRem(level,_n){
+  for(let i=0;i<40;i++){const q=_b1PolyRem(level);if(q)return q;}
+  return{question:'餘式定理',answer:0,type:'number',answerPrefix:''};
+}
+function _b1PolyRem(level){
+  if(level==='basic'){
+    const t=srRandInt(0,2);
+    if(t===0){
+      const pool=[
+        {f:'x^3-2x^2+3x-1',a:2,r:5},{f:'x^3+x^2-5x+3',a:2,r:5},
+        {f:'x^3-x^2+2x-4',a:1,r:-2},{f:'x^3-3x+2',a:-2,r:0},
+        {f:'x^2+3x-5',a:-1,r:-7},{f:'x^3+2x^2-x+1',a:-1,r:3},
+        {f:'2x^2-5x+1',a:3,r:4},{f:'x^3+x^2+x-3',a:1,r:0},
+        {f:'x^3-4x+3',a:-2,r:3},{f:'2x^3-3x^2+1',a:2,r:5},
+      ];
+      const p=srQPick(pool,_prB0Q);if(!p)return null;
+      const div=p.a>=0?`x-${p.a}`:`x+${-p.a}`;
+      return{question:`多項式 \\(f(x)=${p.f}\\) 除以 \\(${div}\\) 的餘式為何？`,answer:p.r,type:'number',answerPrefix:'餘式'};
+    }
+    if(t===1){
+      const pool=[
+        {f:'x^2+kx+1',div:'x-2',r:7,k:1},{f:'x^2+kx+3',div:'x-1',r:5,k:1},
+        {f:'x^3+kx-5',div:'x-1',r:0,k:4},{f:'x^2+3x+k',div:'x+2',r:1,k:3},
+        {f:'2x^2-kx+1',div:'x-2',r:3,k:3},{f:'x^3+2x^2+kx-1',div:'x-1',r:5,k:3},
+        {f:'x^2-kx+2',div:'x-2',r:2,k:2},{f:'kx^2+x-1',div:'x+1',r:2,k:4},
+        {f:'x^3-x^2+kx+1',div:'x-2',r:5,k:1},{f:'x^2+kx-4',div:'x+2',r:0,k:2},
+      ];
+      const p=srQPick(pool,_prB1Q);if(!p)return null;
+      return{question:`多項式 \\(f(x)=${p.f}\\) 除以 \\(${p.div}\\) 的餘式為 \\(${p.r}\\)，求 \\(k\\)。`,answer:p.k,type:'number',answerPrefix:'\\(k\\)'};
+    }
+    {
+      // f(x)=x²+ax+b，除以(x-1)餘r₁，除以(x+1)餘r₂，求f(0)=b
+      const pool=[
+        {r1:3,r2:7,desc:'除以 \\(x-1\\) 餘 \\(3\\)，除以 \\(x+1\\) 餘 \\(7\\)',q:'f(0)',a:4},
+        {r1:2,r2:4,desc:'除以 \\(x-1\\) 餘 \\(2\\)，除以 \\(x+1\\) 餘 \\(4\\)',q:'f(0)',a:2},
+        {r1:5,r2:9,desc:'除以 \\(x-1\\) 餘 \\(5\\)，除以 \\(x+1\\) 餘 \\(9\\)',q:'f(0)',a:6},
+        {r1:1,r2:5,desc:'除以 \\(x-1\\) 餘 \\(1\\)，除以 \\(x+1\\) 餘 \\(5\\)',q:'f(0)',a:2},
+        {r1:4,r2:2,desc:'除以 \\(x-1\\) 餘 \\(4\\)，除以 \\(x+1\\) 餘 \\(2\\)',q:'f(0)',a:4},
+        {r1:0,r2:8,desc:'除以 \\(x-1\\) 餘 \\(0\\)，除以 \\(x+1\\) 餘 \\(8\\)',q:'f(0)',a:3},
+      ];
+      const p=srQPick(pool,_prB2Q);if(!p)return null;
+      return{question:`設 \\(f(x)=x^2+ax+b\\)，${p.desc}，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
+    }
+  }
+  if(level==='medium'){
+    const t=srRandInt(0,1);
+    if(t===0){
+      // 兩條件確定 f(x)=x²+ax+b，再求 f(c)
+      const pool=[
+        {desc:'\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(3\\)，除以 \\(x+1\\) 餘 \\(7\\)',q:'f(0)',a:4},
+        {desc:'\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(2\\)，除以 \\(x+1\\) 餘 \\(4\\)',q:'f(0)',a:2},
+        {desc:'\\(f(x)=x^2+ax+b\\)，\\(x-1\\) 是其因式，除以 \\(x+1\\) 餘 \\(4\\)',q:'f(2)',a:1},
+        {desc:'\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(5\\)，除以 \\(x-2\\) 餘 \\(8\\)',q:'f(3)',a:13},
+        {desc:'\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(3\\)，除以 \\(x-2\\) 餘 \\(8\\)',q:'f(-1)',a:-1},
+        {desc:'\\(f(x)=x^2+ax+b\\)，除以 \\(x+1\\) 餘 \\(5\\)，除以 \\(x-2\\) 餘 \\(2\\)',q:'f(0)',a:3},
+      ];
+      const p=srQPick(pool,_prM0Q);if(!p)return null;
+      return{question:`設 ${p.desc}，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
+    }
+    {
+      // 除以 (x-a)(x-b) 的線性餘式 ax+b
+      const pool=[
+        {f:'x^3+2x+1',div:'(x-1)(x-2)',q:'a（餘式 \\(ax+b\\) 中）',ans:9},
+        {f:'x^3-x+2',div:'(x-1)(x-2)',q:'a',ans:6},
+        {f:'x^3+x^2',div:'(x-1)(x-2)',q:'b',ans:-8},
+        {f:'x^4+x-2',div:'(x-1)(x-2)',q:'a+b',ans:0},
+        {f:'x^3-2x+3',div:'(x-1)(x-2)',q:'b',ans:-3},
+        {f:'x^3+3x-4',div:'(x-1)(x-2)',q:'a',ans:12},
+      ];
+      const p=srQPick(pool,_prM1Q);if(!p)return null;
+      return{question:`多項式 \\(f(x)=${p.f}\\) 除以 \\(${p.div}\\) 的餘式為 \\(ax+b\\)，求 \\(${p.q}\\)。`,answer:p.ans,type:'number',answerPrefix:`\\(${p.q}\\)`};
+    }
+  }
+  {
+    const ht=srRandInt(0,1);
+    if(ht===0){
+      // 三次多項式，除以兩個一次式，求兩未知數
+      const pool=[
+        {f:'x^3+ax^2+bx-2',d1:'x-1',r1:0,d2:'x+1',r2:-4,qa:0,qb:1,askQ:'a'},
+        {f:'x^3+ax^2+bx+1',d1:'x-1',r1:3,d2:'x+1',r2:5,qa:3,qb:-2,askQ:'b'},
+        {f:'x^3+ax^2+bx-3',d1:'x-1',r1:1,d2:'x-2',r2:3,qa:3,qb:0,askQ:'a+b'},
+        {f:'x^3+ax^2+bx+2',d1:'x+1',r1:0,d2:'x-2',r2:6,qa:-1,qb:0,askQ:'a'},
+      ];
+      const p=srQPick(pool,_prH0Q);if(!p)return null;
+      let ans;
+      if(p.askQ==='a')ans=p.qa;
+      else if(p.askQ==='b')ans=p.qb;
+      else ans=p.qa+p.qb;
+      return{question:`設 \\(f(x)=${p.f}\\)，除以 \\(${p.d1}\\) 餘 \\(${p.r1}\\)，除以 \\(${p.d2}\\) 餘 \\(${p.r2}\\)，求 \\(${p.askQ}\\)。`,answer:ans,type:'number',answerPrefix:`\\(${p.askQ}\\)`};
+    }
+    {
+      // f(x) 除以 (x-1)² 的餘式為 ax+b
+      const pool=[
+        {f:'x^3+2x-3',a:5,b:-7,q:'a+b',ans:-2},
+        {f:'x^3-3x+4',a:0,b:2,q:'b',ans:2},
+        {f:'x^3+x^2-1',a:4,b:-3,q:'a',ans:4},
+        {f:'x^3-2x^2+3',a:-1,b:2,q:'a+b',ans:1},
+        {f:'x^4-1',a:4,b:-3,q:'a',ans:4},
+      ];
+      const p=srQPick(pool,_prH1Q);if(!p)return null;
+      return{question:`多項式 \\(f(x)=${p.f}\\) 除以 \\((x-1)^2\\) 的餘式為 \\(ax+b\\)，求 \\(${p.q}\\)。`,answer:p.ans,type:'number',answerPrefix:`\\(${p.q}\\)`};
+    }
+  }
+}
+
+// ── b1-poly-factor：因式定理 ─────────────────────────────────────
+const _pfB0Q=[],_pfB1Q=[];
+const _pfM0Q=[],_pfM1Q=[];
+const _pfH0Q=[],_pfH1Q=[];
+
+function genB1PolyFactor(level,_n){
+  for(let i=0;i<40;i++){const q=_b1PolyFactor(level);if(q)return q;}
+  return{question:'因式定理',answer:'是',type:'text',answerPrefix:''};
+}
+function _b1PolyFactor(level){
+  if(level==='basic'){
+    const t=srRandInt(0,1);
+    if(t===0){
+      const pool=[
+        {f:'x^2-5x+6',a:3,is:true},{f:'x^2-5x+6',a:4,is:false},
+        {f:'x^3-1',a:1,is:true},{f:'x^3+x+2',a:-1,is:true},
+        {f:'x^3-x^2+2x+4',a:2,is:false},{f:'x^3+x^2-x-1',a:-1,is:true},
+        {f:'x^3-6x^2+11x-6',a:2,is:true},{f:'2x^2+x-3',a:1,is:true},
+        {f:'2x^2+x-3',a:2,is:false},{f:'x^3+2x^2-x-2',a:-2,is:true},
+        {f:'x^3-x^2-x+1',a:1,is:true},{f:'x^3+2x^2+x',a:-1,is:true},
+      ];
+      const p=srQPick(pool,_pfB0Q);if(!p)return null;
+      const div=p.a>=0?`(x-${p.a})`:`(x+${-p.a})`;
+      return{question:`\\(${div}\\) 是否為多項式 \\(f(x)=${p.f}\\) 的因式？（填「是」或「不是」）`,answer:p.is?'是':'不是',type:'text',answerPrefix:''};
+    }
+    {
+      const pool=[
+        {f:'x^2+kx-6',div:'x-2',k:1},{f:'x^3+kx^2-x+2',div:'x-1',k:-2},
+        {f:'x^2-kx+3',div:'x-3',k:4},{f:'kx^2+x-6',div:'x+2',k:2},
+        {f:'x^3+2x^2+kx-4',div:'x-1',k:1},{f:'x^3-kx+4',div:'x+2',k:2},
+        {f:'x^2+5x+k',div:'x+2',k:6},{f:'2x^3+kx^2-x-1',div:'x+1',k:2},
+        {f:'x^3+3x^2+kx-8',div:'x-1',k:4},{f:'x^2-2x+k',div:'x+3',k:-15},
+      ];
+      const p=srQPick(pool,_pfB1Q);if(!p)return null;
+      const divFmt=p.div;
+      return{question:`若 \\(${divFmt}\\) 是多項式 \\(f(x)=${p.f}\\) 的因式，求 \\(k\\)。`,answer:p.k,type:'number',answerPrefix:'\\(k\\)'};
+    }
+  }
+  if(level==='medium'){
+    const t=srRandInt(0,1);
+    if(t===0){
+      // 已知一根/一因式，求商的x項係數
+      const pool=[
+        {f:'x^3-6x^2+11x-6',a:1,desc:'已知 \\((x-1)\\) 是因式',qc:-5,q:'商式中 \\(x\\) 的係數'},
+        {f:'x^3+x^2-4x-4',a:-2,desc:'已知 \\((x+2)\\) 是因式',qc:-1,q:'商式中 \\(x\\) 的係數'},
+        {f:'x^3-4x^2+x+6',a:2,desc:'已知 \\((x-2)\\) 是因式',qc:-2,q:'商式中 \\(x\\) 的係數'},
+        {f:'x^3+2x^2-5x-6',a:-1,desc:'已知 \\((x+1)\\) 是因式',qc:1,q:'商式中 \\(x\\) 的係數'},
+        {f:'x^3-2x^2-x+2',a:1,desc:'已知 \\((x-1)\\) 是因式',qc:-1,q:'商式中 \\(x\\) 的係數'},
+        {f:'x^3+3x^2-4',a:1,desc:'已知 \\((x-1)\\) 是因式',qc:4,q:'商式中 \\(x\\) 的係數'},
+      ];
+      const p=srQPick(pool,_pfM0Q);if(!p)return null;
+      return{question:`${p.desc}，\\(f(x)=${p.f}\\) 除以該因式後，求${p.q}。`,answer:p.qc,type:'number',answerPrefix:p.q};
+    }
+    {
+      // 兩條件求兩個未知數，再求特定值
+      const pool=[
+        {f:'x^3+(k+1)x^2-4x+k',d:'x-1',qval:9,desc:'\\((x-1)\\) 是因式，求 \\(f(2)\\)'},
+        {f:'x^3+ax^2+bx-2',d1:'x-1',r1:0,d2:'x+1',r2:0,qval:-2,desc:'\\((x-1)\\) 和 \\((x+1)\\) 均為因式，求 \\(f(0)\\)'},
+        {f:'x^2+ax+b',d1:'x-2',r1:0,d2:'x-3',r2:0,qval:6,desc:'\\((x-2)\\) 和 \\((x-3)\\) 均為因式，求 \\(f(0)\\)'},
+      ];
+      const p=srQPick(pool,_pfM1Q);if(!p)return null;
+      return{question:`設 \\(f(x)=${p.f}\\)，${p.desc}。`,answer:p.qval,type:'number',answerPrefix:'所求值'};
+    }
+  }
+  {
+    const ht=srRandInt(0,1);
+    if(ht===0){
+      // 三次多項式完全因式分解，求其中一個根
+      const pool=[
+        {f:'x^3-6x^2+11x-6',roots:[1,2,3],q:'三個根的積',a:6},
+        {f:'x^3-x^2-4x+4',roots:[1,2,-2],q:'三個根的和',a:1},
+        {f:'x^3+x^2-9x-9',roots:[-1,3,-3],q:'最大根',a:3},
+        {f:'x^3-3x^2-4x+12',roots:[3,2,-2],q:'三個根的積',a:-12},
+        {f:'x^3+2x^2-x-2',roots:[1,-1,-2],q:'三個根的和',a:-2},
+        {f:'x^3-4x',roots:[0,2,-2],q:'非零根的積',a:-4},
+        {f:'x^3-x^2-10x-8',roots:[-1,-2,4],q:'最大根',a:4},
+      ];
+      const p=srQPick(pool,_pfH0Q);if(!p)return null;
+      return{question:`分解 \\(f(x)=${p.f}\\) 為三個一次因式之積，求${p.q}。`,answer:p.a,type:'number',answerPrefix:p.q};
+    }
+    {
+      // 兩個因式條件，求兩個未知係數
+      const pool=[
+        {f:'x^3+ax^2+bx-6',d1:'x-1',d2:'x+2',qa:4,qb:1,q:'a+b',a:5},
+        {f:'x^3+ax^2+bx+2',d1:'x-1',d2:'x+1',qa:-2,qb:-1,q:'a',a:-2},
+        {f:'x^3+ax^2+bx-4',d1:'x-1',d2:'x-2',qa:-5,qb:8,q:'b',a:8},
+        {f:'x^3+ax^2+bx+6',d1:'x-1',d2:'x-2',qa:0,qb:-7,q:'a+b',a:-7},
+        {f:'x^3+ax^2+bx-12',d1:'x-2',d2:'x+2',qa:3,qb:-4,q:'a-b',a:7},
+      ];
+      const p=srQPick(pool,_pfH1Q);if(!p)return null;
+      return{question:`若 \\((${p.d1})\\) 和 \\((${p.d2})\\) 都是 \\(f(x)=${p.f}\\) 的因式，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
+    }
+  }
+}
+
+// ── b1-poly-linquad：一次函數與二次函數（根與係數） ───────────────
+const _plqB0Q=[],_plqB1Q=[],_plqB2Q=[];
+const _plqM0Q=[],_plqM1Q=[],_plqM2Q=[];
+const _plqH0Q=[],_plqH1Q=[];
+
+function genB1PolyLinQuad(level,_n){
+  for(let i=0;i<40;i++){const q=_b1PolyLinQuad(level);if(q)return q;}
+  return{question:'根與係數',answer:0,type:'number',answerPrefix:''};
+}
+function _b1PolyLinQuad(level){
+  if(level==='basic'){
+    const t=srRandInt(0,2);
+    if(t===0){
+      const pool=[
+        {eq:'x^2-5x+6=0',q:'x_1+x_2',a:5},{eq:'x^2-5x+6=0',q:'x_1 x_2',a:6},
+        {eq:'x^2+4x+3=0',q:'x_1+x_2',a:-4},{eq:'x^2+4x+3=0',q:'x_1 x_2',a:3},
+        {eq:'x^2-3x-4=0',q:'x_1+x_2',a:3},{eq:'x^2-3x-4=0',q:'x_1 x_2',a:-4},
+        {eq:'x^2+x-6=0',q:'x_1+x_2',a:-1},{eq:'x^2+x-6=0',q:'x_1 x_2',a:-6},
+        {eq:'2x^2-6x+4=0',q:'x_1+x_2',a:3},{eq:'2x^2-6x+4=0',q:'x_1 x_2',a:2},
+        {eq:'3x^2+9x-6=0',q:'x_1+x_2',a:-3},{eq:'3x^2+9x-6=0',q:'x_1 x_2',a:-2},
+      ];
+      const p=srQPick(pool,_plqB0Q);if(!p)return null;
+      return{question:`設 \\(x_1, x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
+    }
+    if(t===1){
+      // 判別式
+      const pool=[
+        {eq:'x^2-3x+2=0',d:1,ans:'兩相異實根'},{eq:'x^2-2x+1=0',d:0,ans:'重根'},
+        {eq:'x^2+x+1=0',d:-3,ans:'無實根'},{eq:'2x^2-5x+3=0',d:1,ans:'兩相異實根'},
+        {eq:'x^2+4x+4=0',d:0,ans:'重根'},{eq:'x^2-x+1=0',d:-3,ans:'無實根'},
+        {eq:'3x^2-2x-1=0',d:16,ans:'兩相異實根'},{eq:'x^2+2x+2=0',d:-4,ans:'無實根'},
+      ];
+      const p=srQPick(pool,_plqB1Q);if(!p)return null;
+      return{question:`方程式 \\(${p.eq}\\) 的根的狀況為何？（填「兩相異實根」、「重根」或「無實根」）`,answer:p.ans,type:'text',answerPrefix:''};
+    }
+    {
+      // 頂點坐標或對稱軸
+      const pool=[
+        {f:'x^2-4x+3',q:'對稱軸',a:'x=2'},{f:'x^2+6x+5',q:'對稱軸',a:'x=-3'},
+        {f:'2x^2-8x+1',q:'對稱軸',a:'x=2'},{f:'x^2-2x-3',q:'頂點 x 坐標',a:1},
+        {f:'x^2+4x+1',q:'頂點 x 坐標',a:-2},{f:'-x^2+6x-5',q:'對稱軸',a:'x=3'},
+        {f:'x^2-6x+8',q:'頂點 y 坐標',a:-1},{f:'x^2+2x+5',q:'頂點 y 坐標',a:4},
+      ];
+      const p=srQPick(pool,_plqB2Q);if(!p)return null;
+      const isNum=typeof p.a==='number';
+      return{question:`二次函數 \\(f(x)=${p.f}\\) 的${p.q}為何？`,answer:p.a,type:isNum?'number':'text',answerPrefix:p.q};
+    }
+  }
+  if(level==='medium'){
+    const t=srRandInt(0,2);
+    if(t===0){
+      const pool=[
+        {eq:'x^2-5x+6=0',q:'x_1^2+x_2^2',a:13},{eq:'x^2-3x+1=0',q:'x_1^2+x_2^2',a:7},
+        {eq:'x^2-4x+2=0',q:'x_1^2+x_2^2',a:12},{eq:'x^2+2x-1=0',q:'x_1^2+x_2^2',a:6},
+        {eq:'x^2-5x+3=0',q:'x_1^2+x_2^2',a:19},{eq:'x^2-6x+4=0',q:'x_1^2+x_2^2',a:28},
+        {eq:'x^2+3x-4=0',q:'x_1^2+x_2^2',a:17},{eq:'x^2-2x-3=0',q:'x_1^2+x_2^2',a:10},
+        {eq:'x^2-5x+6=0',q:'\\dfrac{1}{x_1}+\\dfrac{1}{x_2}',num:5,den:6},
+        {eq:'x^2-3x+2=0',q:'\\dfrac{1}{x_1}+\\dfrac{1}{x_2}',num:3,den:2},
+        {eq:'x^2+3x-4=0',q:'\\dfrac{1}{x_1}+\\dfrac{1}{x_2}',num:3,den:4},
+      ];
+      const p=srQPick(pool,_plqM0Q);if(!p)return null;
+      if(p.num!==undefined){
+        return{question:`設 \\(x_1,x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,answer:frac(p.num,p.den),type:'fraction',answerPrefix:`\\(${p.q}\\)`};
       }
-      return {
-        question: `設 \\(x_1, x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,
-        answer: p.a, type: 'number', answerPrefix: `\\(${p.q}\\)`
-      };
+      return{question:`設 \\(x_1,x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
     }
-
-    if (t === 1) {
-      // 兩條件確定 f(x)=x²+ax+b，再求某值
-      const pool = [
-        { desc: '\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(3\\)，除以 \\(x+1\\) 餘 \\(7\\)', q: 'f(0)',  a: 4  },
-        { desc: '\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(2\\)，除以 \\(x+1\\) 餘 \\(4\\)', q: 'f(0)',  a: 2  },
-        { desc: '\\(f(x)=x^2+ax+b\\)，\\(x-1\\) 是其因式，除以 \\(x+1\\) 餘 \\(4\\)',         q: 'f(2)',  a: 1  },
-        { desc: '\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(5\\)，除以 \\(x-2\\) 餘 \\(8\\)', q: 'f(3)',  a: 13 },
-        { desc: '\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(3\\)，除以 \\(x-2\\) 餘 \\(8\\)', q: 'f(-1)', a: -1 },
+    if(t===1){
+      // 由兩個條件求f(x)=x²+ax+b的參數
+      const pool=[
+        {desc:'\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(3\\)，除以 \\(x+1\\) 餘 \\(7\\)',q:'a',a:-2},
+        {desc:'\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(2\\)，除以 \\(x+1\\) 餘 \\(4\\)',q:'a',a:-1},
+        {desc:'\\(f(x)=x^2+ax+b\\)，\\(x-1\\) 是其因式，除以 \\(x+1\\) 餘 \\(4\\)',q:'a',a:1},
+        {desc:'\\(f(x)=ax^2+bx-3\\)，\\(x=1\\) 時 \\(f=0\\)，\\(x=3\\) 時 \\(f=0\\)',q:'a',a:1},
       ];
-      const p = srQPick(pool, _cPolyOpMQ);
-      return {
-        question: `設 ${p.desc}，求 \\(${p.q}\\)。`,
-        answer: p.a, type: 'number', answerPrefix: `\\(${p.q}\\)`
-      };
+      const p=srQPick(pool,_plqM1Q);if(!p)return null;
+      return{question:`設 ${p.desc}，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
     }
-
-    // t === 2: 除以 (x−a)(x−b) 的線性餘式 ax+b
     {
-      const pool = [
-        { f: 'x^3+2x+1',  div: '(x-1)(x-2)', q: 'a',   ans: 9  },
-        { f: 'x^3-x+2',   div: '(x-1)(x-2)', q: 'a',   ans: 6  },
-        { f: 'x^3+x^2',   div: '(x-1)(x-2)', q: 'b',   ans: -8 },
-        { f: 'x^4+x-2',   div: '(x-1)(x-2)', q: 'a+b', ans: 0  },
-        { f: 'x^3-2x+3',  div: '(x-1)(x-2)', q: 'b',   ans: -3 },
+      // 由頂點或截距求二次函數某係數
+      const pool=[
+        {desc:'頂點為 \\((2,-1)\\)，\\(f(x)=x^2+ax+b\\)',q:'b',a:3},
+        {desc:'\\(f(x)=x^2+bx+c\\) 過 \\((1,0)\\) 和 \\((3,0)\\)',q:'b',a:-4},
+        {desc:'\\(f(x)=x^2+bx+c\\) 過 \\((2,0)\\) 和 \\((-1,0)\\)',q:'c',a:-2},
+        {desc:'\\(f(x)=x^2+bx+c\\) 的對稱軸為 \\(x=2\\)，且 \\(f(0)=8\\)',q:'b',a:-4},
+        {desc:'\\(f(x)=x^2+bx+c\\) 的頂點在 \\((-1,-4)\\)',q:'c',a:-3},
       ];
-      const p = srQPick(pool, _cPolyOpMQ);
-      return {
-        question: `多項式 \\(f(x)=${p.f}\\) 除以 \\(${p.div}\\) 的餘式為 \\(ax+b\\)，求 \\(${p.q}\\)。`,
-        answer: p.ans, type: 'number', answerPrefix: `\\(${p.q}\\)`
-      };
+      const p=srQPick(pool,_plqM2Q);if(!p)return null;
+      return{question:`設 ${p.desc}，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
     }
   }
-
-  // hard
   {
-    const ht = srRandInt(0, 1);
-
-    if (ht === 0) {
-      // 超進階Vieta：(x₁−x₂)², x₁³+x₂³, x₁²x₂+x₁x₂²
-      const pool = [
-        { eq: 'x^2-5x+6=0', q: '(x_1-x_2)^2',          a: 1   },
-        { eq: 'x^2-5x+3=0', q: '(x_1-x_2)^2',          a: 13  },
-        { eq: 'x^2-7x+5=0', q: '(x_1-x_2)^2',          a: 29  },
-        { eq: 'x^2-4x+1=0', q: '(x_1-x_2)^2',          a: 12  },
-        { eq: 'x^2-4x+2=0', q: 'x_1^3+x_2^3',          a: 40  },
-        { eq: 'x^2-3x+1=0', q: 'x_1^3+x_2^3',          a: 18  },
-        { eq: 'x^2-6x+4=0', q: 'x_1^3+x_2^3',          a: 144 },
-        { eq: 'x^2-5x+3=0', q: 'x_1^3+x_2^3',          a: 80  },
-        { eq: 'x^2-5x+6=0', q: 'x_1^2 x_2+x_1 x_2^2', a: 30  },
-        { eq: 'x^2-3x+2=0', q: 'x_1^2 x_2+x_1 x_2^2', a: 6   },
+    const ht=srRandInt(0,1);
+    if(ht===0){
+      const pool=[
+        {eq:'x^2-5x+6=0',q:'(x_1-x_2)^2',a:1},{eq:'x^2-5x+3=0',q:'(x_1-x_2)^2',a:13},
+        {eq:'x^2-7x+5=0',q:'(x_1-x_2)^2',a:29},{eq:'x^2-4x+1=0',q:'(x_1-x_2)^2',a:12},
+        {eq:'x^2-4x+2=0',q:'x_1^3+x_2^3',a:40},{eq:'x^2-3x+1=0',q:'x_1^3+x_2^3',a:18},
+        {eq:'x^2-6x+4=0',q:'x_1^3+x_2^3',a:144},{eq:'x^2-5x+3=0',q:'x_1^3+x_2^3',a:80},
+        {eq:'x^2-5x+6=0',q:'x_1^2 x_2+x_1 x_2^2',a:30},{eq:'x^2-3x+2=0',q:'x_1^2 x_2+x_1 x_2^2',a:6},
       ];
-      const p = srQPick(pool, _cPolyOpHQ);
-      return {
-        question: `設 \\(x_1, x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,
-        answer: p.a, type: 'number', answerPrefix: `\\(${p.q}\\)`
-      };
+      const p=srQPick(pool,_plqH0Q);if(!p)return null;
+      return{question:`設 \\(x_1,x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
     }
-
-    // ht === 1: 三次方程根與係數
     {
-      const pool = [
-        { eq: 'x^3-6x^2+11x-6=0', q: 'x_1+x_2+x_3',        a: 6  },
-        { eq: 'x^3-6x^2+11x-6=0', q: 'x_1 x_2 x_3',        a: 6  },
-        { eq: 'x^3-6x^2+11x-6=0', q: 'x_1^2+x_2^2+x_3^2',  a: 14 },
-        { eq: 'x^3-3x^2+2x=0',    q: 'x_1+x_2+x_3',        a: 3  },
-        { eq: 'x^3-3x^2+2x=0',    q: 'x_1 x_2 x_3',        a: 0  },
-        { eq: 'x^3-2x^2-x+2=0',   q: 'x_1+x_2+x_3',        a: 2  },
-        { eq: 'x^3-2x^2-x+2=0',   q: 'x_1 x_2 x_3',        a: -2 },
-        { eq: 'x^3-2x^2-x+2=0',   q: 'x_1^2+x_2^2+x_3^2',  a: 6  },
+      // 由對稱函數構造新方程（以和與積求新方程係數）
+      const pool=[
+        {eq:'x^2-3x+1=0',newq:'以 \\(x_1^2, x_2^2\\) 為根的方程式的兩根之積',a:1},
+        {eq:'x^2-5x+6=0',newq:'以 \\(x_1+1, x_2+1\\) 為根的方程式的兩根之積',a:12},
+        {eq:'x^2-4x+3=0',newq:'以 \\(x_1-1, x_2-1\\) 為根的方程式的兩根之積',a:0},
+        {eq:'x^2-3x+2=0',newq:'以 \\(\\frac{1}{x_1}, \\frac{1}{x_2}\\) 為根的方程式的兩根之積',a:frac(1,2)},
+        {eq:'x^2-5x+4=0',newq:'以 \\(2x_1, 2x_2\\) 為根的方程式的兩根之積',a:16},
       ];
-      const p = srQPick(pool, _cPolyOpHQ);
-      return {
-        question: `設 \\(x_1, x_2, x_3\\) 是方程式 \\(${p.eq}\\) 的三根，求 \\(${p.q}\\)。`,
-        answer: p.a, type: 'number', answerPrefix: `\\(${p.q}\\)`
-      };
+      const p=srQPick(pool,_plqH1Q);if(!p)return null;
+      const isF=p.a&&p.a.num!==undefined;
+      return{question:`設 \\(x_1,x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求${p.newq}。`,answer:p.a,type:isF?'fraction':'number',answerPrefix:'所求值'};
     }
   }
 }
 
-// ── b1-poly-ineq：多項式不等式 ────────────────────────────────────
-const _cPolyIneqBQ = [], _cPolyIneqMQ = [], _cPolyIneqHQ = [];
+// ── b1-poly-cubic：三次函數 ──────────────────────────────────────
+const _pcB0Q=[],_pcB1Q=[];
+const _pcM0Q=[],_pcM1Q=[];
+const _pcH0Q=[],_pcH1Q=[];
 
-function genB1PolyIneq(level, _n) {
-  for (let _i = 0; _i < 40; _i++) {
-    const q = _b1PolyIneq(level);
-    if (q) return q;
+function genB1PolyCubic(level,_n){
+  for(let i=0;i<40;i++){const q=_b1PolyCubic(level);if(q)return q;}
+  return{question:'三次函數',answer:0,type:'number',answerPrefix:''};
+}
+function _b1PolyCubic(level){
+  if(level==='basic'){
+    const t=srRandInt(0,1);
+    if(t===0){
+      // 三根Vieta's公式基礎
+      const pool=[
+        {eq:'x^3-6x^2+11x-6=0',q:'x_1+x_2+x_3',a:6},
+        {eq:'x^3-6x^2+11x-6=0',q:'x_1 x_2 x_3',a:6},
+        {eq:'x^3-3x^2+2x=0',q:'x_1+x_2+x_3',a:3},
+        {eq:'x^3-3x^2+2x=0',q:'x_1 x_2 x_3',a:0},
+        {eq:'x^3-2x^2-x+2=0',q:'x_1+x_2+x_3',a:2},
+        {eq:'x^3-2x^2-x+2=0',q:'x_1 x_2 x_3',a:-2},
+        {eq:'x^3+3x^2-x-3=0',q:'x_1+x_2+x_3',a:-3},
+        {eq:'x^3+3x^2-x-3=0',q:'x_1 x_2 x_3',a:3},
+        {eq:'2x^3-6x^2+4x=0',q:'x_1+x_2+x_3',a:3},
+        {eq:'x^3-x^2-4=0',q:'x_1 x_2 x_3',a:4},
+      ];
+      const p=srQPick(pool,_pcB0Q);if(!p)return null;
+      return{question:`設 \\(x_1,x_2,x_3\\) 是方程式 \\(${p.eq}\\) 的三根，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
+    }
+    {
+      // 三次多項式代值
+      const pool=[
+        {f:'x^3-3x^2+2x-1',a:2,r:3},{f:'x^3+x^2-2x+1',a:1,r:1},
+        {f:'x^3-x+5',a:-1,r:5},{f:'2x^3-x^2+3',a:1,r:4},
+        {f:'x^3+2x^2-x-2',a:2,r:8},{f:'x^3-4x+3',a:3,r:12},
+        {f:'x^3+x^2+x+1',a:-1,r:0},{f:'x^3-2x^2+3',a:-1,r:-4},
+      ];
+      const p=srQPick(pool,_pcB1Q);if(!p)return null;
+      const av=p.a>=0?`${p.a}`:`(${p.a})`;
+      return{question:`設 \\(f(x)=${p.f}\\)，求 \\(f(${av})\\)。`,answer:p.r,type:'number',answerPrefix:`\\(f(${av})\\)`};
+    }
   }
-  return { question: '不等式', answer: '', type: 'text', answerPrefix: '' };
+  if(level==='medium'){
+    const t=srRandInt(0,1);
+    if(t===0){
+      const pool=[
+        {eq:'x^3-6x^2+11x-6=0',q:'x_1^2+x_2^2+x_3^2',a:14},
+        {eq:'x^3-3x^2+2x=0',q:'x_1^2+x_2^2+x_3^2',a:5},
+        {eq:'x^3-2x^2-x+2=0',q:'x_1^2+x_2^2+x_3^2',a:6},
+        {eq:'x^3+3x^2-4=0',q:'x_1^2+x_2^2+x_3^2',a:9},
+        {eq:'x^3-3x+2=0',q:'x_1^2+x_2^2+x_3^2',a:6},
+        {eq:'x^3-4x^2+5x-2=0',q:'x_1^2+x_2^2+x_3^2',a:6},
+      ];
+      const p=srQPick(pool,_pcM0Q);if(!p)return null;
+      return{question:`設 \\(x_1,x_2,x_3\\) 是方程式 \\(${p.eq}\\) 的三根，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
+    }
+    {
+      // 已知三次多項式有一根，利用因式定理求另一根
+      const pool=[
+        {f:'x^3-6x^2+11x-6',root1:1,desc:'\\(x=1\\) 是根',qRoot:'最大根',a:3},
+        {f:'x^3+x^2-4x-4',root1:2,desc:'\\(x=2\\) 是根',qRoot:'最小根',a:-2},
+        {f:'x^3-3x^2-4x+12',root1:3,desc:'\\(x=3\\) 是根',qRoot:'最小根',a:-2},
+        {f:'x^3-x^2-9x+9',root1:1,desc:'\\(x=1\\) 是根',qRoot:'最大根',a:3},
+        {f:'x^3+2x^2-x-2',root1:1,desc:'\\(x=1\\) 是根',qRoot:'最小根',a:-2},
+      ];
+      const p=srQPick(pool,_pcM1Q);if(!p)return null;
+      return{question:`已知 \\(f(x)=${p.f}\\) 且 ${p.desc}，求其${p.qRoot}。`,answer:p.a,type:'number',answerPrefix:p.qRoot};
+    }
+  }
+  {
+    const ht=srRandInt(0,1);
+    if(ht===0){
+      // 完全因式分解後求根的乘積/總和
+      const pool=[
+        {f:'x^3-6x^2+11x-6',roots:[1,2,3],q:'三根的積',a:6},
+        {f:'x^3-x^2-4x+4',roots:[1,2,-2],q:'三根的和',a:1},
+        {f:'x^3+x^2-9x-9',roots:[-1,3,-3],q:'最大根',a:3},
+        {f:'x^3-3x^2-4x+12',roots:[2,-2,3],q:'三根的積',a:-12},
+        {f:'x^3+2x^2-x-2',roots:[1,-1,-2],q:'三根的積',a:2},
+        {f:'x^3+3x^2-x-3',roots:[1,-1,-3],q:'最大根',a:1},
+        {f:'x^3-4x',roots:[0,2,-2],q:'非零根的積',a:-4},
+      ];
+      const p=srQPick(pool,_pcH0Q);if(!p)return null;
+      return{question:`將 \\(f(x)=${p.f}\\) 完全因式分解後，求${p.q}。`,answer:p.a,type:'number',answerPrefix:p.q};
+    }
+    {
+      // 三根Vieta進階：對稱函數
+      const pool=[
+        {eq:'x^3-6x^2+11x-6=0',q:'x_1^3+x_2^3+x_3^3-3x_1 x_2 x_3',a:18},
+        {eq:'x^3-3x+2=0',q:'x_1^2+x_2^2+x_3^2',a:6},
+        {eq:'x^3-4x^2+5x-2=0',q:'(x_1-1)(x_2-1)(x_3-1)',a:0},
+        {eq:'x^3-6x^2+11x-6=0',q:'\\frac{1}{x_1}+\\frac{1}{x_2}+\\frac{1}{x_3}',a:frac(11,6)},
+      ];
+      const p=srQPick(pool,_pcH1Q);if(!p)return null;
+      const isF=p.a&&p.a.num!==undefined;
+      return{question:`設 \\(x_1,x_2,x_3\\) 是方程式 \\(${p.eq}\\) 的三根，求 \\(${p.q}\\)。`,answer:p.a,type:isF?'fraction':'number',answerPrefix:`\\(${p.q}\\)`};
+    }
+  }
 }
 
-function _b1PolyIneq(level) {
-  if (level === 'basic') {
-    const pool = [
-      { ineq: 'x^2-4x+3>0',  ans: 'x < 1 或 x > 3',  fmt: 'x < a 或 x > b' },
-      { ineq: 'x^2-4x+3<0',  ans: '1 < x < 3',        fmt: 'a < x < b' },
-      { ineq: 'x^2-7x+10>0', ans: 'x < 2 或 x > 5',  fmt: 'x < a 或 x > b' },
-      { ineq: 'x^2-7x+10<0', ans: '2 < x < 5',        fmt: 'a < x < b' },
-      { ineq: 'x^2-3x-4>0',  ans: 'x < -1 或 x > 4', fmt: 'x < a 或 x > b' },
-      { ineq: 'x^2-3x-4<0',  ans: '-1 < x < 4',       fmt: 'a < x < b' },
-      { ineq: 'x^2+x-2>0',   ans: 'x < -2 或 x > 1', fmt: 'x < a 或 x > b' },
-      { ineq: 'x^2+x-2<0',   ans: '-2 < x < 1',       fmt: 'a < x < b' },
-      { ineq: 'x^2+x-6>0',   ans: 'x < -3 或 x > 2', fmt: 'x < a 或 x > b' },
-      { ineq: 'x^2+x-6<0',   ans: '-3 < x < 2',       fmt: 'a < x < b' },
-      { ineq: 'x^2-6x+8>0',  ans: 'x < 2 或 x > 4',  fmt: 'x < a 或 x > b' },
-      { ineq: 'x^2-6x+8<0',  ans: '2 < x < 4',        fmt: 'a < x < b' },
+// ── b1-poly-ineq1：一次二次不等式 ───────────────────────────────
+const _pi1BQ=[];
+const _pi1M0Q=[],_pi1M1Q=[];
+const _pi1HQ=[];
+
+function genB1PolyIneq1(level,_n){
+  for(let i=0;i<40;i++){const q=_b1PolyIneq1(level);if(q)return q;}
+  return{question:'不等式',answer:'',type:'text',answerPrefix:''};
+}
+function _b1PolyIneq1(level){
+  if(level==='basic'){
+    const pool=[
+      {ineq:'x^2-4x+3>0',ans:'x < 1 或 x > 3',fmt:'x < a 或 x > b'},
+      {ineq:'x^2-4x+3<0',ans:'1 < x < 3',fmt:'a < x < b'},
+      {ineq:'x^2-7x+10>0',ans:'x < 2 或 x > 5',fmt:'x < a 或 x > b'},
+      {ineq:'x^2-7x+10<0',ans:'2 < x < 5',fmt:'a < x < b'},
+      {ineq:'x^2-3x-4>0',ans:'x < -1 或 x > 4',fmt:'x < a 或 x > b'},
+      {ineq:'x^2-3x-4<0',ans:'-1 < x < 4',fmt:'a < x < b'},
+      {ineq:'x^2+x-2>0',ans:'x < -2 或 x > 1',fmt:'x < a 或 x > b'},
+      {ineq:'x^2+x-2<0',ans:'-2 < x < 1',fmt:'a < x < b'},
+      {ineq:'x^2+x-6>0',ans:'x < -3 或 x > 2',fmt:'x < a 或 x > b'},
+      {ineq:'x^2+x-6<0',ans:'-3 < x < 2',fmt:'a < x < b'},
+      {ineq:'x^2-6x+8>0',ans:'x < 2 或 x > 4',fmt:'x < a 或 x > b'},
+      {ineq:'x^2-6x+8<0',ans:'2 < x < 4',fmt:'a < x < b'},
     ];
-    const p = srQPick(pool, _cPolyIneqBQ);
-    return {
-      question: `解不等式 \\(${p.ineq}\\)（格式：${p.fmt}）`,
-      answer: p.ans, type: 'text', answerPrefix: ''
-    };
+    const p=srQPick(pool,_pi1BQ);if(!p)return null;
+    return{question:`解不等式 \\(${p.ineq}\\)（格式：${p.fmt}）`,answer:p.ans,type:'text',answerPrefix:''};
   }
-
-  if (level === 'medium') {
-    const t = srRandInt(0, 1);
-
-    if (t === 0) {
-      // 整數解個數
-      const pool = [
-        { ineq: 'x^2-9x+14<0',  n: 4 },
-        { ineq: 'x^2-5x+4<0',   n: 2 },
-        { ineq: 'x^2-6x+5<0',   n: 3 },
-        { ineq: 'x^2-8x+12<0',  n: 3 },
-        { ineq: 'x^2-10x+21<0', n: 3 },
-        { ineq: 'x^2-11x+24<0', n: 4 },
-        { ineq: 'x^2-x-6<0',    n: 4 },
-        { ineq: 'x^2-3x-10<0',  n: 6 },
-        { ineq: 'x^2+x-12<0',   n: 6 },
+  if(level==='medium'){
+    const t=srRandInt(0,1);
+    if(t===0){
+      const pool=[
+        {ineq:'x^2-9x+14<0',n:4},{ineq:'x^2-5x+4<0',n:2},
+        {ineq:'x^2-6x+5<0',n:3},{ineq:'x^2-8x+12<0',n:3},
+        {ineq:'x^2-10x+21<0',n:3},{ineq:'x^2-11x+24<0',n:4},
+        {ineq:'x^2-x-6<0',n:4},{ineq:'x^2-3x-10<0',n:6},
+        {ineq:'x^2+x-12<0',n:6},
       ];
-      const p = srQPick(pool, _cPolyIneqMQ);
-      return {
-        question: `不等式 \\(${p.ineq}\\) 的整數解共有幾個？`,
-        answer: p.n, type: 'number', answerPrefix: '整數解個數'
-      };
+      const p=srQPick(pool,_pi1M0Q);if(!p)return null;
+      return{question:`不等式 \\(${p.ineq}\\) 的整數解共有幾個？`,answer:p.n,type:'number',answerPrefix:'整數解個數'};
     }
-
-    // t === 1: 恆成立條件，求k範圍
     {
-      const pool = [
-        { ineq: 'x^2+kx+k>0 對所有實數 x 恆成立',     ans: '0 < k < 4',  fmt: 'a < k < b' },
-        { ineq: 'x^2+kx+1>0 對所有實數 x 恆成立',      ans: '-2 < k < 2', fmt: 'a < k < b' },
-        { ineq: 'x^2-2kx+(k+2)>0 對所有實數 x 恆成立', ans: '-1 < k < 2', fmt: 'a < k < b' },
-        { ineq: 'x^2+2x+k>0 對所有實數 x 恆成立',      ans: 'k > 1',      fmt: 'k > c' },
-        { ineq: 'x^2-4x+k>0 對所有實數 x 恆成立',      ans: 'k > 4',      fmt: 'k > c' },
+      const pool=[
+        {ineq:'x^2+kx+k>0 對所有實數 x 恆成立',ans:'0 < k < 4',fmt:'a < k < b'},
+        {ineq:'x^2+kx+1>0 對所有實數 x 恆成立',ans:'-2 < k < 2',fmt:'a < k < b'},
+        {ineq:'x^2-2kx+(k+2)>0 對所有實數 x 恆成立',ans:'-1 < k < 2',fmt:'a < k < b'},
+        {ineq:'x^2+2x+k>0 對所有實數 x 恆成立',ans:'k > 1',fmt:'k > c'},
+        {ineq:'x^2-4x+k>0 對所有實數 x 恆成立',ans:'k > 4',fmt:'k > c'},
       ];
-      const p = srQPick(pool, _cPolyIneqMQ);
-      return {
-        question: `若 \\(${p.ineq}\\)，求 \\(k\\) 的範圍。（格式：${p.fmt}）`,
-        answer: p.ans, type: 'text', answerPrefix: '\\(k\\)'
-      };
+      const p=srQPick(pool,_pi1M1Q);if(!p)return null;
+      return{question:`若 \\(${p.ineq}\\)，求 \\(k\\) 的範圍。（格式：${p.fmt}）`,answer:p.ans,type:'text',answerPrefix:'\\(k\\)'};
     }
   }
-
-  // hard: 高次不等式（三次，因式分解）
   {
-    const pool = [
-      { ineq: '(x-1)(x-2)(x-3)>0', ans: '1 < x < 2 或 x > 3',   fmt: 'a < x < b 或 x > c' },
-      { ineq: '(x-1)(x-2)(x-3)<0', ans: 'x < 1 或 2 < x < 3',   fmt: 'x < a 或 b < x < c' },
-      { ineq: '(x+1)(x-1)(x-3)>0', ans: '-1 < x < 1 或 x > 3',  fmt: 'a < x < b 或 x > c' },
-      { ineq: '(x+1)(x-1)(x-3)<0', ans: 'x < -1 或 1 < x < 3',  fmt: 'x < a 或 b < x < c' },
-      { ineq: '(x+2)(x-1)(x-4)>0', ans: '-2 < x < 1 或 x > 4',  fmt: 'a < x < b 或 x > c' },
-      { ineq: '(x+2)(x-1)(x-4)<0', ans: 'x < -2 或 1 < x < 4',  fmt: 'x < a 或 b < x < c' },
-      { ineq: '(x+1)(x-2)(x-5)>0', ans: '-1 < x < 2 或 x > 5',  fmt: 'a < x < b 或 x > c' },
-      { ineq: '(x+1)(x-2)(x-5)<0', ans: 'x < -1 或 2 < x < 5',  fmt: 'x < a 或 b < x < c' },
-      { ineq: '(x+3)(x+1)(x-2)>0', ans: '-3 < x < -1 或 x > 2', fmt: 'a < x < b 或 x > c' },
-      { ineq: '(x+3)(x+1)(x-2)<0', ans: 'x < -3 或 -1 < x < 2', fmt: 'x < a 或 b < x < c' },
+    // hard: 聯立不等式
+    const pool=[
+      {desc:'\\(x^2-5x+4<0\\) 且 \\(x^2-3x+2>0\\)',ans:'2 < x < 4',fmt:'a < x < b'},
+      {desc:'\\(x^2-7x+6<0\\) 且 \\(x^2-4x+3>0\\)',ans:'3 < x < 6',fmt:'a < x < b'},
+      {desc:'\\(x^2-5x+6<0\\) 且 \\(x^2-x-2>0\\)',ans:'2 < x < 3',fmt:'a < x < b'},
+      {desc:'\\(x^2-4<0\\) 且 \\(x^2-x-2>0\\)',ans:'-2 < x < -1',fmt:'a < x < b'},
+      {desc:'\\(x^2-9<0\\) 且 \\(x^2-5x+4>0\\)',ans:'-3 < x < 1',fmt:'a < x < b'},
     ];
-    const p = srQPick(pool, _cPolyIneqHQ);
-    return {
-      question: `解不等式 \\(${p.ineq}\\)（格式：${p.fmt}）`,
-      answer: p.ans, type: 'text', answerPrefix: ''
-    };
+    const p=srQPick(pool,_pi1HQ);if(!p)return null;
+    return{question:`解聯立不等式：${p.desc}（格式：${p.fmt}）`,answer:p.ans,type:'text',answerPrefix:''};
+  }
+}
+
+// ── b1-poly-ineq2：高次不等式 ────────────────────────────────────
+const _pi2B0Q=[],_pi2B1Q=[];
+const _pi2M0Q=[],_pi2M1Q=[];
+const _pi2HQ=[];
+
+function genB1PolyIneq2(level,_n){
+  for(let i=0;i<40;i++){const q=_b1PolyIneq2(level);if(q)return q;}
+  return{question:'高次不等式',answer:'',type:'text',answerPrefix:''};
+}
+function _b1PolyIneq2(level){
+  if(level==='basic'){
+    const t=srRandInt(0,1);
+    if(t===0){
+      const pool=[
+        {ineq:'(x-1)(x-2)(x-3)>0',ans:'1 < x < 2 或 x > 3',fmt:'a < x < b 或 x > c'},
+        {ineq:'(x-1)(x-2)(x-3)<0',ans:'x < 1 或 2 < x < 3',fmt:'x < a 或 b < x < c'},
+        {ineq:'(x+1)(x-1)(x-3)>0',ans:'-1 < x < 1 或 x > 3',fmt:'a < x < b 或 x > c'},
+        {ineq:'(x+1)(x-1)(x-3)<0',ans:'x < -1 或 1 < x < 3',fmt:'x < a 或 b < x < c'},
+        {ineq:'(x+2)(x-1)(x-4)>0',ans:'-2 < x < 1 或 x > 4',fmt:'a < x < b 或 x > c'},
+        {ineq:'(x+2)(x-1)(x-4)<0',ans:'x < -2 或 1 < x < 4',fmt:'x < a 或 b < x < c'},
+        {ineq:'(x+1)(x-2)(x-5)>0',ans:'-1 < x < 2 或 x > 5',fmt:'a < x < b 或 x > c'},
+        {ineq:'(x+1)(x-2)(x-5)<0',ans:'x < -1 或 2 < x < 5',fmt:'x < a 或 b < x < c'},
+        {ineq:'(x+3)(x+1)(x-2)>0',ans:'-3 < x < -1 或 x > 2',fmt:'a < x < b 或 x > c'},
+        {ineq:'(x+3)(x+1)(x-2)<0',ans:'x < -3 或 -1 < x < 2',fmt:'x < a 或 b < x < c'},
+      ];
+      const p=srQPick(pool,_pi2B0Q);if(!p)return null;
+      return{question:`解不等式 \\(${p.ineq}\\)（格式：${p.fmt}）`,answer:p.ans,type:'text',answerPrefix:''};
+    }
+    {
+      // 四個根因式（偶次型，需先因式分解）
+      const pool=[
+        {ineq:'(x^2-1)(x^2-4)>0',ans:'x < -2 或 -1 < x < 1 或 x > 2',fmt:'x < a 或 b < x < c 或 x > d'},
+        {ineq:'(x^2-1)(x^2-4)<0',ans:'-2 < x < -1 或 1 < x < 2',fmt:'a < x < b 或 c < x < d'},
+        {ineq:'x(x-1)(x+1)(x-2)>0',ans:'x < -1 或 0 < x < 1 或 x > 2',fmt:'x < a 或 b < x < c 或 x > d'},
+        {ineq:'x(x-1)(x+1)(x-2)<0',ans:'-1 < x < 0 或 1 < x < 2',fmt:'a < x < b 或 c < x < d'},
+      ];
+      const p=srQPick(pool,_pi2B1Q);if(!p)return null;
+      return{question:`解不等式 \\(${p.ineq}\\)（格式：${p.fmt}）`,answer:p.ans,type:'text',answerPrefix:''};
+    }
+  }
+  if(level==='medium'){
+    const t=srRandInt(0,1);
+    if(t===0){
+      // 高次不等式：先因式分解
+      const pool=[
+        {ineq:'x^3-6x^2+11x-6>0',ans:'1 < x < 2 或 x > 3',fmt:'a < x < b 或 x > c'},
+        {ineq:'x^3-6x^2+11x-6<0',ans:'x < 1 或 2 < x < 3',fmt:'x < a 或 b < x < c'},
+        {ineq:'x^3-x^2-4x+4>0',ans:'-2 < x < 1 或 x > 2',fmt:'a < x < b 或 x > c'},
+        {ineq:'x^3+2x^2-x-2>0',ans:'-2 < x < -1 或 x > 1',fmt:'a < x < b 或 x > c'},
+        {ineq:'x^3+2x^2-x-2<0',ans:'x < -2 或 -1 < x < 1',fmt:'x < a 或 b < x < c'},
+        {ineq:'x^3-3x^2-4x+12>0',ans:'-2 < x < 2 或 x > 3',fmt:'a < x < b 或 x > c'},
+      ];
+      const p=srQPick(pool,_pi2M0Q);if(!p)return null;
+      return{question:`先因式分解，再解不等式 \\(${p.ineq}\\)（格式：${p.fmt}）`,answer:p.ans,type:'text',answerPrefix:''};
+    }
+    {
+      // 整數解個數（三次不等式）
+      const pool=[
+        {ineq:'(x-1)(x-2)(x-3)<0',ans:2,hint:'根為 1,2,3'},
+        {ineq:'(x+1)(x-1)(x-3)<0',ans:3,hint:'根為 -1,1,3'},
+        {ineq:'(x+2)(x-1)(x-4)<0',ans:4,hint:'根為 -2,1,4'},
+        {ineq:'(x+1)(x-2)(x-5)<0',ans:4,hint:'根為 -1,2,5'},
+        {ineq:'(x+3)(x+1)(x-2)<0',ans:4,hint:'根為 -3,-1,2'},
+      ];
+      const p=srQPick(pool,_pi2M1Q);if(!p)return null;
+      return{question:`不等式 \\(${p.ineq}\\) 的整數解共有幾個？（${p.hint}）`,answer:p.ans,type:'number',answerPrefix:'整數解個數'};
+    }
+  }
+  {
+    // hard: 含參數的高次不等式 or 有理不等式
+    const pool=[
+      {ineq:'\\dfrac{x-1}{x-3}>0',ans:'x < 1 或 x > 3',fmt:'x < a 或 x > b'},
+      {ineq:'\\dfrac{x+2}{x-1}<0',ans:'-2 < x < 1',fmt:'a < x < b'},
+      {ineq:'\\dfrac{x-2}{x+1}>0',ans:'x < -1 或 x > 2',fmt:'x < a 或 x > b'},
+      {ineq:'\\dfrac{x+3}{x-2}<0',ans:'-3 < x < 2',fmt:'a < x < b'},
+      {ineq:'\\dfrac{(x-1)(x-3)}{x-2}>0',ans:'1 < x < 2 或 x > 3',fmt:'a < x < b 或 x > c'},
+      {ineq:'\\dfrac{(x+1)(x-2)}{x}>0',ans:'-1 < x < 0 或 x > 2',fmt:'a < x < b 或 x > c'},
+      {ineq:'\\dfrac{x^2-x-2}{x-3}>0',ans:'-1 < x < 2 或 x > 3',fmt:'a < x < b 或 x > c'},
+      {ineq:'\\dfrac{x^2-4}{x+1}>0',ans:'-2 < x < -1 或 x > 2',fmt:'a < x < b 或 x > c'},
+    ];
+    const p=srQPick(pool,_pi2HQ);if(!p)return null;
+    return{question:`解不等式 \\(${p.ineq}\\)（格式：${p.fmt}）`,answer:p.ans,type:'text',answerPrefix:''};
   }
 }
 
@@ -5634,9 +6140,14 @@ const SR_GENERATORS = {
   'b1-expr':         genB1Expr,
   'b1-exp':          genB1Exp,
   'b1-log':          genB1Log,
-  'b1-poly-op':      genB1PolyOp,
-  'b1-poly-func':   makeStub('多項式函數'),
-  'b1-poly-ineq':   genB1PolyIneq,
+  'b1-poly-basic':   genB1PolyBasic,
+  'b1-poly-synth':   genB1PolySynth,
+  'b1-poly-rem':     genB1PolyRem,
+  'b1-poly-factor':  genB1PolyFactor,
+  'b1-poly-linquad': genB1PolyLinQuad,
+  'b1-poly-cubic':   genB1PolyCubic,
+  'b1-poly-ineq1':   genB1PolyIneq1,
+  'b1-poly-ineq2':   genB1PolyIneq2,
   'b1-line':        genB1Line,
   'b1-amgm':         genB1AmGm,
   'b1-line-dist':    genB1LineDist,
