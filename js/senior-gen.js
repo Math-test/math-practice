@@ -1955,7 +1955,7 @@ function _b1PolyRem(level){
     {
       // 除以 (x-a)(x-b) 的線性餘式 ax+b
       const pool=[
-        {f:'x^3+2x+1',div:'(x-1)(x-2)',q:'a（餘式 \\(ax+b\\) 中）',ans:9},
+        {f:'x^3+2x+1',div:'(x-1)(x-2)',q:'a',ans:9},
         {f:'x^3-x+2',div:'(x-1)(x-2)',q:'a',ans:6},
         {f:'x^3+x^2',div:'(x-1)(x-2)',q:'b',ans:-8},
         {f:'x^4+x-2',div:'(x-1)(x-2)',q:'a+b',ans:0},
