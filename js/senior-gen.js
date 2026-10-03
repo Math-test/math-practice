@@ -1733,9 +1733,9 @@ function _b1PolyBasic(level){
 }
 
 // ── b1-poly-synth：綜合除法 ──────────────────────────────────────
-const _psB0Q=[],_psB1Q=[];
-const _psM0Q=[],_psM1Q=[];
-const _psH0Q=[],_psH1Q=[];
+const _psB0Q=[],_psB1Q=[],_psB2Q=[];
+const _psM0Q=[],_psM1Q=[],_psM2Q=[];
+const _psH0Q=[],_psH1Q=[],_psH2Q=[];
 
 function genB1PolySynth(level,_n){
   for(let i=0;i<40;i++){const q=_b1PolySynth(level);if(q)return q;}
@@ -1743,7 +1743,7 @@ function genB1PolySynth(level,_n){
 }
 function _b1PolySynth(level){
   if(level==='basic'){
-    const t=srRandInt(0,1);
+    const t=srRandInt(0,2);
     if(t===0){
       // 綜合除法求餘式（等同代入求值）
       const pool=[
@@ -1757,7 +1757,7 @@ function _b1PolySynth(level){
       const divStr=p.a>=0?`x-${p.a}`:`x+${-p.a}`;
       return{question:`用綜合除法求 \\(${p.f}\\) 除以 \\(${divStr}\\) 的餘式。`,answer:p.r,type:'number',answerPrefix:'餘式'};
     }
-    {
+    if(t===1){
       // 綜合除法：求商式的常數項
       const pool=[
         {f:'x^3+x^2-4x-4',a:-2,qc:-2},{f:'x^3-7x+6',a:2,qc:-3},
@@ -1769,9 +1769,21 @@ function _b1PolySynth(level){
       const divStr=p.a>=0?`x-${p.a}`:`x+${-p.a}`;
       return{question:`用綜合除法求 \\(${p.f}\\) 除以 \\(${divStr}\\) 所得商式的常數項。`,answer:p.qc,type:'number',answerPrefix:'商式常數項'};
     }
+    {
+      // 將 f(x) 表示成 (x-k) 的降冪多項式，求常數項 d
+      const pool=[
+        {f:'x^3-6x^2+11x-6',k:1,d:0},{f:'x^3+x^2-7x+3',k:2,d:1},
+        {f:'x^3-3x^2+4',k:1,d:2},{f:'x^3+3x^2-4',k:1,d:0},
+        {f:'x^3-2x^2+x-3',k:2,d:-1},{f:'2x^3-x^2+3x-1',k:1,d:3},
+        {f:'x^3+x^2+x+1',k:-1,d:0},{f:'x^3+2x^2-x-2',k:1,d:0},
+      ];
+      const p=srQPick(pool,_psB2Q);if(!p)return null;
+      const kStr=p.k>=0?`x-${p.k}`:`x+${-p.k}`;
+      return{question:`將 \\(f(x)=${p.f}\\) 表示成 \\(a(${kStr})^3+b(${kStr})^2+c(${kStr})+d\\) 的形式，求常數項 \\(d\\)。`,answer:p.d,type:'number',answerPrefix:'\\(d\\)'};
+    }
   }
   if(level==='medium'){
-    const t=srRandInt(0,1);
+    const t=srRandInt(0,2);
     if(t===0){
       // 含未知k，由餘式求k
       const pool=[
@@ -1784,7 +1796,7 @@ function _b1PolySynth(level){
       const divStr=p.a>=0?`x-${p.a}`:`x+${-p.a}`;
       return{question:`多項式 \\(f(x)=${p.f}\\) 除以 \\(${divStr}\\) 的餘式為 \\(${p.r}\\)，求 \\(k\\)。`,answer:p.k,type:'number',answerPrefix:'\\(k\\)'};
     }
-    {
+    if(t===1){
       // 先做綜合除法得商q(x)，再求q(a)
       const pool=[
         {f:'x^3-7x+6',a:2,qa:-1,qval:-4,desc:'代 \\(x=-1\\)'},
@@ -1802,9 +1814,21 @@ function _b1PolySynth(level){
       const qaStr=p.qa>=0?`${p.qa}`:`(${p.qa})`;
       return{question:`\\(f(x)=${p.f}\\) 除以 \\(${divStr}\\) 得商式 \\(q(x)\\)，求 \\(q(${qaStr})\\)。（${p.desc}）`,answer:p.qval,type:'number',answerPrefix:`\\(q(${qaStr})\\)`};
     }
+    {
+      // 降冪展開：求 c（需兩次綜合除法）
+      const pool=[
+        {f:'x^3-6x^2+11x-6',k:2,c:-1},{f:'x^3+x^2-7x+3',k:2,c:9},
+        {f:'x^3-3x^2+4',k:1,c:-3},{f:'x^3+3x^2-4',k:1,c:9},
+        {f:'x^3-2x^2+x-3',k:2,c:5},{f:'2x^3-x^2+3x-1',k:1,c:7},
+        {f:'x^3+2x-3',k:1,c:5},{f:'x^3+x^2+x+1',k:-1,c:2},
+      ];
+      const p=srQPick(pool,_psM2Q);if(!p)return null;
+      const kStr=p.k>=0?`x-${p.k}`:`x+${-p.k}`;
+      return{question:`將 \\(f(x)=${p.f}\\) 表示成 \\(a(${kStr})^3+b(${kStr})^2+c(${kStr})+d\\) 的形式，求 \\(c\\)。`,answer:p.c,type:'number',answerPrefix:'\\(c\\)'};
+    }
   }
   {
-    const ht=srRandInt(0,1);
+    const ht=srRandInt(0,2);
     if(ht===0){
       // 連續兩次綜合除法
       const pool=[
@@ -1837,6 +1861,25 @@ function _b1PolySynth(level){
       const p=srQPick(pool,_psH1Q);if(!p)return null;
       const divStr=p.a>=0?`x-${p.a}`:`x+${-p.a}`;
       return{question:`\\(f(x)=${p.f}\\) 除以 \\(${divStr}\\) 得商式 \\(q(x)\\)，${p.desc}`,answer:p.ans,type:'text',answerPrefix:''};
+    }
+    {
+      // 降冪展開：求 b（需三次綜合除法）或四次多項式求係數
+      const pool=[
+        {f:'x^3-6x^2+11x-6',k:2,q:'b',ans:0},
+        {f:'x^3+x^2-7x+3',k:2,q:'b',ans:7},
+        {f:'x^3+3x^2-4',k:1,q:'b',ans:6},
+        {f:'x^3-2x^2+x-3',k:2,q:'b',ans:4},
+        {f:'2x^3-x^2+3x-1',k:1,q:'b',ans:5},
+        {f:'x^4-1',k:1,q:'c',ans:6},
+        {f:'x^4+x',k:1,q:'b',ans:4},
+        {f:'x^4-2x^2+1',k:1,q:'b',ans:4},
+      ];
+      const p=srQPick(pool,_psH2Q);if(!p)return null;
+      const kStr=p.k>=0?`x-${p.k}`:`x+${-p.k}`;
+      const isPow4=p.f.startsWith('x^4')||p.f.startsWith('-x^4');
+      const poly4=`a(${kStr})^4+b(${kStr})^3+c(${kStr})^2+d(${kStr})+e`;
+      const poly3=`a(${kStr})^3+b(${kStr})^2+c(${kStr})+d`;
+      return{question:`將 \\(f(x)=${p.f}\\) 表示成 \\(${isPow4?poly4:poly3}\\) 的形式，求 \\(${p.q}\\)。`,answer:p.ans,type:'number',answerPrefix:`\\(${p.q}\\)`};
     }
   }
 }
