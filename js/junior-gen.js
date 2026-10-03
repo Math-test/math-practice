@@ -6139,6 +6139,7 @@ function _8aPolyMix(level) {
 // ═══════════════════════════════════════════════════════════════════
 //  八上 ▸ 平方根的意義
 // ═══════════════════════════════════════════════════════════════════
+let _sqBasicQ=[],_sqHSysQ=[],_sqHSumQ=[];
 function gen8aSqrtBasic(level) {
   for (let i=0;i<30;i++) { const q=_8aSqrtBasic(level); if(q) return q; }
   return _8aSqrtBasic('basic');
@@ -6190,7 +6191,7 @@ function _8aSqrtBasic(level) {
     return {question:`計算 \\(\\sqrt{(-${k})^2}\\)`, answer:k, type:'number'};
   }
   if(level==='medium'){
-    const t=randInt(0,6);
+    const t=randInt(0,7);
     if(t===0){
       const n=pick([169,196,225,256,289,324,361,400,441,484,529,576,625,
                     676,729,784,841,900,961,1024]);
@@ -6226,13 +6227,22 @@ function _8aSqrtBasic(level) {
       const x=b*b-a;
       return {question:`解方程 \\(\\sqrt{x+${a}}=${b}\\)，求 \\(x\\)`, answer:x, type:'number', answerPrefix:'x'};
     }
-    // t===6: 解方程 √x - a = b → x = (a+b)²
-    {
+    if(t===6){
+      // 解方程 √x - a = b → x = (a+b)²
       const a=randInt(1,5),b=randInt(2,6);
       return {question:`解方程 \\(\\sqrt{x}-${a}=${b}\\)，求 \\(x\\)`, answer:(a+b)*(a+b), type:'number', answerPrefix:'x'};
     }
+    // t===7: ax+b 的正平方根為 c（a≥2），求 x
+    {
+      const c=randInt(3,8),a=randInt(2,6),x=randInt(1,8);
+      const b=c*c-a*x;
+      if(b===0) return null;
+      const exprStr=b>0?`${a}x+${b}`:`${a}x-${-b}`;
+      return {question:`已知 \\(${exprStr}\\) 的正平方根為 \\(${c}\\)，求 \\(x\\)`,
+        answer:x, type:'number', answerPrefix:'x'};
+    }
   }
-  const t=randInt(0,2);
+  const t=randInt(0,4);
   if(t===0){
     const a=randInt(15,60);
     const n=randInt(a*a+1,(a+1)*(a+1)-1);
@@ -6245,8 +6255,8 @@ function _8aSqrtBasic(level) {
     const maxX=Math.floor(Math.sqrt(m));
     return {question:`使 \\(\\sqrt{${m}-x^2}\\) 有意義的最大正整數 \\(x\\) 為`, answer:maxX, type:'number', answerPrefix:'x'};
   }
-  // t===2: 小數部分性質：設 √n 整數部分為 a，小數部分為 x，x²+2ax = n-a²
-  {
+  if(t===2){
+    // 小數部分性質：設 √n 整數部分為 a，小數部分為 x，x²+2ax = n-a²
     const nOpts=[
       {n:2,a:1},{n:3,a:1},{n:5,a:2},{n:6,a:2},{n:7,a:2},
       {n:10,a:3},{n:11,a:3},{n:12,a:3},{n:13,a:3},{n:14,a:3},
@@ -6256,6 +6266,36 @@ function _8aSqrtBasic(level) {
     const res=n-a*a;
     return {question:`設 \\(\\sqrt{${n}}\\) 的整數部分為 \\(${a}\\)，小數部分為 \\(x\\)，求 \\(x^2+${2*a}x\\)`,
       answer:res, type:'number'};
+  }
+  if(t===3){
+    // 二元一次聯立：q1 正平方根=r1，-r2 是 q2 負平方根，求 tq 的正平方根
+    const pool=[
+      {q1:'3a+2b-2', r1:3, r2:4, q2:'a-b+9',   tq:'a-2b',  ans:3},
+      {q1:'2a+b-3',  r1:3, r2:4, q2:'3a+b-1',  tq:'2a+3b', ans:4},
+      {q1:'3a+b-2',  r1:3, r2:2, q2:'a+2b-3',  tq:'a+3b',  ans:3},
+      {q1:'a+2b-1',  r1:3, r2:2, q2:'a-b+3',   tq:'3a-b',  ans:3},
+      {q1:'3a+b-2',  r1:3, r2:3, q2:'2a+b',    tq:'3a+2b', ans:4},
+      {q1:'a-b',     r1:2, r2:5, q2:'a+6b',    tq:'a+3b',  ans:4},
+      {q1:'3a-b+8',  r1:3, r2:4, q2:'a+b+5',   tq:'3a+2b', ans:5},
+      {q1:'3a-2b+1', r1:3, r2:6, q2:'a+6b',    tq:'a+2b',  ans:4},
+    ];
+    const e=jrQPick(pool,_sqHSysQ);
+    return {question:`已知 \\(${e.q1}\\) 的正平方根為 \\(${e.r1}\\)，\\(-${e.r2}\\) 是 \\(${e.q2}\\) 的負平方根，求 \\(${e.tq}\\) 的正平方根`,
+      answer:e.ans, type:'number', answerPrefix:'正平方根'};
+  }
+  // t===4: √(x±a)²+√(y±b)²+√(z±c)²=0 → 求某式的算術平方根
+  {
+    const pool=[
+      {cs:'\\sqrt{(x-2)^2}+\\sqrt{(y-3)^2}+\\sqrt{(z-4)^2}=0', tp:'x+y+z',   ans:3},
+      {cs:'\\sqrt{(x-4)^2}+\\sqrt{(y-3)^2}+\\sqrt{(z-2)^2}=0', tp:'2x+y-z',  ans:3},
+      {cs:'\\sqrt{(x-3)^2}+\\sqrt{(y-2)^2}+\\sqrt{(z-1)^2}=0', tp:'x+2y+2z', ans:3},
+      {cs:'\\sqrt{(x-5)^2}+\\sqrt{(y-3)^2}+\\sqrt{(z-8)^2}=0', tp:'x+y+z',   ans:4},
+      {cs:'\\sqrt{(x+3)^2}+\\sqrt{(y-12)^2}+\\sqrt{(z+21)^2}=0', tp:'-x+y-z', ans:6},
+      {cs:'\\sqrt{(x-2)^2}+\\sqrt{(y-8)^2}+\\sqrt{(z-15)^2}=0', tp:'x+y+z',  ans:5},
+    ];
+    const e=jrQPick(pool,_sqHSumQ);
+    return {question:`若 \\(${e.cs}\\)，求 \\(\\sqrt{${e.tp}}\\) 的值`,
+      answer:e.ans, type:'number'};
   }
 }
 
