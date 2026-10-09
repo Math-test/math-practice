@@ -6687,7 +6687,7 @@ function genB3aExpFunc(level) {
   return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'值'};
 }
 function genB3bExpFunc(level) {
-  return genB3aExpFunc(level==='hard'?'medium':level);
+  return genB3aExpFunc(level);
 }
 
 // ── b3a-log-func / b3b-log-func：對數函數性質 ───────────────────
@@ -6808,7 +6808,7 @@ function genB3aLogFunc(level) {
   return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'值'};
 }
 function genB3bLogFunc(level) {
-  return genB3aLogFunc(level==='hard'?'medium':level);
+  return genB3aLogFunc(level);
 }
 
 // ── b3a-exp-eq / b3b-exp-eq：指數方程式 ─────────────────────────
@@ -6904,7 +6904,7 @@ function genB3aExpEq(level) {
   return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'x'};
 }
 function genB3bExpEq(level) {
-  return genB3aExpEq(level==='hard'?'medium':level);
+  return genB3aExpEq(level);
 }
 
 // ── b3a-log-eq / b3b-log-eq：對數方程式 ─────────────────────────
@@ -6991,7 +6991,7 @@ function genB3aLogEq(level) {
   return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'x'};
 }
 function genB3bLogEq(level) {
-  return genB3aLogEq(level==='hard'?'medium':level);
+  return genB3aLogEq(level);
 }
 
 // ── b3a-exp-ineq：指數不等式（b3a only）────────────────────────
@@ -7180,6 +7180,9 @@ function genB3aLogIneq(level) {
   return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'解'};
 }
 
+function genB3bExpIneq(level) { return genB3aExpIneq(level); }
+function genB3bLogIneq(level) { return genB3aLogIneq(level); }
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  輸出表
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -7228,4 +7231,6 @@ const SR_GENERATORS = {
   'b3b-log-func':    genB3bLogFunc,
   'b3b-exp-eq':      genB3bExpEq,
   'b3b-log-eq':      genB3bLogEq,
+  'b3b-exp-ineq':    genB3bExpIneq,
+  'b3b-log-ineq':    genB3bLogIneq,
 };
