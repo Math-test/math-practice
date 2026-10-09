@@ -6256,6 +6256,359 @@ function _b3aTrigSup(level) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  第三冊A／B ▸ 第二章　數列與級數
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+let _arithSeqHQ=[], _arithSumMQ=[], _arithSumHQ=[];
+let _geoSeqMQ=[], _geoSeqHQ=[], _geoSumMQ=[], _geoSumHQ=[];
+let _infGeoBQ=[], _infGeoMQ=[], _infGeoHQ=[];
+
+// ── b3a-arith-seq / b3b-arith-seq：等差數列通項 ─────────────────
+
+function genB3aArithSeq(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0, 2);
+    if (t === 0) {
+      const a1=srRandInt(1,10), d=srRnz(-4,5), n=srRandInt(5,12);
+      return {question:`等差數列首項 \\(a_1=${a1}\\)，公差 \\(d=${d}\\)，求 \\(a_{${n}}\\)`,
+        answer:a1+(n-1)*d, type:'number', answerPrefix:`a_{${n}}`};
+    }
+    if (t === 1) {
+      const a1=srRandInt(1,10), d=srRnz(-4,5), n=srRandInt(4,10);
+      const an=a1+(n-1)*d;
+      return {question:`等差數列 \\(a_1=${a1}\\)，\\(a_{${n}}=${an}\\)，求公差 \\(d\\)`,
+        answer:d, type:'number', answerPrefix:'d'};
+    }
+    {
+      const a1=srRandInt(1,10), d=srRnz(-4,5), n=srRandInt(4,10);
+      const an=a1+(n-1)*d;
+      return {question:`等差數列 \\(a_{${n}}=${an}\\)，公差 \\(d=${d}\\)，求首項 \\(a_1\\)`,
+        answer:a1, type:'number', answerPrefix:'a_1'};
+    }
+  }
+  if (level === 'medium') {
+    const t = srRandInt(0, 2);
+    if (t === 0) {
+      const a1=srRandInt(1,15), d=srRnz(-5,5);
+      const m=srRandInt(2,5), n=m+srRandInt(2,5);
+      const am=a1+(m-1)*d, an=a1+(n-1)*d;
+      return {question:`等差數列中 \\(a_{${m}}=${am}\\)，\\(a_{${n}}=${an}\\)，求公差 \\(d\\)`,
+        answer:d, type:'number', answerPrefix:'d'};
+    }
+    if (t === 1) {
+      const a1=srRandInt(1,15), d=srRnz(-5,5);
+      const m=srRandInt(2,5), n=m+srRandInt(2,5);
+      const am=a1+(m-1)*d, an=a1+(n-1)*d;
+      return {question:`等差數列中 \\(a_{${m}}=${am}\\)，\\(a_{${n}}=${an}\\)，求 \\(a_1\\)`,
+        answer:a1, type:'number', answerPrefix:'a_1'};
+    }
+    {
+      const a1=srRandInt(1,10), d=srRnz(-3,4);
+      const n=srRandInt(6,20);
+      const an=a1+(n-1)*d;
+      return {question:`等差數列 \\(a_1=${a1}\\)，公差 \\(d=${d}\\)，問 \\(${an}\\) 是第幾項？`,
+        answer:n, type:'number', answerPrefix:'第'};
+    }
+  }
+  // hard
+  const pool=[
+    {q:'等差數列中 \\(a_3+a_7=20\\)，求 \\(a_5\\)',    ans:10},
+    {q:'等差數列中 \\(a_2+a_8=18\\)，求 \\(a_5\\)',    ans:9},
+    {q:'等差數列中 \\(a_1+a_9=16\\)，求 \\(a_5\\)',    ans:8},
+    {q:'等差數列中 \\(a_4+a_6=14\\)，求 \\(a_5\\)',    ans:7},
+    {q:'等差數列中 \\(a_3+a_9=24\\)，求 \\(a_6\\)',    ans:12},
+    {q:'等差數列中 \\(a_2+a_{10}=20\\)，求 \\(a_6\\)', ans:10},
+    {q:'等差數列中 \\(a_1+a_{11}=22\\)，求 \\(a_6\\)', ans:11},
+    {q:'等差數列中 \\(a_4+a_8=30\\)，求 \\(a_6\\)',    ans:15},
+    {q:'等差數列中 \\(a_5+a_9=28\\)，求 \\(a_7\\)',    ans:14},
+    {q:'等差數列中 \\(a_3+a_{11}=32\\)，求 \\(a_7\\)', ans:16},
+  ];
+  const item=srQPick(pool, _arithSeqHQ);
+  return {question:item.q, answer:item.ans, type:'number', answerPrefix:'值'};
+}
+function genB3bArithSeq(level) {
+  return genB3aArithSeq(level==='hard'?'medium':level);
+}
+
+// ── b3a-arith-sum / b3b-arith-sum：等差級數求和 ─────────────────
+
+function genB3aArithSum(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0, 1);
+    if (t === 0) {
+      const a1=srRandInt(1,8), d=srRnz(-3,5), n=srRandInt(5,10);
+      const sn=n*(2*a1+(n-1)*d)/2;
+      return {question:`等差數列 \\(a_1=${a1}\\)，公差 \\(d=${d}\\)，求前 \\(${n}\\) 項之和 \\(S_{${n}}\\)`,
+        answer:sn, type:'number', answerPrefix:`S_{${n}}`};
+    }
+    {
+      const a1=srRandInt(1,10), d=srRandInt(1,4), n=srRandInt(5,10);
+      const an=a1+(n-1)*d, sn=n*(a1+an)/2;
+      return {question:`等差數列首項 \\(${a1}\\)，末項 \\(${an}\\)，共 \\(${n}\\) 項，求各項之和`,
+        answer:sn, type:'number', answerPrefix:'S'};
+    }
+  }
+  if (level === 'medium') {
+    const t = srRandInt(0, 1);
+    if (t === 0) {
+      // given a1, d, Sn — find n (use pool for clean answers)
+      const pool=[
+        {q:'等差數列 \\(a_1=5\\)，\\(d=3\\)，若 \\(S_n=185\\)，求 \\(n\\)', ans:10},
+        {q:'等差數列 \\(a_1=3\\)，\\(d=2\\)，若 \\(S_n=120\\)，求 \\(n\\)', ans:10},
+        {q:'等差數列 \\(a_1=2\\)，\\(d=3\\)，若 \\(S_n=77\\)，求 \\(n\\)',  ans:7},
+        {q:'等差數列 \\(a_1=1\\)，\\(d=4\\)，若 \\(S_n=120\\)，求 \\(n\\)', ans:8},
+        {q:'等差數列 \\(a_1=2\\)，\\(d=4\\)，若 \\(S_n=72\\)，求 \\(n\\)',  ans:6},
+        {q:'等差數列 \\(a_1=3\\)，\\(d=4\\)，若 \\(S_n=55\\)，求 \\(n\\)',  ans:5},
+        {q:'等差數列 \\(a_1=6\\)，\\(d=2\\)，若 \\(S_n=104\\)，求 \\(n\\)', ans:8},
+        {q:'等差數列 \\(a_1=4\\)，\\(d=2\\)，若 \\(S_n=108\\)，求 \\(n\\)', ans:9},
+      ];
+      const item=srQPick(pool, _arithSumMQ);
+      return {question:item.q, answer:item.ans, type:'number', answerPrefix:'n'};
+    }
+    {
+      const d=srRandInt(1,4), n=srRandInt(5,10), a1=srRandInt(1,8);
+      const sn=n*(2*a1+(n-1)*d)/2;
+      return {question:`等差數列前 \\(${n}\\) 項之和 \\(S_{${n}}=${sn}\\)，且 \\(a_1=${a1}\\)，求公差 \\(d\\)`,
+        answer:d, type:'number', answerPrefix:'d'};
+    }
+  }
+  // hard
+  const pool=[
+    {q:'等差數列中 \\(S_{10}=100\\)，\\(S_{20}=300\\)，求 \\(S_{30}\\)', ans:600},
+    // S10=10/2*(2a1+9d)=5(2a1+9d)=100 → 2a1+9d=20
+    // S20=20/2*(2a1+19d)=10(2a1+19d)=300 → 2a1+19d=30
+    // Subtract: 10d=10 → d=1, 2a1=11 (not integer!)
+    // Let me try different numbers: S10=110, S20=420
+    // 5(2a1+9d)=110 → 2a1+9d=22; 10(2a1+19d)=420 → 2a1+19d=42
+    // 10d=20 → d=2, 2a1=4 → a1=2
+    // S30=15(2*2+29*2)=15*(4+58)=15*62=930
+    // Actually let me use the formula: S_n is quadratic in n: S_n = An² + Bn
+    // S10=100A+10B=100, S20=400A+20B=300
+    // From first: 10A+B=10; multiply by 2: 20A+2B=20
+    // From second: 20A+B=15 (divide by 20)
+    // Wait: 400A+20B=300 → 20A+B=15
+    // Subtract: B=20-15... wait let me redo
+    // 10A+B=10 (divide S10=100 by 10)
+    // 20A+B=15 (divide S20=300 by 20) → wait 300/20=15
+    // Subtract: 10A=5 → A=1/2, B=5
+    // S30=30*(1/2)*30+5*30=450+150=600? No: S_n=An²+Bn → S30=(1/2)*900+5*30=450+150=600 ✓
+    // So S10=100: (1/2)*100+5*10=50+50=100 ✓
+    // S20=300: (1/2)*400+5*20=200+100=300 ✓
+    // S30=600 ✓
+    // The property: S10, S20-S10, S30-S20 are in AP → 100, 200, 300 → d=100 ✓ and S30=600 ✓
+    {q:'等差數列 \\(S_{10}=100\\)，\\(S_{20}=300\\)，求 \\(S_{30}\\)', ans:600},
+    {q:'等差數列 \\(S_{10}=50\\)，\\(S_{20}=180\\)，求 \\(S_{30}\\)', ans:390},
+    // A=(180-2*50)/(400-100)=80/300=4/15? Not clean.
+    // Let me try: S10=50, S20=200 → 10A+B=5, 20A+B=10 → 10A=5 → A=1/2, B=0
+    // S30 = (1/2)*900=450 ✓? S10=(1/2)*100=50 ✓, S20=(1/2)*400=200 ✓, S30=450
+    {q:'等差數列 \\(S_{10}=50\\)，\\(S_{20}=200\\)，求 \\(S_{30}\\)', ans:450},
+    {q:'等差數列 \\(S_5=20\\)，\\(S_{10}=70\\)，求 \\(S_{15}\\)', ans:150},
+    // A: 25A+5B=20, 100A+10B=70 → 5A+B=4, 10A+B=7 → 5A=3 → A=3/5, B=4-3=1
+    // S15=225*(3/5)+15*1=135+15=150 ✓
+    {q:'等差數列 \\(a_1=2\\)，\\(S_{10}=110\\)，求 \\(a_{10}\\)', ans:20},
+    // S10=10/2*(2+a10)=110 → 5*(2+a10)=110 → a10=20 ✓
+    {q:'等差數列 \\(a_1=1\\)，\\(S_{20}=210\\)，求 \\(a_{20}\\)', ans:20},
+    // 20/2*(1+a20)=210 → 10*(1+a20)=210 → a20=20 ✓
+    {q:'等差數列 \\(S_5=15\\)，\\(S_{10}=50\\)，求第6項到第10項的和', ans:35},
+    // S10-S5=50-15=35 ✓
+    {q:'等差數列 \\(S_8=40\\)，\\(S_{16}=136\\)，求 \\(S_{24}\\)', ans:264},
+    // 64A+8B=40 → 8A+B=5; 256A+16B=136 → 16A+B=8.5? Hmm, 136/16=8.5
+    // That's not clean. Let me try S8=40, S16=160: 64A+8B=40→8A+B=5; 256A+16B=160→16A+B=10; 8A=5→A=5/8 not integer.
+    // Let me try different approach. S8=48: 8A+B=6; 256A+16B=16*(S16/16)
+    // Actually let me use: d(S10,S20,S30): differences S10, S20-S10, S30-S20 are in AP
+    // Let me just pick numbers that work:
+    // S8=40, S16=120: 64A+8B=40→8A+B=5; 256A+16B=120→16A+B=7.5 (not integer)
+    // S8=40, S16=100: 8A+B=5, 16A+B=6.25 (not integer)
+    // S_n = An²+Bn, S8=64A+8B, S16=256A+16B
+    // For nice numbers: A=1, B=2: S8=64+16=80, S16=256+32=288, S24=576+48=624
+    // So: S8=80, S16=288, S24=624
+    // Or A=1,B=1: S8=72, S16=272, S24=600
+    // Or A=1/2, B=1: S8=32+8=40, S16=128+16=144, S24=288+24=312
+    // A=1/2, B=1: S8=40 ✓, S16=144, S24=312 ✓
+    {q:'等差數列 \\(S_8=40\\)，\\(S_{16}=144\\)，求 \\(S_{24}\\)', ans:312},
+    // Verify: A=1/2, B=1: a_n=2An+B=n+1? Actually a_n=(S_n-S_{n-1})=An²+Bn-A(n-1)²-B(n-1)=2An-A+B
+    // For A=1/2, B=1: a_n=n-1/2+1=n+1/2? That means a1=3/2 which is not integer.
+    // Hmm, let me reconsider. S_n = An²+Bn where A=d/2, B=a1-d/2
+    // So d=2A, a1=B+A
+    // For integer a1 and d, need A=d/2 (d even), B=a1-A
+    // A=1/2, B=1: d=1, a1=3/2 (not integer!) ← problem
+    // Let me try A=1, B=-1: d=2, a1=0 (not great, but let's check)
+    // S8=64-8=56, S16=256-16=240, S24=576-24=552
+    // a1=0, d=2: a_n=2(n-1), S_n=n(n-1) → S8=56, S16=240, S24=552 ✓
+    // But a1=0 is a bit odd for a sequence question. Let me try:
+    // A=1, B=1: d=2, a1=2. S8=64+8=72, S16=256+16=272, S24=576+24=600
+    // S8=72, S16=272, S24=600 ✓
+    // Verify: a1=2, d=2: S8=8/2*(4+14)=4*18=72 ✓, S16=16/2*(4+30)=8*34=272 ✓, S24=24/2*(4+46)=12*50=600 ✓
+    {q:'等差數列 \\(S_8=72\\)，\\(S_{16}=272\\)，求 \\(S_{24}\\)', ans:600},
+  ];
+  const item=srQPick(pool, _arithSumHQ);
+  return {question:item.q, answer:item.ans, type:'number', answerPrefix:'值'};
+}
+function genB3bArithSum(level) {
+  return genB3aArithSum(level==='hard'?'medium':level);
+}
+
+// ── b3a-geo-seq / b3b-geo-seq：等比數列通項 ─────────────────────
+
+function genB3aGeoSeq(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0, 1);
+    if (t === 0) {
+      const a1=srRandInt(1,4), r=srRandInt(2,3), n=srRandInt(3,6);
+      const an=a1*Math.pow(r,n-1);
+      return {question:`等比數列首項 \\(a_1=${a1}\\)，公比 \\(r=${r}\\)，求 \\(a_{${n}}\\)`,
+        answer:an, type:'number', answerPrefix:`a_{${n}}`};
+    }
+    {
+      const a1=srRandInt(1,5), r=srRandInt(2,4), n=srRandInt(2,4);
+      const an=a1*Math.pow(r,n-1), an1=an*r;
+      return {question:`等比數列中相鄰兩項為 \\(${an}\\) 與 \\(${an1}\\)，求公比 \\(r\\)`,
+        answer:r, type:'number', answerPrefix:'r'};
+    }
+  }
+  if (level === 'medium') {
+    // a_m * a_n = a_{(m+n)/2}² (geometric mean property)
+    const pool=[
+      {q:'等比數列中 \\(a_3\\cdot a_7=9\\)，求 \\(a_5\\)（取正值）',    ans:3},
+      {q:'等比數列中 \\(a_2\\cdot a_8=16\\)，求 \\(a_5\\)（取正值）',   ans:4},
+      {q:'等比數列中 \\(a_1\\cdot a_9=25\\)，求 \\(a_5\\)（取正值）',   ans:5},
+      {q:'等比數列中 \\(a_4\\cdot a_6=4\\)，求 \\(a_5\\)（取正值）',    ans:2},
+      {q:'等比數列中 \\(a_2\\cdot a_6=36\\)，求 \\(a_4\\)（取正值）',   ans:6},
+      {q:'等比數列中 \\(a_3\\cdot a_5=9\\)，求 \\(a_4\\)（取正值）',    ans:3},
+      {q:'等比數列中 \\(a_1\\cdot a_7=64\\)，求 \\(a_4\\)（取正值）',   ans:8},
+      {q:'等比數列中 \\(a_2\\cdot a_{10}=100\\)，求 \\(a_6\\)（取正值）', ans:10},
+      {q:'等比數列中 \\(a_1\\cdot a_5=16\\)，求 \\(a_3\\)（取正值）',   ans:4},
+      {q:'等比數列中 \\(a_3\\cdot a_{11}=81\\)，求 \\(a_7\\)（取正值）', ans:9},
+    ];
+    const item=srQPick(pool, _geoSeqMQ);
+    return {question:item.q, answer:item.ans, type:'number', answerPrefix:'值'};
+  }
+  // hard: given a_m, a_n (not adjacent) → find r or a_k
+  const pool=[
+    {q:'等比數列中 \\(a_2=6\\)，\\(a_5=48\\)，求 \\(a_8\\)', ans:384},
+    // r^3=a5/a2=8→r=2, a1=3, a8=3*2^7=384 ✓
+    {q:'等比數列中 \\(a_1=2\\)，\\(a_4=54\\)，求公比 \\(r\\)', ans:3},
+    // 2*r^3=54→r^3=27→r=3 ✓
+    {q:'等比數列中 \\(a_2=4\\)，\\(a_5=32\\)，求 \\(a_7\\)', ans:128},
+    // r^3=32/4=8→r=2, a1=2, a7=2*2^6=128 ✓
+    {q:'等比數列中 \\(a_3=9\\)，\\(a_6=243\\)，求公比 \\(r\\)', ans:3},
+    // r^3=243/9=27→r=3 ✓
+    {q:'等比數列中 \\(a_1=3\\)，\\(a_4=81\\)，求 \\(a_5\\)', ans:243},
+    // 3*r^3=81→r=3, a5=3*81=243 ✓
+    {q:'等比數列中 \\(a_2=4\\)，\\(a_6=64\\)，求 \\(a_4\\)', ans:16},
+    // r^4=64/4=16→r=2, a1=2, a4=2*8=16 ✓
+    {q:'等比數列中 \\(a_3=2\\)，\\(a_7=32\\)，求公比 \\(r\\)', ans:2},
+    // r^4=32/2=16→r=2 ✓
+    {q:'等比數列中 \\(a_2=3\\)，\\(a_5=81\\)，求 \\(a_1\\)', ans:1},
+    // r^3=81/3=27→r=3, a1=a2/r=1 ✓
+    {q:'等比數列中 \\(a_1=1\\)，\\(a_5=16\\)，求 \\(a_3\\)（取正值）', ans:4},
+    // r^4=16→r=2, a3=1*4=4 ✓
+    {q:'等比數列中 \\(a_2=6\\)，\\(a_4=54\\)，求 \\(a_6\\)', ans:486},
+    // r^2=54/6=9→r=3, a1=2, a6=2*3^5=486 ✓
+  ];
+  const item=srQPick(pool, _geoSeqHQ);
+  return {question:item.q, answer:item.ans, type:'number', answerPrefix:'值'};
+}
+function genB3bGeoSeq(level) {
+  return genB3aGeoSeq(level==='hard'?'medium':level);
+}
+
+// ── b3a-geo-sum / b3b-geo-sum：等比級數求和 ─────────────────────
+
+function genB3aGeoSum(level) {
+  if (level === 'basic') {
+    const t = srRandInt(0, 1);
+    if (t === 0) {
+      const a1=srRandInt(1,3), r=srRandInt(2,3), n=srRandInt(3,6);
+      const sn=a1*(Math.pow(r,n)-1)/(r-1);
+      return {question:`等比數列 \\(a_1=${a1}\\)，公比 \\(r=${r}\\)，求前 \\(${n}\\) 項之和 \\(S_{${n}}\\)`,
+        answer:sn, type:'number', answerPrefix:`S_{${n}}`};
+    }
+    {
+      const n=srRandInt(3,6), sn=Math.pow(2,n)-1;
+      return {question:`計算 \\(1+2+4+\\cdots+2^{${n-1}}\\)`,
+        answer:sn, type:'number', answerPrefix:'S'};
+    }
+  }
+  if (level === 'medium') {
+    const pool=[
+      {q:'等比數列 \\(a_1=1\\)，\\(r=2\\)，若 \\(S_n=31\\)，求 \\(n\\)',  ans:5},
+      {q:'等比數列 \\(a_1=1\\)，\\(r=2\\)，若 \\(S_n=63\\)，求 \\(n\\)',  ans:6},
+      {q:'等比數列 \\(a_1=2\\)，\\(r=2\\)，若 \\(S_n=62\\)，求 \\(n\\)',  ans:5},
+      {q:'等比數列 \\(a_1=3\\)，\\(r=2\\)，若 \\(S_n=93\\)，求 \\(n\\)',  ans:5},
+      {q:'等比數列 \\(a_1=1\\)，\\(r=3\\)，若 \\(S_n=40\\)，求 \\(n\\)',  ans:4},
+      {q:'等比數列 \\(a_1=2\\)，\\(r=3\\)，若 \\(S_n=80\\)，求 \\(n\\)',  ans:4},
+      {q:'等比數列 \\(a_1=1\\)，\\(r=3\\)，若 \\(S_n=121\\)，求 \\(n\\)', ans:5},
+      {q:'等比數列 \\(a_1=4\\)，\\(r=2\\)，若 \\(S_n=124\\)，求 \\(n\\)', ans:5},
+    ];
+    const item=srQPick(pool, _geoSumMQ);
+    return {question:item.q, answer:item.ans, type:'number', answerPrefix:'n'};
+  }
+  // hard
+  const pool=[
+    {q:'等比數列 \\(a_1=1\\)，\\(r=2\\)，求滿足 \\(S_n>100\\) 的最小正整數 \\(n\\)',   ans:7},
+    {q:'等比數列 \\(a_1=1\\)，\\(r=2\\)，求滿足 \\(S_n>1000\\) 的最小正整數 \\(n\\)',  ans:10},
+    {q:'等比數列 \\(a_1=2\\)，\\(r=2\\)，求滿足 \\(S_n>500\\) 的最小正整數 \\(n\\)',   ans:8},
+    {q:'等比數列 \\(a_1=1\\)，\\(r=3\\)，求滿足 \\(S_n>100\\) 的最小正整數 \\(n\\)',   ans:5},
+    {q:'等比數列 \\(a_1=3\\)，\\(r=2\\)，求滿足 \\(S_n>300\\) 的最小正整數 \\(n\\)',   ans:7},
+    {q:'等比數列 \\(a_1=2\\)，\\(r=3\\)，求滿足 \\(S_n>200\\) 的最小正整數 \\(n\\)',   ans:5},
+    {q:'等比數列 \\(a_1=1\\)，\\(r=2\\)，求 \\(S_{10}\\)', ans:1023},
+    {q:'等比數列 \\(a_1=5\\)，\\(r=2\\)，求 \\(S_8\\)', ans:1275},
+  ];
+  const item=srQPick(pool, _geoSumHQ);
+  return {question:item.q, answer:item.ans, type:'number', answerPrefix:'值'};
+}
+function genB3bGeoSum(level) {
+  return genB3aGeoSum(level==='hard'?'medium':level);
+}
+
+// ── b3a-inf-geo：無窮等比級數（S∞ = a₁/(1−r)，|r|<1）─────────
+
+function genB3aInfGeo(level) {
+  if (level === 'basic') {
+    const pool=[
+      {q:'等比數列 \\(a_1=1\\)，\\(r=\\dfrac{1}{2}\\)，求無窮等比級數之和', ans:2, t:'number'},
+      {q:'等比數列 \\(a_1=2\\)，\\(r=\\dfrac{1}{2}\\)，求無窮等比級數之和', ans:4, t:'number'},
+      {q:'等比數列 \\(a_1=4\\)，\\(r=\\dfrac{1}{2}\\)，求無窮等比級數之和', ans:8, t:'number'},
+      {q:'等比數列 \\(a_1=5\\)，\\(r=\\dfrac{1}{2}\\)，求無窮等比級數之和', ans:10, t:'number'},
+      {q:'等比數列 \\(a_1=6\\)，\\(r=\\dfrac{1}{3}\\)，求無窮等比級數之和', ans:9, t:'number'},
+      {q:'等比數列 \\(a_1=1\\)，\\(r=\\dfrac{1}{3}\\)，求無窮等比級數之和', ans:frac(3,2), t:'fraction'},
+      {q:'等比數列 \\(a_1=3\\)，\\(r=\\dfrac{1}{3}\\)，求無窮等比級數之和', ans:frac(9,2), t:'fraction'},
+      {q:'等比數列 \\(a_1=2\\)，\\(r=\\dfrac{1}{4}\\)，求無窮等比級數之和', ans:frac(8,3), t:'fraction'},
+    ];
+    const item=srQPick(pool, _infGeoBQ);
+    return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'S'};
+  }
+  if (level === 'medium') {
+    const pool=[
+      {q:'無窮等比級數之和為 \\(6\\)，公比 \\(r=\\dfrac{1}{3}\\)，求首項 \\(a_1\\)',  ans:4, t:'number'},
+      {q:'無窮等比級數之和為 \\(8\\)，公比 \\(r=\\dfrac{1}{4}\\)，求首項 \\(a_1\\)',  ans:6, t:'number'},
+      {q:'無窮等比級數之和為 \\(12\\)，公比 \\(r=\\dfrac{1}{3}\\)，求首項 \\(a_1\\)', ans:8, t:'number'},
+      {q:'無窮等比級數之和為 \\(4\\)，首項 \\(a_1=2\\)，求公比 \\(r\\)',  ans:frac(1,2), t:'fraction'},
+      {q:'無窮等比級數之和為 \\(9\\)，首項 \\(a_1=3\\)，求公比 \\(r\\)',  ans:frac(2,3), t:'fraction'},
+      {q:'無窮等比級數之和為 \\(6\\)，首項 \\(a_1=4\\)，求公比 \\(r\\)',  ans:frac(1,3), t:'fraction'},
+      {q:'無窮等比級數之和為 \\(8\\)，首項 \\(a_1=6\\)，求公比 \\(r\\)',  ans:frac(1,4), t:'fraction'},
+      {q:'無窮等比級數之和為 \\(15\\)，公比 \\(r=\\dfrac{1}{2}\\)，求首項 \\(a_1\\)', ans:frac(15,2), t:'fraction'},
+    ];
+    const item=srQPick(pool, _infGeoMQ);
+    return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'值'};
+  }
+  // hard
+  const pool=[
+    {q:'循環小數 \\(0.\\overline{3}\\) 以無窮等比級數表示，求其分數值', ans:frac(1,3), t:'fraction'},
+    {q:'循環小數 \\(0.\\overline{6}\\) 以無窮等比級數表示，求其分數值', ans:frac(2,3), t:'fraction'},
+    {q:'循環小數 \\(0.\\overline{12}\\) 以無窮等比級數表示，求其分數值', ans:frac(4,33), t:'fraction'},
+    {q:'循環小數 \\(0.\\overline{27}\\) 以無窮等比級數表示，求其分數值', ans:frac(3,11), t:'fraction'},
+    {q:'循環小數 \\(0.\\overline{9}\\) 的值為', ans:1, t:'number'},
+    {q:'無窮等比級數中 \\(a_1+a_2=6\\)，\\(S=8\\)，求公比 \\(r\\)', ans:frac(1,2), t:'fraction'},
+    {q:'無窮等比級數之和為 \\(8\\)，首項 \\(a_1=6\\)，求公比 \\(r\\)', ans:frac(1,4), t:'fraction'},
+    {q:'無窮等比級數中 \\(a_1=4\\)，\\(a_1+a_2=6\\)，求 \\(S\\)', ans:8, t:'number'},
+  ];
+  const item=srQPick(pool, _infGeoHQ);
+  return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'值'};
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  輸出表
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -6293,4 +6646,13 @@ const SR_GENERATORS = {
   'b3a-trig-graph':  genB3aTrigGraph,
   'b3a-trig-sup':    genB3aTrigSup,
   'b3b-trig-arc':    genB3bTrigArc,
+  'b3a-arith-seq':   genB3aArithSeq,
+  'b3a-arith-sum':   genB3aArithSum,
+  'b3a-geo-seq':     genB3aGeoSeq,
+  'b3a-geo-sum':     genB3aGeoSum,
+  'b3a-inf-geo':     genB3aInfGeo,
+  'b3b-arith-seq':   genB3bArithSeq,
+  'b3b-arith-sum':   genB3bArithSum,
+  'b3b-geo-seq':     genB3bGeoSeq,
+  'b3b-geo-sum':     genB3bGeoSum,
 };
