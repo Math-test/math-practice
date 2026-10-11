@@ -481,6 +481,7 @@ function quadRootsMatch(parsed,{root1,root2}){
   function rv(r){return(typeof r==='object'&&r!==null&&'num' in r)?r.num/r.den:r;}
   return(decEq(parsed[0],rv(root1))&&decEq(parsed[1],rv(root2)))||(decEq(parsed[0],rv(root2))&&decEq(parsed[1],rv(root1)));
 }
+function rootStr(r){return(typeof r==='object'&&r!==null&&'num' in r)?fracToLatex(r):String(r);}
 function rootMath(r){
   if(typeof r==='object'&&r!==null&&'num' in r)return `\\(${fracToLatex(r)}\\)`;
   return `\\(${r}\\)`;
@@ -1125,7 +1126,7 @@ async function downloadWord() {
     if (q.type === 'factored-form')
       return q2wordHtml(`\\(${q.answerLatex || ''}\\)`);
     if (q.type === 'quad-roots')
-      return `x = ${ml(String(q.root1))} 或 x = ${ml(String(q.root2))}`;
+      return `x = ${ml(rootStr(q.root1))} 或 x = ${ml(rootStr(q.root2))}`;
     if (q.type === 'sci')
       return ml(`${q.sciCoef} \\times 10^{${q.sciExp}}`);
     if (typeof q.answer === 'number' || typeof q.answer === 'string')
@@ -1334,7 +1335,7 @@ async function downloadPDF() {
         : q.type === 'radical2'      ? `\\(${rad2Latex(q.coeffA, q.radA, q.coeffB, q.radB)}\\)`
         : q.type === 'factored-quad' ? `\\(${factQuadLatex(q.factA, q.factB, q.factC, q.factD)}\\)`
         : q.type === 'factored-form' ? `\\(${q.answerLatex || ''}\\)`
-        : q.type === 'quad-roots'    ? `\\(x=${String(q.root1)}\\) 或 \\(x=${String(q.root2)}\\)`
+        : q.type === 'quad-roots'    ? `\\(x=${rootStr(q.root1)}\\) 或 \\(x=${rootStr(q.root2)}\\)`
         : q.type === 'sci'           ? `\\(${q.sciCoef} \\times 10^{${q.sciExp}}\\)`
         : (typeof q.answer === 'number' || typeof q.answer === 'string') ? String(q.answer)
         : '—';

@@ -7077,6 +7077,16 @@ function _8bFactor2(level){
 // ═══════════════════════════════════════════════════════════════════
 //  八下 ▸ 一元二次方程式（因式分解法）
 // ═══════════════════════════════════════════════════════════════════
+// 分數係數二次式字串（a、b、c 為 frac 物件）
+function _jrFQuad(a,b,c){
+  const t=(f,v,first)=>{
+    if(f.num===0)return '';
+    const abs=frac(Math.abs(f.num),f.den);
+    const co=(v&&abs.num===1&&abs.den===1)?'':fracToLatex(abs);
+    return (f.num<0?'-':(first?'':'+'))+co+v;
+  };
+  return t(a,'x^2',true)+t(b,'x',false)+t(c,'',false);
+}
 function gen8bQuad1(level){
   for(let i=0;i<30;i++){const q=_8bQuad1(level);if(q)return q;}
   return _8bQuad1('basic');
@@ -7108,12 +7118,18 @@ function _8bQuad1(level){
     return qr(`解方程式 \\(${roots2eqn(-q,p)}=0\\)，求兩根`,-q,p);
   }
   if(level==='medium'){
-    const t=randInt(0,1);
+    const t=randInt(0,2);
     if(t===0){
       const p=randInt(2,10),q=randInt(2,10);
       if(p===q)return null;
       const r1=Math.min(-q,p),r2=Math.max(-q,p);
       return qr(`解方程式 \\(${roots2eqn(r1,r2)}=0\\)，求兩根`,r1,r2);
+    }
+    if(t===2){
+      // 分數係數（整數根）：(1/k)(x-r1)(x-r2)=0
+      const k=pick([2,3,4,5,6]),r1=randInt(-9,9),r2=randInt(-9,9);
+      if(r1===r2||r1===0||r2===0)return null;
+      return qr(`解方程式 \\(${_jrFQuad(frac(1,k),frac(-(r1+r2),k),frac(r1*r2,k))}=0\\)，求兩根`,Math.min(r1,r2),Math.max(r1,r2));
     }
     // t=1：兩負根（中等版）
     const p=randInt(2,10),q=randInt(2,10);
@@ -7122,13 +7138,26 @@ function _8bQuad1(level){
     return qr(`解方程式 \\(${roots2eqn(r1,r2)}=0\\)，求兩根`,r1,r2);
   }
   // hard：大根或需移項整理
-  const t=randInt(0,1);
+  const t=randInt(0,3);
   if(t===0){
     // 兩大整數根（一正一負，根值 ≥ 8）
     const p=randInt(5,15),q=randInt(5,15);
     const r1=Math.min(-q,p),r2=Math.max(-q,p);
     if(r1===r2)return null;
     return qr(`解方程式 \\(${roots2eqn(r1,r2)}=0\\)，求兩根`,r1,r2);
+  }
+  if(t===2){
+    // 分數係數、一分數根一整數根：x²-(p/a+r)x+pr/a=0
+    const a=pick([2,3,4]),p=randInt(-9,9),r=randInt(-8,8);
+    if(p===0||r===0||gcd(p,a)!==1)return null;
+    return qr(`解方程式 \\(${_jrFQuad(frac(1),frac(-(p+a*r),a),frac(p*r,a))}=0\\)，求兩根`,frac(p,a),r);
+  }
+  if(t===3){
+    // 分數係數且需移項：(1/L)x²+(B/L)x=-C/L
+    const L=pick([2,3,4,6]),r1=randInt(-12,12),r2=randInt(-12,12);
+    if(r1===r2||r1===0||r2===0||r1+r2===0)return null;
+    const B=-(r1+r2),C=r1*r2;
+    return qr(`解方程式 \\(${_jrFQuad(frac(1,L),frac(B,L),frac(0))}=${fracToLatex(frac(-C,L))}\\)，求兩根`,Math.min(r1,r2),Math.max(r1,r2));
   }
   // t=1：右移後因式分解 ax²+bx=c → ax²+bx-c=0，roots 從大整數構造
   const p=randInt(6,14),q=randInt(6,14);
@@ -7158,7 +7187,14 @@ function _8bQuad2(level){
     return s;
   }
   if(level==='basic'){
-    const t=randInt(0,3);
+    const t=randInt(0,4);
+    if(t===4){
+      // 分數係數判別式：(1/2)x²+bx+c/3=0
+      const b4=randInt(-7,7),c4=pick([-5,-4,-2,-1,1,2,4,5]);
+      if(b4===0)return null;
+      return{question:`方程式 \\(${_jrFQuad(frac(1,2),frac(b4),frac(c4,3))}=0\\) 的判別式 \\(b^2-4ac=\\)`,
+        answer:frac(3*b4*b4-2*c4,3),type:'fraction',answerPrefix:'判別式'};
+    }
     if(t===0){
       // 直接開方法：(x+a)²=b（b為完全平方數）→ 求兩根
       const a=randInt(1,8),sqrtB=randInt(1,6),b=sqrtB*sqrtB;
@@ -7185,7 +7221,25 @@ function _8bQuad2(level){
     return{question:`方程式 \\(x^2+kx+${c3}=0\\) 有兩個相等的根（重根），求正整數 \\(k\\)`,answer:2*sqrtC,type:'number',answerPrefix:'k'};
   }
   if(level==='medium'){
-    const t=randInt(0,4);
+    const t=randInt(0,7);
+    if(t===5||t===6){
+      // 韋達定理（首項係數≠1，答案為分數）：(ax-p)(x-q)=0
+      const a=pick([2,3,4,5]),p=randInt(-9,9),q=randInt(-6,6);
+      if(p===0||q===0||gcd(p,a)!==1)return null;
+      const B=-(a*q+p),C=p*q;
+      const eq=_jrFQuad(frac(a),frac(B),frac(C));
+      if(t===5)return{question:`方程式 \\(${eq}=0\\) 的兩根之和為`,answer:frac(-B,a),type:'fraction',answerPrefix:'兩根之和'};
+      const P=frac(C,a);
+      if(P.den===1)return null;
+      return{question:`方程式 \\(${eq}=0\\) 的兩根之積為`,answer:P,type:'fraction',answerPrefix:'兩根之積'};
+    }
+    if(t===7){
+      // 分數係數（整數根）：先去分母再用公式解
+      const k=pick([2,3,4]),r1=randInt(-9,9),r2=randInt(-9,9);
+      if(r1===r2||r1===0||r2===0)return null;
+      return qrq(`解方程式 \\(${_jrFQuad(frac(1,k),frac(-(r1+r2),k),frac(r1*r2,k))}=0\\)（先去分母再用公式解），求兩根`,
+        frac(Math.min(r1,r2),1),frac(Math.max(r1,r2),1));
+    }
     if(t===0){
       // 整數根（大係數）：x²+2kx+(k²-d²)=0，roots -k±d
       const k=randInt(8,18),d=randInt(1,Math.min(k-1,6));
@@ -7218,7 +7272,19 @@ function _8bQuad2(level){
     return{question:`方程式 \\(x^2-kx+${r*m}=0\\) 有一根為 \\(${r}\\)，求 \\(k\\)`,answer:r+m,type:'number',answerPrefix:'k'};
   }
   // hard：六種類型（ht=0,1,2 原有，ht=3,4,5 韋達定理應用）
-  const ht=randInt(0,5);
+  const ht=randInt(0,7);
+  if(ht===6){
+    // 分數係數、兩分數根：(2x-p)(3x-q)=0 同除以 6
+    const p=pick([-7,-5,-3,-1,1,3,5,7]),q=pick([-8,-7,-5,-4,-2,-1,1,2,4,5,7,8]);
+    return qrq(`解方程式 \\(${_jrFQuad(frac(1),frac(-(2*q+3*p),6),frac(p*q,6))}=0\\)，求兩根`,frac(p,2),frac(q,3));
+  }
+  if(ht===7){
+    // 重根條件（分數常數項）：x²+kx+(m/n)²=0
+    const n=pick([2,3,4]),m=pick([1,3,5,7]);
+    if(gcd(m,n)!==1)return null;
+    return{question:`方程式 \\(x^2+kx+${fracToLatex(frac(m*m,n*n))}=0\\) 有兩個相等的根（重根），求正數 \\(k\\)`,
+      answer:frac(2*m,n),type:'fraction',answerPrefix:'k'};
+  }
   if(ht===0){
     const k=randInt(11,20),d=randInt(1,Math.min(k-1,7));
     const c=k*k-d*d;

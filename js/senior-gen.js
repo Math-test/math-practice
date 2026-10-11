@@ -7128,6 +7128,377 @@ function genB3bExpIneq(level) { return genB3aExpIneq(level); }
 function genB3bLogIneq(level) { return genB3aLogIneq(level); }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  分數類似題（依 _SF_RATE 比例混入下列各主題）
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const _SF_RATE = 0.3;
+const _sfT = fracToLatex;
+function _sfF(c) { return typeof c === 'number' ? frac(c) : c; }
+function _sfAbs(f) { return frac(Math.abs(f.num), f.den); }
+function _sfNeg(f) { return frac(-f.num, f.den); }
+function _sfSg(f) { return f.num < 0 ? `-${_sfT(_sfAbs(f))}` : `+${_sfT(f)}`; }
+function _sfLt(a, b) { return a.num * b.den < b.num * a.den; }
+function _sfTerms(list) {
+  let s = '';
+  list.forEach(([c, v]) => {
+    const f = _sfF(c);
+    if (f.num === 0) return;
+    const a = _sfAbs(f);
+    const co = (v && a.num === 1 && a.den === 1) ? '' : _sfT(a);
+    s += (f.num < 0 ? '-' : (s ? '+' : '')) + co + v;
+  });
+  return s || '0';
+}
+function _sfPoly(cs) {
+  const n = cs.length - 1;
+  return _sfTerms(cs.map((c, i) => [c, n - i === 0 ? '' : n - i === 1 ? 'x' : `x^${n - i}`]));
+}
+function _sfEval(cs, x) {
+  let r = frac(0);
+  cs.forEach(c => { r = fadd(fmul(r, x), _sfF(c)); });
+  return r;
+}
+function _sfMul(a, b) {
+  const r = new Array(a.length + b.length - 1).fill(0);
+  a.forEach((x, i) => b.forEach((y, j) => { r[i + j] += x * y; }));
+  return r;
+}
+// 除以 ax-b：回傳商式係數（分數）與餘式
+function _sfDiv(cs, a, b) {
+  const x0 = frac(b, a), out = [];
+  let acc = frac(0);
+  cs.forEach(c => { acc = fadd(fmul(acc, x0), frac(c)); out.push(acc); });
+  const r = out.pop();
+  return { q: out.map(f => fdiv(f, frac(a))), r };
+}
+function _sfPt(p) { return `(${p[0]},${p[1]})`; }
+function _sfSq(v, h) { return h === 0 ? `${v}^2` : `(${v}${h > 0 ? '-' + h : '+' + (-h)})^2`; }
+function _sfParts(names, vals) {
+  return names.map((n, i) => ({ prefix: n, answer: vals[i], type: 'fraction' }));
+}
+function _sf345() {
+  let a = 3, b = 4;
+  if (srRandInt(0, 1)) [a, b] = [b, a];
+  if (srRandInt(0, 1)) b = -b;
+  return [a, b];
+}
+
+const _SR_FRAC_VARIANTS = {
+  'b1-abs-calc': lv => {
+    if (lv === 'basic') {
+      const a = frac(srRnz(-9, 9), pick([2, 3, 4, 5])), b = frac(srRnz(-9, 9), pick([2, 3, 4, 6]));
+      const r = fsub(a, b);
+      if (a.den === 1 || b.den === 1 || r.num === 0) return null;
+      return { question: `計算 \\(\\left|${_sfT(a)}${_sfSg(_sfNeg(b))}\\right|\\)`, answer: _sfAbs(r), type: 'fraction' };
+    }
+    if (lv === 'medium') {
+      const d = pick([2, 3, 4]);
+      const p = frac(srRnz(-9, 9), d), q = frac(srRandInt(1, 9), pick([1, d]));
+      if (p.den === 1) return null;
+      return { question: `解方程式 \\(\\left|x${_sfSg(_sfNeg(p))}\\right|=${_sfT(q)}\\)，求兩根`,
+        type: 'quad-roots', root1: fsub(p, q), root2: fadd(p, q), answerPrefix: 'x' };
+    }
+    const a = srRandInt(2, 6), b = srRnz(-9, 9), c = srRandInt(1, 9);
+    const r1 = frac(b - c, a), r2 = frac(b + c, a);
+    if (r1.den === 1 || r2.den === 1) return null;
+    return { question: `解方程式 \\(\\left|${_sfTerms([[a, 'x'], [-b, '']])}\\right|=${c}\\)，求兩根`,
+      type: 'quad-roots', root1: r1, root2: r2, answerPrefix: 'x' };
+  },
+
+  'b1-abs-ineq': lv => {
+    if (lv === 'basic') {
+      const d = pick([2, 3, 4]);
+      const p = frac(srRnz(-9, 9), d), q = frac(srRandInt(1, 9), d);
+      if (p.den === 1) return null;
+      return { question: `解不等式 \\(\\left|x${_sfSg(_sfNeg(p))}\\right|<${_sfT(q)}\\)，其解為 \\(a\\lt x\\lt b\\)，求 \\(a\\)、\\(b\\)`,
+        answerParts: _sfParts(['a', 'b'], [fsub(p, q), fadd(p, q)]) };
+    }
+    const a = srRandInt(2, 6), b = srRnz(-9, 9), c = srRandInt(1, 9);
+    const lo = frac(b - c, a), hi = frac(b + c, a);
+    if (lo.den === 1 && hi.den === 1) return null;
+    const e = _sfTerms([[a, 'x'], [-b, '']]);
+    if (lv === 'medium') {
+      return { question: `解不等式 \\(\\left|${e}\\right|\\leq ${c}\\)，其解為 \\(a\\leq x\\leq b\\)，求 \\(a\\)、\\(b\\)`,
+        answerParts: _sfParts(['a', 'b'], [lo, hi]) };
+    }
+    return { question: `解不等式 \\(\\left|${e}\\right|\\geq ${c}\\)，其解為 \\(x\\leq a\\) 或 \\(x\\geq b\\)，求 \\(a\\)、\\(b\\)`,
+      answerParts: _sfParts(['a', 'b'], [lo, hi]) };
+  },
+
+  'b1-log': lv => {
+    const one = allowInv => {
+      const n = pick([2, 3, 4]), m = srRandInt(1, 5);
+      if (srGcd(m, n) !== 1) return null;
+      const inner = m === 1 ? '10' : m === 2 ? '100' : m === 3 ? '1000' : `10^{${m}}`;
+      const root = n === 2 ? `\\sqrt{${inner}}` : `\\sqrt[${n}]{${inner}}`;
+      const inv = allowInv && srRandInt(0, 2) === 0;
+      return { tex: inv ? `\\dfrac{1}{${root}}` : root, v: frac(inv ? -m : m, n) };
+    };
+    const A = one(lv !== 'hard'), B = one(lv !== 'hard');
+    if (!A || !B) return null;
+    if (lv === 'basic') return { question: `求 \\(\\log ${A.tex}\\) 的值`, answer: A.v, type: 'fraction' };
+    if (A.tex === B.tex) return null;
+    if (lv === 'medium') {
+      const plus = srRandInt(0, 1) === 0;
+      const r = plus ? fadd(A.v, B.v) : fsub(A.v, B.v);
+      if (r.den === 1) return null;
+      return { question: `求 \\(\\log ${A.tex}${plus ? '+' : '-'}\\log ${B.tex}\\) 的值`, answer: r, type: 'fraction' };
+    }
+    const r = fdiv(A.v, B.v);
+    if (r.den === 1) return null;
+    return { question: `求 \\(\\dfrac{\\log ${A.tex}}{\\log ${B.tex}}\\) 的值`, answer: r, type: 'fraction' };
+  },
+
+  'b1-poly-basic': lv => {
+    if (lv === 'hard') {
+      const a = pick([2, 3, 4]), c = pick([2, 3, 5]), b = srRnz(-5, 5), d = srRnz(-5, 5), e = srRnz(-6, 6);
+      const useX2 = srRandInt(0, 1) === 0;
+      const r = useX2 ? fadd(frac(d, a), frac(b, c)) : fadd(frac(e, a), frac(b * d));
+      if (r.den === 1) return null;
+      const f1 = _sfTerms([[frac(1, a), 'x'], [b, '']]);
+      const f2 = _sfTerms([[frac(1, c), 'x^2'], [d, 'x'], [e, '']]);
+      return { question: `求 \\(\\left(${f1}\\right)\\left(${f2}\\right)\\) 展開式中 \\(${useX2 ? 'x^2' : 'x'}\\) 項的係數`,
+        answer: r, type: 'fraction', answerPrefix: '' };
+    }
+    const x0 = srRandInt(0, 1) ? frac(pick([-3, -1, 1, 3]), 2) : frac(pick([-2, -1, 1, 2]), 3);
+    const cs = lv === 'basic'
+      ? [srRnz(-4, 4), srRandInt(-6, 6), srRandInt(-9, 9)]
+      : [srRandInt(1, 3), srRandInt(-4, 4), srRandInt(-6, 6), srRandInt(-9, 9)];
+    const r = _sfEval(cs, x0);
+    if (r.den === 1) return null;
+    const fx = `\\(f\\!\\left(${_sfT(x0)}\\right)\\)`;
+    return { question: `設 \\(f(x)=${_sfPoly(cs)}\\)，求 ${fx}`, answer: r, type: 'fraction', answerPrefix: fx };
+  },
+
+  'b1-poly-synth': lv => {
+    const a = pick([2, 3]), b = a === 2 ? pick([-3, -1, 1, 3]) : pick([-2, -1, 1, 2]);
+    const dv = _sfTerms([[a, 'x'], [-b, '']]);
+    const cs = lv === 'basic'
+      ? [srRandInt(1, 4), srRandInt(-6, 6), srRandInt(-9, 9)]
+      : [srRandInt(1, 4), srRandInt(-5, 5), srRandInt(-6, 6), srRandInt(-9, 9)];
+    const { q, r } = _sfDiv(cs, a, b);
+    if (lv !== 'hard') {
+      if (r.den === 1) return null;
+      return { question: `求多項式 \\(f(x)=${_sfPoly(cs)}\\) 除以 \\(${dv}\\) 的餘式`, answer: r, type: 'fraction', answerPrefix: '餘式' };
+    }
+    const k = srRandInt(1, 2), c = q[k];
+    if (c.den === 1) return null;
+    return { question: `多項式 \\(f(x)=${_sfPoly(cs)}\\) 除以 \\(${dv}\\) 得商式 \\(q(x)\\)，求 \\(q(x)\\) 的${k === 1 ? ' \\(x\\) 項係數' : '常數項'}`,
+      answer: c, type: 'fraction', answerPrefix: '' };
+  },
+
+  'b1-poly-rem': lv => {
+    if (lv === 'basic') {
+      const a = pick([2, 3]), b = pick([-1, 1]), x0 = frac(b, a);
+      const c = srRandInt(-6, 6), R = srRandInt(-5, 5);
+      const k = fdiv(fsub(frac(R - c), fmul(x0, x0)), x0);
+      if (k.den === 1) return null;
+      return { question: `多項式 \\(f(x)=x^2+kx${c > 0 ? '+' + c : c < 0 ? c : ''}\\) 除以 \\(${_sfTerms([[a, 'x'], [-b, '']])}\\) 的餘式為 \\(${R}\\)，求 \\(k\\)`,
+        answer: k, type: 'fraction', answerPrefix: 'k' };
+    }
+    const hard = lv === 'hard';
+    const a1 = hard ? pick([2, 3]) : 1, a2 = hard ? pick([1, 2, 3]) : 1;
+    const b1 = srRnz(-4, 4), b2 = srRnz(-4, 4);
+    const x1 = frac(b1, a1), x2 = frac(b2, a2);
+    if (feq(x1, x2) || (hard && x1.den === 1)) return null;
+    const A = srRandInt(-9, 9), B = srRandInt(-9, 9);
+    const p = fdiv(frac(A - B), fsub(x1, x2)), q = fsub(frac(A), fmul(p, x1));
+    if (p.num === 0 || p.den === 1 || p.den > 12 || q.den > 12) return null;
+    const d1 = _sfTerms([[a1, 'x'], [-b1, '']]), d2 = _sfTerms([[a2, 'x'], [-b2, '']]);
+    return { question: `多項式 \\(f(x)\\) 除以 \\(${d1}\\) 餘 \\(${A}\\)，除以 \\(${d2}\\) 餘 \\(${B}\\)。若 \\(f(x)\\) 除以 \\((${d1})(${d2})\\) 的餘式為 \\(px+q\\)，求 \\(p\\)、\\(q\\)`,
+      answerParts: _sfParts(['p', 'q'], [p, q]) };
+  },
+
+  'b1-poly-factor': lv => {
+    if (lv === 'basic') {
+      const a = pick([2, 3]), b = pick([-1, 1]), x0 = frac(b, a);
+      const a2 = srRandInt(1, 4), c = srRnz(-6, 6);
+      const k = fdiv(_sfNeg(fadd(fmul(frac(a2), fmul(x0, x0)), frac(c))), x0);
+      if (k.den === 1) return null;
+      return { question: `若 \\(${_sfTerms([[a, 'x'], [-b, '']])}\\) 是多項式 \\(f(x)=${a2 === 1 ? '' : a2}x^2+kx${c > 0 ? '+' + c : c}\\) 的因式，求 \\(k\\)`,
+        answer: k, type: 'fraction', answerPrefix: 'k' };
+    }
+    const a = pick([2, 3]);
+    const p = a === 2 ? pick([-5, -3, -1, 1, 3, 5]) : pick([-5, -4, -2, -1, 1, 2, 4, 5]);
+    const r = srRnz(-4, 4);
+    if (lv === 'medium') {
+      const cs = _sfMul(_sfMul([a, -p], [1, -srRnz(-4, 4)]), [1, -r]);
+      return { question: `方程式 \\(${_sfPoly(cs)}=0\\) 的三根皆為有理數，其中恰有一根不是整數，求此根`,
+        answer: frac(p, a), type: 'fraction', answerPrefix: 'x' };
+    }
+    const c2 = a === 2 ? 3 : 2;
+    const p2 = c2 === 2 ? pick([-3, -1, 1, 3]) : pick([-4, -2, -1, 1, 2, 4]);
+    const cs = _sfMul(_sfMul([a, -p], [c2, -p2]), [1, -r]);
+    const s = fadd(fadd(frac(p, a), frac(p2, c2)), frac(r));
+    if (s.den === 1) return null;
+    return { question: `方程式 \\(${_sfPoly(cs)}=0\\) 的三根皆為有理數，求三根之和`, answer: s, type: 'fraction', answerPrefix: '' };
+  },
+
+  'b1-poly-linquad': lv => {
+    const a = lv === 'hard' ? pick([-3, -2, 2, 3]) : pick([-2, -1, 1, 2, 3]);
+    const b = srRnz(-9, 9), c = srRandInt(-9, 9);
+    const h = frac(-b, 2 * a), k = fsub(frac(c), frac(b * b, 4 * a));
+    const f = _sfPoly([a, b, c]);
+    if (lv === 'basic') {
+      if (h.den === 1) return null;
+      return { question: `二次函數 \\(y=${f}\\) 圖形的對稱軸為 \\(x=h\\)，求 \\(h\\)`, answer: h, type: 'fraction', answerPrefix: 'h' };
+    }
+    if (lv === 'medium') {
+      if (k.den === 1) return null;
+      return { question: `求二次函數 \\(y=${f}\\) 的${a > 0 ? '最小值' : '最大值'}`, answer: k, type: 'fraction', answerPrefix: '' };
+    }
+    if (h.den === 1 || k.den === 1) return null;
+    return { question: `求二次函數 \\(y=${f}\\) 圖形的頂點坐標 \\((h,k)\\)`, answerParts: _sfParts(['h', 'k'], [h, k]) };
+  },
+
+  'b1-poly-ineq1': lv => {
+    const gt = srRandInt(0, 1) === 0;
+    if (lv === 'basic') {
+      const a = srRnz(-6, 6), b = srRnz(-9, 9), c = srRandInt(-9, 9);
+      const x0 = frac(c - b, a);
+      if (x0.den === 1) return null;
+      return { question: `解不等式 \\(${_sfTerms([[a, 'x'], [b, '']])}${gt ? '>' : '<'}${c}\\)`,
+        answer: x0, type: 'fraction', answerPrefix: `x ${(a > 0) === gt ? '>' : '<'}` };
+    }
+    if (lv === 'medium') {
+      const a = srRandInt(2, 6), b = srRandInt(2, 6), p = srRnz(-6, 6), q = srRnz(-6, 6);
+      if (a === b) return null;
+      const x0 = frac(a * q - b * p, b - a);
+      if (x0.den === 1) return null;
+      const fr = (n, d) => `\\dfrac{x${n > 0 ? '+' + n : n}}{${d}}`;
+      return { question: `解不等式 \\(${fr(p, a)}${gt ? '>' : '<'}${fr(q, b)}\\)`,
+        answer: x0, type: 'fraction', answerPrefix: `x ${(b > a) === gt ? '>' : '<'}` };
+    }
+    const a1 = srRandInt(2, 6), a2 = srRandInt(2, 6), b1 = srRnz(-9, 9), b2 = srRnz(-9, 9);
+    const c1 = srRandInt(-9, 9), c2 = srRandInt(-9, 9);
+    const lo = frac(c1 - b1, a1), hi = frac(c2 - b2, a2);
+    if (lo.den === 1 || hi.den === 1 || !_sfLt(lo, hi)) return null;
+    const e1 = _sfTerms([[a1, 'x'], [b1, '']]), e2 = _sfTerms([[a2, 'x'], [b2, '']]);
+    return { question: `解聯立不等式 \\(\\begin{cases}${e1}>${c1}\\\\ ${e2}\\leq ${c2}\\end{cases}\\)，其解為 \\(a\\lt x\\leq b\\)，求 \\(a\\)、\\(b\\)`,
+      answerParts: _sfParts(['a', 'b'], [lo, hi]) };
+  },
+
+  'b1-poly-ineq2': lv => {
+    const q1 = pick([1, 2, 3]), q2 = pick([2, 3, 4]), p1 = srRnz(-7, 7), p2 = srRnz(-7, 7);
+    if (srGcd(Math.abs(p1), q1) !== 1 || srGcd(Math.abs(p2), q2) !== 1) return null;
+    const r1 = frac(p1, q1), r2 = frac(p2, q2);
+    if (feq(r1, r2)) return null;
+    const lo = _sfLt(r1, r2) ? r1 : r2, hi = _sfLt(r1, r2) ? r2 : r1;
+    const fac = (q, p) => `(${_sfTerms([[q, 'x'], [-p, '']])})`;
+    if (lv === 'basic') {
+      return { question: `解不等式 \\(${fac(q1, p1)}${fac(q2, p2)}<0\\)，其解為 \\(a\\lt x\\lt b\\)，求 \\(a\\)、\\(b\\)`,
+        answerParts: _sfParts(['a', 'b'], [lo, hi]) };
+    }
+    const f = _sfPoly(_sfMul([q1, -p1], [q2, -p2]));
+    if (lv === 'medium') {
+      return { question: `解不等式 \\(${f}<0\\)，其解為 \\(a\\lt x\\lt b\\)，求 \\(a\\)、\\(b\\)`, answerParts: _sfParts(['a', 'b'], [lo, hi]) };
+    }
+    return { question: `解不等式 \\(${f}\\geq 0\\)，其解為 \\(x\\leq a\\) 或 \\(x\\geq b\\)，求 \\(a\\)、\\(b\\)`,
+      answerParts: _sfParts(['a', 'b'], [lo, hi]) };
+  },
+
+  'b1-line-dist': lv => {
+    let a, b, h;
+    if (lv === 'medium') {
+      [a, b, h] = pick([[5, 12, 13], [8, 15, 17], [7, 24, 25]]);
+      if (srRandInt(0, 1)) b = -b;
+    } else { [a, b] = _sf345(); h = 5; }
+    const line = (m, c) => _sfTerms([[m * a, 'x'], [m * b, 'y'], [m * c, '']]);
+    if (lv === 'hard') {
+      const c1 = srRnz(-9, 9), c2 = srRnz(-9, 9), m = pick([1, 2]);
+      const d = frac(Math.abs(c1 - c2), h);
+      if (d.den === 1) return null;
+      return { question: `求兩平行直線 \\(L_1:${line(1, c1)}=0\\) 與 \\(L_2:${line(m, c2)}=0\\) 的距離`, answer: d, type: 'fraction', answerPrefix: '' };
+    }
+    const x0 = srRandInt(-5, 5), y0 = srRandInt(-5, 5), c = srRandInt(-9, 9);
+    const d = frac(Math.abs(a * x0 + b * y0 + c), h);
+    if (d.den === 1) return null;
+    return { question: `求點 \\(P(${x0},${y0})\\) 到直線 \\(L:${line(1, c)}=0\\) 的距離`, answer: d, type: 'fraction', answerPrefix: '' };
+  },
+
+  'b1-line-sys': lv => {
+    const R = lv === 'basic' ? 3 : lv === 'medium' ? 5 : 7;
+    const a1 = srRnz(-R, R), b1 = srRnz(-R, R), a2 = srRnz(-R, R), b2 = srRnz(-R, R);
+    const c1 = srRandInt(-9, 9), c2 = srRandInt(-9, 9);
+    const det = a1 * b2 - a2 * b1;
+    if (det === 0) return null;
+    const x = frac(c1 * b2 - c2 * b1, det), y = frac(a1 * c2 - a2 * c1, det);
+    if (lv === 'hard' ? (x.den === 1 || y.den === 1) : (x.den === 1 && y.den === 1)) return null;
+    if (x.den > 20 || y.den > 20) return null;
+    const L = (a, b, c) => `${_sfTerms([[a, 'x'], [b, 'y']])}=${c}`;
+    return { question: `求兩直線 \\(L_1:${L(a1, b1, c1)}\\) 與 \\(L_2:${L(a2, b2, c2)}\\) 的交點坐標 \\((x,y)\\)`,
+      answerParts: _sfParts(['x', 'y'], [x, y]) };
+  },
+
+  'b1-div-pt': lv => {
+    const P = () => [srRandInt(-9, 9), srRandInt(-9, 9)];
+    const A = P(), B = P();
+    if (A[0] === B[0] && A[1] === B[1]) return null;
+    let x, y, desc;
+    if (lv === 'basic') {
+      x = frac(A[0] + B[0], 2); y = frac(A[1] + B[1], 2);
+      desc = `求 \\(\\overline{AB}\\) 中點 \\(M\\) 的坐標 \\((x,y)\\)`;
+    } else if (lv === 'medium') {
+      const m = srRandInt(1, 5), n = srRandInt(1, 5);
+      if (m === n || srGcd(m, n) !== 1) return null;
+      x = frac(n * A[0] + m * B[0], m + n); y = frac(n * A[1] + m * B[1], m + n);
+      desc = `點 \\(P\\) 在 \\(\\overline{AB}\\) 上且 \\(\\overline{AP}:\\overline{PB}=${m}:${n}\\)，求 \\(P\\) 的坐標 \\((x,y)\\)`;
+    } else {
+      const C = P();
+      if ((B[0] - A[0]) * (C[1] - A[1]) === (B[1] - A[1]) * (C[0] - A[0])) return null;
+      x = frac(A[0] + B[0] + C[0], 3); y = frac(A[1] + B[1] + C[1], 3);
+      desc = `\\(C${_sfPt(C)}\\)，求 \\(\\triangle ABC\\) 重心 \\(G\\) 的坐標 \\((x,y)\\)`;
+    }
+    if (lv === 'hard' ? (x.den === 1 || y.den === 1) : (x.den === 1 && y.den === 1)) return null;
+    return { question: `已知 \\(A${_sfPt(A)}\\)、\\(B${_sfPt(B)}\\)，${desc}`, answerParts: _sfParts(['x', 'y'], [x, y]) };
+  },
+
+  'b1-circ-eq': lv => {
+    if (lv === 'hard') {
+      const A = [srRandInt(-9, 9), srRandInt(-9, 9)], B = [srRandInt(-9, 9), srRandInt(-9, 9)];
+      const dx = A[0] - B[0], dy = A[1] - B[1];
+      const h = frac(A[0] + B[0], 2), k = frac(A[1] + B[1], 2), r2 = frac(dx * dx + dy * dy, 4);
+      if (r2.num === 0 || r2.den === 1) return null;
+      return { question: `以 \\(A${_sfPt(A)}\\)、\\(B${_sfPt(B)}\\) 為直徑兩端點作圓，求圓心 \\((h,k)\\) 與半徑平方 \\(r^2\\)`,
+        answerParts: _sfParts(['h', 'k', 'r²'], [h, k, r2]) };
+    }
+    const D = srRandInt(-9, 9), E = srRandInt(-9, 9), F = srRandInt(-12, 12);
+    const r2 = frac(D * D + E * E - 4 * F, 4);
+    if (r2.num <= 0) return null;
+    const rest = _sfTerms([[D, 'x'], [E, 'y'], [F, '']]);
+    const eq = `x^2+y^2${rest === '0' ? '' : rest[0] === '-' ? rest : '+' + rest}=0`;
+    if (lv === 'basic') {
+      if (D % 2 === 0 && E % 2 === 0) return null;
+      return { question: `求圓 \\(${eq}\\) 的圓心坐標 \\((h,k)\\)`, answerParts: _sfParts(['h', 'k'], [frac(-D, 2), frac(-E, 2)]) };
+    }
+    if (r2.den === 1) return null;
+    return { question: `求圓 \\(${eq}\\) 的半徑平方 \\(r^2\\)`, answer: r2, type: 'fraction', answerPrefix: 'r²' };
+  },
+
+  'b1-circ-line': lv => {
+    const [a, b] = _sf345();
+    if (lv === 'basic') {
+      const h = srRandInt(-5, 5), k = srRandInt(-5, 5), r = srRandInt(2, 6), c = srRandInt(-9, 9);
+      const d = frac(Math.abs(a * h + b * k + c), 5);
+      if (d.den === 1) return null;
+      return { question: `求圓 \\(C:${_sfSq('x', h)}+${_sfSq('y', k)}=${r * r}\\) 的圓心到直線 \\(L:${_sfTerms([[a, 'x'], [b, 'y'], [c, '']])}=0\\) 的距離`,
+        answer: d, type: 'fraction', answerPrefix: '' };
+    }
+    if (lv === 'medium') {
+      const c = srRnz(-24, 24);
+      if (c % 5 === 0) return null;
+      return { question: `若直線 \\(L:${_sfTerms([[a, 'x'], [b, 'y']])}=${c}\\) 與圓 \\(x^2+y^2=r^2\\)（\\(r>0\\)）相切，求 \\(r\\)`,
+        answer: frac(Math.abs(c), 5), type: 'fraction', answerPrefix: 'r' };
+    }
+    const R = pick([1, 2, 3, 4, 6, 7]), m = pick([3, 4]);
+    const h = srRandInt(-4, 4), k = srRandInt(-4, 4);
+    const c0 = a * h + b * k + pick([-1, 1]) * m * R;
+    return { question: `求圓 \\(C:${_sfSq('x', h)}+${_sfSq('y', k)}=${R * R}\\) 被直線 \\(L:${_sfTerms([[a, 'x'], [b, 'y']])}=${c0}\\) 截出的弦長`,
+      answer: frac(2 * R * (m === 3 ? 4 : 3), 5), type: 'fraction', answerPrefix: '' };
+  },
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  輸出表
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -7178,3 +7549,14 @@ const SR_GENERATORS = {
   'b3b-exp-ineq':    genB3bExpIneq,
   'b3b-log-ineq':    genB3bLogIneq,
 };
+
+Object.keys(_SR_FRAC_VARIANTS).forEach(key => {
+  const base = SR_GENERATORS[key], variant = _SR_FRAC_VARIANTS[key];
+  SR_GENERATORS[key] = (level, n) => {
+    if (Math.random() < _SF_RATE) {
+      const lv = level === 'basic' || level === 'hard' ? level : 'medium';
+      for (let i = 0; i < 60; i++) { const q = variant(lv); if (q) return q; }
+    }
+    return base(level, n);
+  };
+});
