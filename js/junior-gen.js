@@ -7095,7 +7095,7 @@ function _8bQuad1(level){
   function roots2eqn(r1,r2){
     const B=-(r1+r2),C=r1*r2;
     let s='x^2';
-    if(B>0)s+=`+${B}x`; else if(B<0)s+=`${B}x`;
+    if(B>0)s+=`+${B===1?"":B}x`; else if(B<0)s+=`-${B===-1?"":-B}x`;
     if(C>0)s+=`+${C}`; else if(C<0)s+=`${C}`;
     return s;
   }
@@ -7182,7 +7182,7 @@ function _8bQuad2(level){
   }
   function eqnStr(B,C){
     let s='x^2';
-    if(B>0)s+=`+${B}x`; else if(B<0)s+=`${B}x`;
+    if(B>0)s+=`+${B===1?"":B}x`; else if(B<0)s+=`-${B===-1?"":-B}x`;
     if(C>0)s+=`+${C}`; else if(C<0)s+=`${C}`;
     return s;
   }

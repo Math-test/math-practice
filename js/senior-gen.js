@@ -3870,7 +3870,8 @@ function genB1DivPt(level) {
   const s = m + n;   // 內分分母
   const d = m - n;   // 外分分母（≠ 0，因 m≠n）
   for (let i = 0; i < 30; i++) { const q = _b1DivPt(level, m, n, s, d); if (q) return q; }
-  return _b1DivPt('basic', 1, 2, 3, -1);
+  for (let i = 0; i < 200; i++) { const q = _b1DivPt('basic', 1, 2, 3, -1); if (q) return q; }
+  return { question: '已知 A(0,0)、B(3,6)，P 為 AB 之內分點且 AP:PB = 1:2，求 P 的坐標', answer: '(1,2)', type: 'text' };
 }
 function _b1DivPt(level, m, n, s, d) {
   if (level === 'basic') {
@@ -6662,8 +6663,8 @@ function genB3aExpFunc(level) {
       {q:'已知 \\(2^a=5\\)，求 \\(4^a\\)',                            ans:25,          t:'number'},
       {q:'已知 \\(3^a=5\\)，求 \\(9^a\\)',                            ans:25,          t:'number'},
       {q:'已知 \\(2^a=3\\)，求 \\(2^{-a}\\)（化為分數）',             ans:frac(1,3),   t:'fraction'},
-      {q:'已知 \\(4^a=3\\)，求 \\(2^a\\)（取正值）',                  ans:'\\sqrt{3}', t:'text'},
-      {q:'已知 \\(9^a=2\\)，求 \\(3^a\\)（取正值）',                  ans:'\\sqrt{2}', t:'text'},
+      {q:'已知 \\(4^a=3\\)，求 \\(16^a\\)',                           ans:9,           t:'number'},
+      {q:'已知 \\(9^a=2\\)，求 \\(81^a\\)',                           ans:4,           t:'number'},
       {q:'已知 \\(2^a=3\\)，求 \\(4^a+4^{-a}\\)',                     ans:frac(82,9),  t:'fraction'},
       // 4^a+4^(-a) = 9 + 1/9 = 82/9 ✓
     ];
@@ -6855,20 +6856,20 @@ function genB3aExpEq(level) {
   }
   // hard: quadratic substitution (let u=a^x); includes non-symmetric roots
   const pool=[
-    {q:'解方程式 \\(4^x-5\\cdot 2^x+4=0\\)，求所有 \\(x\\)（逗號分隔）',          ans:'0, 2',  t:'text'},
+    {q:'解方程式 \\(4^x-5\\cdot 2^x+4=0\\)，求所有 \\(x\\)（逗號分隔）',          r:[0,2]},
     {q:'解方程式 \\(9^x-4\\cdot 3^x-45=0\\)，求 \\(x\\)',                         ans:2,       t:'number'},
     // (u-9)(u+5)=0, u=9→x=2 ✓
     {q:'解方程式 \\(4^x-2^{x+2}+4=0\\)，求 \\(x\\)',                              ans:1,       t:'number'},
     // u²-4u+4=0→u=2→x=1 ✓
-    {q:'解方程式 \\(9^x-10\\cdot 3^x+9=0\\)，求所有 \\(x\\)（逗號分隔）',          ans:'0, 2',  t:'text'},
-    {q:'解方程式 \\(25^x-6\\cdot 5^x+5=0\\)，求所有 \\(x\\)（逗號分隔）',          ans:'0, 1',  t:'text'},
-    {q:'解方程式 \\(4^x-3\\cdot 2^{x+1}+8=0\\)，求所有 \\(x\\)（逗號分隔）',       ans:'1, 2',  t:'text'},
+    {q:'解方程式 \\(9^x-10\\cdot 3^x+9=0\\)，求所有 \\(x\\)（逗號分隔）',          r:[0,2]},
+    {q:'解方程式 \\(25^x-6\\cdot 5^x+5=0\\)，求所有 \\(x\\)（逗號分隔）',          r:[0,1]},
+    {q:'解方程式 \\(4^x-3\\cdot 2^{x+1}+8=0\\)，求所有 \\(x\\)（逗號分隔）',       r:[1,2]},
     // u²-6u+8=0→(u-2)(u-4)=0→x=1,2 ✓
-    {q:'解方程式 \\(9^x-12\\cdot 3^x+27=0\\)，求所有 \\(x\\)（逗號分隔）',         ans:'1, 2',  t:'text'},
+    {q:'解方程式 \\(9^x-12\\cdot 3^x+27=0\\)，求所有 \\(x\\)（逗號分隔）',         r:[1,2]},
     // (u-3)(u-9)=0→x=1,2 ✓
-    {q:'解方程式 \\(2\\cdot 4^x-5\\cdot 2^x+2=0\\)，求所有 \\(x\\)（逗號分隔）',   ans:'-1, 1', t:'text'},
+    {q:'解方程式 \\(2\\cdot 4^x-5\\cdot 2^x+2=0\\)，求所有 \\(x\\)（逗號分隔）',   r:[-1,1]},
     // 2u²-5u+2=0→(2u-1)(u-2)=0→2^x=1/2→x=-1,2^x=2→x=1 ✓
-    {q:'解方程式 \\(3\\cdot 9^x-10\\cdot 3^x+3=0\\)，求所有 \\(x\\)（逗號分隔）',  ans:'-1, 1', t:'text'},
+    {q:'解方程式 \\(3\\cdot 9^x-10\\cdot 3^x+3=0\\)，求所有 \\(x\\)（逗號分隔）',  r:[-1,1]},
     // 3u²-10u+3=0→(3u-1)(u-3)=0→x=-1,1 ✓
     {q:'解方程式 \\(9^x-2\\cdot 3^{x+2}+81=0\\)，求 \\(x\\)',                     ans:2,       t:'number'},
     // u²-18u+81=0→(u-9)²=0→x=2 ✓
@@ -6876,6 +6877,7 @@ function genB3aExpEq(level) {
     // (u+4)(u-2)=0→u=2→x=1 ✓
   ];
   const item=srQPick(pool, _expEqHQ);
+  if(item.r) return {question:item.q.replace(/求所有.*$/,'求兩根'), type:'quad-roots', root1:item.r[0], root2:item.r[1], answerPrefix:'x'};
   return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'x'};
 }
 function genB3bExpEq(level) {
@@ -6921,25 +6923,25 @@ function genB3aLogEq(level) {
   // hard: quadratic in log
   const pool=[
     {q:'解方程式 \\((\\log_2 x)^2-\\log_2 x-2=0\\)，求所有 \\(x\\)（以逗號分隔）',
-     ans:'\\dfrac{1}{2}, 4', t:'text'},
+     r:[frac(1,2),4]},
     // let u=log_2(x): u²-u-2=0 → (u-2)(u+1)=0 → x=4 or x=1/2 ✓
     {q:'解方程式 \\((\\log_3 x)^2-3\\log_3 x+2=0\\)，求所有 \\(x\\)（以逗號分隔）',
-     ans:'3, 9', t:'text'},
+     r:[3,9]},
     // (u-1)(u-2)=0 → x=3 or x=9 ✓
     {q:'解方程式 \\((\\log_2 x)^2=4\\)，求所有 \\(x\\)（以逗號分隔）',
-     ans:'\\dfrac{1}{4}, 4', t:'text'},
+     r:[frac(1,4),4]},
     // log_2(x)=±2 → x=4 or x=1/4 ✓
     {q:'解方程式 \\((\\log_3 x)^2-4\\log_3 x+3=0\\)，求所有 \\(x\\)（以逗號分隔）',
-     ans:'3, 27', t:'text'},
+     r:[3,27]},
     // (u-1)(u-3)=0 → x=3 or x=27 ✓
     {q:'解方程式 \\((\\log_2 x)^2+\\log_2 x-6=0\\)，求所有 \\(x\\)（以逗號分隔）',
-     ans:'\\dfrac{1}{8}, 4', t:'text'},
+     r:[frac(1,8),4]},
     // (u+3)(u-2)=0 → u=-3→x=1/8, u=2→x=4 ✓
     {q:'解方程式 \\((\\log_3 x)^2-2\\log_3 x-3=0\\)，求所有 \\(x\\)（以逗號分隔）',
-     ans:'\\dfrac{1}{3}, 27', t:'text'},
+     r:[frac(1,3),27]},
     // (u-3)(u+1)=0 → u=3→x=27, u=-1→x=1/3 ✓
     {q:'解方程式 \\((\\log_2 x)^2-5\\log_2 x+6=0\\)，求所有 \\(x\\)（以逗號分隔）',
-     ans:'4, 8', t:'text'},
+     r:[4,8]},
     // (u-2)(u-3)=0 → x=4 or x=8 ✓
     {q:'解方程式 \\(\\log_2(\\log_2 x)=2\\)，求 \\(x\\)',
      ans:16, t:'number'},
@@ -6964,164 +6966,120 @@ function genB3aLogEq(level) {
     // (x+1)(x+3)=8→x²+4x-5=0→(x+5)(x-1)=0→x=1 ✓
   ];
   const item=srQPick(pool, _logEqHQ);
+  if(item.r) return {question:item.q.replace(/求所有.*$/,'求兩根'), type:'quad-roots', root1:item.r[0], root2:item.r[1], answerPrefix:'x'};
   return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'x'};
 }
 function genB3bLogEq(level) {
   return genB3aLogEq(level);
 }
 
-// ── b3a-exp-ineq：指數不等式（b3a only）────────────────────────
+// ── b3a-exp-ineq / b3a-log-ineq：指數、對數不等式 ───────────────
+
+const _IQ_IN   = 'a\\lt x\\lt b';
+const _IQ_INE  = 'a\\leq x\\leq b';
+const _IQ_OUT  = 'x\\lt a\\text{ 或 }x\\gt b';
+const _IQ_OUTE = 'x\\leq a\\text{ 或 }x\\geq b';
+const _IQ_ZOUT  = '0\\lt x\\lt a\\text{ 或 }x\\gt b';
+const _IQ_ZOUTE = '0\\lt x\\leq a\\text{ 或 }x\\geq b';
+
+// 單邊解：答案欄前綴顯示「x >」或「x <」，只需填界值
+function _iqOne(q, sym, v) {
+  const f = _sfF(v);
+  return f.den === 1
+    ? { question: q, answer: f.num, type: 'number', answerPrefix: `x ${sym}` }
+    : { question: q, answer: f, type: 'fraction', answerPrefix: `x ${sym}` };
+}
+// 雙邊解：題目給出解的形式，填 a、b
+function _iqTwo(q, fmt, a, b) {
+  return { question: `${q}，其解為 \\(${fmt}\\)，求 \\(a\\)、\\(b\\)`,
+    answerParts: _sfParts(['a', 'b'], [_sfF(a), _sfF(b)]) };
+}
+function _iqPick(pool, queue) {
+  const e = srQPick(pool, queue);
+  return e.length === 3 ? _iqOne(e[0], e[1], e[2]) : _iqTwo(e[0], e[1], e[2], e[3]);
+}
 
 function genB3aExpIneq(level) {
   if (level === 'basic') {
-    const t = srRandInt(0, 1);
-    const n = srRandInt(2,5);
-    if (t === 0) {
-      // 2^x > 2^n → x > n
-      const a = srRandInt(2,4), val = Math.pow(a,n);
-      return {question:`解不等式 \\(${a}^x>${val}\\)，求 \\(x\\) 的範圍`,
-        answer:`x>${n}`, type:'text', answerPrefix:'解'};
-    }
-    {
-      // (1/a)^x > (1/a)^n → x < n (direction flips)
-      const a = srRandInt(2,4), val = Math.pow(a,n);
-      const aStr = a===2?'\\dfrac{1}{2}':a===3?'\\dfrac{1}{3}':'\\dfrac{1}{4}';
-      return {question:`解不等式 \\(\\left(${aStr}\\right)^x>\\dfrac{1}{${val}}\\)，求 \\(x\\) 的範圍`,
-        answer:`x<${n}`, type:'text', answerPrefix:'解'};
-    }
+    const a = srRandInt(2, 4), n = srRandInt(2, 5), val = Math.pow(a, n);
+    if (srRandInt(0, 1) === 0) return _iqOne(`解不等式 \\(${a}^x>${val}\\)`, '>', n);
+    // 底數介於 0 與 1 之間，不等號方向改變
+    return _iqOne(`解不等式 \\(\\left(\\dfrac{1}{${a}}\\right)^x>\\dfrac{1}{${val}}\\)`, '<', n);
   }
   if (level === 'medium') {
-    const pool=[
-      {q:'解不等式 \\(4^x>8\\)，求 \\(x\\) 的範圍',           ans:'x>\\dfrac{3}{2}', t:'text'},
-      // 2^(2x)>2^3 → 2x>3 → x>3/2 ✓
-      {q:'解不等式 \\(8^x<4\\)，求 \\(x\\) 的範圍',           ans:'x<\\dfrac{2}{3}', t:'text'},
-      // 2^(3x)<2^2 → x<2/3 ✓
-      {q:'解不等式 \\(9^x>27\\)，求 \\(x\\) 的範圍',          ans:'x>\\dfrac{3}{2}', t:'text'},
-      // 3^(2x)>3^3 → x>3/2 ✓
-      {q:'解不等式 \\(2^{x+1}>16\\)，求 \\(x\\) 的範圍',      ans:'x>3',             t:'text'},
-      // x+1>4 → x>3 ✓
-      {q:'解不等式 \\(3^{x-1}<9\\)，求 \\(x\\) 的範圍',       ans:'x<3',             t:'text'},
-      // x-1<2 → x<3 ✓
-      {q:'解不等式 \\(\\left(\\dfrac{1}{4}\\right)^x>8\\)，求 \\(x\\) 的範圍', ans:'x<-\\dfrac{3}{2}', t:'text'},
-      // 2^(-2x)>2^3 → -2x>3 → x<-3/2 ✓
-      {q:'解不等式 \\(\\left(\\dfrac{1}{3}\\right)^x<27\\)，求 \\(x\\) 的範圍', ans:'x>-3', t:'text'},
-      // 3^(-x)<3^3 → -x<3 → x>-3 ✓
-      {q:'解不等式 \\(2^{2x}-2^{x+2}<0\\)，求 \\(x\\) 的範圍', ans:'x<2', t:'text'},
-      // 2x<x+2 → x<2 ✓
-    ];
-    const item=srQPick(pool, _expIneqMQ);
-    return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'解'};
+    return _iqPick([
+      ['解不等式 \\(4^x>8\\)', '>', frac(3, 2)],
+      ['解不等式 \\(8^x<4\\)', '<', frac(2, 3)],
+      ['解不等式 \\(9^x>27\\)', '>', frac(3, 2)],
+      ['解不等式 \\(2^{x+1}>16\\)', '>', 3],
+      ['解不等式 \\(3^{x-1}<9\\)', '<', 3],
+      ['解不等式 \\(\\left(\\dfrac{1}{4}\\right)^x>8\\)', '<', frac(-3, 2)],
+      ['解不等式 \\(\\left(\\dfrac{1}{3}\\right)^x<27\\)', '>', -3],
+      ['解不等式 \\(2^{2x}-2^{x+2}<0\\)', '<', 2],
+      ['解不等式 \\(27^x<9\\)', '<', frac(2, 3)],
+      ['解不等式 \\(\\left(\\dfrac{1}{8}\\right)^x<4\\)', '>', frac(-2, 3)],
+    ], _expIneqMQ);
   }
-  // hard: quadratic-type inequalities
-  const pool=[
-    {q:'解不等式 \\(9^x-10\\cdot 3^x+9<0\\)，求 \\(x\\) 的範圍',
-     ans:'0<x<2',                              t:'text'},
-    {q:'解不等式 \\(4^x-5\\cdot 2^x+4>0\\)，求 \\(x\\) 的範圍',
-     ans:'x<0\\text{ 或 }x>2',                 t:'text'},
-    {q:'解不等式 \\(9^x-10\\cdot 3^x+9\\leq 0\\)，求 \\(x\\) 的範圍',
-     ans:'0\\leq x\\leq 2',                    t:'text'},
-    {q:'解不等式 \\(4^x-5\\cdot 2^x+4<0\\)，求 \\(x\\) 的範圍',
-     ans:'0<x<2',                              t:'text'},
-    {q:'解不等式 \\(25^x-6\\cdot 5^x+5>0\\)，求 \\(x\\) 的範圍',
-     ans:'x<0\\text{ 或 }x>1',                 t:'text'},
-    {q:'解不等式 \\(4^x-6\\cdot 2^x+8>0\\)，求 \\(x\\) 的範圍',
-     ans:'x<1\\text{ 或 }x>2',                 t:'text'},
-    // (2^x-2)(2^x-4)>0→x<1 or x>2 ✓
-    {q:'解不等式 \\(9^x-12\\cdot 3^x+27\\geq 0\\)，求 \\(x\\) 的範圍',
-     ans:'x\\leq 1\\text{ 或 }x\\geq 2',       t:'text'},
-    {q:'解不等式 \\(4^x-3\\cdot 2^{x+1}+8\\leq 0\\)，求 \\(x\\) 的範圍',
-     ans:'1\\leq x\\leq 2',                    t:'text'},
-    // u²-6u+8≤0→(u-2)(u-4)≤0→1≤x≤2 ✓
-    {q:'解不等式 \\(2\\cdot 4^x-5\\cdot 2^x+2>0\\)，求 \\(x\\) 的範圍',
-     ans:'x<-1\\text{ 或 }x>1',                t:'text'},
-    // (2u-1)(u-2)>0→2^x<1/2 or 2^x>2→x<-1 or x>1 ✓
-    {q:'解不等式 \\(3\\cdot 9^x-10\\cdot 3^x+3\\leq 0\\)，求 \\(x\\) 的範圍',
-     ans:'-1\\leq x\\leq 1',                   t:'text'},
-    // (3u-1)(u-3)≤0→1/3≤u≤3→-1≤x≤1 ✓
-    {q:'解不等式 \\(2^{x+1}-5+2^{1-x}<0\\)，求 \\(x\\) 的範圍',
-     ans:'-1<x<1',                             t:'text'},
-    // 2·2^x-5+2/2^x<0, ×2^x: 2u²-5u+2<0→(2u-1)(u-2)<0→-1<x<1 ✓
-  ];
-  const item=srQPick(pool, _expIneqHQ);
-  return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'解'};
+  // hard：令 u=a^x 化為二次不等式
+  return _iqPick([
+    ['解不等式 \\(9^x-10\\cdot 3^x+9<0\\)', _IQ_IN, 0, 2],
+    ['解不等式 \\(4^x-5\\cdot 2^x+4>0\\)', _IQ_OUT, 0, 2],
+    ['解不等式 \\(9^x-10\\cdot 3^x+9\\leq 0\\)', _IQ_INE, 0, 2],
+    ['解不等式 \\(4^x-5\\cdot 2^x+4<0\\)', _IQ_IN, 0, 2],
+    ['解不等式 \\(25^x-6\\cdot 5^x+5>0\\)', _IQ_OUT, 0, 1],
+    ['解不等式 \\(4^x-6\\cdot 2^x+8>0\\)', _IQ_OUT, 1, 2],
+    ['解不等式 \\(9^x-12\\cdot 3^x+27\\geq 0\\)', _IQ_OUTE, 1, 2],
+    ['解不等式 \\(4^x-3\\cdot 2^{x+1}+8\\leq 0\\)', _IQ_INE, 1, 2],
+    ['解不等式 \\(2\\cdot 4^x-5\\cdot 2^x+2>0\\)', _IQ_OUT, -1, 1],
+    ['解不等式 \\(3\\cdot 9^x-10\\cdot 3^x+3\\leq 0\\)', _IQ_INE, -1, 1],
+    ['解不等式 \\(2^{x+1}-5+2^{1-x}<0\\)', _IQ_IN, -1, 1],
+    // u=4^x：(u-2)(u-4)<0 → 1/2<x<1
+    ['解不等式 \\(16^x-6\\cdot 4^x+8<0\\)', _IQ_IN, frac(1, 2), 1],
+    // u=9^x：(u-3)(u-9)≤0 → 1/2≤x≤1
+    ['解不等式 \\(81^x-12\\cdot 9^x+27\\leq 0\\)', _IQ_INE, frac(1, 2), 1],
+    // u=4^x：(u-2)(u-8)>0 → x<1/2 或 x>3/2
+    ['解不等式 \\(16^x-10\\cdot 4^x+16>0\\)', _IQ_OUT, frac(1, 2), frac(3, 2)],
+  ], _expIneqHQ);
 }
-
-// ── b3a-log-ineq：對數不等式（b3a only）────────────────────────
 
 function genB3aLogIneq(level) {
   if (level === 'basic') {
-    const t = srRandInt(0, 1);
-    const n = srRandInt(1,3);
-    if (t === 0) {
-      // log_a(x) > n (a>1) → x > a^n
-      const a = srRandInt(2,4), val = Math.pow(a,n);
-      return {question:`解不等式 \\(\\log_{${a}} x>${n}\\)，求 \\(x\\) 的範圍`,
-        answer:`x>${val}`, type:'text', answerPrefix:'解'};
-    }
-    {
-      // log_(1/a)(x) > n (0<a<1) → x < (1/a)^n = 1/a^n
-      const a = srRandInt(2,4), val = Math.pow(a,n);
-      const aStr = a===2?'\\dfrac{1}{2}':a===3?'\\dfrac{1}{3}':'\\dfrac{1}{4}';
-      return {question:`解不等式 \\(\\log_{${aStr}} x>${n}\\)，求 \\(x\\) 的範圍`,
-        answer:`0<x<\\dfrac{1}{${val}}`, type:'text', answerPrefix:'解'};
-    }
+    const a = srRandInt(2, 4), n = srRandInt(1, 3), val = Math.pow(a, n);
+    if (srRandInt(0, 1) === 0) return _iqOne(`解不等式 \\(\\log_{${a}} x>${n}\\)`, '>', val);
+    // 底數介於 0 與 1 之間，且真數須為正
+    return { question: `解不等式 \\(\\log_{\\frac{1}{${a}}} x>${n}\\)，其解為 \\(0\\lt x\\lt b\\)，求 \\(b\\)`,
+      answer: frac(1, val), type: 'fraction', answerPrefix: 'b' };
   }
   if (level === 'medium') {
-    const pool=[
-      {q:'解不等式 \\(\\log_2(2x+1)>3\\)，求 \\(x\\) 的範圍',           ans:'x>\\dfrac{7}{2}', t:'text'},
-      // 2x+1>8 → x>7/2 ✓ (also 2x+1>0 satisfied)
-      {q:'解不等式 \\(\\log_3(3x-2)<2\\)，求 \\(x\\) 的範圍',           ans:'\\dfrac{2}{3}<x<\\dfrac{11}{3}', t:'text'},
-      // 0<3x-2<9 → 2/3<x<11/3 ✓
-      {q:'解不等式 \\(\\log_2(x-1)>2\\)，求 \\(x\\) 的範圍',            ans:'x>5',             t:'text'},
-      // x-1>4 → x>5 ✓
-      {q:'解不等式 \\(\\log_{\\frac{1}{2}}(x+1)>-3\\)，求 \\(x\\) 的範圍', ans:'-1<x<7',        t:'text'},
-      // (1/2)^(-3)=8, x+1<8 and x+1>0 → -1<x<7 ✓
-      {q:'解不等式 \\(\\log_{\\frac{1}{3}}(2x-1)>-2\\)，求 \\(x\\) 的範圍', ans:'\\dfrac{1}{2}<x<5', t:'text'},
-      // (1/3)^(-2)=9, 0<2x-1<9 → 1/2<x<5 ✓
-      {q:'解不等式 \\(\\log_2(x^2-1)>2\\)，求 \\(x\\) 的範圍',           ans:'x>\\sqrt{5}\\text{ 或 }x<-\\sqrt{5}', t:'text'},
-      // x²-1>4 → x²>5 → |x|>√5, also x²-1>0 → |x|>1 (already satisfied) ✓
-      {q:'解不等式 \\(1<\\log_3 x<3\\)，求 \\(x\\) 的範圍',              ans:'3<x<27',          t:'text'},
-      // 3<x<27 ✓
-      {q:'解不等式 \\(\\log_2 x+\\log_2(x-1)>1\\)，求 \\(x\\) 的範圍',   ans:'x>2',             t:'text'},
-      // x(x-1)>2→(x-2)(x+1)>0, domain x>1 → x>2 ✓
-    ];
-    const item=srQPick(pool, _logIneqMQ);
-    return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'解'};
+    return _iqPick([
+      ['解不等式 \\(\\log_2(2x+1)>3\\)', '>', frac(7, 2)],
+      ['解不等式 \\(\\log_3(3x-2)<2\\)', _IQ_IN, frac(2, 3), frac(11, 3)],
+      ['解不等式 \\(\\log_2(x-1)>2\\)', '>', 5],
+      ['解不等式 \\(\\log_{\\frac{1}{2}}(x+1)>-3\\)', _IQ_IN, -1, 7],
+      ['解不等式 \\(\\log_{\\frac{1}{3}}(2x-1)>-2\\)', _IQ_IN, frac(1, 2), 5],
+      // x²-1>8 → x<-3 或 x>3
+      ['解不等式 \\(\\log_2(x^2-1)>3\\)', _IQ_OUT, -3, 3],
+      ['解不等式 \\(1<\\log_3 x<3\\)', _IQ_IN, 3, 27],
+      ['解不等式 \\(\\log_2 x+\\log_2(x-1)>1\\)', '>', 2],
+      // 0<4x-3<8 → 3/4<x<11/4
+      ['解不等式 \\(\\log_2(4x-3)<3\\)', _IQ_IN, frac(3, 4), frac(11, 4)],
+    ], _logIneqMQ);
   }
-  // hard: quadratic in log
-  const pool=[
-    {q:'解不等式 \\((\\log_2 x)^2-\\log_2 x-2>0\\)，求 \\(x\\) 的範圍',
-     ans:'0<x<\\dfrac{1}{2}\\text{ 或 }x>4',    t:'text'},
-    // (u-2)(u+1)>0→u<-1 or u>2→0<x<1/2 or x>4 ✓
-    {q:'解不等式 \\((\\log_3 x)^2-3\\log_3 x+2<0\\)，求 \\(x\\) 的範圍',
-     ans:'3<x<9',                                t:'text'},
-    {q:'解不等式 \\((\\log_2 x)^2>4\\)，求 \\(x\\) 的範圍',
-     ans:'0<x<\\dfrac{1}{4}\\text{ 或 }x>4',    t:'text'},
-    {q:'解不等式 \\((\\log_3 x)^2-4\\log_3 x+3<0\\)，求 \\(x\\) 的範圍',
-     ans:'3<x<27',                               t:'text'},
-    {q:'解不等式 \\((\\log_2 x)^2-5\\log_2 x+6>0\\)，求 \\(x\\) 的範圍',
-     ans:'0<x<4\\text{ 或 }x>8',                t:'text'},
-    {q:'解不等式 \\((\\log_2 x)^2+\\log_2 x-6<0\\)，求 \\(x\\) 的範圍',
-     ans:'\\dfrac{1}{8}<x<4',                   t:'text'},
-    {q:'解不等式 \\((\\log_3 x)^2-2\\log_3 x-3\\leq 0\\)，求 \\(x\\) 的範圍',
-     ans:'\\dfrac{1}{3}\\leq x\\leq 27',        t:'text'},
-    {q:'解不等式 \\((\\log_3 x)^2-4\\log_3 x+3\\geq 0\\)，求 \\(x\\) 的範圍',
-     ans:'0<x\\leq 3\\text{ 或 }x\\geq 27',     t:'text'},
-    {q:'解不等式 \\(\\log_2 x\\cdot\\log_2(4x)\\leq 3\\)，求 \\(x\\) 的範圍',
-     ans:'\\dfrac{1}{8}\\leq x\\leq 2',         t:'text'},
-    // u(u+2)≤3→u²+2u-3≤0→(u+3)(u-1)≤0→-3≤u≤1→1/8≤x≤2 ✓
-    {q:'解不等式 \\((\\log_3 x-1)(\\log_3 x+2)>0\\)，求 \\(x\\) 的範圍',
-     ans:'0<x<\\dfrac{1}{9}\\text{ 或 }x>3',   t:'text'},
-    // (u-1)(u+2)>0→u<-2 or u>1→0<x<1/9 or x>3 ✓
-    {q:'解不等式 \\((2\\log_2 x-1)(\\log_2 x-2)>0\\)，求 \\(x\\) 的範圍',
-     ans:'0<x<\\sqrt{2}\\text{ 或 }x>4',        t:'text'},
-    // (2u-1)(u-2)>0→u<1/2 or u>2→x<√2 or x>4 ✓
-    {q:'解不等式 \\((\\log_2 x)^2-3\\log_2 x-4<0\\)，求 \\(x\\) 的範圍',
-     ans:'\\dfrac{1}{2}<x<16',                  t:'text'},
-    // (u-4)(u+1)<0→-1<u<4→1/2<x<16 ✓
-  ];
-  const item=srQPick(pool, _logIneqHQ);
-  return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'解'};
+  // hard：令 u=log x 化為二次不等式
+  return _iqPick([
+    ['解不等式 \\((\\log_2 x)^2-\\log_2 x-2>0\\)', _IQ_ZOUT, frac(1, 2), 4],
+    ['解不等式 \\((\\log_3 x)^2-3\\log_3 x+2<0\\)', _IQ_IN, 3, 9],
+    ['解不等式 \\((\\log_2 x)^2>4\\)', _IQ_ZOUT, frac(1, 4), 4],
+    ['解不等式 \\((\\log_3 x)^2-4\\log_3 x+3<0\\)', _IQ_IN, 3, 27],
+    ['解不等式 \\((\\log_2 x)^2-5\\log_2 x+6>0\\)', _IQ_ZOUT, 4, 8],
+    ['解不等式 \\((\\log_2 x)^2+\\log_2 x-6<0\\)', _IQ_IN, frac(1, 8), 4],
+    ['解不等式 \\((\\log_3 x)^2-2\\log_3 x-3\\leq 0\\)', _IQ_INE, frac(1, 3), 27],
+    ['解不等式 \\((\\log_3 x)^2-4\\log_3 x+3\\geq 0\\)', _IQ_ZOUTE, 3, 27],
+    ['解不等式 \\(\\log_2 x\\cdot\\log_2(4x)\\leq 3\\)', _IQ_INE, frac(1, 8), 2],
+    ['解不等式 \\((\\log_3 x-1)(\\log_3 x+2)>0\\)', _IQ_ZOUT, frac(1, 9), 3],
+    ['解不等式 \\((\\log_2 x-1)(\\log_2 x-3)>0\\)', _IQ_ZOUT, 2, 8],
+    ['解不等式 \\((\\log_2 x)^2-3\\log_2 x-4<0\\)', _IQ_IN, frac(1, 2), 16],
+  ], _logIneqHQ);
 }
 
 function genB3bExpIneq(level) { return genB3aExpIneq(level); }
