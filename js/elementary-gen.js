@@ -106,59 +106,65 @@ function genGcdLcm(level) {
   return _gcdLcm('basic');
 }
 
+// 最大公因數為 g 的兩個相異數，皆在 2～max 之間；lcmMax 限制最小公倍數上限
+function _glPair(max, gMin, gMax, lcmMax) {
+  for (let i = 0; i < 200; i++) {
+    const g = randInt(gMin, gMax), top = Math.floor(max / g);
+    if (top < 3) continue;
+    const m1 = randInt(2, top), m2 = randInt(2, top);
+    if (m1 === m2 || gcd(m1, m2) !== 1) continue;
+    if (lcmMax && g * m1 * m2 > lcmMax) continue;
+    return [g * m1, g * m2, g];
+  }
+  return null;
+}
+
 function _gcdLcm(level) {
   if (level === 'basic') {
-    const t = randInt(0, 1);
-    if (t === 0) {
-      const g = pick([2,3,4,5,6,7,8,9]);
-      const m1 = randInt(2,7), m2 = randInt(2,7);
-      if (m1 === m2) return null;
-      const a = g*m1, b = g*m2;
-      return { question:`${a} 和 ${b} 的最大公因數是多少？`, answer: gcd(a,b), type:'number' };
-    } else {
-      const pairs = [[2,3],[2,4],[2,5],[2,6],[3,4],[3,5],[4,5],[3,6],[4,6],[5,6],[2,8],[3,9],[4,8],[5,10],[6,8],[6,9]];
-      const [a, b] = pick(pairs);
-      return { question:`${a} 和 ${b} 的最小公倍數是多少？`, answer: lcm(a,b), type:'number' };
+    if (randInt(0, 1) === 0) {
+      const p = _glPair(200, 2, 25);
+      if (!p) return null;
+      return { question:`${p[0]} 和 ${p[1]} 的最大公因數是多少？`, answer: p[2], type:'number' };
     }
+    const p = _glPair(200, 1, 20, 200);
+    if (!p) return null;
+    return { question:`${p[0]} 和 ${p[1]} 的最小公倍數是多少？`, answer: lcm(p[0],p[1]), type:'number' };
   } else {
     const t = randInt(0, 4);
     if (t === 0) {
-      const g = pick([2,3,4,5,6]);
-      const m1 = randInt(2,5), m2 = randInt(2,5), m3 = randInt(2,5);
-      const a = g*m1, b = g*m2, c = g*m3;
-      return { question:`${a}、${b} 和 ${c} 的最大公因數是多少？`, answer: gcd(gcd(a,b),c), type:'number' };
+      const g = randInt(2, 25), top = Math.floor(200 / g);
+      if (top < 4) return null;
+      const m1 = randInt(1,top), m2 = randInt(1,top), m3 = randInt(1,top);
+      if (m1 === m2 || m2 === m3 || m1 === m3 || gcd(gcd(m1,m2),m3) !== 1) return null;
+      return { question:`${g*m1}、${g*m2} 和 ${g*m3} 的最大公因數是多少？`, answer: g, type:'number' };
     } else if (t === 1) {
-      const a = randInt(2,6), b = randInt(2,6), c = randInt(2,6);
+      const a = randInt(2,60), b = randInt(2,60), c = randInt(2,60);
+      if (a === b || b === c || a === c) return null;
       const l = lcm(lcm(a,b),c);
-      if (l > 180) return null;
+      if (l > 1000) return null;
       return { question:`${a}、${b} 和 ${c} 的最小公倍數是多少？`, answer: l, type:'number' };
     } else if (t === 2) {
-      const g = pick([2,3,4,5,6]);
-      const [p, q2] = pick(COPRIME_PAIRS.filter(pr => pr[0]>=2 && pr[1]>=2));
-      const a = g*p, b = g*q2;
+      const p = _glPair(200, 2, 25, 1000);
+      if (!p) return null;
       return {
-        question:`某數和 ${a} 的最大公因數是 ${g}，最小公倍數是 ${lcm(a,b)}，求某數。`,
-        answer: b, type:'number'
+        question:`某數和 ${p[0]} 的最大公因數是 ${p[2]}，最小公倍數是 ${lcm(p[0],p[1])}，求某數。`,
+        answer: p[1], type:'number'
       };
     } else if (t === 3) {
       // 磁磚問題
-      const g = pick([2,3,4,5,6,8]);
-      const m1 = randInt(2,6), m2 = randInt(2,6);
-      if (m1 === m2) return null;
-      const a = g*m1, b = g*m2;
+      const p = _glPair(200, 2, 30);
+      if (!p) return null;
       return {
-        question:`長 ${a} 公分、寬 ${b} 公分的長方形地板，要用正方形磁磚鋪滿（不切割），最大磁磚的邊長是幾公分？`,
-        answer: gcd(a,b), type:'number'
+        question:`長 ${p[0]} 公分、寬 ${p[1]} 公分的長方形地板，要用正方形磁磚鋪滿（不切割），最大磁磚的邊長是幾公分？`,
+        answer: p[2], type:'number'
       };
     } else {
       // 燈閃爍問題
-      const a = pick([2,3,4,5,6]), b = pick([2,3,4,5,6]);
-      if (a === b) return null;
-      const l = lcm(a,b);
-      if (l > 60) return null;
+      const p = _glPair(100, 1, 15, 600);
+      if (!p) return null;
       return {
-        question:`甲燈每 ${a} 秒閃一次，乙燈每 ${b} 秒閃一次，兩燈同時閃後，再過幾秒會再次同時閃？`,
-        answer: l, type:'number'
+        question:`甲燈每 ${p[0]} 秒閃一次，乙燈每 ${p[1]} 秒閃一次，兩燈同時閃後，再過幾秒會再次同時閃？`,
+        answer: lcm(p[0],p[1]), type:'number'
       };
     }
   }
