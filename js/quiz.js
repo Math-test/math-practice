@@ -165,6 +165,10 @@ const TOPIC_NAMES = {
   'b3a-exp-func':      '三冊A·指數函數及其圖形',
   'b3a-log-law':       '三冊A·對數與對數律',
   'b3a-log-func':      '三冊A·對數函數及其圖形',
+  'b3a-exp-eq':        '三冊A·指數方程式',
+  'b3a-log-eq':        '三冊A·對數方程式',
+  'b3a-exp-ineq':      '三冊A·指數不等式',
+  'b3a-log-ineq':      '三冊A·對數不等式',
   'b3a-vec-repr':      '三冊A·平面向量的表示法',
   'b3a-vec-dot':       '三冊A·平面向量的內積',
   'b3a-area-det':      '三冊A·面積與二階行列式',
@@ -174,6 +178,10 @@ const TOPIC_NAMES = {
   'b3b-exp-func':    '三冊B·指數函數及其圖形',
   'b3b-log':         '三冊B·對數',
   'b3b-log-func':    '三冊B·對數函數及其圖形',
+  'b3b-exp-eq':      '三冊B·指數方程式',
+  'b3b-log-eq':      '三冊B·對數方程式',
+  'b3b-exp-ineq':    '三冊B·指數不等式',
+  'b3b-log-ineq':    '三冊B·對數不等式',
   'b3b-vec-repr':    '三冊B·平面向量的表示法',
   'b3b-vec-dot':     '三冊B·平面向量的內積',
   'b3b-vec-ratio':   '三冊B·平面上的比例',
@@ -469,6 +477,48 @@ function parseFactoredForm(str){
   return null;
 }
 // ─── 二次方程式兩根解析 ───────────────────────────────────────────
+// 代數式答案比對：以隨機數值代入變數，判斷兩式是否等價（接受 2+m、m+2、2m、(1+q)/p 等寫法）
+function evalExprAt(str, vars){
+  const s=str.replace(/\s+/g,'').replace(/（/g,'(').replace(/）/g,')').replace(/[×·]/g,'*').replace(/÷/g,'/').replace(/[−–]/g,'-');
+  let i=0;
+  const peek=()=>s[i];
+  function expr(){let v=term();while(peek()==='+'||peek()==='-'){const op=s[i++],t=term();v=op==='+'?v+t:v-t;}return v;}
+  function term(){
+    let v=unary();
+    for(;;){
+      const c=peek();
+      if(c==='*'||c==='/'){i++;const f=unary();v=c==='*'?v*f:v/f;}
+      else if(c!==undefined&&/[0-9a-z(]/.test(c))v*=power();
+      else return v;
+    }
+  }
+  function unary(){if(peek()==='-'){i++;return -unary();}if(peek()==='+'){i++;return unary();}return power();}
+  function power(){const b=atom();if(peek()==='^'){i++;return Math.pow(b,unary());}return b;}
+  function atom(){
+    const c=peek();
+    if(c==='('){i++;const v=expr();if(peek()!==')')throw new Error('paren');i++;return v;}
+    const m=/^\d+(\.\d+)?/.exec(s.slice(i));
+    if(m){i+=m[0].length;return parseFloat(m[0]);}
+    if(c!==undefined&&c in vars){i++;return vars[c];}
+    throw new Error('token');
+  }
+  const v=expr();
+  if(i!==s.length)throw new Error('trailing');
+  return v;
+}
+function exprAnsMatch(user, ans){
+  const a0=ans.toLowerCase(),u0=user.toLowerCase();
+  const letters=[...new Set(a0.match(/[a-z]/g)||[])];
+  try{
+    for(let k=0;k<4;k++){
+      const vars={};
+      letters.forEach(l=>{vars[l]=1.37+Math.random()*2.5;});
+      const a=evalExprAt(a0,vars),u=evalExprAt(u0,vars);
+      if(!isFinite(a)||!isFinite(u)||Math.abs(a-u)>1e-9*Math.max(1,Math.abs(a)))return false;
+    }
+    return true;
+  }catch(e){return false;}
+}
 function parseQuadRoots(str){
   const s=str.trim().replace(/或/g,',');
   const parts=s.split(',').map(p=>p.trim()).filter(p=>p!=='');
@@ -632,7 +682,7 @@ function renderQuiz(questions, params) {
       const _isRad = q.type==='radical-mix'||q.type==='radical2';
       const _isFQ = q.type==='factored-quad'||q.type==='factored-form'||q.type==='quad-roots';
       const _iCls = (_isRad||_isFQ||q.type==='poly'||q.type==='linear2') ? 'q-input q-input-rad' : 'q-input';
-      const _ph = q.type==='fraction'?'例：3/4':q.type==='radical-mix'?'如：4+3√2':q.type==='radical2'?'如：2√5+2√2':q.type==='factored-quad'?'如：(2x+3)(x+2)':q.type==='factored-form'?'如：(x+5)^2':q.type==='quad-roots'?'如：-3/2, 2':q.type==='poly'?'如：2x^2-3x+5':q.type==='linear2'?'如：2x-3y+1':q.type==='sci'?'如：6.0×10^7':q.type==='text'?(['全等','不全等'].includes(String(q.answer))?'全等 或 不全等':'如：SSS'):q.type==='number'?'填數字':'例：1.25';
+      const _ph = q.type==='fraction'?'例：3/4':q.type==='radical-mix'?'如：4+3√2':q.type==='radical2'?'如：2√5+2√2':q.type==='factored-quad'?'如：(2x+3)(x+2)':q.type==='factored-form'?'如：(x+5)^2':q.type==='quad-roots'?'如：-3/2, 2':q.type==='poly'?'如：2x^2-3x+5':q.type==='linear2'?'如：2x-3y+1':q.type==='sci'?'如：6.0×10^7':q.exprAns?'如：(p+1)/q':q.type==='text'?(['全等','不全等'].includes(String(q.answer))?'全等 或 不全等':'如：SSS'):q.type==='number'?'填數字':'例：1.25';
       row.innerHTML = `
         <div class="q-number">${idx + 1}</div>
         <div class="q-body">
@@ -872,7 +922,7 @@ function checkAnswers() {
       if (sciM) isCorrect = decEq(parseFloat(sciM[1]), q.sciCoef) && parseInt(sciM[2]) === q.sciExp;
     } else if (q.type === 'text') {
       const norm = s => s.trim().replace(/一定/g, '').toUpperCase();
-      isCorrect = norm(userVal) === norm(String(q.answer));
+      isCorrect = q.exprAns ? exprAnsMatch(userVal, String(q.answer)) : norm(userVal) === norm(String(q.answer));
     } else {
       const userNum = parseDecimal(userVal);
       isCorrect = userNum !== null && decEq(userNum, q.answer);

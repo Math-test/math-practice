@@ -6685,7 +6685,7 @@ function genB3aExpFunc(level) {
     // 4^a=(2^a)^2=3, 4^(-a)=1/3, 3-1/3=8/3 ✓
   ];
   const item=srQPick(pool, _expFHQ);
-  return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'值'};
+  return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'值', exprAns:item.t==='text'};
 }
 function genB3bExpFunc(level) {
   return genB3aExpFunc(level);
@@ -6757,7 +6757,7 @@ function genB3aLogFunc(level) {
       {q:'設 \\(\\log_2 7=t\\)，求 \\(\\log_2 14\\)',                             ans:'t+1', t:'text'},
     ];
     const item=srQPick(pool, _logFMQ);
-    return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'值'};
+    return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'值', exprAns:true};
   }
   // hard: change-of-base with two variables
   const pool=[
@@ -6795,7 +6795,7 @@ function genB3aLogFunc(level) {
     // 45=3²·5→2p+q ✓
   ];
   const item=srQPick(pool, _logFHQ);
-  return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'值'};
+  return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'值', exprAns:true};
 }
 function genB3bLogFunc(level) {
   return genB3aLogFunc(level);
