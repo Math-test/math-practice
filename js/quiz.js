@@ -506,6 +506,11 @@ function evalExprAt(str, vars){
   if(i!==s.length)throw new Error('trailing');
   return v;
 }
+// 除號後的數字或字母又緊接著連乘（如 1/2m、q/2p、1/pq），無法判斷分母範圍
+function exprAmbiguous(str){
+  const s=str.replace(/\s+/g,'').replace(/（/g,'(').replace(/÷/g,'/');
+  return /\/(\d+(?:\.\d+)?(?=[a-z(])|[a-z](?=[a-z0-9(]))/i.test(s);
+}
 function exprAnsMatch(user, ans){
   const a0=ans.toLowerCase(),u0=user.toLowerCase();
   const letters=[...new Set(a0.match(/[a-z]/g)||[])];
@@ -887,6 +892,12 @@ function checkAnswers() {
 
     if (userVal === '') {
       fb.innerHTML = '<span class="fb-empty">未作答</span>';
+      row.classList.remove('correct', 'wrong');
+      return;
+    }
+
+    if (q.exprAns && exprAmbiguous(userVal)) {
+      fb.innerHTML = '<span class="fb-empty">寫法不明確，請加括號再對答案，例如 (1/2)m 或 1/(2m)</span>';
       row.classList.remove('correct', 'wrong');
       return;
     }
