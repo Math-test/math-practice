@@ -7194,7 +7194,45 @@ function gen8bQuad2(level){
   for(let i=0;i<30;i++){const q=_8bQuad2(level);if(q)return q;}
   return _8bQuad2('basic');
 }
+// 配方法專屬題型：大常數項（如 x²+2x-899=0）與分數配方
+function _8bCompSq(level){
+  const qr=(question,r1,r2)=>({question,type:'quad-roots',root1:r1,root2:r2,answerPrefix:'x'});
+  const parts=(p,q,type)=>[{prefix:'p',answer:p,type},{prefix:'q',answer:q,type}];
+  const t=randInt(0,3);
+  if(t<=1){
+    // 一次項係數小、常數項大：x²+2px+(p²-s²)=0 → (x+p)²=s²
+    const [pMax,sLo,sHi]=level==='basic'?[3,5,14]:level==='medium'?[6,15,40]:[15,30,100];
+    const p=randInt(1,pMax)*pick([1,-1]),s=randInt(sLo,sHi);
+    if(Math.abs(p)>=s)return null;
+    const a=(level==='hard'&&t===0&&s<=40&&randInt(0,1)===0)?pick([2,3,5]):1;
+    const eq=_jrFQuad(frac(a),frac(2*a*p),frac(a*(p*p-s*s)));
+    if(t===0)return qr(`解方程式 \\(${eq}=0\\)（配方法），求兩根`,-p-s,-p+s);
+    return{question:`解方程式 \\(${eq}=0\\)，配方後得 \\((x+p)^2=q\\)，`,answerParts:parts(p,s*s,'number')};
+  }
+  if(t===2){
+    // 一次項係數為奇數：配方後 p、q 為分數
+    const R=level==='basic'?6:level==='medium'?12:25;
+    const r1=randInt(-R,R),r2=randInt(-R,R);
+    if((r1+r2)%2===0||r1===0||r2===0)return null;
+    const b=-(r1+r2),c=r1*r2,d=r1-r2;
+    return{question:`解方程式 \\(${_jrFQuad(frac(1),frac(b),frac(c))}=0\\)，配方後得 \\(\\left(x+p\\right)^2=q\\)（\\(p\\)、\\(q\\) 為分數），`,
+      answerParts:parts(frac(b,2),frac(d*d,4),'fraction')};
+  }
+  // 分數係數：(x+a/n)²=(k/n)²
+  const n=pick(level==='basic'?[2,3]:level==='medium'?[2,3,4,5]:[3,4,5,6,7]);
+  const aMax=level==='basic'?3:level==='medium'?6:12,kMax=level==='basic'?5:level==='medium'?9:15;
+  const a=randInt(1,aMax)*pick([1,-1]),k=randInt(1,kMax);
+  if(gcd(a,n)!==1||k===Math.abs(a))return null;
+  const B=frac(2*a,n),C=frac(a*a-k*k,n*n);
+  if(B.den===1&&C.den===1)return null;
+  const eq=_jrFQuad(frac(1),B,C);
+  if(level!=='basic'&&randInt(0,1)===0)
+    return qr(`解方程式 \\(${eq}=0\\)（配方法），求兩根`,frac(-a-k,n),frac(-a+k,n));
+  return{question:`解方程式 \\(${eq}=0\\)，配方後得 \\(\\left(x+p\\right)^2=q\\)（\\(p\\)、\\(q\\) 為分數），`,
+    answerParts:parts(frac(a,n),frac(k*k,n*n),'fraction')};
+}
 function _8bQuad2(level){
+  if(Math.random()<0.4)return _8bCompSq(level);
   function qrq(question,root1,root2){
     return{question,type:'quad-roots',root1,root2,answerPrefix:'x'};
   }
@@ -7215,12 +7253,12 @@ function _8bQuad2(level){
     }
     if(t===0){
       // 直接開方法：(x+a)²=b（b為完全平方數）→ 求兩根
-      const a=randInt(1,8),sqrtB=randInt(1,6),b=sqrtB*sqrtB;
+      const a=randInt(1,20),sqrtB=randInt(1,15),b=sqrtB*sqrtB;
       return qrq(`解方程式 \\((x+${a})^2=${b}\\)（直接開方），求兩根`,frac(-a+sqrtB,1),frac(-a-sqrtB,1));
     }
     if(t===1){
       // 配方法：x²+2px+c=0 → (x+p)²=q，問整數 p, q
-      const p=randInt(3,10),q=randInt(1,p*p-1);
+      const p=randInt(3,25),q=randInt(1,p*p-1);
       const c=p*p-q;
       let eqn=`x^2+${2*p}x`;
       if(c>0)eqn+=`+${c}`; else if(c<0)eqn+=`${c}`;
@@ -7260,7 +7298,7 @@ function _8bQuad2(level){
     }
     if(t===0){
       // 整數根（大係數）：x²+2kx+(k²-d²)=0，roots -k±d
-      const k=randInt(8,18),d=randInt(1,Math.min(k-1,6));
+      const k=randInt(8,30),d=randInt(1,Math.min(k-1,12));
       const c=k*k-d*d;
       if(c<=0)return null;
       return qrq(`解方程式 \\(x^2+${2*k}x+${c}=0\\)（公式解），求兩根`,frac(-k-d,1),frac(-k+d,1));
@@ -7304,7 +7342,7 @@ function _8bQuad2(level){
       answer:frac(2*m,n),type:'fraction',answerPrefix:'k'};
   }
   if(ht===0){
-    const k=randInt(11,20),d=randInt(1,Math.min(k-1,7));
+    const k=randInt(11,40),d=randInt(1,Math.min(k-1,15));
     const c=k*k-d*d;
     if(c<100)return null;
     return qrq(`解方程式 \\(x^2+${2*k}x+${c}=0\\)（公式解），求兩根`,frac(-k-d,1),frac(-k+d,1));
