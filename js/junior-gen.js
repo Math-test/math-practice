@@ -1269,43 +1269,61 @@ function gen7aGcdLcm(level) {
   return _7aGcdLcm('basic');
 }
 
+// 最大公因數為 g 的兩個相異數，皆在 2～max 之間；lcmMax 限制最小公倍數上限
+function _jrGlPair(max, gMin, gMax, lcmMax) {
+  for (let i = 0; i < 300; i++) {
+    const g = randInt(gMin, gMax), top = Math.floor(max / g);
+    if (top < 3) continue;
+    const m1 = randInt(2, top), m2 = randInt(2, top);
+    if (m1 === m2 || gcd(m1, m2) !== 1) continue;
+    if (lcmMax && g * m1 * m2 > lcmMax) continue;
+    return [g * m1, g * m2, g];
+  }
+  return null;
+}
+// 最大公因數為 g 的三個相異數，皆不超過 max
+function _jrGlTriple(max, gMin, gMax) {
+  for (let i = 0; i < 300; i++) {
+    const g = randInt(gMin, gMax), top = Math.floor(max / g);
+    if (top < 4) continue;
+    const m1 = randInt(1, top), m2 = randInt(1, top), m3 = randInt(1, top);
+    if (m1 === m2 || m2 === m3 || m1 === m3 || gcd(gcd(m1, m2), m3) !== 1) continue;
+    return [g * m1, g * m2, g * m3, g];
+  }
+  return null;
+}
+
 function _7aGcdLcm(level) {
   if (level === 'basic') {
     const t = randInt(0, 5);
     if (t === 0) {
-      const d = pick([2,3,4,5,6]);
-      const a = d*rp(2,6), b = d*rp(2,6);
-      if (a===b) return null;
-      return { question:`\\(${a}\\) 和 \\(${b}\\) 的最大公因數`, answer:gcd(a,b), type:'number' };
+      const p = _jrGlPair(300, 2, 30);
+      if (!p) return null;
+      return { question:`\\(${p[0]}\\) 和 \\(${p[1]}\\) 的最大公因數`, answer:p[2], type:'number' };
     } else if (t === 1) {
-      const a = rp(2,10), b = rp(2,10);
-      if (a===b) return null;
-      const l = lcm(a,b);
-      if (l>120) return null;
-      return { question:`\\(${a}\\) 和 \\(${b}\\) 的最小公倍數`, answer:l, type:'number' };
+      const p = _jrGlPair(300, 1, 25, 300);
+      if (!p) return null;
+      return { question:`\\(${p[0]}\\) 和 \\(${p[1]}\\) 的最小公倍數`, answer:lcm(p[0],p[1]), type:'number' };
     } else if (t === 2) {
       // 三數的最大公因數
-      const d = pick([3,4,5,6]);
-      const a=d*rp(2,5), b=d*rp(2,5), c=d*rp(2,5);
-      if (a===b||b===c||a===c) return null;
-      return { question:`\\(${a}\\)、\\(${b}\\)、\\(${c}\\) 的最大公因數`, answer:gcd(gcd(a,b),c), type:'number' };
+      const p = _jrGlTriple(300, 2, 30);
+      if (!p) return null;
+      return { question:`\\(${p[0]}\\)、\\(${p[1]}\\)、\\(${p[2]}\\) 的最大公因數`, answer:p[3], type:'number' };
     } else if (t === 3) {
       // 列出所有因數
-      const cands = [6,10,14,15,21,22,26,33,34,35,38,39,46,51,55,57,58,62,65,69,74,77,82,85,86,87,91,93,95,
-                     12,18,20,28,45,50,63,75,44,52,76,92];
-      const n = pick(cands);
+      const n = randInt(6, 300);
       const factors = _factorList(n);
-      if (factors.length>8) return null;
+      if (factors.length<4||factors.length>8) return null;
       return {
         question:`已知 \\(${n}\\) 能被正整數 \\(a\\) 整除，所有可能的 \\(a\\) 為何？（以逗號由小到大，不加空格）`,
         answer: factors.join(','), type:'text'
       };
     } else if (t === 4) {
       // 互質篩選
-      const m = pick([12,15,18,20,24,30]);
+      const m = pick([12,15,18,20,24,30,42,60,84,90,105,126,150,210,231,300]);
       const pool = [];
       while (pool.length < 4) {
-        const x = randInt(1, 30);
+        const x = randInt(2, 300);
         if (!pool.includes(x) && x!==m) pool.push(x);
       }
       pool.sort((a,b)=>a-b);
@@ -1318,12 +1336,13 @@ function _7aGcdLcm(level) {
       };
     } else {
       // 公倍數列表
-      const a = pick([3,4,5,6]), b = pick([4,5,6,8,10]);
+      const a = pick([3,4,5,6,8,9,10,12]), b = pick([4,5,6,8,10,12,15,18,20,25]);
       if (a===b) return null;
       const L = lcm(a,b);
-      if (L>60) return null;
-      const maxK = randInt(2,4);
+      if (L>100) return null;
+      const maxK = randInt(2,5);
       const N = L*maxK;
+      if (N>300) return null;
       const mults = [];
       for (let k=1; k*L<=N; k++) mults.push(k*L);
       return {
@@ -1334,22 +1353,18 @@ function _7aGcdLcm(level) {
   } else if (level === 'medium') {
     const t = randInt(0, 5);
     if (t === 0) {
-      const d = pick([6,8,10,12,15,18]);
-      const a=d*rp(2,5), b=d*rp(2,5);
-      if (a===b) return null;
-      return { question:`\\(${a}\\) 和 \\(${b}\\) 的最大公因數`, answer:gcd(a,b), type:'number' };
+      const p = _jrGlPair(300, 6, 50);
+      if (!p) return null;
+      return { question:`\\(${p[0]}\\) 和 \\(${p[1]}\\) 的最大公因數`, answer:p[2], type:'number' };
     } else if (t === 1) {
-      const a=rp(3,15), b=rp(3,15);
-      if (a===b) return null;
-      const l=lcm(a,b);
-      if (l>300) return null;
-      return { question:`\\(${a}\\) 和 \\(${b}\\) 的最小公倍數`, answer:l, type:'number' };
+      const p = _jrGlPair(300, 2, 40, 1500);
+      if (!p) return null;
+      return { question:`\\(${p[0]}\\) 和 \\(${p[1]}\\) 的最小公倍數`, answer:lcm(p[0],p[1]), type:'number' };
     } else if (t === 2) {
       // 最大公因數 + 最小公倍數之和
-      const a=randInt(10,40), b=randInt(10,40);
-      if (a===b) return null;
-      const g=gcd(a,b), l=lcm(a,b);
-      if (l>1000) return null;
+      const p = _jrGlPair(300, 2, 40, 3000);
+      if (!p) return null;
+      const a=p[0], b=p[1], g=p[2], l=lcm(a,b);
       return {
         question:`設 \\(${a}\\) 和 \\(${b}\\) 的最大公因數為 \\(a\\)，最小公倍數為 \\(b\\)，則 \\(a+b =\\)`,
         answer: g+l, type:'number'
@@ -1385,12 +1400,12 @@ function _7aGcdLcm(level) {
       };
     } else {
       // 已知 gcd 和 lcm 求某數（唯一解）
-      const m=pick([24,36,48,54,60,72,90]);
-      const n=randInt(Math.ceil(m/3),m*2);
+      const m=pick([24,36,48,54,60,72,90,108,120,144,150,180,210,240,270,300]);
+      const n=randInt(Math.ceil(m/3),Math.min(m*2,300));
       if (n===m) return null;
       const d=gcd(n,m), l=lcm(n,m);
       if (d===1||d===m||d===n) return null;
-      if (l>600) return null;
+      if (l>3000) return null;
       const valids = _factorList(l).filter(x=>x!==m&&gcd(x,m)===d&&lcm(x,m)===l);
       if (valids.length!==1) return null;
       return {
@@ -1403,7 +1418,8 @@ function _7aGcdLcm(level) {
     const t = randInt(0, 5);
     if (t === 0) {
       // 四數的最小公倍數
-      const a=randInt(2,10), b=randInt(2,10), c=randInt(2,10), d=randInt(2,10);
+      const a=randInt(2,60), b=randInt(2,60), c=randInt(2,60), d=randInt(2,60);
+      if (new Set([a,b,c,d]).size<4) return null;
       const L=lcm(lcm(a,b),lcm(c,d));
       if (L<20||L>3000) return null;
       return { question:`求 \\([${a},\\ ${b},\\ ${c},\\ ${d}]\\)`, answer:L, type:'number' };
@@ -1424,12 +1440,13 @@ function _7aGcdLcm(level) {
       };
     } else if (t === 2) {
       // 求最小 a 使 [a, b, c] = L
-      const b=pick([12,15,18,20,24,28,30]);
-      const c=pick([15,18,20,24,28,30,36]);
+      const b=pick([12,15,18,20,24,28,30,40,45,48,60,72,90]);
+      const c=pick([15,18,20,24,28,30,36,42,54,60,75,84,120]);
+      if (b===c) return null;
       const LCM_bc=lcm(b,c);
-      const k=randInt(2,5);
+      const k=randInt(2,7);
       const L=LCM_bc*k;
-      if (L>1200) return null;
+      if (L>3000) return null;
       const pfL=_pfMap(L), pfB=_pfMap(b), pfC=_pfMap(c);
       let minA=1;
       for (const [ps,expL] of Object.entries(pfL)) {
@@ -1437,7 +1454,7 @@ function _7aGcdLcm(level) {
         const expBC=Math.max(pfB[pi]||0, pfC[pi]||0);
         if (expBC<expL) minA*=Math.pow(pi,expL);
       }
-      if (minA===1||minA===L||minA>600) return null;
+      if (minA===1||minA===L||minA>300) return null;
       if (lcm(lcm(minA,b),c)!==L) return null;
       return {
         question:`設 \\(a\\) 為正整數，且 \\([a,${b},${c}]=${L}\\)，則 \\(a\\) 的最小值為`,
@@ -1471,7 +1488,8 @@ function _7aGcdLcm(level) {
       };
     } else {
       // 兩個 LCM 的 GCD
-      const pairsPool=[[6,9],[6,10],[6,15],[8,12],[8,18],[9,12],[10,15],[12,20],[15,18],[15,20],[6,27],[8,54],[10,25],[12,18]];
+      const pairsPool=[[6,9],[6,10],[6,15],[8,12],[8,18],[9,12],[10,15],[12,20],[15,18],[15,20],[6,27],[8,54],[10,25],[12,18],
+        [24,36],[40,60],[45,75],[60,90],[72,108],[50,75],[100,150],[36,48],[28,42],[80,120]];
       const [p1,p2]=pick(pairsPool);
       const [q1,q2]=pick(pairsPool);
       if (p1===q1&&p2===q2) return null;
