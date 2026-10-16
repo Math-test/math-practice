@@ -6876,6 +6876,71 @@ function _8aSqrtMix(level) {
 // ═══════════════════════════════════════════════════════════════════
 //  八上 ▸ 畢氏定理
 // ═══════════════════════════════════════════════════════════════════
+// 畢氏定理：小數與分數題型（中等、困難）
+function _8aPythFD(level){
+  const T=[[3,4,5],[5,12,13],[8,15,17],[7,24,25],[6,8,10],[20,21,29]];
+  const dn=v=>Math.round(v*1000)/1000;
+  const ft=f=>fracToLatex(f);
+  const t=randInt(0,3);
+  if(level==='medium'){
+    const [a,b,c]=pick(T.slice(0,5));
+    if(t===0){
+      // 小數邊長
+      const k=pick([1,2,3,4,5,6,7,8,9,11,12,15]),s=v=>dn(v*k/10);
+      if(randInt(0,1)===0)return {question:`直角三角形兩股長為 \\(${s(a)}\\) 和 \\(${s(b)}\\)，求斜邊長`,answer:s(c),type:'number'};
+      return {question:`直角三角形斜邊長為 \\(${s(c)}\\)，一股長為 \\(${s(a)}\\)，求另一股長`,answer:s(b),type:'number'};
+    }
+    if(t===1){
+      // 分數邊長
+      const n=pick([2,3,4,5,7]),p=pick([1,2,3]);
+      if(gcd(p,n)!==1)return null;
+      const f=v=>frac(v*p,n);
+      if(randInt(0,1)===0)return {question:`直角三角形兩股長為 \\(${ft(f(a))}\\) 和 \\(${ft(f(b))}\\)，求斜邊長`,answer:f(c),type:'fraction'};
+      return {question:`直角三角形斜邊長為 \\(${ft(f(c))}\\)，一股長為 \\(${ft(f(a))}\\)，求另一股長`,answer:f(b),type:'fraction'};
+    }
+    if(t===2){
+      // 斜邊上的高 = 兩股乘積 ÷ 斜邊
+      const h=frac(a*b,c);
+      if(h.den===1)return null;
+      return {question:`直角三角形兩股長為 \\(${a}\\) 和 \\(${b}\\)，求斜邊上的高`,answer:h,type:'fraction'};
+    }
+    // t===3：兩股 ax、bx，斜邊 H
+    const H=randInt(2,20),x=frac(H,c);
+    if(x.den===1)return null;
+    return {question:`直角三角形兩股長分別為 \\(${a}x\\) 和 \\(${b}x\\)，斜邊長為 \\(${H}\\)，求 \\(x\\)`,answer:x,type:'fraction',answerPrefix:'x'};
+  }
+  if(t===0){
+    // 斜邊上的高，以及高把斜邊分成的兩段
+    const [a,b,c]=pick(T),k=randInt(1,3),A=a*k,B=b*k,C=c*k,ask=randInt(0,2);
+    const val=ask===0?frac(A*B,C):ask===1?frac(A*A,C):frac(B*B,C);
+    if(val.den===1)return null;
+    const seg=ask===0?'\\overline{CD}':ask===1?'\\overline{AD}':'\\overline{BD}';
+    return {question:`直角三角形 \\(ABC\\) 中，\\(\\angle C=90^\\circ\\)，\\(\\overline{AC}=${A}\\)，\\(\\overline{BC}=${B}\\)，\\(\\overline{CD}\\) 為斜邊 \\(\\overline{AB}\\) 上的高，求 \\(${seg}\\)`,
+      answer:val,type:'fraction'};
+  }
+  if(t===1){
+    // 梯子下滑（小數）：同一斜邊的兩組整數三元組
+    const sets=[[25,[7,24],[15,20]],[50,[14,48],[30,40]],[65,[16,63],[25,60]],[65,[25,60],[33,56]],[65,[33,56],[39,52]],[65,[16,63],[39,52]],[85,[13,84],[36,77]],[85,[40,75],[51,68]]];
+    const [c,[a1,b1],[a2,b2]]=pick(sets),d=v=>dn(v/10);
+    return {question:`一把長 \\(${d(c)}\\) 公尺的梯子斜靠在牆上，梯腳距牆 \\(${d(a1)}\\) 公尺。若梯頂沿牆下滑 \\(${d(b1-b2)}\\) 公尺，則梯腳向外移動多少公尺？`,
+      answer:d(a2-a1),type:'number'};
+  }
+  if(t===2){
+    // 分數邊長求周長
+    const [a,b,c]=pick(T),n=pick([3,4,5,6,7,8]),p=randInt(1,n-1);
+    if(gcd(p,n)!==1)return null;
+    const f=v=>frac(v*p,n),per=frac((a+b+c)*p,n);
+    if(per.den===1)return null;
+    if(randInt(0,1)===0)
+      return {question:`直角三角形兩股長為 \\(${ft(f(a))}\\) 和 \\(${ft(f(b))}\\)，求此三角形的周長`,answer:per,type:'fraction'};
+    return {question:`直角三角形斜邊長為 \\(${ft(f(c))}\\)，一股長為 \\(${ft(f(b))}\\)，求此三角形的周長`,answer:per,type:'fraction'};
+  }
+  // t===3：兩股 ax、bx，斜邊為小數，x 為小數
+  const [a,b,c]=pick([[3,4,5],[6,8,10],[7,24,25]]),H=dn(randInt(11,99)/10),x=dn(H/c);
+  if(Number.isInteger(x))return null;
+  return {question:`直角三角形兩股長分別為 \\(${a}x\\) 和 \\(${b}x\\)，斜邊長為 \\(${H}\\)，求 \\(x\\)（以小數表示）`,answer:x,type:'number',answerPrefix:'x'};
+}
+
 function gen8aPyth(level) {
   for (let i=0;i<30;i++) { const q=_8aPyth(level); if(q) return q; }
   return _8aPyth('basic');
@@ -6923,7 +6988,8 @@ function _8aPyth(level) {
       answer:height, type:'number'};
   }
   if(level==='medium'){
-    const t=randInt(0,5);
+    const t=randInt(0,9);
+    if(t>=6)return _8aPythFD('medium');
     if(t===0){
       const a=randInt(2,9),b=randInt(2,9);
       const c2=a*a+b*b,c=Math.sqrt(c2);
@@ -6969,7 +7035,8 @@ function _8aPyth(level) {
       answer:d2, type:'number'};
   }
   // hard
-  const t=randInt(0,6);
+  const t=randInt(0,10);
+  if(t>=7)return _8aPythFD('hard');
   if(t===0){
     const isoTris=[
       {a:5,b:6,h:4},{a:5,b:8,h:3},{a:10,b:12,h:8},
@@ -7018,7 +7085,7 @@ function _8aPyth(level) {
       {question:'直角三角形兩股長分別為 \\(3x\\) 和 \\(4x\\)，斜邊長為 \\(20\\)，求 \\(x\\)', answer:4},
     ];
     const c=pick(algCases);
-    return {question:c.question, answer:c.answer, type:'number', answerPrefix:'\\(x =\\)'};
+    return {question:c.question, answer:c.answer, type:'number', answerPrefix:'x'};
   }
   // t===6: 菱形面積——已知邊長與一對角線，求面積
   const rhombusAreaCases=[
@@ -10344,7 +10411,7 @@ function _9bQuadFunc(level){
       return{question:`二次函數 \\(y=${ac(a)}x^2${sk(k)}\\) 的頂點縱座標為`,answer:k,type:'number',answerPrefix:'頂點 \\(y\\)'};
     }
     const a=pick([-2,-1,1,2]),h=randInt(-5,5),k=randInt(-5,5);
-    return{question:`二次函數 \\(y=${ac(a)}(x${ht(h)})^2${sk(k)}\\) 的對稱軸為 \\(x=\\)`,answer:h,type:'number',answerPrefix:'\\(x=\\)'};
+    return{question:`二次函數 \\(y=${ac(a)}(x${ht(h)})^2${sk(k)}\\) 的對稱軸為 \\(x=\\)`,answer:h,type:'number',answerPrefix:'x'};
   }
   if(level==='medium'){
     const t=randInt(0,1);
@@ -10353,7 +10420,7 @@ function _9bQuadFunc(level){
       const B=-2*a*h,C=a*h*h+k;
       const bPart=B===0?'':(B>0?`+${B}x`:`${B}x`);
       const cPart=C>=0?`+${C}`:`${C}`;
-      return{question:`二次函數 \\(y=${ac(a)}x^2${bPart}${cPart}\\) 的對稱軸（頂點橫座標）為 \\(x=\\)`,answer:h,type:'number',answerPrefix:'\\(x=\\)'};
+      return{question:`二次函數 \\(y=${ac(a)}x^2${bPart}${cPart}\\) 的對稱軸（頂點橫座標）為 \\(x=\\)`,answer:h,type:'number',answerPrefix:'x'};
     }
     const a=pick([-2,-1,1,2]),h=randInt(-4,4),k=randInt(-8,8);
     const ext=a>0?'最小值':'最大值';
