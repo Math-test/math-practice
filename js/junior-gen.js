@@ -6320,6 +6320,65 @@ function _8aSqrtBasic(level) {
 // ═══════════════════════════════════════════════════════════════════
 //  八上 ▸ 根號加法與減法
 // ═══════════════════════════════════════════════════════════════════
+// 根號四則混合運算（中等 t=6~8、困難 t=6~9）
+function _8aSqrtAddMix(level,t){
+  const SQF=[2,3,5,6,7];
+  const sq=n=>`\\sqrt{${n}}`;
+  const ans=(rat,coef,m)=>coef===0?{answer:rat,type:'number'}:{type:'radical-mix',rational:rat,radCoeff:coef,radM:m};
+  const m=pick(SQF);
+  const coprime=()=>pick(SQF.filter(v=>v!==m&&gcd(v,m)===1));
+  if(level==='medium'){
+    if(t===6){
+      // √x × √y ± √(q²m)：先乘再合併
+      const p=randInt(2,6),q=randInt(1,6),N=p*p*m;
+      const pairs=[];
+      for(let x=2;x*x<N;x++){
+        if(N%x!==0)continue;
+        const y=N/x;
+        if(!Number.isInteger(Math.sqrt(x))&&!Number.isInteger(Math.sqrt(y)))pairs.push([x,y]);
+      }
+      if(!pairs.length)return null;
+      const [x,y]=pick(pairs),add=randInt(0,1)===0,c=add?p+q:p-q;
+      if(c===0)return null;
+      return {question:`化簡 \\(${sq(x)}\\times${sq(y)}${add?'+':'-'}${sq(q*q*m)}\\)`,...ans(0,c,m)};
+    }
+    if(t===7){
+      // √(p²mn) ÷ √n ± √(q²m)：先除再合併
+      const n=coprime(),p=randInt(2,6),q=randInt(1,7),add=randInt(0,1)===0,c=add?p+q:p-q;
+      if(c===0)return null;
+      return {question:`化簡 \\(${sq(p*p*m*n)}\\div${sq(n)}${add?'+':'-'}${sq(q*q*m)}\\)`,...ans(0,c,m)};
+    }
+    // t===8：√m(√(a²m) ± b)，分配律
+    const a=randInt(1,6),b=randInt(1,9),add=randInt(0,1)===0;
+    return {question:`化簡 \\(${sq(m)}\\left(${sq(a*a*m)}${add?'+':'-'}${b}\\right)\\)`,...ans(a*m,add?b:-b,m)};
+  }
+  if(t===6){
+    // (√(a²m)+√(b²m)) × √m − √(c²m)
+    const a=randInt(1,6),b=randInt(1,6),c=randInt(1,9);
+    if(a===b)return null;
+    return {question:`化簡 \\(\\left(${sq(a*a*m)}+${sq(b*b*m)}\\right)\\times${sq(m)}-${sq(c*c*m)}\\)`,...ans((a+b)*m,-c,m)};
+  }
+  if(t===7){
+    // √(p²u) ÷ √u × √m ± √(b²m) ± √(c²m)
+    const u=pick([2,3,5,6,7,10]),p=randInt(2,6),b=randInt(1,7),c=randInt(1,7);
+    if(b===c)return null;
+    const s1=pick([1,-1]),s2=pick([1,-1]),k=p+s1*b+s2*c;
+    if(k===0)return null;
+    return {question:`化簡 \\(${sq(p*p*u)}\\div${sq(u)}\\times${sq(m)}${s1>0?'+':'-'}${sq(b*b*m)}${s2>0?'+':'-'}${sq(c*c*m)}\\)`,...ans(0,k,m)};
+  }
+  if(t===8){
+    // (a+√m)(b+c√m) 展開
+    const a=randInt(1,6)*pick([1,-1]),b=randInt(1,6),c=randInt(1,4)*pick([1,-1]);
+    const ac=Math.abs(c)===1?'':Math.abs(c);
+    return {question:`化簡 \\(\\left(${a}+${sq(m)}\\right)\\left(${b}${c>0?'+':'-'}${ac}${sq(m)}\\right)\\)`,
+      ...ans(a*b+c*m,a*c+b,m)};
+  }
+  // t===9：(√(a²mn) + √(b²m)) ÷ √m − √(c²n)
+  const n=coprime(),a=randInt(2,7),b=randInt(1,6),c=randInt(1,6);
+  if(a===c)return null;
+  return {question:`化簡 \\(\\left(${sq(a*a*m*n)}+${sq(b*b*m)}\\right)\\div${sq(m)}-${sq(c*c*n)}\\)`,...ans(b,a-c,n)};
+}
+
 function gen8aSqrtAdd(level) {
   for (let i=0;i<30;i++) { const q=_8aSqrtAdd(level); if(q) return q; }
   return _8aSqrtAdd('basic');
@@ -6362,7 +6421,8 @@ function _8aSqrtAdd(level) {
     return {question:`計算 \\((${p}-${a}\\sqrt{${m}})-(${q}-${a}\\sqrt{${m}})\\)`, answer:result, type:'number'};
   }
   if(level==='medium'){
-    const t=randInt(0,5);
+    const t=randInt(0,8);
+    if(t>=6)return _8aSqrtAddMix('medium',t);
     if(t===0){
       const m=pick([2,3,5]);
       const a=randInt(2,10),b=randInt(1,8);
@@ -6436,7 +6496,8 @@ function _8aSqrtAdd(level) {
     return {question:`化簡 \\((${p}+${a}\\sqrt{${m}})${outerOp}(${q}${innerSign}\\sqrt{${m}})\\)`,
       type:'radical-mix',rational:rat,radCoeff:rad,radM:m};
   }
-  const t=randInt(0,5);
+  const t=randInt(0,9);
+  if(t>=6)return _8aSqrtAddMix('hard',t);
   if(t===0){
     const m=pick([2,3,5]);
     const a=randInt(3,12),b=randInt(2,8),c=randInt(1,6);
