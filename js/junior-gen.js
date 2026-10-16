@@ -6379,11 +6379,153 @@ function _8aSqrtAddMix(level,t){
   return {question:`化簡 \\(\\left(${sq(a*a*m*n)}+${sq(b*b*m)}\\right)\\div${sq(m)}-${sq(c*c*n)}\\)`,...ans(b,a-c,n)};
 }
 
+// 根號乘除、加減：分數與小數題型
+function _8aSqrtFD(kind,level){
+  const SQF=[2,3,5,6,7];
+  const isSq=n=>Number.isInteger(Math.sqrt(n));
+  const fq=f=>fracToLatex(f);
+  const rootF=f=>f.den===1?`\\sqrt{${f.num}}`:`\\sqrt{\\dfrac{${f.num}}{${f.den}}}`;
+  const dec=(n,k)=>String(Math.round(n/Math.pow(10,k)*1e6)/1e6);
+  const rootD=(n,k)=>`\\sqrt{${dec(n,k)}}`;
+  const sqrtF=f=>frac(Math.round(Math.sqrt(f.num)),Math.round(Math.sqrt(f.den)));
+  const sqF=f=>isSq(f.num)&&isSq(f.den);
+  const ansVal=f=>f.den===1?{answer:f.num,type:'number'}:{answer:f,type:'fraction'};
+  const ansC=(f,m,expr)=>({question:`化簡 \\(${expr}\\)，結果 \\(=c\\sqrt{${m}}\\)，求 \\(c\\)`,answerPrefix:'c',...(f.den===1?{answer:f.num,type:'number'}:{answer:f,type:'fraction'})});
+  const ansCdec=(v,m,expr)=>({question:`化簡 \\(${expr}\\)，結果 \\(=c\\sqrt{${m}}\\)，求 \\(c\\)（以小數表示）`,answerPrefix:'c',answer:Math.round(v*1e6)/1e6,type:'number'});
+  // 隨機找兩個（非完全平方的）分數，使其乘積或商為完全平方
+  const fracPair=(div)=>{
+    for(let i=0;i<300;i++){
+      const x=frac(randInt(1,12),randInt(2,12)),y=frac(randInt(1,12),randInt(2,12));
+      if(sqF(x)||sqF(y)||x.den===1||y.den===1)continue;
+      const r=div?fdiv(x,y):fmul(x,y);
+      if(sqF(r))return [x,y,sqrtF(r)];
+    }
+    return null;
+  };
+  // 兩個小數（至多兩位），乘積或商為完全平方的小數
+  const decPair=(div)=>{
+    for(let i=0;i<300;i++){
+      const n1=randInt(2,300),n2=randInt(2,300),k1=pick([1,2]),k2=pick([1,2]);
+      if(n1%10===0||n2%10===0||isSq(n1)||isSq(n2))continue;
+      const f=div?frac(n1*Math.pow(10,k2),n2*Math.pow(10,k1)):frac(n1*n2,Math.pow(10,k1+k2));
+      if(!sqF(f))continue;
+      return [rootD(n1,k1),rootD(n2,k2),sqrtF(f)];
+    }
+    return null;
+  };
+  const termsDec=(m,ks)=>ks.map(k=>`\\sqrt{${dec(k*k*m,2)}}`);
+
+  if(kind==='mul'){
+    if(level==='basic'){
+      const t=randInt(0,2);
+      if(t===0){
+        const p=fracPair(false);if(!p)return null;
+        return {question:`計算 \\(${rootF(p[0])}\\times${rootF(p[1])}\\)`,...ansVal(p[2])};
+      }
+      if(t===1){
+        const p=decPair(false);if(!p)return null;
+        return {question:`計算 \\(${p[0]}\\times${p[1]}\\)（以小數表示）`,answer:Math.round(p[2].num/p[2].den*1e6)/1e6,type:'number'};
+      }
+      const m=pick(SQF),a=randInt(1,9),b=randInt(2,9);
+      if(gcd(a,b)!==1)return null;
+      return {question:`計算 \\(\\sqrt{${a*a*m}}\\div\\sqrt{${b*b*m}}\\)`,answer:frac(a,b),type:'fraction'};
+    }
+    if(level==='medium'){
+      const t=randInt(0,2);
+      if(t===0){
+        const p=fracPair(true);if(!p)return null;
+        return {question:`計算 \\(${rootF(p[0])}\\div${rootF(p[1])}\\)`,...ansVal(p[2])};
+      }
+      if(t===1){
+        const p=decPair(true);if(!p)return null;
+        return {question:`計算 \\(${p[0]}\\div${p[1]}\\)（以小數表示）`,answer:Math.round(p[2].num/p[2].den*1e6)/1e6,type:'number'};
+      }
+      const m=pick(SQF),k1=frac(randInt(1,5),randInt(2,6)),k2=frac(randInt(1,5),randInt(2,6));
+      if(k1.den===1||k2.den===1)return null;
+      return {question:`計算 \\(${fq(k1)}\\sqrt{${m}}\\times${fq(k2)}\\sqrt{${m}}\\)`,...ansVal(fmul(fmul(k1,k2),frac(m)))};
+    }
+    const t=randInt(0,2);
+    if(t===0){
+      // (√(p/q) ± √(q/p))² = p/q + q/p ± 2
+      const p=randInt(1,7),q=randInt(2,9);
+      if(p===q||gcd(p,q)!==1)return null;
+      const add=randInt(0,1)===0;
+      const v=fadd(fadd(frac(p,q),frac(q,p)),frac(add?2:-2));
+      return {question:`計算 \\(\\left(${rootF(frac(p,q))}${add?'+':'-'}${rootF(frac(q,p))}\\right)^2\\)`,...ansVal(v)};
+    }
+    if(t===1){
+      // √x × √y ÷ √z，三個分數
+      for(let i=0;i<300;i++){
+        const x=frac(randInt(1,12),randInt(2,12)),y=frac(randInt(1,12),randInt(2,12)),z=frac(randInt(1,12),randInt(2,12));
+        if([x,y,z].some(f=>sqF(f)||f.den===1))continue;
+        const r=fdiv(fmul(x,y),z);
+        if(!sqF(r))continue;
+        return {question:`計算 \\(${rootF(x)}\\times${rootF(y)}\\div${rootF(z)}\\)`,...ansVal(sqrtF(r))};
+      }
+      return null;
+    }
+    // (√(a/b) + √(b/a)) × √(ab) = a + b，再除以整數 → 分數
+    const a=randInt(1,7),b=randInt(2,9),d=randInt(2,9);
+    if(a===b||gcd(a,b)!==1)return null;
+    const v=frac(a+b,d);
+    if(v.den===1)return null;
+    return {question:`計算 \\(\\left(${rootF(frac(a,b))}+${rootF(frac(b,a))}\\right)\\times\\sqrt{${a*b}}\\div${d}\\)`,answer:v,type:'fraction'};
+  }
+
+  // kind==='add'：結果化為 c√m，求 c（c 為分數或小數）
+  const m=pick(SQF);
+  if(level==='basic'){
+    if(randInt(0,1)===0){
+      const a=randInt(2,6),b=randInt(2,6),add=randInt(0,1)===0;
+      if(a===b)return null;
+      const c=add?fadd(frac(1,a),frac(1,b)):fsub(frac(1,a),frac(1,b));
+      return ansC(c,m,`${rootF(frac(m,a*a))}${add?'+':'-'}${rootF(frac(m,b*b))}`);
+    }
+    const k1=randInt(1,9),k2=randInt(1,9),add=randInt(0,1)===0;
+    if(k1===k2||(k1*k1*m)%100===0||(k2*k2*m)%100===0)return null;
+    const [s1,s2]=termsDec(m,[k1,k2]);
+    const v=(add?k1+k2:k1-k2)/10;
+    if(Number.isInteger(v))return null;
+    return ansCdec(v,m,`${s1}${add?'+':'-'}${s2}`);
+  }
+  if(level==='medium'){
+    if(randInt(0,1)===0){
+      // a√m ± b/√m
+      const a=randInt(1,6),b=randInt(1,9),add=randInt(0,1)===0;
+      if(b%m===0)return null;
+      const c=add?fadd(frac(a),frac(b,m)):fsub(frac(a),frac(b,m));
+      return ansC(c,m,`\\sqrt{${a*a*m}}${add?'+':'-'}\\dfrac{${b}}{\\sqrt{${m}}}`);
+    }
+    // √(p1²m/q1²) ± √(p2²m/q2²)
+    const r1=frac(randInt(1,5),randInt(2,6)),r2=frac(randInt(1,5),randInt(2,6)),add=randInt(0,1)===0;
+    if(r1.den===1||r2.den===1||feq(r1,r2))return null;
+    const c=add?fadd(r1,r2):fsub(r1,r2);
+    return ansC(c,m,`${rootF(fmul(fmul(r1,r1),frac(m)))}${add?'+':'-'}${rootF(fmul(fmul(r2,r2),frac(m)))}`);
+  }
+  if(randInt(0,1)===0){
+    // √(p1²m/q1²) − √(p2²m/q2²) + b/√m
+    const r1=frac(randInt(1,7),randInt(2,6)),r2=frac(randInt(1,5),randInt(2,8)),b=randInt(1,9);
+    if(r1.den===1||r2.den===1||feq(r1,r2)||b%m===0)return null;
+    const c=fadd(fsub(r1,r2),frac(b,m));
+    if(c.num===0)return null;
+    return ansC(c,m,`${rootF(fmul(fmul(r1,r1),frac(m)))}-${rootF(fmul(fmul(r2,r2),frac(m)))}+\\dfrac{${b}}{\\sqrt{${m}}}`);
+  }
+  // 三個小數根號加減
+  const ks=[randInt(1,9),randInt(1,9),randInt(1,12)];
+  if(new Set(ks).size<3||ks.some(k=>(k*k*m)%100===0))return null;
+  const sg=[1,pick([1,-1]),pick([1,-1])];
+  const v=ks.reduce((s,k,i)=>s+sg[i]*k,0)/10;
+  if(v===0||Number.isInteger(v))return null;
+  const ts=termsDec(m,ks);
+  return ansCdec(v,m,ts.map((s,i)=>(i===0?'':sg[i]>0?'+':'-')+s).join(''));
+}
+
 function gen8aSqrtAdd(level) {
   for (let i=0;i<30;i++) { const q=_8aSqrtAdd(level); if(q) return q; }
   return _8aSqrtAdd('basic');
 }
 function _8aSqrtAdd(level) {
+  if(Math.random()<0.3)return _8aSqrtFD('add',level);
   if(level==='basic'){
     const t=randInt(0,2);
     if(t===0){
@@ -6584,6 +6726,7 @@ function gen8aSqrtMul(level) {
   return _8aSqrtMul('basic');
 }
 function _8aSqrtMul(level) {
+  if(Math.random()<0.3)return _8aSqrtFD('mul',level);
   if(level==='basic'){
     const t=randInt(0,7);
     const SQF=[2,3,5,6,7,10,11,13,14,15];
