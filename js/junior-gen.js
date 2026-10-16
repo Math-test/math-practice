@@ -6524,7 +6524,37 @@ function gen8aSqrtMul(level) {
 }
 function _8aSqrtMul(level) {
   if(level==='basic'){
-    const t=randInt(0,3);
+    const t=randInt(0,7);
+    const SQF=[2,3,5,6,7,10,11,13,14,15];
+    if(t===4){
+      // √(mn) ÷ √m = √n
+      const m=pick(SQF),n=pick(SQF);
+      if(m===n||gcd(m,n)!==1)return null;
+      return {question:`計算 \\(\\sqrt{${m*n}}\\div\\sqrt{${m}}\\)`,
+        type:'radical-mix',rational:0,radCoeff:1,radM:n};
+    }
+    if(t===5){
+      // a√(mn) ÷ √m = a√n
+      const m=pick(SQF),n=pick(SQF),a=randInt(2,9);
+      if(m===n||gcd(m,n)!==1)return null;
+      return {question:`計算 \\(${a}\\sqrt{${m*n}}\\div\\sqrt{${m}}\\)`,
+        type:'radical-mix',rational:0,radCoeff:a,radM:n};
+    }
+    if(t===6){
+      // a√m ÷ b√m = k，或 a√m ÷ b = k√m
+      const m=pick(SQF),b=randInt(2,6),k=randInt(2,9);
+      if(randInt(0,1)===0)
+        return {question:`計算 \\(${b*k}\\sqrt{${m}}\\div${b}\\sqrt{${m}}\\)`, answer:k, type:'number'};
+      return {question:`計算 \\(${b*k}\\sqrt{${m}}\\div${b}\\)`,
+        type:'radical-mix',rational:0,radCoeff:k,radM:m};
+    }
+    if(t===7){
+      // (bk)√(yn) ÷ b√y = k√n
+      const y=pick(SQF),n=pick(SQF),b=randInt(2,5),k=randInt(2,6);
+      if(y===n||gcd(y,n)!==1)return null;
+      return {question:`計算 \\(${b*k}\\sqrt{${y*n}}\\div${b}\\sqrt{${y}}\\)`,
+        type:'radical-mix',rational:0,radCoeff:k,radM:n};
+    }
     if(t===0){
       // √a × √b = integer（擴充至 28 組，含較大數字）
       const pairs=[
