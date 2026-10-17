@@ -687,7 +687,7 @@ function renderQuiz(questions, params) {
       const _isRad = q.type==='radical-mix'||q.type==='radical2';
       const _isFQ = q.type==='factored-quad'||q.type==='factored-form'||q.type==='quad-roots';
       const _iCls = (_isRad||_isFQ||q.type==='poly'||q.type==='linear2') ? 'q-input q-input-rad' : 'q-input';
-      const _ph = q.type==='fraction'?'例：3/4':q.type==='radical-mix'?'如：4+3√2':q.type==='radical2'?'如：2√5+2√2':q.type==='factored-quad'?'如：(2x+3)(x+2)':q.type==='factored-form'?'如：(x+5)^2':q.type==='quad-roots'?'如：-3/2, 2':q.type==='poly'?'如：2x^2-3x+5':q.type==='linear2'?'如：2x-3y+1':q.type==='sci'?'如：6.0×10^7':q.exprAns?'如：(p+1)/q':q.type==='text'?(['全等','不全等'].includes(String(q.answer))?'全等 或 不全等':'如：SSS'):q.type==='number'?'填數字':'例：1.25';
+      const _ph = q.type==='fraction'?'例：3/4':q.type==='radical-mix'?'如：4+3√2':q.type==='radical2'?'如：2√5+2√2':q.type==='factored-quad'?'如：(2x+3)(x+2)':q.type==='factored-form'?'如：(x+5)^2':q.type==='quad-roots'?'如：-3/2, 2':q.type==='poly'?'如：2x^2-3x+5':q.type==='linear2'?'如：2x-3y+1':q.type==='sci'?'如：6.0×10^7':q.exprAns?'如：(p+1)/q':q.type==='text'?(['全等','不全等'].includes(String(q.answer))?'全等 或 不全等':(['SSS','SAS','ASA','AAS','RHS'].includes(String(q.answer).toUpperCase())?'如：SSS':'填答案')):q.type==='number'?'填數字':'例：1.25';
       row.innerHTML = `
         <div class="q-number">${idx + 1}</div>
         <div class="q-body">

@@ -2628,6 +2628,111 @@ function _b1LinePP(level) {
   return { question: `${tri}，求 \\(\\triangle ABC\\) 的垂心坐標 \\((x,y)\\)`, answerParts: xy(X, Y) };
 }
 
+// ── 直線：求直線方程式（含分數、小數）──────────────────────────
+function _b1LineEq(level) {
+  const fq = f => fracToLatex(f);
+  const num = f => Math.round(f.num / f.den * 1e6) / 1e6;
+  const ds = f => String(num(f));
+  // 小數只用分母 2、5、10 的分數，保證為有限小數
+  const rdec = (lo, hi) => frac(srRandInt(lo, hi), pick([2, 5, 10]));
+  const show = (f, dec) => dec ? ds(f) : fq(f);
+  const pt = (x, y, dec) => `\\left(${show(x, dec)},\\,${show(y, dec)}\\right)`;
+  const MB = '，寫成 \\(y=mx+b\\) 的形式，求 \\(m\\)、\\(b\\)';
+  const mbParts = (m, b, dec) => dec
+    ? [{ prefix: 'm', answer: num(m), type: 'number' }, { prefix: 'b', answer: num(b), type: 'number' }]
+    : _sfParts(['m', 'b'], [m, b]);
+  // Ax+By=C（分數）化為互質整數、首項為正
+  const intForm = (A, B, C) => {
+    const l = [A, B, C].reduce((s, f) => s * f.den / srGcd(s, f.den), 1);
+    let v = [A, B, C].map(f => f.num * (l / f.den));
+    const g = v.reduce((s, x) => srGcd(s, Math.abs(x)), 0) || 1;
+    v = v.map(x => x / g);
+    if (v[0] < 0 || (v[0] === 0 && v[1] < 0)) v = v.map(x => -x);
+    return v;
+  };
+  const ABC = '，寫成 \\(ax+by=c\\)（\\(a\\)、\\(b\\)、\\(c\\) 為互質整數且 \\(a>0\\)），求 \\(a\\)、\\(b\\)、\\(c\\)';
+  const abcQ = (question, v) => Math.max(...v.map(Math.abs)) > 60 ? null
+    : { question: question + ABC, answerParts: ['a', 'b', 'c'].map((p, i) => ({ prefix: p, answer: v[i], type: 'number' })) };
+
+  if (level === 'basic') {
+    const t = srRandInt(0, 2), dec = srRandInt(0, 2) === 0;
+    if (t === 0) {
+      // 已知斜率與一點
+      const m = dec ? rdec(-15, 15) : frac(srRnz(-7, 7), pick([2, 3, 4]));
+      const x0 = dec ? rdec(-9, 9) : frac(srRandInt(-5, 5)), y0 = dec ? rdec(-9, 9) : frac(srRandInt(-6, 6));
+      if (m.num === 0 || (!dec && m.den === 1)) return null;
+      const b = fsub(y0, fmul(m, x0));
+      return { question: `直線過點 \\(${pt(x0, y0, dec)}\\) 且斜率為 \\(${show(m, dec)}\\)${MB}`, answerParts: mbParts(m, b, dec) };
+    }
+    if (t === 1) {
+      // 已知兩點
+      const m = dec ? rdec(-15, 15) : frac(srRnz(-7, 7), pick([2, 3, 4, 5]));
+      const b = dec ? rdec(-9, 9) : frac(srRandInt(-6, 6), pick([1, 2, 3]));
+      const x1 = dec ? rdec(-6, 6) : frac(srRandInt(-5, 5)), x2 = dec ? rdec(-6, 6) : frac(srRandInt(-5, 5));
+      if (m.num === 0 || feq(x1, x2)) return null;
+      const y1 = fadd(fmul(m, x1), b), y2 = fadd(fmul(m, x2), b);
+      if (!dec && (y1.den > 6 || y2.den > 6)) return null;
+      return { question: `直線過 \\(A${pt(x1, y1, dec)}\\) 與 \\(B${pt(x2, y2, dec)}\\) 兩點${MB}`, answerParts: mbParts(m, b, dec) };
+    }
+    // 已知 x 截距與 y 截距
+    const a = dec ? rdec(-15, 15) : frac(srRnz(-9, 9), pick([2, 3, 4]));
+    // 小數版先取斜率再算 y 截距，確保斜率為有限小數
+    const md = rdec(-15, 15);
+    const bb = dec ? fmul(_sfNeg(md), a) : frac(srRnz(-9, 9), pick([1, 2, 3]));
+    if (a.num === 0 || bb.num === 0 || (!dec && a.den === 1)) return null;
+    return { question: `直線的 \\(x\\) 截距為 \\(${show(a, dec)}\\)，\\(y\\) 截距為 \\(${show(bb, dec)}\\)${MB}`,
+      answerParts: mbParts(fdiv(_sfNeg(bb), a), bb, dec) };
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 2), dec = srRandInt(0, 2) === 0;
+    if (t === 0) {
+      // 兩點（分數或小數坐標）求 ax+by=c
+      const P = () => dec ? rdec(-9, 9) : frac(srRandInt(-9, 9), pick([1, 2, 3, 4]));
+      const x1 = P(), y1 = P(), x2 = P(), y2 = P();
+      if (feq(x1, x2) && feq(y1, y2)) return null;
+      const A = fsub(y2, y1), B = fsub(x1, x2), C = fadd(fmul(A, x1), fmul(B, y1));
+      if (A.num === 0 || B.num === 0) return null;
+      return abcQ(`直線過 \\(A${pt(x1, y1, dec)}\\) 與 \\(B${pt(x2, y2, dec)}\\) 兩點`, intForm(A, B, C));
+    }
+    if (t === 1) {
+      // 斜率與一點（分數或小數）求 ax+by=c
+      const m = dec ? rdec(-15, 15) : frac(srRnz(-7, 7), pick([2, 3, 4, 5]));
+      const x0 = dec ? rdec(-9, 9) : frac(srRandInt(-9, 9), pick([1, 2, 3])), y0 = dec ? rdec(-9, 9) : frac(srRandInt(-9, 9), pick([1, 2, 3]));
+      if (m.num === 0) return null;
+      // y - y0 = m(x - x0) → m x - y = m x0 - y0
+      return abcQ(`直線過點 \\(${pt(x0, y0, dec)}\\) 且斜率為 \\(${show(m, dec)}\\)`, intForm(m, frac(-1), fsub(fmul(m, x0), y0)));
+    }
+    // 線段的中垂線（整數端點），求 y=mx+b
+    const A = [srRandInt(-6, 6), srRandInt(-6, 6)], B = [srRandInt(-6, 6), srRandInt(-6, 6)];
+    const dx = B[0] - A[0], dy = B[1] - A[1];
+    if (dx === 0 || dy === 0) return null;
+    const m = frac(-dx, dy), mx = frac(A[0] + B[0], 2), my = frac(A[1] + B[1], 2);
+    const b = fsub(my, fmul(m, mx));
+    return { question: `求線段 \\(\\overline{AB}\\) 的垂直平分線，其中 \\(A(${A[0]},${A[1]})\\)、\\(B(${B[0]},${B[1]})\\)${MB}`,
+      answerParts: mbParts(m, b, false) };
+  }
+
+  // hard
+  if (srRandInt(0, 1) === 0) {
+    // 過分數點且平行（或垂直）於分數係數直線，求 ax+by=c
+    const p = frac(srRnz(-5, 5), pick([2, 3, 4])), q = frac(srRnz(-5, 5), pick([2, 3, 5])), r = frac(srRandInt(-5, 5), pick([1, 2, 3]));
+    const x0 = frac(srRandInt(-7, 7), pick([2, 3])), y0 = frac(srRandInt(-7, 7), pick([2, 3, 4]));
+    if (p.den === 1 && q.den === 1) return null;
+    const par = srRandInt(0, 1) === 0;
+    const [A, B] = par ? [p, q] : [q, _sfNeg(p)];
+    const line = `${_sfTerms([[p, 'x'], [q, 'y']])}=${fq(r)}`;
+    return abcQ(`直線過點 \\(${pt(x0, y0, false)}\\) 且${par ? '平行' : '垂直'}於直線 \\(${line}\\)`, intForm(A, B, fadd(fmul(A, x0), fmul(B, y0))));
+  }
+  // 中垂線（小數端點），求 ax+by=c
+  const A = [rdec(-9, 9), rdec(-9, 9)], B = [rdec(-9, 9), rdec(-9, 9)];
+  const dx = fsub(B[0], A[0]), dy = fsub(B[1], A[1]);
+  if (dx.num === 0 || dy.num === 0) return null;
+  const mx = fdiv(fadd(A[0], B[0]), frac(2)), my = fdiv(fadd(A[1], B[1]), frac(2));
+  // dx(x - mx) + dy(y - my) = 0
+  return abcQ(`求線段 \\(\\overline{AB}\\) 的垂直平分線，其中 \\(A${pt(A[0], A[1], true)}\\)、\\(B${pt(B[0], B[1], true)}\\)`, intForm(dx, dy, fadd(fmul(dx, mx), fmul(dy, my))));
+}
+
 function genB1Line(level, _n) {
   for (let _i = 0; _i < 40; _i++) {
     const q = _b1Line(level);
@@ -2711,7 +2816,8 @@ function _b1LEqGenTxt(a, b, c) {
 
 function _b1Line(level) {
   if (level === 'basic') {
-    const t = srRandInt(0, 7);
+    const t = srRandInt(0, 10);
+    if (t >= 5) return _b1LineEq('basic');
 
     if (t === 0) {
       // 兩整數點求整數斜率
@@ -2791,8 +2897,9 @@ function _b1Line(level) {
   }
 
   if (level === 'medium') {
-    const t = srRandInt(0, 11);
-    if (t === 7 || t >= 10) return _b1LinePP('medium');
+    const t = srRandInt(0, 13);
+    if (t >= 12 || t === 6 || t === 8 || t === 9) return _b1LineEq('medium');
+    if (t === 7 || t === 10 || t === 11) return _b1LinePP('medium');
 
     if (t === 0) {
       // 兩點求分數斜率
@@ -2893,8 +3000,9 @@ function _b1Line(level) {
   }
 
   // hard
-  const t = srRandInt(0, 9);
-  if (t === 1 || t === 2 || t === 5 || t >= 8) return _b1LinePP('hard');
+  const t = srRandInt(0, 11);
+  if (t >= 10 || t === 6 || t === 7) return _b1LineEq('hard');
+  if (t === 1 || t === 2 || t === 5 || t === 8 || t === 9) return _b1LinePP('hard');
 
   if (t === 0) {
     // 兩點求 y 截距（含分數）
