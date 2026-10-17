@@ -1598,22 +1598,95 @@ function genB1PolyBasic(level,_n){
   for(let i=0;i<40;i++){const q=_b1PolyBasic(level);if(q)return q;}
   return{question:'多項式計算',answer:0,type:'number',answerPrefix:''};
 }
+// ── 除法原理：f(x)=g(x)q(x)+r(x)，deg r < deg g ─────────────────
+// g 為首項係數 1 的整係數多項式（高次到低次）
+function _pDivInt(f, g) {
+  const r = f.slice(), q = [];
+  for (let i = 0; i + g.length <= r.length; i++) {
+    const c = r[i];
+    q.push(c);
+    g.forEach((gv, j) => { r[i + j] -= c * gv; });
+  }
+  return { q, r: r.slice(r.length - (g.length - 1)) };
+}
+function _pAdd(a, b) {
+  const n = Math.max(a.length, b.length), r = new Array(n).fill(0);
+  a.forEach((v, i) => { r[n - a.length + i] += v; });
+  b.forEach((v, i) => { r[n - b.length + i] += v; });
+  return r;
+}
+function _b1PolyDiv(level) {
+  const P = cs => _sfPoly(cs);
+  const lin = a => _sfPoly([1, -a]);
+  const coefName = (deg, d) => d === 0 ? '常數項' : `\\(${d === 1 ? 'x' : 'x^' + d}\\) 項的係數`;
+  const parts = (names, vals) => names.map((n, i) => ({ prefix: n, answer: vals[i], type: 'number' }));
+  if (level === 'basic') {
+    const t = srRandInt(0, 2);
+    if (t === 0) {
+      // 由除式、商式、餘式還原被除式的係數
+      const a = srRnz(-5, 5), q = [srRandInt(1, 3), srRandInt(-6, 6), srRandInt(-6, 6)], r = srRandInt(-9, 9);
+      const f = _pAdd(_sfMul([1, -a], q), [r]);
+      const d = srRandInt(0, 2);
+      return { question: `多項式 \\(f(x)\\) 除以 \\(${lin(a)}\\) 的商式為 \\(${P(q)}\\)，餘式為 \\(${r}\\)，求 \\(f(x)\\) 的${coefName(3, d)}`,
+        answer: f[3 - d], type: 'number', answerPrefix: '' };
+    }
+    if (t === 1) {
+      // 長除法：除以一次式，求商式某係數或餘式
+      const a = srRnz(-4, 4), f = [srRandInt(1, 3), srRandInt(-6, 6), srRandInt(-6, 6), srRandInt(-9, 9)];
+      const { q, r } = _pDivInt(f, [1, -a]);
+      if (srRandInt(0, 1) === 0)
+        return { question: `求 \\(${P(f)}\\) 除以 \\(${lin(a)}\\) 的餘式`, answer: r[0], type: 'number', answerPrefix: '餘式' };
+      const d = srRandInt(0, 1);
+      return { question: `\\(${P(f)}\\) 除以 \\(${lin(a)}\\) 的商式為 \\(q(x)\\)，求 \\(q(x)\\) 的${coefName(2, d)}`,
+        answer: q[2 - d], type: 'number', answerPrefix: '' };
+    }
+    // 商式與餘式的次數
+    const n = srRandInt(3, 7), m = srRandInt(1, n - 1);
+    if (srRandInt(0, 1) === 0)
+      return { question: `\\(${n}\\) 次多項式 \\(f(x)\\) 除以 \\(${m}\\) 次多項式 \\(g(x)\\)，商式的次數為何？`, answer: n - m, type: 'number', answerPrefix: '次數' };
+    return { question: `多項式 \\(f(x)\\) 除以 \\(${m + 1}\\) 次多項式 \\(g(x)\\)，餘式的次數最高可能為幾次？`, answer: m, type: 'number', answerPrefix: '次數' };
+  }
+  if (level === 'medium') {
+    const t = srRandInt(0, 2);
+    const g = [1, srRandInt(-3, 3), srRnz(-4, 4)];
+    if (t === 0) {
+      // 除以二次式，求餘式 px+q
+      const f = [srRandInt(1, 3), srRandInt(-5, 5), srRandInt(-6, 6), srRandInt(-6, 6), srRandInt(-9, 9)].slice(srRandInt(0, 1));
+      const { r } = _pDivInt(f, g);
+      return { question: `\\(${P(f)}\\) 除以 \\(${P(g)}\\) 的餘式為 \\(px+q\\)，求 \\(p\\)、\\(q\\)`, answerParts: parts(['p', 'q'], r) };
+    }
+    if (t === 1) {
+      // 被除式含未知係數：x³+ax²+bx+c 除以 g 的餘式已知
+      const s = srRandInt(-5, 5), p = srRandInt(-6, 6), q = srRandInt(-6, 6);
+      const f = _pAdd(_sfMul(g, [1, s]), [p, q]);
+      return { question: `多項式 \\(x^3+ax^2+bx${f[3] === 0 ? '' : f[3] > 0 ? '+' + f[3] : f[3]}\\) 除以 \\(${P(g)}\\) 的餘式為 \\(${_sfPoly([p, q])}\\)，求 \\(a\\)、\\(b\\)`,
+        answerParts: parts(['a', 'b'], [f[1], f[2]]) };
+    }
+    // 除以二次式，求商式某係數
+    const f = [srRandInt(1, 3), srRandInt(-5, 5), srRandInt(-6, 6), srRandInt(-6, 6), srRandInt(-9, 9)];
+    const { q } = _pDivInt(f, g);
+    const d = srRandInt(0, 1);
+    return { question: `\\(${P(f)}\\) 除以 \\(${P(g)}\\) 的商式為 \\(q(x)\\)，求 \\(q(x)\\) 的${coefName(2, d)}`,
+      answer: q[2 - d], type: 'number', answerPrefix: '' };
+  }
+  if (srRandInt(0, 1) === 0) {
+    // 連續除法：f=(x-a)q+r1，q=(x-b)s+r2 → f 除以 (x-a)(x-b) 的餘式
+    const a = srRnz(-4, 4), b = srRnz(-4, 4), r1 = srRandInt(-9, 9), r2 = srRnz(-6, 6);
+    if (a === b) return null;
+    return { question: `多項式 \\(f(x)\\) 除以 \\(${lin(a)}\\) 得商式 \\(q(x)\\)、餘式 \\(${r1}\\)；\\(q(x)\\) 除以 \\(${lin(b)}\\) 的餘式為 \\(${r2}\\)。若 \\(f(x)\\) 除以 \\((${lin(a)})(${lin(b)})\\) 的餘式為 \\(px+q\\)，求 \\(p\\)、\\(q\\)`,
+      answerParts: parts(['p', 'q'], [r2, r1 - a * r2]) };
+  }
+  // f ≡ px+q (mod x²+bx+c) → x·f(x) 除以同一除式的餘式
+  const b = srRandInt(-3, 3), c = srRnz(-4, 4), p = srRnz(-5, 5), q = srRandInt(-6, 6);
+  const g = [1, b, c];
+  return { question: `多項式 \\(f(x)\\) 除以 \\(${P(g)}\\) 的餘式為 \\(${_sfPoly([p, q])}\\)，則 \\(x\\cdot f(x)\\) 除以 \\(${P(g)}\\) 的餘式為 \\(mx+n\\)，求 \\(m\\)、\\(n\\)`,
+    answerParts: parts(['m', 'n'], [q - p * b, -p * c]) };
+}
+
 function _b1PolyBasic(level){
   if(level==='basic'){
-    const t=srRandInt(0,3);
-    if(t===0){
-      const pool=[
-        {f:'x^3-2x^2+3x-1',a:2,r:5},{f:'x^3+x^2-5x+3',a:2,r:5},
-        {f:'x^3-x^2+2x-4',a:1,r:-2},{f:'x^3-3x+2',a:-2,r:0},
-        {f:'x^2+3x-5',a:3,r:13},{f:'x^3+2x^2-x+1',a:-1,r:3},
-        {f:'2x^2-5x+1',a:3,r:4},{f:'x^3+x^2+x-3',a:1,r:0},
-        {f:'x^3-4x+3',a:-2,r:3},{f:'2x^3-3x^2+1',a:2,r:5},
-        {f:'x^2-4x+7',a:5,r:12},{f:'x^3+3x-2',a:1,r:2},
-      ];
-      const p=srQPick(pool,_pbB0Q);if(!p)return null;
-      const av=p.a>=0?`${p.a}`:`(${p.a})`;
-      return{question:`設 \\(f(x)=${p.f}\\)，求 \\(f(${av})\\)。`,answer:p.r,type:'number',answerPrefix:`\\(f(${av})\\)`};
-    }
+    const t=srRandInt(0,4);
+    if(t===0||t===4)return _b1PolyDiv('basic');
     if(t===1){
       const pool=[
         {desc:'\\((x^3+2x)(x^2-1)\\) 的次數',a:5},
@@ -1656,7 +1729,8 @@ function _b1PolyBasic(level){
     }
   }
   if(level==='medium'){
-    const t=srRandInt(0,2);
+    const t=srRandInt(0,4);
+    if(t>=3)return _b1PolyDiv('medium');
     if(t===0){
       const pool=[
         {desc:'\\(x^3-3x^2+5x-2=(x-1)q(x)+r\\)',a:1,hint:'代 \\(x=1\\)'},
@@ -1700,7 +1774,8 @@ function _b1PolyBasic(level){
     }
   }
   {
-    const ht=srRandInt(0,1);
+    const ht=srRandInt(0,3);
+    if(ht>=2)return _b1PolyDiv('hard');
     if(ht===0){
       const pool=[
         {eq:'x^2+5x+6=(x+a)(x+b)',q:'a+b',a:5},
@@ -2248,7 +2323,7 @@ function _b1PolyLinQuad(level){
 }
 
 // ── b1-poly-cubic：三次函數 ──────────────────────────────────────
-const _pcB0Q=[],_pcB1Q=[];
+const _pcB0Q=[];
 const _pcM0Q=[],_pcM1Q=[];
 const _pcH0Q=[],_pcH1Q=[];
 
@@ -2277,16 +2352,13 @@ function _b1PolyCubic(level){
       return{question:`設 \\(x_1,x_2,x_3\\) 是方程式 \\(${p.eq}\\) 的三根，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
     }
     {
-      // 三次多項式代值
-      const pool=[
-        {f:'x^3-3x^2+2x-1',a:2,r:3},{f:'x^3+x^2-2x+1',a:1,r:1},
-        {f:'x^3-x+5',a:-1,r:5},{f:'2x^3-x^2+3',a:1,r:4},
-        {f:'x^3+2x^2-x-2',a:2,r:8},{f:'x^3-4x+3',a:3,r:12},
-        {f:'x^3+x^2+x+1',a:-1,r:0},{f:'x^3-2x^2+3',a:-1,r:-4},
-      ];
-      const p=srQPick(pool,_pcB1Q);if(!p)return null;
-      const av=p.a>=0?`${p.a}`:`(${p.a})`;
-      return{question:`設 \\(f(x)=${p.f}\\)，求 \\(f(${av})\\)。`,answer:p.r,type:'number',answerPrefix:`\\(f(${av})\\)`};
+      // 三次函數 y=a(x-h)^3+k 的對稱中心
+      const a=srRnz(-3,3),h=srRandInt(-5,5),k=srRandInt(-9,9);
+      const inner=h===0?'x':`(x${h>0?'-'+h:'+'+(-h)})`;
+      const co=a===1?'':a===-1?'-':`${a}`;
+      const kk=k===0?'':k>0?`+${k}`:`${k}`;
+      return{question:`求三次函數 \\(y=${co}${inner}^3${kk}\\) 圖形的對稱中心 \\((h,k)\\)`,
+        answerParts:[{prefix:'h',answer:h,type:'number'},{prefix:'k',answer:k,type:'number'}]};
     }
   }
   if(level==='medium'){
@@ -7464,14 +7536,17 @@ const _SR_FRAC_VARIANTS = {
       return { question: `求 \\(\\left(${f1}\\right)\\left(${f2}\\right)\\) 展開式中 \\(${useX2 ? 'x^2' : 'x'}\\) 項的係數`,
         answer: r, type: 'fraction', answerPrefix: '' };
     }
-    const x0 = srRandInt(0, 1) ? frac(pick([-3, -1, 1, 3]), 2) : frac(pick([-2, -1, 1, 2]), 3);
+    // 除法原理（除式首項係數不為 1）：商式與餘式為分數
+    const a = pick([2, 3]), b = a === 2 ? pick([-3, -1, 1, 3]) : pick([-2, -1, 1, 2]);
+    const dv = _sfTerms([[a, 'x'], [-b, '']]);
     const cs = lv === 'basic'
-      ? [srRnz(-4, 4), srRandInt(-6, 6), srRandInt(-9, 9)]
-      : [srRandInt(1, 3), srRandInt(-4, 4), srRandInt(-6, 6), srRandInt(-9, 9)];
-    const r = _sfEval(cs, x0);
-    if (r.den === 1) return null;
-    const fx = `\\(f\\!\\left(${_sfT(x0)}\\right)\\)`;
-    return { question: `設 \\(f(x)=${_sfPoly(cs)}\\)，求 ${fx}`, answer: r, type: 'fraction', answerPrefix: fx };
+      ? [srRandInt(1, 5), srRandInt(-6, 6), srRandInt(-9, 9)]
+      : [srRandInt(1, 4), srRandInt(-5, 5), srRandInt(-6, 6), srRandInt(-9, 9)];
+    const { q, r } = _sfDiv(cs, a, b);
+    const qc = q[q.length - 1];
+    if (r.den === 1 && qc.den === 1) return null;
+    return { question: `\\(${_sfPoly(cs)}=(${dv})\\,q(x)+r\\)，其中 \\(q(x)\\) 為商式、\\(r\\) 為餘式，求 \\(q(x)\\) 的常數項 \\(k\\) 與餘式 \\(r\\)`,
+      answerParts: _sfParts(['k', 'r'], [qc, r]) };
   },
 
   'b1-poly-synth': lv => {
