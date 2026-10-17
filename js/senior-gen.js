@@ -7542,11 +7542,13 @@ const _SR_FRAC_VARIANTS = {
     const cs = lv === 'basic'
       ? [srRandInt(1, 5), srRandInt(-6, 6), srRandInt(-9, 9)]
       : [srRandInt(1, 4), srRandInt(-5, 5), srRandInt(-6, 6), srRandInt(-9, 9)];
-    const { q, r } = _sfDiv(cs, a, b);
-    const qc = q[q.length - 1];
-    if (r.den === 1 && qc.den === 1) return null;
-    return { question: `\\(${_sfPoly(cs)}=(${dv})\\,q(x)+r\\)，其中 \\(q(x)\\) 為商式、\\(r\\) 為餘式，求 \\(q(x)\\) 的常數項 \\(k\\) 與餘式 \\(r\\)`,
-      answerParts: _sfParts(['k', 'r'], [qc, r]) };
+    const { q } = _sfDiv(cs, a, b);
+    // 只問商式（需用除法原理），不問餘式以免與餘式定理重疊
+    const [m, n] = q.slice(-2);
+    if (m.den === 1 && n.den === 1) return null;
+    const form = q.length === 2 ? 'mx+n' : `${_sfTerms([[q[0], 'x^2']])}+mx+n`;
+    return { question: `\\(${_sfPoly(cs)}\\) 除以 \\(${dv}\\) 的商式為 \\(q(x)=${form}\\)，求 \\(m\\)、\\(n\\)`,
+      answerParts: _sfParts(['m', 'n'], [m, n]) };
   },
 
   'b1-poly-synth': lv => {
