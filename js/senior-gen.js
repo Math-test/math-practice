@@ -4162,7 +4162,131 @@ function _b1LineIneq(level) {
 }
 
 // ── b1-line-app：直線方程式的應用（距離・聯立・不等式 混合）────────────
+// ── 直線的應用：投影點、對稱點、外心、垂心、中垂線 ──────────────
+function _b1LineGeo(level) {
+  const L = (a, b, c) => `${_sfTerms([[a, 'x'], [b, 'y']])}=${c}`;
+  const P = p => `(${p[0]},${p[1]})`;
+  const rp = (r = 6) => [srRandInt(-r, r), srRandInt(-r, r)];
+  const xy = (x, y) => _sfParts(['x', 'y'], [_sfF(x), _sfF(y)]);
+  const ok = f => f.den <= 30;
+  const collinear = (A, B, C) => (B[0] - A[0]) * (C[1] - A[1]) === (B[1] - A[1]) * (C[0] - A[0]);
+  // P 在直線 ax+by=c 上的投影點（k=1）或對稱點（k=2）
+  const proj = (p, a, b, c, k) => {
+    const t = frac(k * (a * p[0] + b * p[1] - c), a * a + b * b);
+    return [fsub(frac(p[0]), fmul(t, frac(a))), fsub(frac(p[1]), fmul(t, frac(b)))];
+  };
+  const solve = (a1, b1, c1, a2, b2, c2) => {
+    const d = a1 * b2 - a2 * b1;
+    return d === 0 ? null : [frac(c1 * b2 - c2 * b1, d), frac(a1 * c2 - a2 * c1, d)];
+  };
+  const circum = (A, B, C) => solve(2 * (B[0] - A[0]), 2 * (B[1] - A[1]), B[0] ** 2 + B[1] ** 2 - A[0] ** 2 - A[1] ** 2,
+    2 * (C[0] - A[0]), 2 * (C[1] - A[1]), C[0] ** 2 + C[1] ** 2 - A[0] ** 2 - A[1] ** 2);
+  const ortho = (A, B, C) => solve(C[0] - B[0], C[1] - B[1], (C[0] - B[0]) * A[0] + (C[1] - B[1]) * A[1],
+    C[0] - A[0], C[1] - A[1], (C[0] - A[0]) * B[0] + (C[1] - A[1]) * B[1]);
+  // 線段 AB 的中垂線：ax+by=c（互質整數、a>0）
+  const bisector = (A, B) => {
+    let v = [2 * (B[0] - A[0]), 2 * (B[1] - A[1]), B[0] ** 2 + B[1] ** 2 - A[0] ** 2 - A[1] ** 2];
+    const g = v.reduce((s, x) => srGcd(s, Math.abs(x)), 0) || 1;
+    v = v.map(x => x / g);
+    if (v[0] < 0 || (v[0] === 0 && v[1] < 0)) v = v.map(x => -x);
+    return v;
+  };
+  const ABC = '，寫成 \\(ax+by=c\\)（\\(a\\)、\\(b\\)、\\(c\\) 為互質整數且 \\(a>0\\)；若 \\(a=0\\) 則 \\(b>0\\)），求 \\(a\\)、\\(b\\)、\\(c\\)';
+  const abcParts = v => ['a', 'b', 'c'].map((p, i) => ({ prefix: p, answer: v[i], type: 'number' }));
+
+  if (level === 'basic') {
+    const t = srRandInt(0, 2);
+    if (t === 0) {
+      // 對稱點：對 x 軸、y 軸、y=x、y=-x、x=h、y=k
+      const p = rp(), h = srRnz(-5, 5), kind = srRandInt(0, 5);
+      const [desc, q] = [
+        ['\\(x\\) 軸', [p[0], -p[1]]], ['\\(y\\) 軸', [-p[0], p[1]]], ['直線 \\(y=x\\)', [p[1], p[0]]],
+        ['直線 \\(y=-x\\)', [-p[1], -p[0]]], [`直線 \\(x=${h}\\)`, [2 * h - p[0], p[1]]], [`直線 \\(y=${h}\\)`, [p[0], 2 * h - p[1]]],
+      ][kind];
+      return { question: `求點 \\(P${P(p)}\\) 關於${desc}的對稱點坐標 \\((x,y)\\)`, answerParts: xy(q[0], q[1]) };
+    }
+    if (t === 1) {
+      // 投影點：投影到 y=x+c 或 x+y=c
+      const p = rp(), c = srRandInt(-6, 6), s = srRandInt(0, 1) === 0;
+      const [a, b] = s ? [1, -1] : [1, 1], cc = s ? -c : c;
+      const q = proj(p, a, b, cc, 1);
+      return { question: `求點 \\(P${P(p)}\\) 在直線 \\(${s ? `y=x${c > 0 ? '+' + c : c < 0 ? c : ''}` : L(1, 1, c)}\\) 上的投影點坐標 \\((x,y)\\)`,
+        answerParts: xy(q[0], q[1]) };
+    }
+    // 中垂線
+    const A = rp(), B = rp();
+    if (A[0] === B[0] && A[1] === B[1]) return null;
+    return { question: `求線段 \\(\\overline{AB}\\) 的中垂線，其中 \\(A${P(A)}\\)、\\(B${P(B)}\\)${ABC}`, answerParts: abcParts(bisector(A, B)) };
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 3);
+    if (t <= 1) {
+      // 一般直線上的投影點（t=0）或對稱點（t=1）
+      const a = srRnz(-4, 4), b = srRnz(-4, 4), c = srRandInt(-9, 9), p = rp();
+      if (a * p[0] + b * p[1] === c) return null;
+      const q = proj(p, a, b, c, t + 1);
+      if (!ok(q[0]) || !ok(q[1])) return null;
+      return { question: `求點 \\(P${P(p)}\\) ${t === 0 ? '在' : '關於'}直線 \\(L:${L(a, b, c)}\\) ${t === 0 ? '上的投影點' : '的對稱點'}坐標 \\((x,y)\\)`,
+        answerParts: xy(q[0], q[1]) };
+    }
+    const A = rp(), B = rp(), C = rp();
+    if (collinear(A, B, C)) return null;
+    const tri = `\\(\\triangle ABC\\) 中，\\(A${P(A)}\\)、\\(B${P(B)}\\)、\\(C${P(C)}\\)`;
+    if (t === 2) {
+      const O = circum(A, B, C);
+      if (!ok(O[0]) || !ok(O[1])) return null;
+      return { question: `${tri}，求 \\(\\triangle ABC\\) 的外心坐標 \\((x,y)\\)`, answerParts: xy(O[0], O[1]) };
+    }
+    const H = ortho(A, B, C);
+    if (!ok(H[0]) || !ok(H[1])) return null;
+    return { question: `${tri}，求 \\(\\triangle ABC\\) 的垂心坐標 \\((x,y)\\)`, answerParts: xy(H[0], H[1]) };
+  }
+
+  const t = srRandInt(0, 2);
+  if (t === 0) {
+    // 同時求外心與垂心
+    const A = rp(), B = rp(), C = rp();
+    if (collinear(A, B, C)) return null;
+    const O = circum(A, B, C), H = ortho(A, B, C);
+    if (![...O, ...H].every(ok)) return null;
+    return { question: `\\(\\triangle ABC\\) 中，\\(A${P(A)}\\)、\\(B${P(B)}\\)、\\(C${P(C)}\\)，求外心 \\(O(x_1,y_1)\\) 與垂心 \\(H(x_2,y_2)\\)`,
+      answerParts: _sfParts(['x₁', 'y₁', 'x₂', 'y₂'], [...O, ...H]) };
+  }
+  if (t === 1) {
+    // 最短路徑：在直線上找點 P 使 PA+PB 最小（利用對稱點）
+    const a = srRnz(-3, 3), b = srRnz(-3, 3), c = srRandInt(-6, 6);
+    const A = rp(), B = rp();
+    const sA = a * A[0] + b * A[1] - c, sB = a * B[0] + b * B[1] - c;
+    if (sA === 0 || sB === 0 || (sA > 0) !== (sB > 0)) return null;
+    const B2 = proj(B, a, b, c, 2);
+    // 直線 A-B' 與 L 的交點
+    const dx = fsub(B2[0], frac(A[0])), dy = fsub(B2[1], frac(A[1]));
+    const den = fadd(fmul(frac(a), dx), fmul(frac(b), dy));
+    if (den.num === 0) return null;
+    const s = fdiv(frac(c - a * A[0] - b * A[1]), den);
+    const X = fadd(frac(A[0]), fmul(s, dx)), Y = fadd(frac(A[1]), fmul(s, dy));
+    if (!ok(X) || !ok(Y)) return null;
+    return { question: `已知 \\(A${P(A)}\\)、\\(B${P(B)}\\)，在直線 \\(L:${L(a, b, c)}\\) 上找一點 \\(P\\)，使 \\(\\overline{PA}+\\overline{PB}\\) 最小，求 \\(P\\) 的坐標 \\((x,y)\\)`,
+      answerParts: xy(X, Y) };
+  }
+  // 由投影點反求直線：P 在 L 上的投影點為 Q，求 L
+  const p = rp(), Q = rp();
+  if (p[0] === Q[0] && p[1] === Q[1]) return null;
+  // L 過 Q 且垂直於 PQ：(Q-P)·X = (Q-P)·Q
+  const d = [Q[0] - p[0], Q[1] - p[1]];
+  let v = [d[0], d[1], d[0] * Q[0] + d[1] * Q[1]];
+  const g = v.reduce((s, x) => srGcd(s, Math.abs(x)), 0) || 1;
+  v = v.map(x => x / g);
+  if (v[0] < 0 || (v[0] === 0 && v[1] < 0)) v = v.map(x => -x);
+  return { question: `點 \\(P${P(p)}\\) 在直線 \\(L\\) 上的投影點為 \\(Q${P(Q)}\\)，求直線 \\(L\\) 的方程式${ABC}`, answerParts: abcParts(v) };
+}
+
 function genB1LineApp(level, _n) {
+  if (srRandInt(0, 4) >= 3) {
+    const lv = level === 'basic' || level === 'hard' ? level : 'medium';
+    for (let i = 0; i < 60; i++) { const q = _b1LineGeo(lv); if (q) return q; }
+  }
   const sub = [genB1LineDist, genB1LineSys, genB1LineIneq][srRandInt(0,2)];
   return sub(level, _n);
 }
