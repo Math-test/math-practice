@@ -7724,19 +7724,28 @@ const _SR_FRAC_VARIANTS = {
         answer: k, type: 'fraction', answerPrefix: 'k' };
     }
     const a = pick([2, 3]);
-    const p = a === 2 ? pick([-5, -3, -1, 1, 3, 5]) : pick([-5, -4, -2, -1, 1, 2, 4, 5]);
-    const r = srRnz(-4, 4);
+    const p = a === 2 ? pick([-3, -1, 1, 3]) : pick([-2, -1, 1, 2]);
+    const x0 = frac(p, a), c3 = srRandInt(1, 4), c0 = srRnz(-6, 6);
+    const ev = (x, cs) => cs.reduce((s, c) => fadd(fmul(s, x), frac(c)), frac(0));
+    const fac = _sfTerms([[a, 'x'], [-p, '']]);
     if (lv === 'medium') {
-      const cs = _sfMul(_sfMul([a, -p], [1, -srRnz(-4, 4)]), [1, -r]);
-      return { question: `方程式 \\(${_sfPoly(cs)}=0\\) 的三根皆為有理數，其中恰有一根不是整數，求此根`,
-        answer: frac(p, a), type: 'fraction', answerPrefix: 'x' };
+      // 一次因式檢驗：ax-p 是三次式的因式，求未知係數 k（kx² 項）
+      const c1 = srRandInt(-6, 6);
+      const k = fdiv(_sfNeg(ev(x0, [c3, 0, c1, c0])), fmul(x0, x0));
+      if (k.den === 1 || k.den > 30 || Math.abs(k.num) > 99) return null;
+      return { question: `若 \\(${fac}\\) 是多項式 \\(f(x)=${c3 === 1 ? '' : c3}x^3+kx^2${c1 === 0 ? '' : (c1 > 0 ? '+' : '-') + (Math.abs(c1) === 1 ? '' : Math.abs(c1)) + 'x'}${c0 > 0 ? '+' + c0 : c0}\\) 的因式，求 \\(k\\)`,
+        answer: k, type: 'fraction', answerPrefix: 'k' };
     }
-    const c2 = a === 2 ? 3 : 2;
-    const p2 = c2 === 2 ? pick([-3, -1, 1, 3]) : pick([-4, -2, -1, 1, 2, 4]);
-    const cs = _sfMul(_sfMul([a, -p], [c2, -p2]), [1, -r]);
-    const s = fadd(fadd(frac(p, a), frac(p2, c2)), frac(r));
-    if (s.den === 1) return null;
-    return { question: `方程式 \\(${_sfPoly(cs)}=0\\) 的三根皆為有理數，求三根之和`, answer: s, type: 'fraction', answerPrefix: '' };
+    // ax-p 與 x-r 皆為因式，求 h、k：h·x² + k·x = -(c3x³+c0)
+    const r = srRnz(-3, 3);
+    const e1 = _sfNeg(ev(x0, [c3, 0, 0, c0])), e2 = frac(-(c3 * r ** 3 + c0));
+    const d = fsub(fmul(fmul(x0, x0), frac(r)), fmul(x0, frac(r * r)));
+    if (d.num === 0) return null;
+    const h = fdiv(fsub(fmul(e1, frac(r)), fmul(e2, x0)), d);
+    const k = fdiv(fsub(fmul(fmul(x0, x0), e2), fmul(frac(r * r), e1)), d);
+    if ((h.den === 1 && k.den === 1) || h.den > 30 || k.den > 30 || Math.abs(h.num) > 99 || Math.abs(k.num) > 99) return null;
+    return { question: `若 \\(${fac}\\) 與 \\(${_sfTerms([[1, 'x'], [-r, '']])}\\) 皆為多項式 \\(f(x)=${c3 === 1 ? '' : c3}x^3+hx^2+kx${c0 > 0 ? '+' + c0 : c0}\\) 的因式，求 \\(h\\)、\\(k\\)`,
+      answerParts: _sfParts(['h', 'k'], [h, k]) };
   },
 
   'b1-poly-linquad': lv => {
