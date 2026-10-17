@@ -2530,6 +2530,104 @@ function _b1PolyIneq2(level){
 }
 
 // ── b1-line：直線方程式 ────────────────────────────────────────────
+// ── 直線：點與平行、垂直（含平行四邊形、直角三角形；不使用三角函數）──
+function _b1LinePP(level) {
+  const L = (a, b, c) => `${_sfTerms([[a, 'x'], [b, 'y'], [c, '']])}=0`;
+  const P = p => `(${p[0]},${p[1]})`;
+  const rp = () => [srRandInt(-6, 6), srRandInt(-6, 6)];
+  const collinear = (A, B, C) => (B[0] - A[0]) * (C[1] - A[1]) === (B[1] - A[1]) * (C[0] - A[0]);
+  const xy = (x, y) => _sfParts(['x', 'y'], [_sfF(x), _sfF(y)]);
+  const ok = f => f.den <= 30;
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 4);
+    if (t <= 1) {
+      // 過點 P 且與 L 平行（t=0）或垂直（t=1）的直線，求其截距
+      const a = srRnz(-6, 6), b = srRnz(-6, 6), c = srRandInt(-9, 9);
+      const x0 = srRandInt(-6, 6), y0 = srRandInt(-6, 6);
+      if (t === 0 && a * x0 + b * y0 + c === 0) return null;
+      const [A, B] = t === 0 ? [a, b] : [b, -a];
+      const C = -(A * x0 + B * y0);
+      const askY = srRandInt(0, 1) === 0;
+      return { question: `求過點 \\(P${P([x0, y0])}\\) 且與直線 \\(L:${L(a, b, c)}\\) ${t === 0 ? '平行' : '垂直'}的直線之 \\(${askY ? 'y' : 'x'}\\) 截距`,
+        answer: askY ? frac(-C, B) : frac(-C, A), type: 'fraction', answerPrefix: '' };
+    }
+    if (t === 2) {
+      // 含 k 的兩直線平行或垂直，求 k
+      const p = srRandInt(-5, 5), b1 = srRnz(-6, 6), a2 = srRnz(-6, 6), b2 = srRnz(-6, 6);
+      const c1 = srRandInt(-9, 9), c2 = srRandInt(-9, 9), par = srRandInt(0, 1) === 0;
+      // 平行：(k+p)b2 = a2 b1；垂直：(k+p)a2 + b1 b2 = 0
+      const k = par ? fsub(frac(a2 * b1, b2), frac(p)) : fsub(frac(-b1 * b2, a2), frac(p));
+      if (par && feq(fmul(frac(b1, b2), frac(c2)), frac(c1))) return null;
+      const kx = p === 0 ? 'k' : `(k${p > 0 ? '+' + p : p})`;
+      const ys = `${b1 > 0 ? '+' : '-'}${Math.abs(b1) === 1 ? '' : Math.abs(b1)}y`;
+      return { question: `若直線 \\(L_1:${kx}x${ys}=${c1}\\) 與 \\(L_2:${_sfTerms([[a2, 'x'], [b2, 'y']])}=${c2}\\) 互相${par ? '平行' : '垂直'}，求 \\(k\\)`,
+        answer: k, type: 'fraction', answerPrefix: 'k' };
+    }
+    if (t === 3) {
+      // 平行四邊形 ABCD 已知三頂點，求 D
+      const A = rp(), B = rp(), C = rp();
+      if (collinear(A, B, C)) return null;
+      return { question: `平行四邊形 \\(ABCD\\) 中，\\(A${P(A)}\\)、\\(B${P(B)}\\)、\\(C${P(C)}\\)，求頂點 \\(D\\) 的坐標 \\((x,y)\\)`,
+        answerParts: xy(A[0] + C[0] - B[0], A[1] + C[1] - B[1]) };
+    }
+    // t===4：直角三角形，∠A=90°，C 在 x 軸或 y 軸上
+    const A = rp(), B = rp(), onX = srRandInt(0, 1) === 0;
+    const dx = B[0] - A[0], dy = B[1] - A[1];
+    if (onX ? (dx === 0 || A[1] === 0) : (dy === 0 || A[0] === 0)) return null;
+    // (C−A)·(B−A)=0
+    const v = onX ? fadd(frac(A[0]), frac(A[1] * dy, dx)) : fadd(frac(A[1]), frac(A[0] * dx, dy));
+    return { question: `\\(\\triangle ABC\\) 中，\\(A${P(A)}\\)、\\(B${P(B)}\\)，頂點 \\(C\\) 在 \\(${onX ? 'x' : 'y'}\\) 軸上，且 \\(\\angle A=90^\\circ\\)，求 \\(C\\) 的 \\(${onX ? 'x' : 'y'}\\) 坐標`,
+      answer: v, type: 'fraction', answerPrefix: '' };
+  }
+
+  const t = srRandInt(0, 4);
+  if (t === 0) {
+    // 平行四邊形：兩鄰邊所在直線與對角頂點，求另一頂點
+    const A = [srRandInt(-5, 5), srRandInt(-5, 5)];
+    const u = [srRnz(-3, 3), srRnz(-3, 3)], v = [srRnz(-3, 3), srRnz(-3, 3)];
+    if (srGcd(Math.abs(u[0]), Math.abs(u[1])) !== 1 || srGcd(Math.abs(v[0]), Math.abs(v[1])) !== 1) return null;
+    if (u[0] * v[1] - u[1] * v[0] === 0) return null;
+    const s = srRnz(-3, 3), w = srRnz(-3, 3);
+    const B = [A[0] + s * u[0], A[1] + s * u[1]];
+    const C = [B[0] + w * v[0], B[1] + w * v[1]];
+    const line = d => L(d[1], -d[0], -(d[1] * A[0] - d[0] * A[1]));
+    return { question: `平行四邊形 \\(ABCD\\) 中，邊 \\(\\overline{AB}\\) 在直線 \\(L_1:${line(u)}\\) 上，邊 \\(\\overline{AD}\\) 在直線 \\(L_2:${line(v)}\\) 上，且 \\(C${P(C)}\\)，求頂點 \\(B\\) 的坐標 \\((x,y)\\)`,
+      answerParts: xy(B[0], B[1]) };
+  }
+  if (t <= 2) {
+    // 點 P 在直線 L 上的垂足（t=1）或關於 L 的對稱點（t=2）
+    const a = srRnz(-4, 4), b = srRnz(-4, 4), c = srRandInt(-8, 8);
+    const x0 = srRandInt(-6, 6), y0 = srRandInt(-6, 6), d = a * x0 + b * y0 + c;
+    if (d === 0) return null;
+    const k = frac((t === 1 ? 1 : 2) * d, a * a + b * b);
+    const X = fsub(frac(x0), fmul(k, frac(a))), Y = fsub(frac(y0), fmul(k, frac(b)));
+    if (!ok(X) || !ok(Y)) return null;
+    return { question: t === 1
+        ? `求點 \\(P${P([x0, y0])}\\) 在直線 \\(L:${L(a, b, c)}\\) 上的垂足坐標 \\((x,y)\\)`
+        : `求點 \\(P${P([x0, y0])}\\) 關於直線 \\(L:${L(a, b, c)}\\) 的對稱點坐標 \\((x,y)\\)`,
+      answerParts: xy(X, Y) };
+  }
+  const A = rp(), B = rp(), C = rp();
+  if (collinear(A, B, C)) return null;
+  const tri = `\\(\\triangle ABC\\) 中，\\(A${P(A)}\\)、\\(B${P(B)}\\)、\\(C${P(C)}\\)`;
+  if (t === 3) {
+    // 過 A 的高（垂直於 BC）所在直線之 y 截距
+    const dx = C[0] - B[0], dy = C[1] - B[1];
+    if (dy === 0) return null;
+    const v = fadd(frac(A[1]), frac(dx * A[0], dy));
+    return { question: `${tri}，求過 \\(A\\) 且垂直於 \\(\\overline{BC}\\) 的高所在直線之 \\(y\\) 截距`,
+      answer: v, type: 'fraction', answerPrefix: '' };
+  }
+  // t===4：垂心（兩條高的交點）
+  const a1 = C[0] - B[0], b1 = C[1] - B[1], c1 = a1 * A[0] + b1 * A[1];
+  const a2 = C[0] - A[0], b2 = C[1] - A[1], c2 = a2 * B[0] + b2 * B[1];
+  const det = a1 * b2 - a2 * b1;
+  const X = frac(c1 * b2 - c2 * b1, det), Y = frac(a1 * c2 - a2 * c1, det);
+  if (!ok(X) || !ok(Y)) return null;
+  return { question: `${tri}，求 \\(\\triangle ABC\\) 的垂心坐標 \\((x,y)\\)`, answerParts: xy(X, Y) };
+}
+
 function genB1Line(level, _n) {
   for (let _i = 0; _i < 40; _i++) {
     const q = _b1Line(level);
@@ -2693,7 +2791,8 @@ function _b1Line(level) {
   }
 
   if (level === 'medium') {
-    const t = srRandInt(0, 9);
+    const t = srRandInt(0, 11);
+    if (t === 7 || t >= 10) return _b1LinePP('medium');
 
     if (t === 0) {
       // 兩點求分數斜率
@@ -2773,15 +2872,6 @@ function _b1Line(level) {
       };
     }
 
-    if (t === 7) {
-      // 斜截式 y=mx+b → 一般式 ax+by+c=0（x係數>0）
-      const m = srRnz(-4, 4), b = srRandInt(-5, 5);
-      return {
-        question:`將直線 \\(${_b1LSlpInt(m, b)}\\) 改寫成一般式（不含空格，\\(x\\) 係數為正，如 \\(2x\\text{-}y\\text{+3=0}\\)）`,
-        answer:_b1LEqGenTxt(m, -1, b), type:'text', answerPrefix:''
-      };
-    }
-
     if (t === 8) {
       // 給斜率和一點，寫斜截式
       const m = srRnz(-4, 4), b = srRandInt(-5, 5);
@@ -2803,7 +2893,8 @@ function _b1Line(level) {
   }
 
   // hard
-  const t = srRandInt(0, 7);
+  const t = srRandInt(0, 9);
+  if (t === 1 || t === 2 || t === 5 || t >= 8) return _b1LinePP('hard');
 
   if (t === 0) {
     // 兩點求 y 截距（含分數）
@@ -2816,28 +2907,6 @@ function _b1Line(level) {
     return {
       question:`直線過 \\((${x1},\\ ${y1})\\) 與 \\((${x2},\\ ${y2})\\)，求 \\(y\\) 截距`,
       answer: f.isInt ? f.n : f.fobj, type: f.isInt ? 'number' : 'fraction', answerPrefix:''
-    };
-  }
-
-  if (t === 1) {
-    // 斜截式→截距式求 x 截距 a = -b/m
-    const m = srRnz(-4, 4), b = srRnz(-4, 4);
-    const f = _b1LFrac(-b, m);
-    if (!f) return null;
-    return {
-      question:`直線 \\(${_b1LSlpInt(m, b)}\\) 改寫成截距式 \\(\\dfrac{x}{a} + \\dfrac{y}{b} = 1\\)，求 \\(a\\)`,
-      answer: f.isInt ? f.n : f.fobj, type: f.isInt ? 'number' : 'fraction', answerPrefix:'a'
-    };
-  }
-
-  if (t === 2) {
-    // 一般式求截距和 a+b（兩截距皆為整數）
-    const A = srRnz(-3, 3), B = srRnz(-3, 3), C = srRnz(-4, 4);
-    if (C % A !== 0 || C % B !== 0) return null;
-    const a = -C / A, b = -C / B;
-    return {
-      question:`直線 \\(${_b1LGen(A, B, C)}\\) 的截距式為 \\(\\dfrac{x}{a} + \\dfrac{y}{b} = 1\\)，求 \\(a + b\\)`,
-      answer:a + b, type:'number', answerPrefix:''
     };
   }
 
@@ -2858,18 +2927,6 @@ function _b1Line(level) {
     return {
       question:`若直線 \\(L\\) 垂直於 \\(${_b1LSlpInt(m, b)}\\)，則 \\(L\\) 的斜率為何？`,
       answer: f.isInt ? f.n : f.fobj, type: f.isInt ? 'number' : 'fraction', answerPrefix:'m'
-    };
-  }
-
-  if (t === 5) {
-    // 一般式 → 截距式（正整數截距）
-    const pairs = [[2,3],[3,2],[2,5],[5,2],[3,4],[4,3],[3,5],[5,3]];
-    const [xInt, yInt] = pairs[srRandInt(0, pairs.length - 1)];
-    // x-int=xInt, y-int=yInt → A=yInt, B=xInt, C=-xInt*yInt
-    const A = yInt, B = xInt, C = -xInt * yInt;
-    return {
-      question:`直線 \\(${_b1LGen(A, B, C)}\\) 改寫成截距式，請寫出截距式（不含空格，如 \\(x\\text{/2+}y\\text{/3=1}\\)）`,
-      answer:`x/${xInt}+y/${yInt}=1`, type:'text', answerPrefix:''
     };
   }
 
