@@ -10,7 +10,10 @@ const _KATEX_OPTS = {
 
 // ─── 題型設定 ──────────────────────────────────────────────────────
 
-const ALL_GENERATORS = Object.assign({}, FRAC_GENERATORS, DEC_GENERATORS, ELEM_GENERATORS, JR_GENERATORS, SR_GENERATORS);
+// quiz.html 只載入題目所需年級的生成器檔，未載入者以空物件代替
+const ALL_GENERATORS = Object.assign({}, FRAC_GENERATORS, DEC_GENERATORS, ELEM_GENERATORS,
+  typeof JR_GENERATORS !== 'undefined' ? JR_GENERATORS : {},
+  typeof SR_GENERATORS !== 'undefined' ? SR_GENERATORS : {});
 
 const TOPIC_NAMES = {
   'frac-add': '分數加法',
@@ -722,9 +725,17 @@ function renderQuiz(questions, params) {
   document.getElementById('btn-check').disabled = false;
   document.getElementById('btn-check').textContent = '對答案';
 
-  // 同步渲染解答頁
-  renderAnswerSheet(questions, topicLabel, levelLabel, dateStr);
+  // 解答頁只在列印時才需要，延後到列印前再排版
+  _pendingAnswerSheet = [questions, topicLabel, levelLabel, dateStr];
 }
+
+let _pendingAnswerSheet = null;
+function ensureAnswerSheet() {
+  if (!_pendingAnswerSheet) return;
+  renderAnswerSheet(..._pendingAnswerSheet);
+  _pendingAnswerSheet = null;
+}
+window.addEventListener('beforeprint', ensureAnswerSheet);
 
 // ─── 解答頁 ───────────────────────────────────────────────────────
 
@@ -973,7 +984,8 @@ function checkAnswers() {
     <span class="score-pct">${pct}%</span>
     <span class="score-label">${pct >= 80 ? '優秀！' : pct >= 60 ? '繼續加油！' : '再練習一次吧！'}</span>`;
 
-  renderMathInElement(document.getElementById('question-list'), _KATEX_OPTS);
+  // 對答案只改動回饋欄與分數列，只重新排版這些地方
+  document.querySelectorAll('#question-list .q-feedback').forEach(fb => renderMathInElement(fb, _KATEX_OPTS));
   renderMathInElement(document.getElementById('score-bar'), _KATEX_OPTS);
 
   document.getElementById('btn-check').textContent = '重新對答';
@@ -997,6 +1009,7 @@ function printQuiz() {
 }
 
 function printWithAnswers() {
+  ensureAnswerSheet();
   document.body.classList.add('printing-ans-only');
   window.print();
   document.body.classList.remove('printing-ans-only');
