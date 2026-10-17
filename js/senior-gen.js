@@ -2733,6 +2733,84 @@ function _b1LineEq(level) {
   return abcQ(`求線段 \\(\\overline{AB}\\) 的垂直平分線，其中 \\(A${pt(A[0], A[1], true)}\\)、\\(B${pt(B[0], B[1], true)}\\)`, intForm(dx, dy, fadd(fmul(dx, mx), fmul(dy, my))));
 }
 
+// ── 直線：與坐標軸圍成的三角形面積 ─────────────────────────────
+function _b1LineArea(level) {
+  const fq = f => fracToLatex(f);
+  const L = (a, b, c) => `${_sfTerms([[a, 'x'], [b, 'y']])}=${fq(_sfF(c))}`;
+  const half = f => fmul(_sfAbs(f), frac(1, 2));
+  const AX = '與兩坐標軸所圍成的三角形面積';
+  const ans = S => ({ answer: S, type: 'fraction', answerPrefix: '面積' });
+  // 兩直線與 x 軸（axis='x'）或 y 軸（axis='y'）圍成的三角形面積
+  const twoLines = (l1, l2, axis) => {
+    const [a1, b1, c1] = l1.map(_sfF), [a2, b2, c2] = l2.map(_sfF);
+    const det = fsub(fmul(a1, b2), fmul(a2, b1));
+    if (det.num === 0) return null;
+    const Px = fdiv(fsub(fmul(c1, b2), fmul(c2, b1)), det), Py = fdiv(fsub(fmul(a1, c2), fmul(a2, c1)), det);
+    const [k1, k2, h] = axis === 'x' ? [a1, a2, Py] : [b1, b2, Px];
+    if (k1.num === 0 || k2.num === 0 || h.num === 0) return null;
+    const i1 = fdiv(c1, k1), i2 = fdiv(c2, k2);
+    if (feq(i1, i2)) return null;
+    return half(fmul(fsub(i1, i2), h));
+  };
+
+  if (level === 'basic') {
+    if (srRandInt(0, 1) === 0) {
+      const a = srRnz(-6, 6), b = srRnz(-6, 6), c = srRnz(-12, 12);
+      return { question: `直線 \\(${L(a, b, c)}\\) ${AX}為何？`, ...ans(half(fmul(frac(c, a), frac(c, b)))) };
+    }
+    const m = frac(srRnz(-6, 6), pick([1, 2, 3])), k = srRnz(-8, 8);
+    const xi = fdiv(frac(-k), m);
+    return { question: `直線 \\(y=${_sfTerms([[m, 'x'], [k, '']])}\\) ${AX}為何？`, ...ans(half(fmul(xi, frac(k)))) };
+  }
+
+  if (level === 'medium') {
+    if (srRandInt(0, 1) === 0) {
+      // 過點且已知斜率（分數）的直線與兩軸
+      const m = frac(srRnz(-5, 5), pick([2, 3, 4])), x0 = srRandInt(-5, 5), y0 = srRandInt(-5, 5);
+      const k = fsub(frac(y0), fmul(m, frac(x0)));
+      if (k.num === 0 || m.den === 1) return null;
+      return { question: `直線過點 \\((${x0},${y0})\\) 且斜率為 \\(${fq(m)}\\)，求此直線${AX}`, ...ans(half(fmul(fdiv(_sfNeg(k), m), k))) };
+    }
+    // 兩直線與 x 軸
+    const l1 = [srRnz(-5, 5), srRnz(-5, 5), srRandInt(-10, 10)], l2 = [srRnz(-5, 5), srRnz(-5, 5), srRandInt(-10, 10)];
+    const S = twoLines(l1, l2, 'x');
+    if (!S || S.den > 30) return null;
+    return { question: `兩直線 \\(L_1:${L(...l1)}\\)、\\(L_2:${L(...l2)}\\) 與 \\(x\\) 軸所圍成的三角形面積為何？`, ...ans(S) };
+  }
+
+  const t = srRandInt(0, 2);
+  if (t === 0) {
+    // 兩直線（含分數係數）與 x 軸或 y 軸
+    const fc = () => srRandInt(0, 2) === 0 ? frac(srRnz(-5, 5), pick([2, 3])) : frac(srRnz(-6, 6));
+    const l1 = [fc(), fc(), frac(srRandInt(-10, 10))], l2 = [fc(), fc(), frac(srRandInt(-10, 10))];
+    if ([...l1, ...l2].every(f => f.den === 1)) return null;
+    const axis = srRandInt(0, 1) === 0 ? 'x' : 'y';
+    const S = twoLines(l1, l2, axis);
+    if (!S || S.den > 60) return null;
+    return { question: `兩直線 \\(L_1:${L(...l1)}\\)、\\(L_2:${L(...l2)}\\) 與 \\(${axis}\\) 軸所圍成的三角形面積為何？`, ...ans(S) };
+  }
+  if (t === 1) {
+    // 已知與兩軸圍成的面積，求常數 c（c>0）
+    const a = srRnz(-6, 6), b = srRnz(-6, 6), c = srRandInt(1, 12);
+    const S = frac(c * c, 2 * Math.abs(a * b));
+    return { question: `直線 \\(${_sfTerms([[a, 'x'], [b, 'y']])}=c\\)（\\(c>0\\)）${AX}為 \\(${fq(S)}\\)，求 \\(c\\)`,
+      answer: c, type: 'number', answerPrefix: 'c' };
+  }
+  // 小數截距：直線過兩點（小數坐標）與兩軸
+  const m = frac(srRnz(-15, 15), pick([2, 5, 10])), k = frac(srRnz(-30, 30), 10);
+  const x1 = frac(srRandInt(-30, 30), 10), x2 = frac(srRandInt(-30, 30), 10);
+  if (feq(x1, x2)) return null;
+  const y1 = fadd(fmul(m, x1), k), y2 = fadd(fmul(m, x2), k);
+  const d = f => String(Math.round(f.num / f.den * 1e6) / 1e6);
+  const S = half(fmul(fdiv(_sfNeg(k), m), k));
+  let dd = S.den;
+  while (dd % 2 === 0) dd /= 2;
+  while (dd % 5 === 0) dd /= 5;
+  if (dd !== 1) return null;
+  return { question: `直線過 \\((${d(x1)},${d(y1)})\\) 與 \\((${d(x2)},${d(y2)})\\) 兩點，求此直線${AX}（以小數表示）`,
+    answer: Math.round(S.num / S.den * 1e6) / 1e6, type: 'number', answerPrefix: '面積' };
+}
+
 function genB1Line(level, _n) {
   for (let _i = 0; _i < 40; _i++) {
     const q = _b1Line(level);
@@ -2816,7 +2894,8 @@ function _b1LEqGenTxt(a, b, c) {
 
 function _b1Line(level) {
   if (level === 'basic') {
-    const t = srRandInt(0, 10);
+    const t = srRandInt(0, 12);
+    if (t >= 11) return _b1LineArea('basic');
     if (t >= 5) return _b1LineEq('basic');
 
     if (t === 0) {
@@ -2897,7 +2976,8 @@ function _b1Line(level) {
   }
 
   if (level === 'medium') {
-    const t = srRandInt(0, 13);
+    const t = srRandInt(0, 15);
+    if (t >= 14) return _b1LineArea('medium');
     if (t >= 12 || t === 6 || t === 8 || t === 9) return _b1LineEq('medium');
     if (t === 7 || t === 10 || t === 11) return _b1LinePP('medium');
 
@@ -3000,7 +3080,8 @@ function _b1Line(level) {
   }
 
   // hard
-  const t = srRandInt(0, 11);
+  const t = srRandInt(0, 13);
+  if (t >= 12) return _b1LineArea('hard');
   if (t >= 10 || t === 6 || t === 7) return _b1LineEq('hard');
   if (t === 1 || t === 2 || t === 5 || t === 8 || t === 9) return _b1LinePP('hard');
 
