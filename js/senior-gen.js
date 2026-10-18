@@ -5063,56 +5063,62 @@ function _b1CircEq(level) {
 
   // hard
   const ht = srRandInt(0, 2);
+  const pt = (x, y) => `(${x},\\ ${y})`;
+  // 半徑平方為 N 的整數向量（N 有多種表示法，方便取兩、三個圓上整數點）
+  const vecs = N => {
+    const v = [];
+    for (let x = -15; x <= 15; x++) for (let y = -15; y <= 15; y++) if (x * x + y * y === N) v.push([x, y]);
+    return v;
+  };
+  const NS = [25, 50, 65, 85, 100, 125, 130, 145, 169, 170, 185, 200, 221];
 
   if (ht === 0) {
-    // 兩圓公共弦斜率（pool）
-    // 公共弦方程式 = C1 - C2（展開一般式相減）
-    const pool = [
-      // C1:x²+y²=25(F1=-25), C2:x²+y²-6x+8y=0 → 6x-8y-25=0, slope=3/4
-      { c1:'x^2+y^2=25', c2:'x^2+y^2-6x+8y=0', sN:3, sD:4 },
-      // C1:x²+y²=4(F1=-4), C2:x²+y²-4x+2y-4=0 → 4x-2y=0, slope=2
-      { c1:'x^2+y^2=4', c2:'x^2+y^2-4x+2y-4=0', sN:2, sD:1 },
-      // C1:x²+y²-2x-4y=0(D1=-2,E1=-4,F1=0), C2:x²+y²+2x-2y-8=0 → -4x-2y+8=0 → 2x+y=4, slope=-2
-      { c1:'x^2+y^2-2x-4y=0', c2:'x^2+y^2+2x-2y-8=0', sN:-2, sD:1 },
-      // C1:x²+y²=5(F1=-5), C2:x²+y²-4x+6y-5=0 → 4x-6y=0, slope=2/3
-      { c1:'x^2+y^2=5', c2:'x^2+y^2-4x+6y-5=0', sN:2, sD:3 },
-    ];
-    const item = srQPick(pool, _cEqHQ);
-    const ans = item.sD === 1 ? item.sN : frac(item.sN, item.sD);
+    // 圓心在直線 y=mx+b 上，且通過 A、B 兩點，求 r²
+    const N = pick(NS), V = vecs(N);
+    const m = srRandInt(-3, 3), b = srRandInt(-6, 6), h = srRandInt(-6, 6), k = m * h + b;
+    const v1 = pick(V), v2 = pick(V);
+    if (v1[0] === v2[0] && v1[1] === v2[1]) return null;
+    const A = [h + v1[0], k + v1[1]], B = [h + v2[0], k + v2[1]];
+    // 直線不可與 AB 的中垂線重合（否則圓心不唯一）
+    if ((B[0] - A[0]) + m * (B[1] - A[1]) === 0) return null;
+    const line = m === 0 ? `y=${b}` : `y=${m === 1 ? '' : m === -1 ? '-' : m}x${b > 0 ? '+' + b : b < 0 ? b : ''}`;
+    const lineDesc = m === 0 && b === 0 ? '\\(x\\) 軸' : `直線 \\(${line}\\)`;
     return {
-      question: `已知兩圓 \\(${item.c1}\\) 與 \\(${item.c2}\\) 相交，求其公共弦的斜率。`,
-      answer: ans, type: item.sD === 1 ? 'number' : 'fraction', answerPrefix: '斜率'
+      question: `一個圓的圓心在${lineDesc}上，且通過點 \\(A${pt(...A)}\\) 與 \\(B${pt(...B)}\\)，求此圓的 \\(r^2\\)。`,
+      answer: N, type: 'number', answerPrefix: '\\(r^2\\)'
     };
   }
 
-  if (ht === 2) {
-    // 兩圓外切，求參數（pool）
-    const extPool = [
-      { q: '兩圓 \\((x-a)^2+y^2=4\\) 與 \\((x-4)^2+y^2=1\\) 外切，求所有可能的 \\(a\\) 值之和。', ans: 8 },
-      { q: '兩圓 \\(x^2+y^2=r^2\\) 與 \\((x-5)^2+(y-12)^2=4\\) 外切（\\(r>0\\)），求 \\(r\\)。', ans: 11 },
-      { q: '兩圓 \\(x^2+(y-b)^2=9\\) 與 \\(x^2+(y-5)^2=1\\) 外切，求所有可能的 \\(b\\) 值之和。', ans: 10 },
-      { q: '兩圓 \\((x-k)^2+y^2=16\\) 與 \\((x+k)^2+y^2=4\\) 外切（\\(k>0\\)），求 \\(k\\)。', ans: 3 },
-    ];
-    const ep = srQPick(extPool, _cEqHQ);
-    return { question: ep.q, answer: ep.ans, type: 'number', answerPrefix: '答案' };
+  if (ht === 1) {
+    // 過三點的圓：x²+y²+Dx+Ey+F=0，求 D、E、F
+    const N = pick(NS), V = vecs(N);
+    const h = srRandInt(-6, 6), k = srRandInt(-6, 6);
+    const [v1, v2, v3] = [pick(V), pick(V), pick(V)];
+    const key = v => v.join(',');
+    if (new Set([key(v1), key(v2), key(v3)]).size < 3) return null;
+    const P = [v1, v2, v3].map(v => [h + v[0], k + v[1]]);
+    return {
+      question: `求通過三點 \\(A${pt(...P[0])}\\)、\\(B${pt(...P[1])}\\)、\\(C${pt(...P[2])}\\) 的圓方程式 \\(x^2+y^2+Dx+Ey+F=0\\)，求 \\(D\\)、\\(E\\)、\\(F\\)`,
+      answerParts: [
+        { prefix: 'D', answer: -2 * h, type: 'number' },
+        { prefix: 'E', answer: -2 * k, type: 'number' },
+        { prefix: 'F', answer: h * h + k * k - N, type: 'number' },
+      ]
+    };
   }
 
-  // ht===1: 圓心在直線上且過兩點，求r²
-  const hPool = [
-    // 圓心在y=x+1，過A(2,0)B(0,4)：center(1,2), r²=5
-    { line: 'y=x+1', A:[2,0], B:[0,4], r2:5 },
-    // 圓心在x軸(y=0)，過A(1,2)B(5,2)：center(3,0), r²=8
-    { line: 'x 軸（即 \\(y=0\\)）', A:[1,2], B:[5,2], r2:8 },
-    // 圓心在y=-x+2，過A(0,0)B(4,0)：center(2,0), r²=4
-    { line: 'y=-x+2', A:[0,0], B:[4,0], r2:4 },
-    // 圓心在y=2x-1，過A(0,1)B(2,1)：center(h,2h-1), dist相等: h²+(2h-2)²=(h-2)²+(2h-2)²→h²=(h-2)²→h=1, center(1,1), r²=0+0=0... degenerate
-    // Use: 圓心在y=x，過A(0,4)B(6,4)：center(h,h): (h²+(h-4)²)=((h-6)²+(h-4)²)→h²=(h-6)²→h=3, center(3,3), r²=9+1=10
-    { line: 'y=x', A:[0,4], B:[6,4], r2:10 },
-  ];
-  const hp = hPool[srRandInt(0, hPool.length - 1)];
+  // 與兩軸都相切且通過點 P 的圓：圓心 (sr, tr)，(x-sr)²+(y-tr)²=r² → r = (|x|+|y|) ± √(2|xy|)
+  const pairs = [];
+  for (let a = 1; a <= 20; a++) for (let c = 1; c <= 20; c++) {
+    const q = Math.round(Math.sqrt(2 * a * c));
+    if (a !== c && q * q === 2 * a * c) pairs.push([a, c, q]);
+  }
+  const [x, y, s] = pick(pairs), r1 = x + y - s, r2 = x + y + s;
+  const sx = srRandInt(0, 1) ? 1 : -1, sy = srRandInt(0, 1) ? 1 : -1;
+  const big = srRandInt(0, 1) === 0;
   return {
-    question: `一個圓的圓心在直線 \\(${hp.line}\\) 上，且通過點 \\(A(${hp.A[0]},\\ ${hp.A[1]})\\) 與 \\(B(${hp.B[0]},\\ ${hp.B[1]})\\)，求此圓的 \\(r^2\\)。`,
-    answer: hp.r2, type: 'number', answerPrefix: '\\(r^2\\)'
+    question: `一個圓與 \\(x\\) 軸、\\(y\\) 軸都相切，且通過點 \\(P${pt(sx * x, sy * y)}\\)。這樣的圓有兩個，求${big ? '較大' : '較小'}的半徑 \\(r\\)。`,
+    answer: big ? r2 : r1, type: 'number', answerPrefix: '\\(r\\)'
   };
 }
 
@@ -5124,7 +5130,7 @@ function genB1CircLine(level) {
 }
 function _b1CircLine(level) {
   if (level === 'basic') {
-    const t = srRandInt(0, 3);
+    const t = srRandInt(0, 2);
 
     if (t === 0) {
       // 判斷直線3x+4y+C=0與圓的位置關係
@@ -5184,27 +5190,6 @@ function _b1CircLine(level) {
       return {
         question: `求斜率為 \\(\\dfrac{4}{3}\\) 且與圓 \\(${_cStd(h, k, r*r)}\\) 相切的直線方程式（整理為 \\(4x-3y+c=0\\)），\\(c\\) 的較大值為何？`,
         answer: cMax, type: 'number', answerPrefix: '\\(c\\)'
-      };
-    }
-
-    // t===3: 兩圓的位置關係（外離/外切/相交/內切/內含）
-    {
-      const twoCircCases = [
-        { c1:'x^2+y^2=4',  c2:'(x-7)^2+y^2=4',  rel:'外離' },
-        { c1:'x^2+y^2=1',  c2:'x^2+(y-6)^2=4',  rel:'外離' },
-        { c1:'x^2+y^2=4',  c2:'(x-5)^2+y^2=9',  rel:'外切' },
-        { c1:'x^2+y^2=1',  c2:'x^2+(y-4)^2=9',  rel:'外切' },
-        { c1:'x^2+y^2=9',  c2:'(x-4)^2+y^2=4',  rel:'相交' },
-        { c1:'x^2+y^2=16', c2:'(x-3)^2+y^2=9',  rel:'相交' },
-        { c1:'x^2+y^2=25', c2:'(x-3)^2+y^2=4',  rel:'內切' },
-        { c1:'x^2+y^2=16', c2:'(x-2)^2+y^2=4',  rel:'內切' },
-        { c1:'x^2+y^2=25', c2:'(x-1)^2+y^2=4',  rel:'內含' },
-        { c1:'x^2+y^2=16', c2:'(x-1)^2+y^2=4',  rel:'內含' },
-      ];
-      const tc = twoCircCases[srRandInt(0, twoCircCases.length - 1)];
-      return {
-        question: `判斷兩圓 \\(${tc.c1}\\) 與 \\(${tc.c2}\\) 的位置關係。（填「外離」、「外切」、「相交」、「內切」或「內含」）`,
-        answer: tc.rel, type: 'text', answerPrefix: '位置關係'
       };
     }
   }
