@@ -4862,7 +4862,7 @@ function _gfc(c) { // general-form constant
 }
 
 // ── b1-circ-eq：圓的定義與圓方程式 ──────────────────────────────
-let _cEqBQ = [], _cEqHQ = [];
+let _cEqBQ = [], _cEqHQ = [], _lastCircTan = '';
 function genB1CircEq(level) {
   for (let i = 0; i < 40; i++) { const q = _b1CircEq(level); if (q) return q; }
   return _b1CircEq('basic');
@@ -5029,11 +5029,16 @@ function _b1CircEq(level) {
 
     if (t === 3) {
       // 圓與x軸相切，圓心橫座標h，且過點(x0,y0)，求r
-      const goodCases = [
-        {h:0,x0:3,y0:3,r:3},{h:1,x0:3,y0:2,r:2},{h:2,x0:6,y0:2,r:5},
-        {h:3,x0:7,y0:4,r:4},{h:0,x0:4,y0:2,r:5},{h:4,x0:8,y0:2,r:5},
-      ];
-      const cs = goodCases[srRandInt(0, goodCases.length - 1)];
+      // 圓心 (h, ±r)：(x0-h)² = y0(2r-y0) 須為完全平方
+      let cs = null;
+      for (let i = 0; i < 200 && !cs; i++) {
+        const r = srRandInt(3, 25), y0 = srRandInt(1, 2 * r - 1), d2 = y0 * (2 * r - y0), d = Math.round(Math.sqrt(d2));
+        if (d * d !== d2 || d === 0 || y0 === r) continue;
+        const h = srRandInt(-12, 12), s = srRandInt(0, 1) ? 1 : -1, sd = srRandInt(0, 1) ? 1 : -1;
+        cs = { h, x0: h + sd * d, y0: s * y0, r };
+      }
+      if (!cs || _lastCircTan === `${cs.h},${cs.x0},${cs.y0}`) return null;
+      _lastCircTan = `${cs.h},${cs.x0},${cs.y0}`;
       return {
         question: `一個圓與 \\(x\\) 軸相切，圓心橫座標為 \\(${cs.h}\\)，且圓通過點 \\(P(${cs.x0},\\ ${cs.y0})\\)，求圓的半徑 \\(r\\)。`,
         answer: cs.r, type: 'number', answerPrefix: '\\(r\\)'
