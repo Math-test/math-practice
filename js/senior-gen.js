@@ -1925,7 +1925,7 @@ function _b1PolySynth(level){
     }
   }
   {
-    const ht=srRandInt(0,3);
+    const ht=srRandInt(0,2);
     if(ht===1) return _psRadEval(false);
     if(ht===0){
       // 連續兩次綜合除法
@@ -1942,23 +1942,6 @@ function _b1PolySynth(level){
       ];
       const p=srQPick(pool,_psH0Q);if(!p)return null;
       return{question:`\\(f(x)=${p.f}\\)：${p.desc}為何？`,answer:p.r,type:'number',answerPrefix:'餘式'};
-    }
-    if(ht===2){
-      // 綜合除法求商式，再做因式判斷
-      const pool=[
-        {f:'x^3-6x^2+11x-6',a:1,qf:'x^2-5x+6',root:2,desc:'所得商式以 \\((x-2)\\) 是否整除？（填「是」或「不是」）',ans:'是'},
-        {f:'x^3+x^2-4x-4',a:-2,qf:'x^2-x-2',root:2,desc:'所得商式以 \\((x-2)\\) 是否整除？（填「是」或「不是」）',ans:'是'},
-        {f:'x^3-2x^2-x+2',a:1,qf:'x^2-x-2',root:-1,desc:'所得商式以 \\((x+1)\\) 是否整除？（填「是」或「不是」）',ans:'是'},
-        {f:'x^3+2x^2-5x-6',a:-1,qf:'x^2+x-6',root:3,desc:'所得商式以 \\((x-3)\\) 是否整除？（填「是」或「不是」）',ans:'是'},
-        {f:'x^3-6x^2+11x-6',a:2,qf:'x^2-4x+3',root:3,desc:'所得商式以 \\((x-3)\\) 是否整除？（填「是」或「不是」）',ans:'是'},
-        {f:'x^3-4x^2+x+6',a:2,qf:'x^2-2x-3',root:-1,desc:'所得商式以 \\((x+1)\\) 是否整除？（填「是」或「不是」）',ans:'是'},
-        {f:'x^3-2x^2-5x+6',a:1,qf:'x^2-x-6',root:-2,desc:'所得商式以 \\((x+2)\\) 是否整除？（填「是」或「不是」）',ans:'是'},
-        {f:'x^3+x^2-4x-4',a:2,qf:'x^2+3x+2',root:-1,desc:'所得商式以 \\((x+1)\\) 是否整除？（填「是」或「不是」）',ans:'是'},
-        {f:'x^3-x^2-4x+4',a:1,qf:'x^2-4',root:2,desc:'所得商式以 \\((x-2)\\) 是否整除？（填「是」或「不是」）',ans:'是'},
-      ];
-      const p=srQPick(pool,_psH1Q);if(!p)return null;
-      const divStr=p.a>=0?`x-${p.a}`:`x+${-p.a}`;
-      return{question:`\\(f(x)=${p.f}\\) 除以 \\(${divStr}\\) 得商式 \\(q(x)\\)，${p.desc}`,answer:p.ans,type:'text',answerPrefix:''};
     }
     {
       // 降冪展開：求 b（需三次綜合除法）或四次多項式求係數
