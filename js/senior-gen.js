@@ -1812,6 +1812,21 @@ const _psB0Q=[],_psB1Q=[],_psB2Q=[];
 const _psM0Q=[],_psM1Q=[],_psM2Q=[];
 const _psH0Q=[],_psH1Q=[],_psH2Q=[];
 
+// 求 f(a+√m)：x=a+√m 滿足 x²-2ax+(a²-m)=0，以此二次式除 f(x) 取餘式 px+q
+function _psRadEval(hint){
+  const a=srRandInt(-3,3),m=pick([2,3,5,6,7]),sm=srRandInt(0,1)?1:-1;
+  const deg=hint?3:4;
+  const f=[srRandInt(1,2)];
+  for(let i=0;i<deg;i++)f.push(srRandInt(-8,8));
+  // Horner，數以 [r,s] 表示 r+s·t，t=±√m（t²=m），x=a+t
+  let v=[0,0];
+  for(const c of f)v=[v[0]*a+v[1]*m+c,v[0]+v[1]*a];
+  if(v[1]===0||Math.abs(v[0])>300||Math.abs(v[1])>300)return null;
+  const xs=a===0?`${sm<0?'-':''}\\sqrt{${m}}`:`${a}${sm<0?'-':'+'}\\sqrt{${m}}`;
+  const g=_sfPoly([1,-2*a,a*a-m]);
+  return{question:`設 \\(f(x)=${_sfPoly(f)}\\)，求 \\(f(${xs})\\)${hint?`（提示：\\(x=${xs}\\) 滿足 \\(${g}=0\\)，可先求 \\(f(x)\\) 除以 \\(${g}\\) 的餘式）`:''}`,
+    type:'radical-mix',rational:v[0],radCoeff:v[1]*sm,radM:m,answerPrefix:`\\(f(${xs})\\)`};
+}
 function genB1PolySynth(level,_n){
   for(let i=0;i<40;i++){const q=_b1PolySynth(level);if(q)return q;}
   return{question:'綜合除法',answer:0,type:'number',answerPrefix:''};
@@ -1858,7 +1873,8 @@ function _b1PolySynth(level){
     }
   }
   if(level==='medium'){
-    const t=srRandInt(0,2);
+    const t=srRandInt(0,3);
+    if(t===3) return _psRadEval(true);
     if(t===0){
       // 含未知k，由餘式求k
       const pool=[
@@ -1909,7 +1925,8 @@ function _b1PolySynth(level){
     }
   }
   {
-    const ht=srRandInt(0,2);
+    const ht=srRandInt(0,3);
+    if(ht===1) return _psRadEval(false);
     if(ht===0){
       // 連續兩次綜合除法
       const pool=[
@@ -1926,7 +1943,7 @@ function _b1PolySynth(level){
       const p=srQPick(pool,_psH0Q);if(!p)return null;
       return{question:`\\(f(x)=${p.f}\\)：${p.desc}為何？`,answer:p.r,type:'number',answerPrefix:'餘式'};
     }
-    {
+    if(ht===2){
       // 綜合除法求商式，再做因式判斷
       const pool=[
         {f:'x^3-6x^2+11x-6',a:1,qf:'x^2-5x+6',root:2,desc:'所得商式以 \\((x-2)\\) 是否整除？（填「是」或「不是」）',ans:'是'},
