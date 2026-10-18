@@ -2335,21 +2335,11 @@ function _b1PolyCubic(level){
   if(level==='basic'){
     const t=srRandInt(0,1);
     if(t===0){
-      // 三根Vieta's公式基礎
-      const pool=[
-        {eq:'x^3-6x^2+11x-6=0',q:'x_1+x_2+x_3',a:6},
-        {eq:'x^3-6x^2+11x-6=0',q:'x_1 x_2 x_3',a:6},
-        {eq:'x^3-3x^2+2x=0',q:'x_1+x_2+x_3',a:3},
-        {eq:'x^3-3x^2+2x=0',q:'x_1 x_2 x_3',a:0},
-        {eq:'x^3-2x^2-x+2=0',q:'x_1+x_2+x_3',a:2},
-        {eq:'x^3-2x^2-x+2=0',q:'x_1 x_2 x_3',a:-2},
-        {eq:'x^3+3x^2-x-3=0',q:'x_1+x_2+x_3',a:-3},
-        {eq:'x^3+3x^2-x-3=0',q:'x_1 x_2 x_3',a:3},
-        {eq:'2x^3-6x^2+4x=0',q:'x_1+x_2+x_3',a:3},
-        {eq:'x^3-x^2-4=0',q:'x_1 x_2 x_3',a:4},
-      ];
-      const p=srQPick(pool,_pcB0Q);if(!p)return null;
-      return{question:`設 \\(x_1,x_2,x_3\\) 是方程式 \\(${p.eq}\\) 的三根，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
+      // y=a(x-h)^3+k 的圖形通過已知點，求 a
+      const a=srRnz(-3,3),h=srRandInt(-4,4),k=srRandInt(-9,9),d=srRnz(-2,2);
+      const inner=h===0?'x':`(x${h>0?'-'+h:'+'+(-h)})`;
+      const kk=k===0?'':k>0?`+${k}`:`${k}`;
+      return{question:`三次函數 \\(y=a${inner}^3${kk}\\) 的圖形通過點 \\((${h+d},${k+a*d**3})\\)，求 \\(a\\)`,answer:a,type:'number',answerPrefix:'a'};
     }
     {
       // 三次函數 y=a(x-h)^3+k 的對稱中心
@@ -2364,20 +2354,11 @@ function _b1PolyCubic(level){
   if(level==='medium'){
     const t=srRandInt(0,1);
     if(t===0){
-      const pool=[
-        {eq:'x^3-6x^2+11x-6=0',q:'x_1^2+x_2^2+x_3^2',a:14},
-        {eq:'x^3-3x^2+2x=0',q:'x_1^2+x_2^2+x_3^2',a:5},
-        {eq:'x^3-2x^2-x+2=0',q:'x_1^2+x_2^2+x_3^2',a:6},
-        {eq:'x^3+3x^2-4=0',q:'x_1^2+x_2^2+x_3^2',a:9},
-        {eq:'x^3-3x+2=0',q:'x_1^2+x_2^2+x_3^2',a:6},
-        {eq:'x^3-4x^2+5x-2=0',q:'x_1^2+x_2^2+x_3^2',a:6},
-        {eq:'x^3-3x^2-x+3=0',q:'x_1^2+x_2^2+x_3^2',a:11},
-        {eq:'x^3+x^2-4x-4=0',q:'x_1^2+x_2^2+x_3^2',a:9},
-        {eq:'x^3-5x^2+8x-4=0',q:'x_1^2+x_2^2+x_3^2',a:9},
-        {eq:'x^3-x^2-4x+4=0',q:'x_1^2+x_2^2+x_3^2',a:9},
-      ];
-      const p=srQPick(pool,_pcM0Q);if(!p)return null;
-      return{question:`設 \\(x_1,x_2,x_3\\) 是方程式 \\(${p.eq}\\) 的三根，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
+      // 展開式 y=a(x-h)^3+p(x-h)+k，求對稱中心
+      const a=pick([-2,-1,1,1,2]),h=srRnz(-3,3),p=srRandInt(-6,6),k=srRandInt(-9,9);
+      const cs=[a,-3*a*h,3*a*h*h+p,-a*h**3-p*h+k];
+      return{question:`求三次函數 \\(y=${_sfPoly(cs)}\\) 圖形的對稱中心 \\((h,k)\\)`,
+        answerParts:[{prefix:'h',answer:h,type:'number'},{prefix:'k',answer:k,type:'number'}]};
     }
     {
       // 已知三次多項式有一根，利用因式定理求另一根
@@ -2413,21 +2394,11 @@ function _b1PolyCubic(level){
       return{question:`將 \\(f(x)=${p.f}\\) 完全因式分解後，求${p.q}。`,answer:p.a,type:'number',answerPrefix:p.q};
     }
     {
-      // 三根Vieta進階：對稱函數
-      const pool=[
-        {eq:'x^3-6x^2+11x-6=0',q:'x_1^3+x_2^3+x_3^3-3x_1 x_2 x_3',a:18},
-        {eq:'x^3-3x+2=0',q:'x_1^2+x_2^2+x_3^2',a:6},
-        {eq:'x^3-4x^2+5x-2=0',q:'(x_1-1)(x_2-1)(x_3-1)',a:0},
-        {eq:'x^3-6x^2+11x-6=0',q:'\\frac{1}{x_1}+\\frac{1}{x_2}+\\frac{1}{x_3}',a:frac(11,6)},
-        {eq:'x^3-4x^2+5x-2=0',q:'x_1^2+x_2^2+x_3^2',a:6},
-        {eq:'x^3-3x^2+2x=0',q:'(x_1+1)(x_2+1)(x_3+1)',a:6},
-        {eq:'x^3-2x^2-x+2=0',q:'x_1^3+x_2^3+x_3^3-3x_1 x_2 x_3',a:14},
-        {eq:'x^3-3x+2=0',q:'\\frac{1}{x_1}+\\frac{1}{x_2}+\\frac{1}{x_3}',a:frac(3,2)},
-        {eq:'x^3-6x^2+11x-6=0',q:'\\frac{1}{x_1^2}+\\frac{1}{x_2^2}+\\frac{1}{x_3^2}',a:frac(7,18)},
-      ];
-      const p=srQPick(pool,_pcH1Q);if(!p)return null;
-      const isF=p.a&&p.a.num!==undefined;
-      return{question:`設 \\(x_1,x_2,x_3\\) 是方程式 \\(${p.eq}\\) 的三根，求 \\(${p.q}\\)。`,answer:p.a,type:isF?'fraction':'number',answerPrefix:`\\(${p.q}\\)`};
+      // 對稱中心附近的局部近似直線：y=a(x-h)^3+p(x-h)+k 在 (h,k) 附近近似 y=p(x-h)+k
+      const a=pick([-2,-1,1,2]),h=srRnz(-3,3),p=srRnz(-6,6),k=srRandInt(-9,9);
+      const cs=[a,-3*a*h,3*a*h*h+p,-a*h**3-p*h+k];
+      return{question:`三次函數 \\(y=${_sfPoly(cs)}\\) 的圖形在其對稱中心附近近似於直線 \\(y=mx+c\\)，求 \\(m\\)、\\(c\\)`,
+        answerParts:[{prefix:'m',answer:p,type:'number'},{prefix:'c',answer:k-p*h,type:'number'}]};
     }
   }
 }
