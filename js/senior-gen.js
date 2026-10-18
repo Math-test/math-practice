@@ -7229,82 +7229,162 @@ function genB3bLogFunc(level) {
 
 // ── b3a-exp-eq / b3b-exp-eq：指數方程式 ─────────────────────────
 
+const _expEqRecent = [];
 function genB3aExpEq(level) {
+  for (let i = 0; i < 80; i++) {
+    const q = _b3aExpEq(level);
+    if (!q || _expEqRecent.includes(q.question)) continue;
+    _expEqRecent.push(q.question);
+    if (_expEqRecent.length > 40) _expEqRecent.shift();
+    return q;
+  }
+  return _b3aExpEq(level) || { question: '解方程式 \\(2^x=8\\)，求 \\(x\\)', answer: 3, type: 'number', answerPrefix: 'x' };
+}
+function _b3aExpEq(level) {
+  // 一次式 mx+c
+  const lin = (m, c, v = 'x') => {
+    let s = m === 0 ? '' : m === 1 ? v : m === -1 ? '-' + v : m + v;
+    if (c !== 0) s += (s && c > 0 ? '+' : '') + c;
+    return s || '0';
+  };
+  // b^e 的顯示：e 為一次式字串
+  const pw = (b, e) => (e === 'x' ? `${b}^x` : `${b}^{${e}}`);
+  // b^n 化成數字（太大則保留指數），n<0 寫成分數
+  const val = (b, n) => {
+    if (n === 0) return '1';
+    const v = Math.pow(b, Math.abs(n));
+    const s = v <= 2000 ? `${v}` : `${b}^{${Math.abs(n)}}`;
+    return n > 0 ? s : `\\dfrac{1}{${s}}`;
+  };
+  const ok = (b, n) => Math.pow(b, Math.abs(n)) <= 2000;
+  const ans = x => (typeof x === 'number' ? { answer: x, type: 'number' } : x.den === 1 ? { answer: x.num, type: 'number' } : { answer: x, type: 'fraction' });
+  const Q = (q, x) => Object.assign({ question: `解方程式 \\(${q}\\)，求 \\(x\\)`, answerPrefix: 'x' }, ans(x));
+  // 底數與其冪次：p^i
+  const POW = { 2: [2, 4, 8, 16, 32], 3: [3, 9, 27, 81], 5: [5, 25, 125] };
+
   if (level === 'basic') {
-    const t = srRandInt(0, 1);
+    const t = srRandInt(0, 3);
     if (t === 0) {
-      // a^x = a^n → x = n
-      const a = srRandInt(2,4), n = srRandInt(2,5);
-      const val = Math.pow(a,n);
-      return {question:`解方程式 \\(${a}^x=${val}\\)，求 \\(x\\)`,
-        answer:n, type:'number', answerPrefix:'x'};
+      // b^x = N 或 1/N
+      const b = pick([2, 3, 4, 5, 6, 7, 8, 9, 10]), n = srRnz(-3, 6);
+      if (!ok(b, n)) return null;
+      return Q(`${b}^x=${val(b, n)}`, n);
     }
-    {
-      // a^x = 1/a^n → x = -n
-      const a = srRandInt(2,4), n = srRandInt(1,3);
-      const denom = Math.pow(a,n);
-      const fracStr = n===1?`${a}`:`${a}^${n}`;
-      return {question:`解方程式 \\(${a}^x=\\dfrac{1}{${fracStr}}\\)，求 \\(x\\)`,
-        answer:-n, type:'number', answerPrefix:'x'};
+    if (t === 1) {
+      // b^{mx+c} = b^n
+      const b = pick([2, 3, 5, 7]), m = pick([1, 2, 3, -1]), c = srRnz(-5, 5), x = srRandInt(-3, 5), n = m * x + c;
+      if (!ok(b, n) || n < -4) return null;
+      return Q(`${pw(b, lin(m, c))}=${val(b, n)}`, x);
     }
+    if (t === 2) {
+      // (1/b)^x = b^n
+      const b = pick([2, 3, 4, 5]), n = srRnz(-4, 5);
+      if (!ok(b, n)) return null;
+      return Q(`\\left(\\dfrac{1}{${b}}\\right)^x=${val(b, n)}`, -n);
+    }
+    // b^x · b^{x+k} = b^n → 2x+k=n
+    const b = pick([2, 3, 5]), k = srRnz(-3, 4), x = srRandInt(-2, 4), n = 2 * x + k;
+    if (!ok(b, n) || n < -4) return null;
+    return Q(`${b}^x\\cdot ${pw(b, lin(1, k))}=${val(b, n)}`, x);
   }
+
   if (level === 'medium') {
-    // a^(f(x)) = a^k type, or convert bases
-    const pool=[
-      {q:'解方程式 \\(4^x=8\\)，求 \\(x\\)',             ans:frac(3,2), t:'fraction'},
-      // 2^(2x)=2^3 → x=3/2 ✓
-      {q:'解方程式 \\(9^x=27\\)，求 \\(x\\)',            ans:frac(3,2), t:'fraction'},
-      // 3^(2x)=3^3 → x=3/2 ✓
-      {q:'解方程式 \\(8^x=4\\)，求 \\(x\\)',             ans:frac(2,3), t:'fraction'},
-      // 2^(3x)=2^2 → x=2/3 ✓
-      {q:'解方程式 \\(4^x=32\\)，求 \\(x\\)',            ans:frac(5,2), t:'fraction'},
-      // 2^(2x)=2^5 → x=5/2 ✓
-      {q:'解方程式 \\(2^{x+1}=16\\)，求 \\(x\\)',        ans:3,         t:'number'},
-      // x+1=4 → x=3 ✓
-      {q:'解方程式 \\(3^{x-1}=27\\)，求 \\(x\\)',        ans:4,         t:'number'},
-      // x-1=3 → x=4 ✓
-      {q:'解方程式 \\(2^{2x-1}=32\\)，求 \\(x\\)',       ans:3,         t:'number'},
-      // 2x-1=5 → x=3 ✓
-      {q:'解方程式 \\(3^{x+2}=\\dfrac{1}{27}\\)，求 \\(x\\)',         ans:-5,        t:'number'},
-      {q:'解方程式 \\(4^{x-1}=32\\)，求 \\(x\\)',                     ans:frac(7,2), t:'fraction'},
-      // 2^(2x-2)=2^5 → x=7/2 ✓
-      {q:'解方程式 \\(8^{x+1}=4^x\\)，求 \\(x\\)',                    ans:-3,        t:'number'},
-      // 2^(3x+3)=2^(2x) → x=-3 ✓
-      {q:'解方程式 \\(9^{x+1}=27^x\\)，求 \\(x\\)',                   ans:2,         t:'number'},
-      // 3^(2x+2)=3^(3x) → x=2 ✓
-      {q:'解方程式 \\(4^{x+1}=8^{x-1}\\)，求 \\(x\\)',                ans:5,         t:'number'},
-      // 2^(2x+2)=2^(3x-3) → x=5 ✓
-      {q:'解方程式 \\(27^{x-1}=9^{x+1}\\)，求 \\(x\\)',               ans:5,         t:'number'},
-      // 3^(3x-3)=3^(2x+2) → x=5 ✓
-    ];
-    const item=srQPick(pool, _expEqMQ);
-    return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'x'};
+    const t = srRandInt(0, 4);
+    if (t === 0) {
+      // 化成同底：(p^i)^{m1x+c1} = (p^j)^{m2x+c2}
+      const p = pick([2, 3]), L = POW[p].length;
+      const i = srRandInt(1, Math.min(3, L)), j = srRandInt(1, Math.min(3, L));
+      if (i === j) return null;
+      const m1 = pick([1, 2, -1]), c1 = srRandInt(-4, 4), m2 = pick([1, 2, 3]), c2 = srRandInt(-4, 4);
+      const d = i * m1 - j * m2;
+      if (d === 0) return null;
+      const x = frac(j * c2 - i * c1, d);
+      if (x.den > 6 || Math.abs(x.num) > 30) return null;
+      const rhsInv = srRandInt(0, 2) === 0;
+      const rhs = rhsInv ? `\\left(\\dfrac{1}{${POW[p][j - 1]}}\\right)^{${lin(-m2, -c2)}}` : pw(POW[p][j - 1], lin(m2, c2));
+      return Q(`${pw(POW[p][i - 1], lin(m1, c1))}=${rhs}`, x);
+    }
+    if (t === 1) {
+      // b^{x+k} ± b^x = N：提出 b^x
+      const b = pick([2, 3, 5]), k = srRandInt(1, 2), sg = srRandInt(0, 1) ? 1 : -1, x = srRandInt(0, 5);
+      const N = (Math.pow(b, k) + sg) * Math.pow(b, x);
+      if (N > 3000) return null;
+      return Q(`${pw(b, lin(1, k))}${sg > 0 ? '+' : '-'}${b}^x=${N}`, x);
+    }
+    if (t === 2) {
+      // 根式：b^x = (b^s)·√b 或 b^{mx} = ∜(b^s) 等，答案為分數
+      const b = pick([2, 3, 5]), r = pick([2, 3]), s = srRnz(-4, 5);
+      if (srRandInt(0, 1) === 0) {
+        if (!ok(b, s) || s < 0) return null;
+        const root = r === 2 ? `\\sqrt{${b}}` : `\\sqrt[3]{${b}}`;
+        return Q(`${b}^x=${s === 0 ? '' : val(b, s)}${root}`, fadd(frac(s), frac(1, r)));
+      }
+      const m = pick([1, 2, 3]);
+      const inside = val(b, s);
+      if (!ok(b, s)) return null;
+      const root = r === 2 ? `\\sqrt{${inside}}` : `\\sqrt[3]{${inside}}`;
+      return Q(`${pw(b, lin(m, 0))}=${root}`, frac(s, r * m));
+    }
+    if (t === 3) {
+      // 指數為二次式：b^{x²+px} = b^q
+      const b = pick([2, 3]), r1 = srRandInt(-4, 4), r2 = srRandInt(-4, 4);
+      if (r1 === r2) return null;
+      const p = -(r1 + r2), q = -r1 * r2;
+      if (!ok(b, q)) return null;
+      const e = `x^2${p === 0 ? '' : p === 1 ? '+x' : p === -1 ? '-x' : (p > 0 ? '+' : '') + p + 'x'}`;
+      return { question: `解方程式 \\(${b}^{${e}}=${val(b, q)}\\)，求兩根`, type: 'quad-roots', root1: r1, root2: r2, answerPrefix: 'x' };
+    }
+    // 兩邊不同底化同底，再含分數係數：(√b)^{x} = b^n
+    const b = pick([2, 3, 5]), n = srRnz(-3, 4), m = pick([1, 2, 3]);
+    if (!ok(b, n)) return null;
+    return Q(`\\left(\\sqrt{${b}}\\right)^{${lin(m, 0)}}=${val(b, n)}`, frac(2 * n, m));
   }
-  // hard: quadratic substitution (let u=a^x); includes non-symmetric roots
-  const pool=[
-    {q:'解方程式 \\(4^x-5\\cdot 2^x+4=0\\)，求所有 \\(x\\)（逗號分隔）',          r:[0,2]},
-    {q:'解方程式 \\(9^x-4\\cdot 3^x-45=0\\)，求 \\(x\\)',                         ans:2,       t:'number'},
-    // (u-9)(u+5)=0, u=9→x=2 ✓
-    {q:'解方程式 \\(4^x-2^{x+2}+4=0\\)，求 \\(x\\)',                              ans:1,       t:'number'},
-    // u²-4u+4=0→u=2→x=1 ✓
-    {q:'解方程式 \\(9^x-10\\cdot 3^x+9=0\\)，求所有 \\(x\\)（逗號分隔）',          r:[0,2]},
-    {q:'解方程式 \\(25^x-6\\cdot 5^x+5=0\\)，求所有 \\(x\\)（逗號分隔）',          r:[0,1]},
-    {q:'解方程式 \\(4^x-3\\cdot 2^{x+1}+8=0\\)，求所有 \\(x\\)（逗號分隔）',       r:[1,2]},
-    // u²-6u+8=0→(u-2)(u-4)=0→x=1,2 ✓
-    {q:'解方程式 \\(9^x-12\\cdot 3^x+27=0\\)，求所有 \\(x\\)（逗號分隔）',         r:[1,2]},
-    // (u-3)(u-9)=0→x=1,2 ✓
-    {q:'解方程式 \\(2\\cdot 4^x-5\\cdot 2^x+2=0\\)，求所有 \\(x\\)（逗號分隔）',   r:[-1,1]},
-    // 2u²-5u+2=0→(2u-1)(u-2)=0→2^x=1/2→x=-1,2^x=2→x=1 ✓
-    {q:'解方程式 \\(3\\cdot 9^x-10\\cdot 3^x+3=0\\)，求所有 \\(x\\)（逗號分隔）',  r:[-1,1]},
-    // 3u²-10u+3=0→(3u-1)(u-3)=0→x=-1,1 ✓
-    {q:'解方程式 \\(9^x-2\\cdot 3^{x+2}+81=0\\)，求 \\(x\\)',                     ans:2,       t:'number'},
-    // u²-18u+81=0→(u-9)²=0→x=2 ✓
-    {q:'解方程式 \\(4^x+2\\cdot 2^x-8=0\\)，求 \\(x\\)',                          ans:1,       t:'number'},
-    // (u+4)(u-2)=0→u=2→x=1 ✓
-  ];
-  const item=srQPick(pool, _expEqHQ);
-  if(item.r) return {question:item.q.replace(/求所有.*$/,'求兩根'), type:'quad-roots', root1:item.r[0], root2:item.r[1], answerPrefix:'x'};
-  return {question:item.q, answer:item.ans, type:item.t, answerPrefix:'x'};
+
+  // hard
+  const t = srRandInt(0, 2);
+  if (t === 0) {
+    // 令 u=b^x 的二次方程：A·(b²)^x + B·b^x + C = 0
+    const b = pick([2, 3]);
+    const x1 = srRandInt(-1, 3), x2 = srRandInt(-1, 3);
+    const one = srRandInt(0, 3) === 0; // 一根 u 為負數（不合）
+    const u1 = x1 >= 0 ? [Math.pow(b, x1), 1] : [1, Math.pow(b, -x1)];
+    const u2 = one ? [-srRandInt(1, 6), 1] : x2 >= 0 ? [Math.pow(b, x2), 1] : [1, Math.pow(b, -x2)];
+    if (!one && x1 === x2) return null;
+    // (d1·u - n1)(d2·u - n2)
+    const A = u1[1] * u2[1], B = -(u1[0] * u2[1] + u2[0] * u1[1]), C = u1[0] * u2[0];
+    if (B === 0) return null;
+    const term = (c, s, first) => (c === 0 ? '' : (c < 0 ? '-' : first ? '' : '+') + (Math.abs(c) === 1 ? '' : Math.abs(c) + '\\cdot ') + s);
+    // 中間項有時寫成 b^{x+1}
+    let mid = term(B, `${b}^x`, false);
+    if (B % b === 0 && srRandInt(0, 1) === 0) mid = term(B / b, `${b}^{x+1}`, false);
+    const sq = srRandInt(0, 1) === 0 ? `${b * b}^x` : `${b}^{2x}`;
+    const eq = `${term(A, sq, true)}${mid}${C > 0 ? '+' + C : C}=0`;
+    if (one) return Q(eq, x1);
+    return { question: `解方程式 \\(${eq}\\)，求兩根`, type: 'quad-roots', root1: x1, root2: x2, answerPrefix: 'x' };
+  }
+  if (t === 1) {
+    // c1·b^{x+k1} + c2·b^{x+k2} = N
+    const b = pick([2, 3]), k1 = srRandInt(1, 3), k2 = srRandInt(-2, 0), c1 = srRnz(1, 3), c2 = srRnz(-3, 3);
+    const S = fadd(frac(c1 * Math.pow(b, k1)), k2 >= 0 ? frac(c2 * Math.pow(b, k2)) : frac(c2, Math.pow(b, -k2)));
+    if (S.num <= 0) return null;
+    const x = srRandInt(-1, 5);
+    const N = fmul(S, x >= 0 ? frac(Math.pow(b, x)) : frac(1, Math.pow(b, -x)));
+    if (N.den !== 1 || N.num > 5000) return null;
+    const t1 = `${c1 === 1 ? '' : c1 + '\\cdot '}${pw(b, lin(1, k1))}`;
+    const t2 = `${c2 < 0 ? '-' : '+'}${Math.abs(c2) === 1 ? '' : Math.abs(c2) + '\\cdot '}${pw(b, lin(1, k2))}`;
+    return Q(`${t1}${t2}=${N.num}`, x);
+  }
+  // 聯立指數方程式：p^x·(p^i)^y = p^{s1}，(q^j)^x ÷ q^y = q^{s2}
+  const [p, q] = srRandInt(0, 1) ? [2, 3] : [3, 2];
+  const i = srRandInt(1, 2), j = srRandInt(1, 2), x = srRandInt(-3, 4), y = srRandInt(-3, 4);
+  const s1 = x + i * y, s2 = j * x - y;
+  if (!ok(p, s1) || !ok(q, s2)) return null;
+  const e1 = `${p}^x\\cdot ${POW[p][i - 1]}^y=${val(p, s1)}`;
+  const e2 = `${j === 1 ? `${q}^x` : `${POW[q][j - 1]}^x`}\\div ${q}^y=${val(q, s2)}`;
+  return {
+    question: `解聯立方程式 \\(\\begin{cases}${e1}\\\\${e2}\\end{cases}\\)，求 \\(x\\)、\\(y\\)`,
+    answerParts: [{ prefix: 'x', answer: x, type: 'number' }, { prefix: 'y', answer: y, type: 'number' }]
+  };
 }
 function genB3bExpEq(level) {
   return genB3aExpEq(level);
