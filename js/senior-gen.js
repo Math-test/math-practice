@@ -1827,6 +1827,26 @@ function _psRadEval(hint){
   return{question:`設 \\(f(x)=${_sfPoly(f)}\\)，求 \\(f(${xs})\\)${hint?`（提示：\\(x=${xs}\\) 滿足 \\(${g}=0\\)，可先求 \\(f(x)\\) 除以 \\(${g}\\) 的餘式）`:''}`,
     type:'radical-mix',rational:v[0],radCoeff:v[1]*sm,radM:m,answerPrefix:`\\(f(${xs})\\)`};
 }
+// 求 f(a+h) 的近似值（h 為 ±0.01～±0.09），以綜合除法將 f(x) 化為 (x-a) 的降冪式
+function _psApprox(hint){
+  const deg=hint?3:4;
+  const f=[srRandInt(1,3)];
+  for(let i=0;i<deg;i++)f.push(srRandInt(-9,9));
+  const a=srRnz(-3,3),k=srRnz(-9,9);
+  // 連續綜合除法得 (x-a) 的降冪係數（低次到高次）
+  let cur=f.slice();const e=[];
+  for(let i=0;i<=deg;i++){const {q,r}=_pDivInt(cur,[1,-a]);e.push(r[0]);cur=q;}
+  // 精確值 ×10^(2deg)：Σ e_i·k^i·100^(deg-i)
+  let big=0;for(let i=0;i<=deg;i++)big+=e[i]*Math.pow(k,i)*Math.pow(100,deg-i);
+  const unit=Math.pow(100,deg-1); // 對應小數第二位
+  const rem=((big%unit)+unit)%unit;
+  if(rem*2===unit)return null; // 避開恰為 5 的進位爭議
+  const ans=Math.round(big/unit)/100;
+  const xv=(a+k/100).toFixed(2);
+  const lin=_sfPoly([1,-a]);
+  return{question:`設 \\(f(x)=${_sfPoly(f)}\\)，求 \\(f(${xv})\\) 的近似值（四捨五入到小數點後第二位）${hint?`（提示：先用綜合除法將 \\(f(x)\\) 表示成 \\((${lin})\\) 的降冪形式）`:''}`,
+    answer:ans,type:'decimal',answerPrefix:`\\(f(${xv})\\)`};
+}
 function genB1PolySynth(level,_n){
   for(let i=0;i<40;i++){const q=_b1PolySynth(level);if(q)return q;}
   return{question:'綜合除法',answer:0,type:'number',answerPrefix:''};
@@ -1873,8 +1893,9 @@ function _b1PolySynth(level){
     }
   }
   if(level==='medium'){
-    const t=srRandInt(0,3);
+    const t=srRandInt(0,4);
     if(t===3) return _psRadEval(true);
+    if(t===4) return _psApprox(true);
     if(t===0){
       // 含未知k，由餘式求k
       const pool=[
@@ -1925,8 +1946,9 @@ function _b1PolySynth(level){
     }
   }
   {
-    const ht=srRandInt(0,2);
+    const ht=srRandInt(0,3);
     if(ht===1) return _psRadEval(false);
+    if(ht===3) return _psApprox(false);
     if(ht===0){
       // 連續兩次綜合除法
       const pool=[
