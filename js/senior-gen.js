@@ -1872,6 +1872,23 @@ function _b1PolySynth(level){
       return{question:`多項式 \\(f(x)=${p.f}\\) 除以 \\(${divStr}\\) 的餘式為 \\(${p.r}\\)，求 \\(k\\)。`,answer:p.k,type:'number',answerPrefix:'\\(k\\)'};
     }
     if(t===1){
+      if(srRandInt(0,1)===0){
+        // 先做綜合除法得商q(x)，再求q(a)
+        const pool=[
+          {f:'x^3-7x+6',a:2,qa:-1,qval:-4},
+          {f:'x^3+x^2-4x-4',a:-2,qa:1,qval:-2},
+          {f:'x^3-6x^2+11x-6',a:1,qa:2,qval:0},
+          {f:'x^3-1',a:1,qa:-1,qval:1},
+          {f:'x^3+8',a:-2,qa:2,qval:4},
+          {f:'x^3-4x^2+x+6',a:2,qa:-1,qval:0},
+          {f:'x^3+2x^2-5x-6',a:-3,qa:2,qval:0},
+          {f:'x^3-2x^2-x+2',a:1,qa:-1,qval:0},
+          {f:'x^3+x^2-9x-9',a:3,qa:-1,qval:0},
+        ];
+        const p=srQPick(pool,_psM1Q);if(!p)return null;
+        const divStr=p.a>=0?`x-${p.a}`:`x+${-p.a}`;
+        return{question:`\\(f(x)=${p.f}\\) 除以 \\(${divStr}\\) 得商式 \\(q(x)\\)，求 \\(q(${p.qa})\\)。`,answer:p.qval,type:'number',answerPrefix:`\\(q(${p.qa})\\)`};
+      }
       // 綜合除法：求商式 ax²+bx+c 與餘式 r
       const f=[srRandInt(1,3),srRandInt(-8,8),srRandInt(-9,9),srRandInt(-12,12)],a=srRnz(-4,4);
       const {q,r}=_pDivInt(f,[1,-a]);
