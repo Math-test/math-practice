@@ -6930,7 +6930,12 @@ function _8aSqrtMix(level) {
   const M = [2, 3, 5, 6, 7, 10, 11];
 
   if (level === 'basic') {
-    const t = randInt(0, 4);
+    const t = randInt(0, 5);
+    if (t === 5) {
+      // 有理化再加減：cm/√m ± √(b²m) + d√m
+      const m = pick([2, 3, 5, 6, 7]), c = randInt(1, 5), b = randInt(1, 5), d = randInt(-4, 4), s = randInt(0, 1) ? 1 : -1;
+      return Q(`計算 \\(\\dfrac{${c * m}}{\\sqrt{${m}}}${s > 0 ? '+' : '-'}\\sqrt{${b * b * m}}${d === 0 ? '' : (d > 0 ? '+' : '-') + cr(Math.abs(d), m)}\\)`, R(0, c + s * b + d, m));
+    }
     if (t === 0) {
       // (a+√b)(a-√b) = a²-b
       const a = randInt(2, 15), b = pick([2, 3, 5, 6, 7, 10, 11, 13, 14, 15]);
@@ -6960,7 +6965,32 @@ function _8aSqrtMix(level) {
   }
 
   if (level === 'medium') {
-    const t = randInt(0, 4);
+    const t = randInt(0, 8);
+    if (t === 7) {
+      // 分母兩項（共軛）：a/(√m ± b)，a = k(m−b²)
+      const m = pick([2, 3, 5, 6, 7, 10, 11]), b = randInt(1, 3), d = m - b * b, k = randInt(1, 3) * (d > 0 ? 1 : -1), s = randInt(0, 1) ? 1 : -1;
+      if (d === 0 || Math.abs(d) > 7) return null;
+      // a/(√m + s·b) = a(√m − s·b)/d = k√m − s·k·b
+      return Q(`計算 \\(\\dfrac{${k * d}}{\\sqrt{${m}}${s > 0 ? '+' : '-'}${b}}\\)`, R(-s * k * b, k, m));
+    }
+    if (t === 8) {
+      // 分母兩項（共軛）：a/(√m ± √n)，a = k(m−n)
+      const P = [2, 3, 5, 6, 7, 10, 11], m = pick(P), n = pick(P.filter(x => x < m && m - x <= 6)), k = randInt(1, 3), s = randInt(0, 1) ? 1 : -1;
+      if (!n) return null;
+      // a/(√m + s√n) = k(√m − s√n)
+      return {question:`計算 \\(\\dfrac{${k * (m - n)}}{\\sqrt{${m}}${s > 0 ? '+' : '-'}\\sqrt{${n}}}\\)`, type:'radical2', coeffA:k, radA:m, coeffB:-s * k, radB:n};
+    }
+    if (t === 5) {
+      // (a√(ms²) ± b√(mn)) ÷ √m = as ± b√n
+      const m = pick([2, 3, 5]), n = pick([2, 3, 5, 6, 7, 10, 11].filter(x => x !== m)), s = randInt(1, 4), a = randInt(1, 3), b = randInt(1, 3), sg2 = randInt(0, 1) ? 1 : -1;
+      const A = `${a === 1 ? '' : a}\\sqrt{${m * s * s}}`, B = `${b === 1 ? '' : b}\\sqrt{${m * n}}`;
+      return Q(`計算 \\(\\dfrac{${A}${sg2 > 0 ? '+' : '-'}${B}}{\\sqrt{${m}}}\\)`, R(a * s, sg2 * b, n));
+    }
+    if (t === 6) {
+      // k√(p/q) + √(pq·s²)：k√(p/q) = (k/q)√(pq)
+      const [p, q] = pick([[2, 3], [3, 2], [1, 2], [1, 3], [2, 5], [5, 2], [1, 5], [3, 5], [5, 3], [1, 7]]), j = randInt(1, 4), s = randInt(1, 4), sg2 = randInt(0, 1) ? 1 : -1;
+      return Q(`計算 \\(${j * q}\\sqrt{\\dfrac{${p}}{${q}}}${sg2 > 0 ? '+' : '-'}\\sqrt{${p * q * s * s}}\\)`, R(0, j + sg2 * s, p * q));
+    }
     if (t === 0) {
       // (√m±√n)² = (m+n) ± 2√(mn)
       const P = [2, 3, 5, 7, 11], m = pick(P), n = pick(P.filter(x => x !== m)), s = randInt(0, 1) ? 1 : -1;
@@ -6989,7 +7019,39 @@ function _8aSqrtMix(level) {
   }
 
   // hard
-  const t = randInt(0, 3);
+  const t = randInt(0, 7);
+  if (t === 6) {
+    // 兩個共軛分式相加減：dp/(√m+b) ± dq/(√m−b) = (p±q)√m + (−p±q)·b... 以展開計算
+    const m = pick([2, 3, 5, 6, 7, 10, 11]), b = randInt(1, 3), d = m - b * b;
+    if (d <= 0 || d > 7) return null;
+    const p = randInt(1, 3), q = randInt(1, 3), s = randInt(0, 1) ? 1 : -1;
+    // dp/(√m+b) = p(√m−b)；dq/(√m−b) = q(√m+b)
+    const rat = -p * b + s * q * b, co = p + s * q;
+    if (co === 0) return null;
+    return Q(`計算 \\(\\dfrac{${d * p}}{\\sqrt{${m}}+${b}}${s > 0 ? '+' : '-'}\\dfrac{${d * q}}{\\sqrt{${m}}-${b}}\\)`, R(rat, co, m));
+  }
+  if (t === 7) {
+    // (√m+b)/(√m−b) = (m+b²+2b√m)/(m−b²)，取能整除者
+    const C = [];
+    for (const m of [2, 3, 5, 6, 7, 10, 11]) for (let b = 1; b <= 4; b++) {
+      const d = m - b * b;
+      if (d !== 0 && (m + b * b) % d === 0 && (2 * b) % d === 0) C.push([m, b, d]);
+    }
+    const [m, b, d] = pick(C), flip = randInt(0, 1) === 0;
+    // flip：(√m−b)/(√m+b) = (m+b²−2b√m)/d
+    return Q(flip ? `計算 \\(\\dfrac{\\sqrt{${m}}-${b}}{\\sqrt{${m}}+${b}}\\)` : `計算 \\(\\dfrac{\\sqrt{${m}}+${b}}{\\sqrt{${m}}-${b}}\\)`,
+      R((m + b * b) / d, (flip ? -2 * b : 2 * b) / d, m));
+  }
+  if (t === 4) {
+    // (√(ms²)+√(mn))÷√m + cn/√n − √(n·d²) = s + (1+c−d)√n
+    const m = pick([2, 3, 5]), n = pick([2, 3, 5, 6, 7].filter(x => x !== m)), s = randInt(1, 4), c = randInt(1, 4), d = randInt(1, 4);
+    return Q(`計算 \\(\\dfrac{\\sqrt{${m * s * s}}+\\sqrt{${m * n}}}{\\sqrt{${m}}}+\\dfrac{${c * n}}{\\sqrt{${n}}}-\\sqrt{${n * d * d}}\\)`, R(s, 1 + c - d, n));
+  }
+  if (t === 5) {
+    // k√(p/q) − l√(q/p) + √(pq·s²) = (k/q − l/p + s)√(pq)
+    const [p, q] = pick([[2, 3], [2, 5], [3, 5], [2, 7], [3, 7]]), j = randInt(1, 4), l = randInt(1, 4), s = randInt(1, 4);
+    return Q(`計算 \\(${j * q}\\sqrt{\\dfrac{${p}}{${q}}}-${l * p}\\sqrt{\\dfrac{${q}}{${p}}}+\\sqrt{${p * q * s * s}}\\)`, R(0, j - l + s, p * q));
+  }
   if (t === 0) {
     // (a+b√m)(c+d√m)，係數可為負
     const m = pick([2, 3, 5, 6, 7]), a = randInt(1, 7), b = randInt(1, 4), c = randInt(1, 7), d = randInt(-4, 4);
