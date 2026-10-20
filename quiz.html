@@ -63,11 +63,11 @@
   // 依題目代碼只載入需要的年級生成器（國中、高中檔案較大）
   (function () {
     const topics = (new URLSearchParams(location.search).get('topics') || '').split(',');
-    if (topics.some(t => /^[789][ab]-/.test(t))) document.write('<script src="js/junior-gen.js?v=191"><\/script>');
+    if (topics.some(t => /^[789][ab]-/.test(t))) document.write('<script src="js/junior-gen.js?v=192"><\/script>');
     if (topics.some(t => /^(b\d|el)/.test(t)))   document.write('<script src="js/senior-gen.js?v=80"><\/script>');
   })();
 </script>
-<script src="js/quiz.js?v=84"></script>
+<script src="js/quiz.js?v=85"></script>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {

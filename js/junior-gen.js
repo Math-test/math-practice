@@ -6921,99 +6921,102 @@ function gen8aSqrtMix(level) {
   return _8aSqrtMix('basic');
 }
 function _8aSqrtMix(level) {
-  if(level==='basic'){
-    const t=randInt(0,3);
-    if(t===0){
+  // 答案 r + c√m（c=0 時為整數）
+  const R = (r, c, m) => c === 0 ? {answer:r, type:'number'} : {type:'radical-mix', rational:r, radCoeff:c, radM:m};
+  const Q = (q, ans) => Object.assign({question:q}, ans);
+  // 係數與根號：c√m（c=1 省略）
+  const cr = (c, m) => `${c === 1 ? '' : c}\\sqrt{${m}}`;
+  const sg = (v, s) => v < 0 ? `-${s}` : `+${s}`;
+  const M = [2, 3, 5, 6, 7, 10, 11];
+
+  if (level === 'basic') {
+    const t = randInt(0, 4);
+    if (t === 0) {
       // (a+√b)(a-√b) = a²-b
-      const a=randInt(2,15);
-      const bOpts=[2,3,5,6,7,10,11,13,14].filter(x=>x<a*a);
-      if(!bOpts.length) return null;
-      const b=pick(bOpts);
-      return {question:`展開 \\((${a}+\\sqrt{${b}})(${a}-\\sqrt{${b}})\\)`, answer:a*a-b, type:'number'};
+      const a = randInt(2, 15), b = pick([2, 3, 5, 6, 7, 10, 11, 13, 14, 15]);
+      return Q(`計算 \\((${a}+\\sqrt{${b}})(${a}-\\sqrt{${b}})\\)`, R(a * a - b, 0));
     }
-    if(t===1){
-      // (a√m+b)(a√m-b) = a²m-b²（含係數的共軛乘積）
-      const m=pick([2,3,5,6,7]);
-      const a=randInt(2,5),b=randInt(1,6);
-      return {question:`展開 \\((${a}\\sqrt{${m}}+${b})(${a}\\sqrt{${m}}-${b})\\)`, answer:a*a*m-b*b, type:'number'};
+    if (t === 1) {
+      // (a√m+b)(a√m-b) = a²m-b²
+      const m = pick([2, 3, 5, 6, 7]), a = randInt(2, 6), b = randInt(1, 9);
+      return Q(`計算 \\((${cr(a, m)}+${b})(${cr(a, m)}-${b})\\)`, R(a * a * m - b * b, 0));
     }
-    if(t===2){
-      // √m × √m + a√m = m + a√m，求整數部分（m）
-      const m=pick([2,3,5,6,7]),a=randInt(2,6);
-      return {question:`計算 \\(\\sqrt{${m}}\\times\\sqrt{${m}}+${a}\\sqrt{${m}}\\) 的整數部分`, answer:m, type:'number', answerPrefix:'整數部分'};
+    if (t === 2) {
+      // (√m+a)(√m+b) = (m+ab) + (a+b)√m
+      const m = pick(M), a = randInt(-6, 6), b = randInt(1, 6);
+      if (a === 0 || a + b === 0) return null;
+      return Q(`計算 \\((\\sqrt{${m}}${a > 0 ? '+' : ''}${a})(\\sqrt{${m}}+${b})\\)`, R(m + a * b, a + b, m));
     }
-    // t===3: (√m+a)(√m+b) = (m+ab) + (a+b)√m，求整數部分（m+ab）
-    const m=pick([2,3,5,6,7]);
-    const a=randInt(1,5),b=randInt(1,5);
-    return {question:`展開 \\((\\sqrt{${m}}+${a})(\\sqrt{${m}}+${b})\\)，其整數部分為`, answer:m+a*b, type:'number', answerPrefix:'整數部分'};
+    if (t === 3) {
+      // c√m(a√m+b) = acm + bc√m
+      const m = pick([2, 3, 5, 6, 7]), c = randInt(1, 5), a = randInt(1, 4), b = randInt(-6, 6);
+      if (b === 0) return null;
+      return Q(`計算 \\(${cr(c, m)}(${cr(a, m)}${b > 0 ? '+' : ''}${b})\\)`, R(a * c * m, b * c, m));
+    }
+    // √(a²m)×√k ÷ √k 型的乘除再加減：√p×√q + √r = n + c√m
+    const m = pick([2, 3, 5]), u = pick([2, 3, 5, 6, 7].filter(x => x !== m)), s = randInt(1, 4), b = randInt(1, 5);
+    // √(u)×√(u·s²) = us，√(b²m) = b√m
+    return Q(`計算 \\(\\sqrt{${u}}\\times\\sqrt{${u * s * s}}${sg(1, `\\sqrt{${b * b * m}}`)}\\)`, R(u * s, b, m));
   }
-  if(level==='medium'){
-    const t=randInt(0,4);
-    if(t===0){
-      // a√m(b+c√m) = acm + ab√m
-      const m=pick([2,3,5]);
-      const a=randInt(2,5),b=randInt(1,5),c=randInt(1,4);
-      return {question:`展開 \\(${a}\\sqrt{${m}}(${b}+${c}\\sqrt{${m}})\\)`,
-        type:'radical-mix',rational:a*c*m,radCoeff:a*b,radM:m};
+
+  if (level === 'medium') {
+    const t = randInt(0, 4);
+    if (t === 0) {
+      // (√m±√n)² = (m+n) ± 2√(mn)
+      const P = [2, 3, 5, 7, 11], m = pick(P), n = pick(P.filter(x => x !== m)), s = randInt(0, 1) ? 1 : -1;
+      const [x, y] = m > n ? [m, n] : [n, m];
+      return Q(`計算 \\((\\sqrt{${x}}${s > 0 ? '+' : '-'}\\sqrt{${y}})^2\\)`, R(x + y, 2 * s, x * y));
     }
-    if(t===1){
-      // (√m+√n)² = (m+n) + 2√(mn)，用質數確保 mn 無法化簡
-      const ms=[2,3,5,7];
-      const m=pick(ms);
-      const n=pick(ms.filter(x=>x!==m));
-      return {question:`展開 \\((\\sqrt{${m}}+\\sqrt{${n}})^2\\)`,
-        type:'radical-mix',rational:m+n,radCoeff:2,radM:m*n};
+    if (t === 1) {
+      // (a±b√m)² = (a²+b²m) ± 2ab√m
+      const m = pick([2, 3, 5, 6, 7]), a = randInt(1, 8), b = randInt(1, 4), s = randInt(0, 1) ? 1 : -1;
+      return Q(`計算 \\((${a}${s > 0 ? '+' : '-'}${cr(b, m)})^2\\)`, R(a * a + b * b * m, 2 * a * b * s, m));
     }
-    if(t===2){
-      // (√m+a)²-(√m-a)² = 4a√m
-      const m=pick([2,3,5,6,7]);
-      const a=randInt(1,4);
-      return {question:`化簡 \\((\\sqrt{${m}}+${a})^2-(\\sqrt{${m}}-${a})^2\\)`,
-        type:'radical-mix',rational:0,radCoeff:4*a,radM:m};
+    if (t === 2) {
+      // (√m+a)² - (√m-a)² = 4a√m，或 (√m+a)² + (√m-a)² = 2m+2a²
+      const m = pick(M), a = randInt(1, 6), plus = randInt(0, 1) === 0;
+      return Q(`計算 \\((\\sqrt{${m}}+${a})^2${plus ? '+' : '-'}(\\sqrt{${m}}-${a})^2\\)`, plus ? R(2 * m + 2 * a * a, 0) : R(0, 4 * a, m));
     }
-    if(t===3){
-      // 有理化 a/(√m+b)，a=k×|m-b²|，答案 k√m - kb（rational=-kb, irrational=k）
-      const conPairs=[{m:3,b:1,diff:2},{m:7,b:2,diff:3},{m:11,b:3,diff:2},{m:5,b:2,diff:1},{m:2,b:1,diff:1}];
-      const {m,b,diff}=pick(conPairs);
-      const k=randInt(1,3);
-      const a=k*diff;
-      return {question:`有理化分母 \\(\\dfrac{${a}}{\\sqrt{${m}}+${b}}\\)`,
-        type:'radical-mix',rational:-k*b,radCoeff:k,radM:m};
+    if (t === 3) {
+      // 代入求值：x=a+√m，求 x²-2ax+k = m-a²+k
+      const m = pick([2, 3, 5, 6, 7, 10, 11, 13]), a = randInt(1, 6), k = randInt(-9, 9);
+      return Q(`設 \\(x=${a}+\\sqrt{${m}}\\)，求 \\(x^2-${2 * a}x${k === 0 ? '' : k > 0 ? '+' + k : k}\\) 的值`, R(m - a * a + k, 0));
     }
-    // t===4: 代入求值 x=a+√m → x²-2ax = m-a²（純整數答案）
-    const m=pick([2,3,5,6,7,10,11,13]);
-    const a=randInt(1,5);
-    return {question:`設 \\(x=${a}+\\sqrt{${m}}\\)，計算 \\(x^2-${2*a}x\\)`, answer:m-a*a, type:'number'};
+    // 四則混合（單一根號有理化）：√(am)×√a − √(b²mk)÷√k + cm/√m
+    const m = pick([2, 3, 5]), a = pick([2, 3, 5, 6, 7].filter(x => x !== m && x % m !== 0)), b = randInt(1, 4), k = pick([2, 3, 5, 7].filter(x => x !== m)), c = randInt(1, 4);
+    const coef = a - b + c;
+    return Q(`計算 \\(\\sqrt{${a * m}}\\times\\sqrt{${a}}-\\sqrt{${b * b * m * k}}\\div\\sqrt{${k}}+\\dfrac{${c * m}}{\\sqrt{${m}}}\\)`, R(0, coef, m));
   }
-  const t=randInt(0,3);
-  if(t===0){
-    // (a+b√m)² = a²+b²m + 2ab√m
-    const m=pick([2,3,5,6]);
-    const a=randInt(2,6),b=randInt(1,3);
-    return {question:`展開 \\((${a}+${b>1?b:''}\\sqrt{${m}})^2\\)`,
-      type:'radical-mix',rational:a*a+b*b*m,radCoeff:2*a*b,radM:m};
+
+  // hard
+  const t = randInt(0, 3);
+  if (t === 0) {
+    // (a+b√m)(c+d√m)，係數可為負
+    const m = pick([2, 3, 5, 6, 7]), a = randInt(1, 7), b = randInt(1, 4), c = randInt(1, 7), d = randInt(-4, 4);
+    if (d === 0) return null;
+    return Q(`計算 \\((${a}+${cr(b, m)})(${c}${d > 0 ? '+' : '-'}${cr(Math.abs(d), m)})\\)`, R(a * c + b * d * m, a * d + b * c, m));
   }
-  if(t===1){
-    // (a+b√m)(c+d√m) = (ac+bdm) + (ad+bc)√m
-    const m=pick([2,3,5,6]);
-    const a=randInt(1,5),b=randInt(1,4),c=randInt(1,5),d=randInt(1,4);
-    return {question:`展開 \\((${a}+${b}\\sqrt{${m}})(${c}+${d}\\sqrt{${m}})\\)`,
-      type:'radical-mix',rational:a*c+b*d*m,radCoeff:a*d+b*c,radM:m};
+  if (t === 1) {
+    // (√m+√n)² - (√m-√n)² = 4√(mn)，或 (√m+√n)(√m-√n) + (√m+√n)²
+    const P = [2, 3, 5, 7], m0 = pick(P), n0 = pick(P.filter(x => x !== m0));
+    const [m, n] = m0 > n0 ? [m0, n0] : [n0, m0];
+    if (randInt(0, 1) === 0)
+      return Q(`計算 \\((\\sqrt{${m}}+\\sqrt{${n}})^2-(\\sqrt{${m}}-\\sqrt{${n}})^2\\)`, R(0, 4, m * n));
+    return Q(`計算 \\((\\sqrt{${m}}+\\sqrt{${n}})(\\sqrt{${m}}-\\sqrt{${n}})+(\\sqrt{${m}}+\\sqrt{${n}})^2\\)`, R(2 * m, 2, m * n));
   }
-  if(t===2){
-    // (√m+a)(√m+b) = (m+ab) + (a+b)√m
-    const m=pick([2,3,5,6,7]);
-    const a=randInt(1,6),b=randInt(1,6);
-    return {question:`展開 \\((\\sqrt{${m}}+${a})(\\sqrt{${m}}+${b})\\)`,
-      type:'radical-mix',rational:m+a*b,radCoeff:a+b,radM:m};
+  if (t === 2) {
+    // 代入求值：x=a+√m、y=a-√m
+    const m = pick([2, 3, 5, 6, 7, 10, 11]), a = randInt(1, 6);
+    const S = 2 * a, P = a * a - m;
+    const k = randInt(0, 2);
+    if (k === 0) return Q(`設 \\(x=${a}+\\sqrt{${m}}\\)、\\(y=${a}-\\sqrt{${m}}\\)，求 \\(x^2+y^2\\) 的值`, R(S * S - 2 * P, 0));
+    if (k === 1) return Q(`設 \\(x=${a}+\\sqrt{${m}}\\)、\\(y=${a}-\\sqrt{${m}}\\)，求 \\(x^2y+xy^2\\) 的值`, R(P * S, 0));
+    return Q(`設 \\(x=${a}+\\sqrt{${m}}\\)、\\(y=${a}-\\sqrt{${m}}\\)，求 \\(x^2-xy+y^2\\) 的值`, R(S * S - 3 * P, 0));
   }
-  // t===3: 有理化 a/(√m-√n)，a=k×(m-n) → k√m + k√n（均為正）
-  const rationPairs=[{m:3,n:2,diff:1},{m:5,n:3,diff:2},{m:5,n:2,diff:3},{m:7,n:3,diff:4},{m:6,n:2,diff:4}];
-  const {m,n,diff}=pick(rationPairs);
-  const k=randInt(1,3);
-  const ra=k*diff;
-  return {question:`有理化分母 \\(\\dfrac{${ra}}{\\sqrt{${m}}-\\sqrt{${n}}}\\)`,
-    type:'radical2',coeffA:k,radA:m,coeffB:k,radB:n};
+  // c√m(a√m+b) − km/√m + √(n²m)：四則綜合
+  const m = pick([2, 3, 5, 6, 7]), c = randInt(1, 4), a = randInt(1, 3), b = randInt(-5, 5), k = randInt(1, 6), n = randInt(1, 4);
+  if (b === 0) return null;
+  return Q(`計算 \\(${cr(c, m)}(${cr(a, m)}${b > 0 ? '+' : ''}${b})-\\dfrac{${k * m}}{\\sqrt{${m}}}+\\sqrt{${n * n * m}}\\)`, R(a * c * m, b * c - k + n, m));
 }
 
 // ═══════════════════════════════════════════════════════════════════
