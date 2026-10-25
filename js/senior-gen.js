@@ -7346,7 +7346,26 @@ function _b3aExpEq(level) {
   }
 
   // hard
-  const t = srRandInt(0, 2);
+  const t = srRandInt(0, 3);
+  if (t === 3) {
+    // 對稱型：令 t=b^x+b^{-x}（t≥2），b^{2x}+b^{-2x}=t²-2
+    const b = pick([2, 3]), B2 = b * b;
+    const T = `(${b}^x+${b}^{-x})`, T2 = `(${B2}^x+${B2}^{-x})`;
+    const tm = (c, s) => (c === 0 ? '' : (c < 0 ? '-' : '+') + (Math.abs(c) === 1 ? '' : Math.abs(c)) + s);
+    const cst = c => (c === 0 ? '' : c > 0 ? '+' + c : `${c}`);
+    const t1 = srRandInt(-5, 1); // 不合的根（t<2）
+    if (srRandInt(0, 1) === 0) {
+      // 求 t 的值：t² + Bt + (C−2) = 0，根 t0 (≥3)、t1
+      const t0 = srRandInt(3, 8), B = -(t0 + t1), C = t0 * t1 + 2;
+      return { question: `已知 \\(${T2}${tm(B, T)}${cst(C)}=0\\)，求 \\(${b}^x+${b}^{-x}\\) 的值`,
+        answer: t0, type: 'number', answerPrefix: `\\(${b}^x+${b}^{-x}\\)` };
+    }
+    // 求 x：t0 = b^k + b^{-k} = N/D，D·T2 − (N + D·t1)·T + (N·t1 + 2D) = 0
+    const k = b === 2 ? srRandInt(1, 2) : 1, D = Math.pow(b, k), N = D * D + 1;
+    const B = -(N + D * t1), C = N * t1 + 2 * D;
+    return { question: `解方程式 \\(${D}${T2}${tm(B, T)}${cst(C)}=0\\)，求兩根`,
+      type: 'quad-roots', root1: -k, root2: k, answerPrefix: 'x' };
+  }
   if (t === 0) {
     // 令 u=b^x 的二次方程：A·(b²)^x + B·b^x + C = 0
     const b = pick([2, 3]);
@@ -7509,48 +7528,107 @@ function _iqPick(pool, queue) {
   const e = srQPick(pool, queue);
   return e.length === 3 ? _iqOne(e[0], e[1], e[2]) : _iqTwo(e[0], e[1], e[2], e[3]);
 }
-
+const _expIneqRecent = [];
 function genB3aExpIneq(level) {
+  for (let i = 0; i < 80; i++) {
+    const q = _b3aExpIneq(level);
+    if (!q || _expIneqRecent.includes(q.question)) continue;
+    _expIneqRecent.push(q.question);
+    if (_expIneqRecent.length > 40) _expIneqRecent.shift();
+    return q;
+  }
+  return _iqOne('解不等式 \\(2^x>8\\)', '>', 3);
+}
+function _b3aExpIneq(level) {
+  const lin = (m, c) => {
+    let s = m === 1 ? 'x' : m === -1 ? '-x' : m + 'x';
+    if (c !== 0) s += (c > 0 ? '+' : '') + c;
+    return s;
+  };
+  const pw = (b, e) => (e === 'x' ? `${b}^x` : `${b}^{${e}}`);
+  const val = (b, n) => {
+    if (n === 0) return '1';
+    const v = Math.pow(b, Math.abs(n));
+    return n > 0 ? `${v}` : `\\dfrac{1}{${v}}`;
+  };
+  const ok = (b, n) => Math.pow(b, Math.abs(n)) <= 2000;
+  const inv = b => `\\left(\\dfrac{1}{${b}}\\right)`;
+  // 不等號：0 <, 1 >, 2 ≤, 3 ≥
+  const TX = ['\\lt', '\\gt', '\\leq', '\\geq'], SY = ['<', '>', '≤', '≥'];
+  const flip = r => [1, 0, 3, 2][r];
+  const POW = { 2: [2, 4, 8, 16, 32], 3: [3, 9, 27, 81] };
+
   if (level === 'basic') {
-    const a = srRandInt(2, 4), n = srRandInt(2, 5), val = Math.pow(a, n);
-    if (srRandInt(0, 1) === 0) return _iqOne(`解不等式 \\(${a}^x>${val}\\)`, '>', n);
-    // 底數介於 0 與 1 之間，不等號方向改變
-    return _iqOne(`解不等式 \\(\\left(\\dfrac{1}{${a}}\\right)^x>\\dfrac{1}{${val}}\\)`, '<', n);
+    // b^{mx+c} ? b^n，底數大於 1 或介於 0、1
+    const b = pick([2, 3, 5]), m = pick([1, 1, 2, 3]), c = srRandInt(-4, 4), n = srRandInt(-3, 5), r = srRandInt(0, 3);
+    if (!ok(b, n)) return null;
+    const small = srRandInt(0, 2) === 0;
+    const base = small ? inv(b) : `${b}`;
+    // (1/b)^{e} ? b^n ⇔ b^{-e} ? b^n ⇔ e ?' -n
+    const rhs = small ? val(b, -n) : val(b, n);
+    const rr = small ? flip(r) : r;
+    return _iqOne(`解不等式 \\(${base}^{${lin(m, c)}}${TX[r]} ${rhs}\\)`, SY[rr], frac(n - c, m));
   }
+
   if (level === 'medium') {
-    return _iqPick([
-      ['解不等式 \\(4^x>8\\)', '>', frac(3, 2)],
-      ['解不等式 \\(8^x<4\\)', '<', frac(2, 3)],
-      ['解不等式 \\(9^x>27\\)', '>', frac(3, 2)],
-      ['解不等式 \\(2^{x+1}>16\\)', '>', 3],
-      ['解不等式 \\(3^{x-1}<9\\)', '<', 3],
-      ['解不等式 \\(\\left(\\dfrac{1}{4}\\right)^x>8\\)', '<', frac(-3, 2)],
-      ['解不等式 \\(\\left(\\dfrac{1}{3}\\right)^x<27\\)', '>', -3],
-      ['解不等式 \\(2^{2x}-2^{x+2}<0\\)', '<', 2],
-      ['解不等式 \\(27^x<9\\)', '<', frac(2, 3)],
-      ['解不等式 \\(\\left(\\dfrac{1}{8}\\right)^x<4\\)', '>', frac(-2, 3)],
-    ], _expIneqMQ);
+    const t = srRandInt(0, 2);
+    if (t === 0) {
+      // 化同底：(p^i)^{m1x+c1} ? (p^j)^{m2x+c2}
+      const p = pick([2, 3]), i = srRandInt(1, 3), j = srRandInt(1, 3);
+      if (i === j) return null;
+      const m1 = pick([1, 2, -1]), c1 = srRandInt(-4, 4), m2 = pick([1, 2, 3]), c2 = srRandInt(-4, 4), r = srRandInt(0, 3);
+      const d = i * m1 - j * m2;
+      if (d === 0) return null;
+      const x = frac(j * c2 - i * c1, d);
+      if (x.den > 6 || Math.abs(x.num) > 30) return null;
+      return _iqOne(`解不等式 \\(${pw(POW[p][i - 1], lin(m1, c1))}${TX[r]} ${pw(POW[p][j - 1], lin(m2, c2))}\\)`, SY[d > 0 ? r : flip(r)], x);
+    }
+    if (t === 1) {
+      // 底數小於 1 化同底：(1/p^i)^{mx+c} ? p^n
+      const p = pick([2, 3]), i = srRandInt(1, 3), m = pick([1, 2]), c = srRandInt(-3, 3), n = srRandInt(-4, 6), r = srRandInt(0, 3);
+      if (!ok(p, n)) return null;
+      // p^{-i(mx+c)} ? p^n ⇔ -imx - ic ? n ⇔ x ?' -(n+ic)/(im)
+      return _iqOne(`解不等式 \\(${inv(POW[p][i - 1])}^{${lin(m, c)}}${TX[r]} ${val(p, n)}\\)`, SY[flip(r)], frac(-(n + i * c), i * m));
+    }
+    // 提出 b^x：b^{x+k} ± b^x ? N
+    const b = pick([2, 3, 5]), k = srRandInt(1, 2), sg = srRandInt(0, 1) ? 1 : -1, x = srRandInt(0, 5), r = srRandInt(0, 3);
+    const N = (Math.pow(b, k) + sg) * Math.pow(b, x);
+    if (N > 3000) return null;
+    return _iqOne(`解不等式 \\(${pw(b, lin(1, k))}${sg > 0 ? '+' : '-'}${b}^x${TX[r]} ${N}\\)`, SY[r], x);
   }
-  // hard：令 u=a^x 化為二次不等式
-  return _iqPick([
-    ['解不等式 \\(9^x-10\\cdot 3^x+9<0\\)', _IQ_IN, 0, 2],
-    ['解不等式 \\(4^x-5\\cdot 2^x+4>0\\)', _IQ_OUT, 0, 2],
-    ['解不等式 \\(9^x-10\\cdot 3^x+9\\leq 0\\)', _IQ_INE, 0, 2],
-    ['解不等式 \\(4^x-5\\cdot 2^x+4<0\\)', _IQ_IN, 0, 2],
-    ['解不等式 \\(25^x-6\\cdot 5^x+5>0\\)', _IQ_OUT, 0, 1],
-    ['解不等式 \\(4^x-6\\cdot 2^x+8>0\\)', _IQ_OUT, 1, 2],
-    ['解不等式 \\(9^x-12\\cdot 3^x+27\\geq 0\\)', _IQ_OUTE, 1, 2],
-    ['解不等式 \\(4^x-3\\cdot 2^{x+1}+8\\leq 0\\)', _IQ_INE, 1, 2],
-    ['解不等式 \\(2\\cdot 4^x-5\\cdot 2^x+2>0\\)', _IQ_OUT, -1, 1],
-    ['解不等式 \\(3\\cdot 9^x-10\\cdot 3^x+3\\leq 0\\)', _IQ_INE, -1, 1],
-    ['解不等式 \\(2^{x+1}-5+2^{1-x}<0\\)', _IQ_IN, -1, 1],
-    // u=4^x：(u-2)(u-4)<0 → 1/2<x<1
-    ['解不等式 \\(16^x-6\\cdot 4^x+8<0\\)', _IQ_IN, frac(1, 2), 1],
-    // u=9^x：(u-3)(u-9)≤0 → 1/2≤x≤1
-    ['解不等式 \\(81^x-12\\cdot 9^x+27\\leq 0\\)', _IQ_INE, frac(1, 2), 1],
-    // u=4^x：(u-2)(u-8)>0 → x<1/2 或 x>3/2
-    ['解不等式 \\(16^x-10\\cdot 4^x+16>0\\)', _IQ_OUT, frac(1, 2), frac(3, 2)],
-  ], _expIneqHQ);
+
+  // hard
+  const t = srRandInt(0, 2);
+  const r = srRandInt(0, 3), inside = r === 0 || r === 2, eq = r >= 2;
+  const fmt = inside ? (eq ? _IQ_INE : _IQ_IN) : (eq ? _IQ_OUTE : _IQ_OUT);
+  if (t <= 1) {
+    // 令 u=b^x：A·b^{2x} + B·b^x + C ? 0
+    const b = pick([2, 3]);
+    const one = t === 1; // 一根 u 為負，只剩單邊
+    let x1 = srRandInt(-1, 3), x2 = srRandInt(-1, 3);
+    if (!one && x1 === x2) return null;
+    if (!one && x1 > x2) [x1, x2] = [x2, x1];
+    const u1 = x1 >= 0 ? [Math.pow(b, x1), 1] : [1, Math.pow(b, -x1)];
+    const u2 = one ? [-srRandInt(1, 6), 1] : x2 >= 0 ? [Math.pow(b, x2), 1] : [1, Math.pow(b, -x2)];
+    const A = u1[1] * u2[1], B = -(u1[0] * u2[1] + u2[0] * u1[1]), C = u1[0] * u2[0];
+    if (B === 0) return null;
+    const term = (c, s, first) => (c === 0 ? '' : (c < 0 ? '-' : first ? '' : '+') + (Math.abs(c) === 1 ? '' : Math.abs(c) + '\\cdot ') + s);
+    const sq = srRandInt(0, 1) === 0 ? `${b * b}^x` : `${b}^{2x}`;
+    const q = `解不等式 \\(${term(A, sq, true)}${term(B, `${b}^x`, false)}${C > 0 ? '+' + C : C}${TX[r]} 0\\)`;
+    if (one) {
+      // (u − u1)(u + k) ? 0，u>0 ⇒ u ? u1 ⇒ x ? x1
+      return _iqOne(q, SY[r], x1);
+    }
+    return _iqTwo(q, fmt, x1, x2);
+  }
+  // 對稱型：b^x + b^{-x} ? b^k + b^{-k} ⇔ |x| ? k
+  const b = pick([2, 3]), k = b === 2 ? srRandInt(1, 3) : srRandInt(1, 2), D = Math.pow(b, k), N = D * D + 1;
+  const style = srRandInt(0, 2);
+  let lhs, rhs;
+  if (style === 0) { lhs = `${b}^x+${b}^{-x}`; rhs = `\\dfrac{${N}}{${D}}`; }
+  else if (style === 1) { lhs = `${b}^x+${inv(b)}^x`; rhs = `\\dfrac{${N}}{${D}}`; }
+  else { lhs = `${b}^{x+${k}}+${b}^{${k}-x}`; rhs = `${N}`; }
+  return _iqTwo(`解不等式 \\(${lhs}${TX[r]} ${rhs}\\)`, fmt, -k, k);
 }
 
 function genB3aLogIneq(level) {
