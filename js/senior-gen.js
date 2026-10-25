@@ -1992,6 +1992,37 @@ const _prB0Q=[],_prB1Q=[],_prB2Q=[];
 const _prM0Q=[],_prM1Q=[];
 const _prH0Q=[],_prH1Q=[];
 
+// 已知 f(x) 除以二次式 g(x) 的餘式 sx+t 與 f(a)=r，求 f(x) 除以 (x-a)g(x) 的餘式
+// 餘式 R(x)=k·g(x)+sx+t，由 R(a)=r 定 k
+function _prQuadRem(hard){
+  const a=srRnz(-4,4);
+  let g, gStr;
+  if(hard&&srRandInt(0,1)===0){
+    // g=(x-b)(x-c)，題目分別給除以 x-b、x-c 的餘式
+    const b=srRnz(-4,4),c=srRnz(-4,4);
+    if(b===c||b===a||c===a)return null;
+    g=[1,-(b+c),b*c];
+    const s=srRnz(-5,5),t=srRandInt(-8,8),k=srRnz(-3,3);
+    const r=k*(a-b)*(a-c)+s*a+t;
+    const A=k,B=k*g[1]+s,C=k*g[2]+t;
+    const P=_sfPoly;
+    return{question:`多項式 \\(f(x)\\) 除以 \\(${P([1,-b])}\\) 餘 \\(${s*b+t}\\)，除以 \\(${P([1,-c])}\\) 餘 \\(${s*c+t}\\)，除以 \\(${P([1,-a])}\\) 餘 \\(${r}\\)。若 \\(f(x)\\) 除以 \\((${P([1,-a])})(${P([1,-b])})(${P([1,-c])})\\) 的餘式為 \\(px^2+qx+w\\)，求 \\(p\\)、\\(q\\)、\\(w\\)`,
+      answerParts:['p','q','w'].map((n,i)=>({prefix:n,answer:[A,B,C][i],type:'number'}))};
+  }
+  // g 不可分解（判別式<0），如 x²+x+1、x²+1、x²-2x+3
+  const p=srRandInt(-3,3),q=srRandInt(1,5);
+  if(p*p-4*q>=0)return null;
+  g=[1,p,q];gStr=_sfPoly(g);
+  const s=srRnz(-6,6),t=srRandInt(-9,9),k=hard?srRnz(-4,4):srRandInt(1,3);
+  const ga=a*a+p*a+q,r=k*ga+s*a+t;
+  const A=k,B=k*p+s,C=k*q+t;
+  const L=_sfPoly([1,-a]),rem=_sfPoly([s,t]);
+  const q1=srRandInt(0,1)===0
+    ?`設 \\(f(x)=(${gStr})Q(x)${rem.startsWith('-')?'':'+'}${rem}\\)，且 \\(f(${a})=${r}\\)`
+    :`多項式 \\(f(x)\\) 除以 \\(${gStr}\\) 的餘式為 \\(${rem}\\)，除以 \\(${L}\\) 的餘式為 \\(${r}\\)`;
+  return{question:`${q1}。若 \\(f(x)\\) 除以 \\((${L})(${gStr})\\) 的餘式為 \\(px^2+qx+w\\)，求 \\(p\\)、\\(q\\)、\\(w\\)`,
+    answerParts:['p','q','w'].map((n,i)=>({prefix:n,answer:[A,B,C][i],type:'number'}))};
+}
 function genB1PolyRem(level,_n){
   for(let i=0;i<40;i++){const q=_b1PolyRem(level);if(q)return q;}
   return{question:'餘式定理',answer:0,type:'number',answerPrefix:''};
@@ -2041,7 +2072,8 @@ function _b1PolyRem(level){
     }
   }
   if(level==='medium'){
-    const t=srRandInt(0,1);
+    const t=srRandInt(0,2);
+    if(t===2) return _prQuadRem(false);
     if(t===0){
       // 兩條件確定 f(x)=x²+ax+b，再求 f(c)
       const pool=[
@@ -2070,7 +2102,8 @@ function _b1PolyRem(level){
     }
   }
   {
-    const ht=srRandInt(0,1);
+    const ht=srRandInt(0,2);
+    if(ht===2) return _prQuadRem(true);
     if(ht===0){
       // 三次多項式，除以兩個一次式，求兩未知數
       const pool=[
