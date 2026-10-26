@@ -1992,6 +1992,29 @@ const _prB0Q=[],_prB1Q=[],_prB2Q=[];
 const _prM0Q=[],_prM1Q=[];
 const _prH0Q=[],_prH1Q=[];
 
+// 已知 f(x) 除以兩個二次式（皆為兩一次式乘積）的餘式，求除以另一組一次式乘積的餘式
+function _prTwoRem(hard){
+  const P=_sfPoly, L=a=>P([1,-a]);
+  const rs=[];
+  while(rs.length<4){const v=srRnz(-5,5);if(!rs.includes(v))rs.push(v);}
+  const rem=(R,g)=>{const {r}=_pDivInt(R,g);return P(r.length===1?[r[0]]:r);};
+  const fmt=(g1,Q,r)=>`f(x)=${g1}${Q}(x)${r.startsWith('-')?'':'+'}${r}`;
+  if(!hard){
+    // f ≡ r1 mod (x-a)(x-b)，f ≡ r2 mod (x-c)(x-d)；求 f mod (x-a)(x-c) = px+q
+    const [a,b,c,d]=rs, p=srRnz(-6,6), q=srRandInt(-9,9), R=[p,q];
+    // r1 只需在 x=a 與 R 相同：r1 = R + m(x-a)
+    const m1=srRnz(-4,4), m2=srRnz(-4,4);
+    const r1=P([p+m1,q-m1*a]), r2=P([p+m2,q-m2*c]);
+    return{question:`設 \\(${fmt(`(${L(a)})(${L(b)})`,'Q_1',r1)}\\)，\\(${fmt(`(${L(c)})(${L(d)})`,'Q_2',r2)}\\)，若 \\(f(x)\\) 除以 \\((${L(a)})(${L(c)})\\) 的餘式為 \\(px+q\\)，求 \\(p\\)、\\(q\\)`,
+      answerParts:[{prefix:'p',answer:p,type:'number'},{prefix:'q',answer:q,type:'number'}]};
+  }
+  // f ≡ r1 mod (x-a)(x-b)，f ≡ r2 mod (x-b)(x-c)；求 f mod (x-a)(x-b)(x-c) = px²+qx+w
+  const [a,b,c]=rs, R=[srRnz(-3,3),srRandInt(-6,6),srRandInt(-9,9)];
+  const g1=[1,-(a+b),a*b], g2=[1,-(b+c),b*c];
+  const r1=rem(R,g1), r2=rem(R,g2);
+  return{question:`設 \\(${fmt(`(${L(a)})(${L(b)})`,'Q_1',r1)}\\)，\\(${fmt(`(${L(b)})(${L(c)})`,'Q_2',r2)}\\)，若 \\(f(x)\\) 除以 \\((${L(a)})(${L(b)})(${L(c)})\\) 的餘式為 \\(px^2+qx+w\\)，求 \\(p\\)、\\(q\\)、\\(w\\)`,
+    answerParts:['p','q','w'].map((n,i)=>({prefix:n,answer:R[i],type:'number'}))};
+}
 // 已知 f(x) 除以二次式 g(x) 的餘式 sx+t 與 f(a)=r，求 f(x) 除以 (x-a)g(x) 的餘式
 // 餘式 R(x)=k·g(x)+sx+t，由 R(a)=r 定 k
 function _prQuadRem(hard){
@@ -2072,7 +2095,8 @@ function _b1PolyRem(level){
     }
   }
   if(level==='medium'){
-    const t=srRandInt(0,2);
+    const t=srRandInt(0,3);
+    if(t===3) return _prTwoRem(false);
     if(t===2) return _prQuadRem(false);
     if(t===0){
       // 兩條件確定 f(x)=x²+ax+b，再求 f(c)
@@ -2102,7 +2126,8 @@ function _b1PolyRem(level){
     }
   }
   {
-    const ht=srRandInt(0,2);
+    const ht=srRandInt(0,3);
+    if(ht===3) return _prTwoRem(true);
     if(ht===2) return _prQuadRem(true);
     if(ht===0){
       // 三次多項式，除以兩個一次式，求兩未知數
