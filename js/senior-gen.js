@@ -155,12 +155,12 @@ function _b1DecimalTerm(level) {
       return { question: `\\(\\dfrac{${n}}{${d}}\\) 的小數第 \\(${N}\\) 位是哪個數字？`, answer: digit, type: 'number', answerPrefix: '' };
     } else {
       const candidates = [
-        ..._TERM_FRACS.slice(0, 8).map(([n, d]) => ({ val: n / d, str: `\\frac{${n}}{${d}}` })),
-        ..._RECUR_DATA.slice(0, 6).map(([n, d]) => ({ val: n / d, str: `\\frac{${n}}{${d}}` })),
+        ..._TERM_FRACS.slice(0, 8).map(([n, d]) => ({ val: n / d, str: `\\frac{${n}}{${d}}`, txt: `${n}/${d}` })),
+        ..._RECUR_DATA.slice(0, 6).map(([n, d]) => ({ val: n / d, str: `\\frac{${n}}{${d}}`, txt: `${n}/${d}` })),
       ];
       const picked = candidates.sort(() => Math.random() - 0.5).slice(0, 3);
       const sorted = [...picked].sort((a, b) => a.val - b.val);
-      const ans = sorted.map(f => f.str).join(' < ');
+      const ans = sorted.map(f => f.txt).join('<');
       return { question: `將 \\(${picked.map(f => f.str).join(',\\;')}\\) 由小到大排列（格式：a < b < c，用分數寫）`, answer: ans, type: 'text', answerPrefix: '' };
     }
   }
@@ -484,8 +484,9 @@ function _b1Expr(level) {
     }
 
     if (t === 1) {
-      // a+b=s, ab=p → a²+b² = s²-2p
+      // a+b=s, ab=p → a²+b² = s²-2p（取 s²≥4p，使 a、b 為實數）
       const s = srRnz(-6,6), p = srRnz(-6,6);
+      if (s*s < 4*p) return null;
       return { question:`已知 \\(a+b=${s}\\)，\\(ab=${p}\\)，求 \\(a^2+b^2\\) 的值？`, answer:s*s-2*p, type:'number', answerPrefix:'' };
     }
 
@@ -724,12 +725,12 @@ function _b1Exp(level) {
       if (Math.pow(a,m*n) > 512) return null;
       return { question:`\\(\\left[(${a}^{${m}})^{${n}}\\right]\\) ＝ ？`, answer:Math.pow(a,m*n), type:'number', answerPrefix:'' };
     } else if (t === 6) {
-      // 大中括號：{[(a/b)^m]^n} = (b/a)^{mn}（分數底多層括號）
+      // 大中括號：{[(a/b)^m]^n} = (a/b)^{mn}（分數底多層括號）
       const pairs = [[2,3],[3,4],[2,5],[3,5]];
       const [a,b] = pairs[srRandInt(0,pairs.length-1)];
       const m = srRandInt(1,2), n = srRandInt(1,2);
       const mn = m*n;
-      const rn = Math.pow(b,mn), rd = Math.pow(a,mn);
+      const rn = Math.pow(a,mn), rd = Math.pow(b,mn);
       const g = srGcd(rn,rd);
       return { question:`\\(\\left\\{\\left[\\left(\\dfrac{${a}}{${b}}\\right)^{${m}}\\right]^{${n}}\\right\\}\\) ＝ ？（格式：p/q）`, answer:`${rn/g}/${rd/g}`, type:'text', answerPrefix:'' };
     } else if (t === 7) {
@@ -1255,7 +1256,7 @@ function _b1Log(level) {
       const c = srQPick(cases, _b1LogB5Q);
       return {
         question:`已知 \\(\\log 2 \\approx ${L2},\\ \\log 3 \\approx ${L3}\\)，求 \\(\\log ${c.N}\\)（四位小數）`,
-        answer:c.a.toFixed(4), type:'text', answerPrefix:''
+        answer:Math.round(c.a*1e4)/1e4, type:'number', answerPrefix:''
       };
 
     } else if (t === 6) {
@@ -1303,7 +1304,7 @@ function _b1Log(level) {
       const c = srQPick(cases, _b1LogM0Q);
       return {
         question:`已知 \\(\\log 2 \\approx ${L2},\\ \\log 3 \\approx ${L3}\\)，求 \\(\\log ${c.N}\\)（四位小數）`,
-        answer:c.a.toFixed(4), type:'text', answerPrefix:''
+        answer:Math.round(c.a*1e4)/1e4, type:'number', answerPrefix:''
       };
 
     } else if (t === 1) {
@@ -1381,7 +1382,7 @@ function _b1Log(level) {
       const c = srQPick(cases, _b1LogM3Q);
       return {
         question:`已知 \\(\\log 2 \\approx ${L2},\\ \\log 3 \\approx ${L3}\\)，求 \\(${c.str}\\)（四位小數）`,
-        answer:c.a.toFixed(4), type:'text', answerPrefix:''
+        answer:Math.round(c.a*1e4)/1e4, type:'number', answerPrefix:''
       };
 
     } else if (t === 4) {
@@ -1448,7 +1449,7 @@ function _b1Log(level) {
         { q:`10^{\\log 4} + \\log 0.01 + \\log 1000`,  ans:5  },
         { q:`10^{\\log 6} + \\log 0.001 + \\log 100`,  ans:5  },
         { q:`10^{\\log 3} + \\log 10000 - \\log 100`,  ans:5  },
-        { q:`10^{\\log 11} + \\log 0.01 + \\log 1000`, ans:10 },
+        { q:`10^{\\log 11} + \\log 0.01 + \\log 1000`, ans:12 },
         { q:`10^{\\log 8} + \\log 0.001 + \\log 10000`,ans:9  },
         { q:`10^{\\log 2} + \\log 10^4 - \\log 1000`,  ans:3  },
       ];
@@ -2482,18 +2483,18 @@ function _b1PolyIneq1(level){
     }
     {
       const pool=[
-        {ineq:'x^2+kx+k>0 對所有實數 x 恆成立',ans:'0 < k < 4',fmt:'a < k < b'},
-        {ineq:'x^2+kx+1>0 對所有實數 x 恆成立',ans:'-2 < k < 2',fmt:'a < k < b'},
-        {ineq:'x^2-2kx+(k+2)>0 對所有實數 x 恆成立',ans:'-1 < k < 2',fmt:'a < k < b'},
-        {ineq:'x^2+2x+k>0 對所有實數 x 恆成立',ans:'k > 1',fmt:'k > c'},
-        {ineq:'x^2-4x+k>0 對所有實數 x 恆成立',ans:'k > 4',fmt:'k > c'},
-        {ineq:'x^2+6x+k>0 對所有實數 x 恆成立',ans:'k > 9',fmt:'k > c'},
-        {ineq:'x^2-kx+4>0 對所有實數 x 恆成立',ans:'-4 < k < 4',fmt:'a < k < b'},
-        {ineq:'x^2+kx+9>0 對所有實數 x 恆成立',ans:'-6 < k < 6',fmt:'a < k < b'},
-        {ineq:'x^2-2kx+(k+6)>0 對所有實數 x 恆成立',ans:'-2 < k < 3',fmt:'a < k < b'},
+        {ineq:'x^2+kx+k>0',ans:'0 < k < 4',fmt:'a < k < b'},
+        {ineq:'x^2+kx+1>0',ans:'-2 < k < 2',fmt:'a < k < b'},
+        {ineq:'x^2-2kx+(k+2)>0',ans:'-1 < k < 2',fmt:'a < k < b'},
+        {ineq:'x^2+2x+k>0',ans:'k > 1',fmt:'k > c'},
+        {ineq:'x^2-4x+k>0',ans:'k > 4',fmt:'k > c'},
+        {ineq:'x^2+6x+k>0',ans:'k > 9',fmt:'k > c'},
+        {ineq:'x^2-kx+4>0',ans:'-4 < k < 4',fmt:'a < k < b'},
+        {ineq:'x^2+kx+9>0',ans:'-6 < k < 6',fmt:'a < k < b'},
+        {ineq:'x^2-2kx+(k+6)>0',ans:'-2 < k < 3',fmt:'a < k < b'},
       ];
       const p=srQPick(pool,_pi1M1Q);if(!p)return null;
-      return{question:`若 \\(${p.ineq}\\)，求 \\(k\\) 的範圍。（格式：${p.fmt}）`,answer:p.ans,type:'text',answerPrefix:'\\(k\\)'};
+      return{question:`若 \\(${p.ineq}\\) 對所有實數 \\(x\\) 恆成立，求 \\(k\\) 的範圍。（格式：${p.fmt}）`,answer:p.ans,type:'text',answerPrefix:'\\(k\\)'};
     }
   }
   {
@@ -2579,16 +2580,18 @@ function _b1PolyIneq2(level){
       return{question:`先因式分解，再解不等式 \\(${p.ineq}\\)（格式：${p.fmt}）`,answer:p.ans,type:'text',answerPrefix:''};
     }
     {
-      // 整數解個數（三次不等式）
-      const pool=[
-        {ineq:'(x-1)(x-2)(x-3)<0',ans:2,hint:'根為 1,2,3'},
-        {ineq:'(x+1)(x-1)(x-3)<0',ans:3,hint:'根為 -1,1,3'},
-        {ineq:'(x+2)(x-1)(x-4)<0',ans:4,hint:'根為 -2,1,4'},
-        {ineq:'(x+1)(x-2)(x-5)<0',ans:4,hint:'根為 -1,2,5'},
-        {ineq:'(x+3)(x+1)(x-2)<0',ans:4,hint:'根為 -3,-1,2'},
-      ];
-      const p=srQPick(pool,_pi2M1Q);if(!p)return null;
-      return{question:`不等式 \\(${p.ineq}\\) 的整數解共有幾個？（${p.hint}）`,answer:p.ans,type:'number',answerPrefix:'整數解個數'};
+      // 整數解個數（三次不等式）：三次不等式的解必含無限區間，故限定範圍 r1 ≤ x ≤ r3
+      const rs=[];
+      while(rs.length<3){const v=srRandInt(-5,6);if(!rs.includes(v))rs.push(v);}
+      rs.sort((a,b)=>a-b);
+      if(rs[2]-rs[0]>9)return null;
+      const op=pick(['<','>','\\leq','\\geq']);
+      const f=x=>(x-rs[0])*(x-rs[1])*(x-rs[2]);
+      const ok=v=>op==='<'?v<0:op==='>'?v>0:op==='\\leq'?v<=0:v>=0;
+      let cnt=0;
+      for(let x=rs[0];x<=rs[2];x++)if(ok(f(x)))cnt++;
+      const fac=rs.map(r=>r===0?'x':`(x${r>0?'-'+r:'+'+(-r)})`).join('');
+      return{question:`不等式 \\(${fac}${op} 0\\) 在 \\(${rs[0]}\\leq x\\leq ${rs[2]}\\) 範圍內的整數解共有幾個？`,answer:cnt,type:'number',answerPrefix:'整數解個數'};
     }
   }
   {
@@ -4089,10 +4092,10 @@ function _b1LineIneq(level) {
         {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+y \\leq 6',     ans:18},
         {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 2x+y \\leq 4',    ans:4},
         {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ x+2y \\leq 6',    ans:9},
-        {sys:'y \\geq 0 \\\\ x-y \\leq 1 \\\\ x+y \\leq 5',   ans:4},
+        {sys:'y \\geq 0 \\\\ x-y \\geq 1 \\\\ x+y \\leq 5',   ans:4},
         {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 3x+2y \\leq 12',  ans:12},
         {sys:'x \\geq 0 \\\\ y \\geq 0 \\\\ 2x+3y \\leq 6',   ans:3},
-        {sys:'y \\geq 0 \\\\ x-2y \\geq -2 \\\\ x+y \\leq 4', ans:9},
+        {sys:'y \\geq 0 \\\\ x-2y \\geq -2 \\\\ x+y \\leq 4', ans:6},
       ];
       const e = areaCases[srRandInt(0,areaCases.length-1)];
       return {
@@ -4162,7 +4165,7 @@ function _b1LineIneq(level) {
     {q:`滿足二元一次聯立不等式 \\(\\begin{cases} x \\geq 0 \\\\ y \\geq 0 \\\\ 2x+3y \\leq 12 \\end{cases}\\) 的圖形，其面積為`, a:12, at:'number'},
     {q:`滿足二元一次聯立不等式 \\(\\begin{cases} y \\geq 0 \\\\ x+y \\leq 5 \\\\ x-y \\geq -1 \\end{cases}\\) 的圖形，其面積為`, a:9,  at:'number'},
     {q:`滿足二元一次聯立不等式 \\(\\begin{cases} x \\geq 0 \\\\ y \\geq 0 \\\\ x+3y \\leq 6 \\end{cases}\\) 的圖形，其面積為`, a:6,  at:'number'},
-    {q:`滿足二元一次聯立不等式 \\(\\begin{cases} y \\geq 0 \\\\ 2x-y \\leq 4 \\\\ x+y \\leq 5 \\end{cases}\\) 的圖形，其面積為`, a:3,  at:'number'},
+    {q:`滿足二元一次聯立不等式 \\(\\begin{cases} y \\geq 0 \\\\ 2x-y \\geq 4 \\\\ x+y \\leq 5 \\end{cases}\\) 的圖形，其面積為`, a:3,  at:'number'},
   ];
   const he = hardPool[srRandInt(0,hardPool.length-1)];
   return { question:he.q, answer:he.a, type:he.at, answerPrefix:'' };
@@ -4575,8 +4578,8 @@ function _b1DblRad(level) {
          ans:'(3,1)'},
         // a(2+√3)+b(2-√3)=8+2√3: 2(a+b)=8→a+b=4, a-b=2→a=3,b=1
         {q:'設 \\(a,b\\) 皆為有理數，且 \\(a\\sqrt{9+4\\sqrt{5}}+b\\sqrt{9-4\\sqrt{5}}=6\\sqrt{5}\\)，則數對 \\((a,b)\\)',
-         ans:'(3,-3)'},
-        // a(2+√5)+b(2-√5)=6√5: 2(a+b)=0→a=-b, (a-b)=6→a=3,b=-3
+         ans:'(3,3)'},
+        // √(9-4√5)=√5-2：a(2+√5)+b(√5-2)=2(a-b)+(a+b)√5=6√5 → a-b=0, a+b=6 → a=b=3
         {q:'設 \\(a,b\\) 皆為有理數，且 \\(a\\sqrt{3+2\\sqrt{2}}+b\\sqrt{3-2\\sqrt{2}}=4\\sqrt{2}+2\\)，則數對 \\((a,b)\\)',
          ans:'(3,1)'},
         // a(√2+1)+b(√2-1)=4√2+2: a+b=4, a-b=2→a=3,b=1
@@ -4615,13 +4618,13 @@ function _b1DblRad(level) {
   if (t===0) {
     const POOL=[
       {q:'設 \\(2+\\sqrt{5}\\) 的整數部分為 \\(a\\)，純小數部分為 \\(b\\)，求 \\(a+\\dfrac{b}{1-b}\\)',
-       ans:'\\dfrac{15+\\sqrt{5}}{4}'},
+       ans:'(15+√5)/4'},
       // a=4,b=√5-2: b/(1-b)=(√5-2)/(3-√5)=(√5-1)/4, a+...=(15+√5)/4
       {q:'設 \\(\\sqrt{5}+2\\) 的整數部分為 \\(a\\)，純小數部分為 \\(b\\)，求 \\(\\dfrac{1}{b}\\)',
-       ans:'\\sqrt{5}+2'},
+       ans:'√5+2'},
       // a=4,b=√5-2, 1/b=(√5+2)
       {q:'設正實數 \\(x\\) 的小數部分為 \\(b\\)，若 \\(x^2=9-4\\sqrt{2}\\)，則 \\(\\dfrac{1}{b}\\)',
-       ans:'\\dfrac{\\sqrt{2}+1}{2}'},
+       ans:'(√2+1)/2'},
       // x=2√2-1≈1.828, b=2√2-2, 1/b=(√2+1)/2
       {q:'已知 \\(\\sqrt{16+\\sqrt{252}}\\) 的整數部分為 \\(a\\)，小數部分為 \\(b\\)，試求 \\(2a+b-\\dfrac{3}{b}\\)',
        ans:'6'},
@@ -4631,7 +4634,7 @@ function _b1DblRad(level) {
       // =3-√2≈1.586, a=1,b=2-√2, ans=-2
     ];
     const item=srQPick(POOL,_b1DblH0Q);
-    return {question:`${item.q} \\(=\\)`,answer:item.ans,type:'text'};
+    return {question:`${item.q} \\(=\\)（根號可寫成 √，例如 (1+√3)/2）`,answer:item.ans,type:'text',exprAns:true};
   }
 
   // t=1
@@ -4646,8 +4649,8 @@ function _b1DblRad(level) {
      ans:52,suffix:''},
     {q:'設 \\(a=\\dfrac{\\sqrt{2}+1}{\\sqrt{2}-1}\\)，\\(b=\\dfrac{\\sqrt{2}-1}{\\sqrt{2}+1}\\)，試求 \\(a^3+b^3\\)',
      ans:198,suffix:''},
-    {q:'實數數線上 \\(A(\\sqrt{46-6\\sqrt{5}})\\)、\\(B(\\sqrt{14-6\\sqrt{5}})\\)，\\(P\\) 在數線上且 \\(\\overline{AP}:\\overline{BP}=3:1\\)，求 \\(P\\) 點座標',
-     ans:'2 或 5-3\\sqrt{5}',suffix:''},
+    {q:'實數數線上 \\(A(\\sqrt{46-6\\sqrt{5}})\\)、\\(B(\\sqrt{14-6\\sqrt{5}})\\)，\\(P\\) 在數線上且 \\(\\overline{AP}:\\overline{BP}=3:1\\)，求 \\(P\\) 點座標（兩解以「或」連接，根號寫成 √，例如 1 或 2-√3）',
+     ans:'2 或 5-3√5',suffix:''},
     // √(46-6√5)=√(45-6√5+1)=(3√5-1), √(14-6√5)=√(9-6√5+5)=(3-√5)
     // A=3√5-1≈5.71, B=3-√5≈0.76
     // 內分: P=(1·A+3·B)/4=(3√5-1+9-3√5)/4=8/4=2 ✓
@@ -5666,7 +5669,7 @@ function _b3Arc(level) {
       // 扇形弧長 s = rθ（整數弳度）
       const pool = [
         {r:3,theta:4,s:12},{r:5,theta:2,s:10},{r:4,theta:3,s:12},
-        {r:6,theta:5,s:30},{r:2,theta:7,s:14},{r:8,theta:3,s:24},
+        {r:6,theta:5,s:30},{r:7,theta:3,s:21},{r:8,theta:3,s:24},
         {r:5,theta:6,s:30},{r:7,theta:2,s:14},{r:3,theta:5,s:15},{r:4,theta:6,s:24},
       ];
       const item = srQPick(pool, _b3ArcArcQ);
@@ -5680,7 +5683,7 @@ function _b3Arc(level) {
     const pool3 = [
       {r:2,theta:4,A:8 },{r:3,theta:2,A:9 },{r:4,theta:3,A:24},
       {r:2,theta:6,A:12},{r:6,theta:2,A:36},{r:3,theta:6,A:27},
-      {r:5,theta:2,A:25},{r:4,theta:2,A:16},{r:2,theta:8,A:16},{r:6,theta:4,A:72},
+      {r:5,theta:2,A:25},{r:4,theta:2,A:16},{r:8,theta:1,A:32},{r:6,theta:4,A:72},
     ];
     const item3 = srQPick(pool3, _b3ArcAreaQ);
     return {
@@ -6279,7 +6282,7 @@ function _b3aTrigGraph(level) {
         {q:'函數 \\(y=3\\sin(2x+1)-1\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M+m\\)', ans:-2, pfx:'\\(M+m\\)'},
         {q:'函數 \\(y=5\\cos(x-2)+3\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M \\times m\\)', ans:-16, pfx:'\\(M\\times m\\)'},
         {q:'函數 \\(y=2\\sin(3x)-4\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M+m\\)', ans:-8, pfx:'\\(M+m\\)'},
-        {q:'函數 \\(y=-3\\cos(2x)+5\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M+m\\)', ans:16, pfx:'\\(M+m\\)'},
+        {q:'函數 \\(y=-3\\cos(2x)+5\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M+m\\)', ans:10, pfx:'\\(M+m\\)'},
         {q:'函數 \\(y=2\\cos(x)+3\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M \\times m\\)', ans:5, pfx:'\\(M\\times m\\)'},
         {q:'函數 \\(y=4\\sin(3x)+1\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M+m\\)', ans:2, pfx:'\\(M+m\\)'},
         {q:'函數 \\(y=4\\sin(x+2)-2\\) 的最大值 \\(M\\) 及最小值 \\(m\\)，求 \\(M \\times m\\)', ans:-12, pfx:'\\(M\\times m\\)'},
@@ -6300,7 +6303,7 @@ function _b3aTrigGraph(level) {
         {q:'若 \\(0 &lt; h &lt; 2\\pi\\)，且 \\(y=\\sin(x+h)\\) 的圖形通過原點，則 \\(h\\) 的最小值為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:1, type:'number', pfx:'\\(h_{min}\\)'},
         {q:'若 \\(0 &lt; h &lt; 2\\pi\\)，且 \\(y=\\cos(x+h)\\) 的圖形通過原點，則 \\(h\\) 的最小值為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:frac(1,2), type:'fraction', pfx:'\\(h_{min}\\)'},
         {q:'若將 \\(y=\\sin x\\) 的圖形向左平移 \\(\\dfrac{\\pi}{6}\\) 單位，可得 \\(y=\\sin(x+h)\\) 的圖形，其中 \\(0 &lt; h &lt; 2\\pi\\)，\\(h\\) 為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:frac(1,6), type:'fraction', pfx:'\\(h\\)'},
-        {q:'若 \\(0 &lt; h &lt; 2\\pi\\)，且 \\(y=\\sin(x+h)\\) 的圖形通過原點，則 \\(h\\) 的最大值為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:2, type:'number', pfx:'\\(h_{max}\\)'},
+        {q:'若 \\(0 &lt; h &lt; 2\\pi\\)，且 \\(y=\\sin(x+h)\\) 的圖形通過原點，則 \\(h\\) 的最大值為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:1, type:'number', pfx:'\\(h_{max}\\)'},
         {q:'在 \\(y=\\sin x\\)、\\(y=\\cos x\\)、\\(y=\\tan x\\) 三函數中，偶函數的個數為', ans:1, type:'number', pfx:'個'},
         {q:'在 \\(y=\\sin x\\)、\\(y=\\cos x\\)、\\(y=\\tan x\\) 三函數中，奇函數的個數為', ans:2, type:'number', pfx:'個'},
         {q:'若 \\(0 &lt; h &lt; 2\\pi\\)，且 \\(y=\\cos(x+h)\\) 的圖形通過原點，則 \\(h\\) 的最大值為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:frac(3,2), type:'fraction', pfx:'\\(h_{max}\\)'},
@@ -6338,7 +6341,7 @@ function _b3aTrigGraph(level) {
         {q:'比較 \\(\\cos 1\\)、\\(\\cos 2\\)、\\(\\cos 3\\) 之大小關係（格式如 a>b>c）', ans:'cos1>cos2>cos3'},
         {q:'三數 \\(a=\\sin 10^\\circ\\)、\\(b=\\cos 10^\\circ\\)、\\(c=\\sin(-10^\\circ)\\) 大小關係（格式如 b>a>c）', ans:'b>a>c'},
         {q:'比較 \\(\\sin 1\\)、\\(\\sin 2\\)、\\(\\sin 3\\) 之大小關係（格式如 a>b>c）', ans:'sin2>sin1>sin3'},
-        {q:'三數 \\(a=\\cos 100^\\circ\\)、\\(b=\\cos 200^\\circ\\)、\\(c=\\sin 100^\\circ\\) 大小關係（格式如 c>b>a）', ans:'c>b>a'},
+        {q:'三數 \\(a=\\cos 100^\\circ\\)、\\(b=\\cos 200^\\circ\\)、\\(c=\\sin 100^\\circ\\) 大小關係（格式如 c>b>a）', ans:'c>a>b'},
         {q:'比較 \\(\\sin\\dfrac{5\\pi}{6}\\)、\\(\\cos\\dfrac{5\\pi}{6}\\)、\\(\\tan\\dfrac{5\\pi}{6}\\) 大小（格式如 a>b>c，以 sin/cos/tan 表示）', ans:'sin>tan>cos'},
         {q:'比較 \\(\\sin 4\\)、\\(\\sin 5\\)、\\(\\sin 6\\) 之大小關係（格式如 a>b>c）', ans:'sin6>sin4>sin5'},
         {q:'比較 \\(\\tan 1\\)、\\(\\tan 2\\)、\\(\\tan 3\\) 之大小關係（格式如 a>b>c）', ans:'tan1>tan3>tan2'},
@@ -6373,7 +6376,7 @@ function _b3aTrigGraph(level) {
         {q:'將函數 \\(y=\\cos x\\) 的圖形先沿垂直方向伸長為 2 倍，水平方向壓縮為 \\(\\dfrac{1}{3}\\) 倍，再向左平移 \\(\\dfrac{\\pi}{3}\\) 單位，向上平移 4 單位得 \\(y=a\\cos(bx+c)+d\\)（\\(0 &lt; c &lt; 2\\pi\\)），求 \\(a\\)', ans:2, type:'number', pfx:'\\(a\\)'},
         {q:'將函數 \\(y=\\cos x\\) 先垂直伸長 2 倍、水平壓縮 \\(\\dfrac{1}{3}\\) 倍、左移 \\(\\dfrac{\\pi}{3}\\)、上移 4，得 \\(y=a\\cos(bx+c)+d\\)（\\(0 &lt; c &lt; 2\\pi\\)），求 \\(b\\)', ans:3, type:'number', pfx:'\\(b\\)'},
         {q:'將函數 \\(y=\\cos x\\) 先垂直伸長 2 倍、水平壓縮 \\(\\dfrac{1}{3}\\) 倍、左移 \\(\\dfrac{\\pi}{3}\\)、上移 4，得 \\(y=a\\cos(bx+c)+d\\)（\\(0 &lt; c &lt; 2\\pi\\)），求 \\(d\\)', ans:4, type:'number', pfx:'\\(d\\)'},
-        {q:'已知 \\(y=\\cos(3x+1)\\) 的圖形以 \\(y\\) 軸為中心水平伸縮 \\(a\\) 倍再向左平移 \\(b\\) 單位可還原為 \\(y=\\cos x\\)，且 \\(a &gt; 0\\)、\\(0 &lt; b &lt; \\dfrac{\\pi}{2}\\)，求 \\(a\\)（填分數）', ans:frac(1,3), type:'fraction', pfx:'\\(a\\)'},
+        {q:'已知 \\(y=\\cos x\\) 的圖形以 \\(y\\) 軸為中心水平伸縮為 \\(a\\) 倍，再向左平移 \\(b\\) 單位，可得 \\(y=\\cos(3x+1)\\) 的圖形，且 \\(a &gt; 0\\)、\\(0 &lt; b &lt; \\dfrac{\\pi}{2}\\)，求 \\(a\\)（填分數）', ans:frac(1,3), type:'fraction', pfx:'\\(a\\)'},
         {q:'若函數 \\(y=\\sin x\\) 的圖形先沿垂直方向拉伸 3 倍得 \\(y=f_1(x)\\)，再水平壓縮為 \\(\\dfrac{1}{2}\\) 倍得 \\(y=f_2(x)\\)，則 \\(f_2(x)\\) 的振幅為', ans:3, type:'number', pfx:'振幅'},
         {q:'將 \\(y=\\sin x\\) 每點以 \\(y\\) 軸為中心水平伸縮 3 倍得 \\(y=a\\sin bx\\)，求 \\(b\\)（填分數）', ans:frac(1,3), type:'fraction', pfx:'\\(b\\)'},
       ];
@@ -6402,14 +6405,14 @@ function _b3aTrigGraph(level) {
     const pool = [
       {q:'若 \\(2\\sin^2 x - 3\\cos x \\le 0\\)，函數 \\(f(x)=3\\cos^2 x+4\\sin x\\)（\\(x \\in \\mathbb{R}\\)）的最大值為（填分數）', ans:frac(13,3), type:'fraction', pfx:'最大值'},
       {q:'若 \\(0 \\le x \\le 2\\pi\\)，方程式 \\(\\cos x = -\\dfrac{1}{3}\\) 的兩實數解之和為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:2, type:'number', pfx:'兩解之和'},
-      {q:'設 \\(-\\pi \\le x \\le \\pi\\)，方程式 \\(\\tan x = 1-x\\) 的實數解個數有', ans:4, type:'number', pfx:'個'},
+      {q:'設 \\(-\\pi \\le x \\le \\pi\\)，方程式 \\(\\tan x = 1-x\\) 的實數解個數有', ans:3, type:'number', pfx:'個'},
       {q:'設 \\(-\\pi \\le x \\le \\pi\\)，方程式 \\(\\sin x + \\dfrac{x}{4} = 1\\) 有幾個相異實數解', ans:2, type:'number', pfx:'個'},
-      {q:'方程式 \\(\\sin x = \\dfrac{x}{4\\pi}\\) 有幾個實數解', ans:8, type:'number', pfx:'個'},
+      {q:'方程式 \\(\\sin x = \\dfrac{x}{4\\pi}\\) 有幾個實數解', ans:7, type:'number', pfx:'個'},
       {q:'若 \\(0 \\le x \\le 2\\pi\\)，方程式 \\(\\sin x = -\\dfrac{1}{2}\\) 的兩實數解之和為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:3, type:'number', pfx:'兩解之和'},
       {q:'若 \\(0 \\le x \\le 2\\pi\\)，方程式 \\(\\cos x = \\dfrac{\\sqrt{3}}{2}\\) 的兩實數解之差為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:frac(5,3), type:'fraction', pfx:'兩解之差'},
       {q:'方程式 \\(\\sin x = \\dfrac{x}{5\\pi}\\) 的實數解個數有', ans:11, type:'number', pfx:'個'},
       {q:'方程式 \\(\\sin x = \\dfrac{x}{3\\pi}\\) 的實數解個數有', ans:7, type:'number', pfx:'個'},
-      {q:'若 \\(0 \\le x \\le 2\\pi\\)，函數 \\(y=2\\cos^2 x + \\sin x\\) 的最大值為（填分數）', ans:frac(9,8), type:'fraction', pfx:'最大值'},
+      {q:'若 \\(0 \\le x \\le 2\\pi\\)，函數 \\(y=2\\cos^2 x + \\sin x\\) 的最大值為（填分數）', ans:frac(17,8), type:'fraction', pfx:'最大值'},
       {q:'若 \\(0 \\le x \\le 2\\pi\\)，方程式 \\(\\tan x = -1\\) 的兩實數解之和為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:frac(5,2), type:'fraction', pfx:'兩解之和'},
     ];
     const item = srQPick(pool, _b3aGrfH0Q);
@@ -6418,9 +6421,9 @@ function _b3aTrigGraph(level) {
 
   // t===1：從圖形求函數參數（a sinbx 圖形最高最低點）
   const pool1 = [
-    {q:'已知 \\(a &gt; 0\\)、\\(b &gt; 0\\)，函數 \\(f(x)=a\\sin bx\\) 的圖形通過最高點 \\(P(3,\\,2)\\) 及最低點 \\(Q(9,\\,-2)\\)，且與直線 \\(y=-1\\) 交於 \\(A\\)、\\(B\\)、\\(C\\) 三點，求 \\(\\overline{AB}\\) 的長', ans:8, type:'number', pfx:'\\(\\overline{AB}\\)'},
+    {q:'已知 \\(a &gt; 0\\)、\\(b &gt; 0\\)，函數 \\(f(x)=a\\sin bx\\) 的圖形通過最高點 \\(P(3,\\,2)\\) 及最低點 \\(Q(9,\\,-2)\\)，且在 \\(0 \\le x \\le 20\\) 的範圍內與直線 \\(y=-1\\) 由左而右依序交於 \\(A\\)、\\(B\\)、\\(C\\) 三點，求 \\(\\overline{BC}\\) 的長', ans:8, type:'number', pfx:'\\(\\overline{BC}\\)'},
     {q:'已知 \\(a &gt; 0\\)、\\(b &gt; 0\\)，函數 \\(f(x)=a\\sin bx\\) 的圖形通過最高點 \\(P(3,\\,2)\\) 及最低點 \\(Q(9,\\,-2)\\)，求振幅 \\(a\\)', ans:2, type:'number', pfx:'\\(a\\)'},
-    {q:'已知 \\(a &gt; 0\\)、\\(b &gt; 0\\)，函數 \\(f(x)=a\\sin bx\\) 的圖形通過最高點 \\(P(3,\\,2)\\) 及最低點 \\(Q(9,\\,-2)\\)，則週期為 \\(\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:4, type:'number', pfx:'週期'},
+    {q:'已知 \\(a &gt; 0\\)、\\(b &gt; 0\\)，函數 \\(f(x)=a\\sin bx\\) 的圖形通過最高點 \\(P(3,\\,2)\\) 及最低點 \\(Q(9,\\,-2)\\)，則 \\(b=\\square\\,\\pi\\)（填 \\(\\square\\)）', ans:frac(1,6), type:'fraction', pfx:'\\(b\\)'},
     {q:'函數 \\(y=3\\sin bx\\)（\\(b &gt; 0\\)）圖形最高點的 \\(x\\) 坐標為 \\(\\dfrac{\\pi}{4}\\)，求 \\(b\\)', ans:2, type:'number', pfx:'\\(b\\)'},
     {q:'函數 \\(y=a\\sin 2x\\)（\\(a &gt; 0\\)）的最高點為 \\(\\left(\\dfrac{\\pi}{4},\\,5\\right)\\)，求 \\(a\\)', ans:5, type:'number', pfx:'\\(a\\)'},
     {q:'已知 \\(a &gt; 0\\)、\\(b &gt; 0\\)，函數 \\(f(x)=a\\sin bx\\) 的圖形最高點為 \\(P\\!\\left(\\dfrac{\\pi}{4},\\,3\\right)\\)，最低點 \\(Q\\!\\left(\\dfrac{3\\pi}{4},\\,-3\\right)\\)，求振幅 \\(a\\)', ans:3, type:'number', pfx:'\\(a\\)'},

@@ -483,7 +483,7 @@ function parseFactoredForm(str){
 // ─── 二次方程式兩根解析 ───────────────────────────────────────────
 // 代數式答案比對：以隨機數值代入變數，判斷兩式是否等價（接受 2+m、m+2、2m、(1+q)/p 等寫法）
 function evalExprAt(str, vars){
-  const s=str.replace(/\s+/g,'').replace(/（/g,'(').replace(/）/g,')').replace(/[×·]/g,'*').replace(/÷/g,'/').replace(/[−–]/g,'-');
+  const s=str.replace(/\s+/g,'').replace(/（/g,'(').replace(/）/g,')').replace(/[×·]/g,'*').replace(/÷/g,'/').replace(/[−–]/g,'-').replace(/sqrt/gi,'√');
   let i=0;
   const peek=()=>s[i];
   function expr(){let v=term();while(peek()==='+'||peek()==='-'){const op=s[i++],t=term();v=op==='+'?v+t:v-t;}return v;}
@@ -492,7 +492,7 @@ function evalExprAt(str, vars){
     for(;;){
       const c=peek();
       if(c==='*'||c==='/'){i++;const f=unary();v=c==='*'?v*f:v/f;}
-      else if(c!==undefined&&/[0-9a-z(]/.test(c))v*=power();
+      else if(c!==undefined&&/[0-9a-z(√π]/.test(c))v*=power();
       else return v;
     }
   }
@@ -501,6 +501,9 @@ function evalExprAt(str, vars){
   function atom(){
     const c=peek();
     if(c==='('){i++;const v=expr();if(peek()!==')')throw new Error('paren');i++;return v;}
+    // 根號：√5、√(a+b)；圓周率 π
+    if(c==='√'){i++;return Math.sqrt(atom());}
+    if(c==='π'){i++;return Math.PI;}
     const m=/^\d+(\.\d+)?/.exec(s.slice(i));
     if(m){i+=m[0].length;return parseFloat(m[0]);}
     if(c!==undefined&&c in vars){i++;return vars[c];}
@@ -514,6 +517,40 @@ function evalExprAt(str, vars){
 function exprAmbiguous(str){
   const s=str.replace(/\s+/g,'').replace(/（/g,'(').replace(/÷/g,'/');
   return /\/(\d+(?:\.\d+)?(?=[a-z(])|[a-z](?=[a-z0-9(]))/i.test(s);
+}
+// LaTeX 答案 → 可計算的式子（\dfrac{a}{b}→(a)/(b)、\sqrt{n}→√(n)、\pi→π）
+function latexToAscii(s){
+  let t=String(s).replace(/\\left|\\right|\\,|\\!|\\;/g,'').replace(/\\cdot|\\times/g,'*').replace(/\\pi/g,'π');
+  for(let k=0;k<6;k++){
+    t=t.replace(/\\sqrt\{([^{}]*)\}/g,'√($1)');
+    t=t.replace(/\\d?frac\{([^{}]*)\}\{([^{}]*)\}/g,'(($1)/($2))');
+  }
+  return t.replace(/[{}]/g,'');
+}
+// 純數值比較（支援 √、π、分數）
+function numAnsEq(user, ascii){
+  try{
+    const u=evalExprAt(user.replace(/pi/gi,'π'),{}), a=evalExprAt(ascii,{});
+    return isFinite(u)&&isFinite(a)&&Math.abs(u-a)<=1e-6*Math.max(1,Math.abs(a));
+  }catch(e){return false;}
+}
+// 含 LaTeX 的文字答案：數值比對；支援「a 或 b」（不計順序）與坐標 (x,y)
+function latexAnsMatch(user, ans){
+  const a=latexToAscii(ans).replace(/\s+/g,''), u=String(user).replace(/\s+/g,'').replace(/（/g,'(').replace(/）/g,')').replace(/，/g,',');
+  if(a.includes('或')){
+    const as=a.split('或'), us=u.split('或');
+    if(as.length!==us.length)return false;
+    const used=new Set();
+    return as.every(x=>{const j=us.findIndex((y,k)=>!used.has(k)&&numAnsEq(y,x));if(j<0)return false;used.add(j);return true;});
+  }
+  const tm=/^\((.*)\)$/.exec(a);
+  if(tm&&tm[1].includes(',')){
+    const um=/^\((.*)\)$/.exec(u);
+    if(!um)return false;
+    const ap=tm[1].split(','), up=um[1].split(',');
+    return ap.length===up.length&&ap.every((x,k)=>numAnsEq(up[k],x));
+  }
+  return numAnsEq(u,a);
 }
 function exprAnsMatch(user, ans){
   const a0=ans.toLowerCase(),u0=user.toLowerCase();
@@ -623,6 +660,9 @@ function renderQuiz(questions, params) {
   if (hasTextQuad) hintParts.push('象限：填 <code>第一象限</code>、<code>第二象限</code>、<code>第三象限</code>、<code>第四象限</code>；坐標軸：填 <code>x軸</code> 或 <code>y軸</code>');
   if (hasTextCrit) hintParts.push('全等性質：填 <code>SSS</code>、<code>SAS</code>、<code>ASA</code>、<code>AAS</code>、<code>RHS</code>');
   if (hasTextCong) hintParts.push('全等判斷：填 <code>全等</code> 或 <code>不全等</code>（亦可填一定全等、不一定全等）');
+  const _radText = v => /\\|√|π/.test(String(v));
+  const hasRadText = questions.some(q => (q.type === 'text' && _radText(q.answer)) || (q.answerParts && q.answerParts.some(p => p.type === 'text' && _radText(p.answer))));
+  if (hasRadText) hintParts.push('根號填 <code>√5</code> 或 <code>sqrt(5)</code>，π 填 <code>π</code> 或 <code>pi</code>，例如 <code>2√3</code>、<code>(1+√5)/2</code>、<code>5π/6</code>');
   document.getElementById('format-hint').innerHTML =
     '答案格式：' + hintParts.join('　｜　');
 
@@ -859,8 +899,9 @@ function checkAnswers() {
             ok = up !== null && _feq2(up.a2,p.answer.a2) && _feq2(up.a1,p.answer.a1) && _feq2(up.a0,p.answer.a0);
           }
           else if (p.type === 'text') {
-            const norm = s => s.trim().replace(/一定/g,'').toUpperCase();
+            const norm = s => { const t = s.replace(/\s+/g,'').replace(/一定|象限/g,'').toUpperCase(); return t.includes('或') ? t.split('或').sort().join('或') : t; };
             ok = norm(v) === norm(String(p.answer));
+            if (!ok && /\\|√|π/.test(String(p.answer))) ok = latexAnsMatch(v, String(p.answer));
           }
           else { const un = parseDecimal(v); ok = un !== null && decEq(un, p.answer); }
         }
@@ -944,8 +985,16 @@ function checkAnswers() {
       const sciM = userVal.replace(/\s/g,'').match(/^([0-9.]+)[×xX*]10\^([+\-]?\d+)$/);
       if (sciM) isCorrect = decEq(parseFloat(sciM[1]), q.sciCoef) && parseInt(sciM[2]) === q.sciExp;
     } else if (q.type === 'text') {
-      const norm = s => s.trim().replace(/一定/g, '').toUpperCase();
+      // 去空白；「a 或 b」型答案不計順序
+      const norm = s => { const t = s.replace(/\s+/g, '').replace(/一定|象限/g, '').toUpperCase(); return t.includes('或') ? t.split('或').sort().join('或') : t; };
       isCorrect = q.exprAns ? exprAnsMatch(userVal, String(q.answer)) : norm(userVal) === norm(String(q.answer));
+      // 文字答案若本身是分數或整數（如 1/8），接受等值的分數
+      if (!isCorrect && !q.exprAns) {
+        const af = parseFrac(String(q.answer).trim()), uf = parseFrac(userVal);
+        if (af && uf) isCorrect = feq(af, uf);
+        // 含根號、π 或 LaTeX 的答案以數值比對
+        if (!isCorrect && /\\|√|π/.test(String(q.answer))) isCorrect = latexAnsMatch(userVal, String(q.answer));
+      }
     } else {
       const userNum = parseDecimal(userVal);
       isCorrect = userNum !== null && decEq(userNum, q.answer);

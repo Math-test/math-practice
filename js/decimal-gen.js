@@ -186,11 +186,11 @@ function _decMul(level) {
 // ═══════════════════════════════════════════════════════════════════
 
 function genDecDiv(level) {
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 200; i++) {
     const q = _decDiv(level);
     if (q && q.answer > 0) return q;
   }
-  return _decDiv('basic');
+  return { question:`\\(7 \\div 2\\)`, answer: 3.5, type:'decimal', places:1 };
 }
 
 function _decDiv(level) {
@@ -198,9 +198,9 @@ function _decDiv(level) {
     const t = randInt(0, 3);
     if (t === 0) {
       // 整數 ÷ 整數 = 一位小數（設計整除）
-      const n = randInt(1, 9), ans = randDec1(0.1, 9.9);
-      const a = roundTo(n * ans, 0);
-      if (a <= 0) return null;
+      const n = randInt(2, 9), a = randInt(1, 99);
+      // 須恰好除盡到一位小數，且不是整數
+      if ((a * 10) % n !== 0 || a % n === 0) return null;
       return { question:`\\(${a} \\div ${n}\\)`,
                answer: roundTo(a / n, 1), type:'decimal', places:1 };
     } else if (t === 1) {
@@ -236,8 +236,9 @@ function _decDiv(level) {
     } else if (t === 1) {
       // 兩位小數 ÷ 兩位小數（設計一位小數答案）
       const b = randDec2(0.01, 4.99), ans = randDec1(0.2, 5.9);
-      const a = roundTo(b * ans, 2);
-      if (a <= 0) return null;
+      const a = roundTo(b * ans, 3);
+      // 被除數須為兩位小數，才能恰好除盡
+      if (a <= 0 || Math.round(a * 1000) % 10 !== 0) return null;
       return { question:`\\(${dStr(a)} \\div ${dStr(b)}\\)`,
                answer: roundTo(ans, 1), type:'decimal', places:1 };
     } else {

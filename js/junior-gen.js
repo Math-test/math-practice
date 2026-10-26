@@ -1581,7 +1581,7 @@ function _7aPrime(level) {
         {q:'已知五位數 \\(2726\\square\\) 是 11 的倍數，則 \\(\\square=\\)', ans:9},
         {q:'已知四位數 \\(5\\square93\\) 是 11 的倍數，則 \\(\\square=\\)', ans:0},
         {q:'有一個百位數字為 9、十位數字為 2 的三位數可被 21 整除，則此三位數為', ans:924},
-        {q:'已知四位數 \\(4\\square05\\) 是 9 的倍數，則 \\(\\square=\\)', ans:0},
+        {q:'已知四位數 \\(4\\square06\\) 是 9 的倍數，則 \\(\\square=\\)', ans:8},
       ];
       const item = pick(pool);
       return { question: item.q, answer: item.ans, type:'number', answerPrefix: '' };
@@ -1834,7 +1834,7 @@ function _7aExp(level) {
       const n = pick([2,3]);
       const k = pick([2,3,4,5,6,7,8,9,10]);
       const val = k * Math.pow(a, n);
-      return { question:`\\(${k} \\times a^{${n}} = ${val}\\)`, answer:a, type:'number', answerPrefix:'a' };
+      return { question: n === 2 ? `正整數 \\(a\\) 滿足 \\(${k} \\times a^{2} = ${val}\\)` : `\\(${k} \\times a^{${n}} = ${val}\\)`, answer:a, type:'number', answerPrefix:'a' };
     } else if (t === 5) {
       // 複雜分數求指數：(a^m × a^n) / (a^p)^q = a^x
       const a = pick([2,3,4,5,6,7,8,9,10]);
@@ -4061,7 +4061,8 @@ function _7bRatio(level) {
       const pp=rp(1,9), qp=rp(1,9);
       if(pp===qp) return null;
       const gPQ=_gcd(pp,qp), rP=pp/gPQ, rQ=qp/gPQ;
-      const aA2=rP*rP, aB2=rQ*rQ;
+      // 「大、小」兩正方形：大的在前
+      const aA2=Math.max(rP,rQ)**2, aB2=Math.min(rP,rQ)**2;
       const gA2=_gcd(aA2,aB2), rAA=aA2/gA2, rBB=aB2/gA2;
       if(rAA>100||rBB>100) return null;
       const L=pick([80,100,120,160,200]);
@@ -4802,7 +4803,9 @@ function _7bStat(level) {
     if (t===0) {
       // 眾數（唯一）
       const mode=randInt(2,12);
-      const others=[...Array(3)].map(()=>{let v;do{v=randInt(1,15);}while(v===mode);return v;});
+      // 其餘三數彼此相異且不等於眾數，確保眾數唯一
+      const others=[];
+      while(others.length<3){const v=randInt(1,15);if(v!==mode&&!others.includes(v))others.push(v);}
       const data=shuf([mode,mode,...others]);
       return { question:`資料：\\(${data.join(',\\;')}\\)，求眾數`, answer:mode, type:'number', answerPrefix:'眾數' };
     } else if (t===1) {
@@ -4923,7 +4926,8 @@ function _7bStat(level) {
       const mean5=randInt(50,80);
       const deltaNum=pick([-3,-2,-1,1,2,3,-1,1]); // Δ = deltaNum/2
       if((n5-1)*deltaNum%2!==0) return null; // 確保 removed 為整數
-      const removed5=mean5-(n5-1)*deltaNum/2;
+      // 剔除之數 = n·原平均 − (n−1)·新平均 = 原平均 + (n−1)·Δ（新平均 = 原平均 − Δ）
+      const removed5=mean5+(n5-1)*deltaNum/2;
       const mean5b=mean5-deltaNum/2;
       if(removed5<1||removed5>250||removed5===mean5) return null;
       if(mean5b<30||mean5b>120) return null;
@@ -5793,7 +5797,7 @@ function _8aPolyMul(level) {
       {q:'展開 \\((2x+\\dfrac{5}{3})(3x-6)\\)', type:'poly',a2:6,a1:-7,a0:-10,pfx:''},
       {q:'展開 \\((-2x+\\dfrac{1}{3})(3x+9)\\)', type:'poly',a2:-6,a1:-17,a0:3,pfx:''},
       {q:'展開 \\((x-\\dfrac{3}{2})(2x+8)\\)', type:'poly',a2:2,a1:5,a0:-12,pfx:''},
-      {q:'若 \\((2x+a)(3x-b)=6x^2-x-2\\)，求 \\(a+b\\)', type:'number',ans:3,pfx:'\\(a+b\\)'},
+      {q:'若 \\(a\\)、\\(b\\) 為整數，且 \\((2x+a)(3x-b)=6x^2-x-2\\)，求 \\(a+b\\)', type:'number',ans:3,pfx:'\\(a+b\\)'},
       {q:'已知 \\(x(x-4)=7\\)，求 \\((x+2)(x-6)\\)', type:'number',ans:-5,pfx:''},
       {q:'化簡 \\((x+3)(x-3)-(x-2)^2\\)', type:'poly',a2:0,a1:4,a0:-13,pfx:''},
       {q:'化簡 \\((2x+1)^2-3(x+2)(x-1)\\)', type:'poly',a2:1,a1:1,a0:7,pfx:''},
@@ -5856,9 +5860,9 @@ function _8aPolyMul(level) {
     {q:'已知 \\((x^2+mx+n)(x^2-3x+6)\\) 展開後，\\(x^2\\) 項的係數和常數項都是 \\(0\\)，則 \\(m+n=\\)', type:'number',ans:2,pfx:'\\(m+n\\)'},
     {q:'求多項式 \\((3x^2+9-5x)(4x^2-6x+7)-(-x+9x^2-4)\\) 的係數總和為', type:'number',ans:31,pfx:'係數總和'},
     {q:'若 \\(x\\) 是實數，且 \\(x^2+2x-5=0\\)，則 \\((x+7)(x+3)(x-1)(x-5)=\\)', type:'number',ans:-60,pfx:''},
-    {q:'若 \\(x^2+x-1=0\\)，則 \\(x^4+x^3+x^2+1=\\)', type:'number',ans:3,pfx:''},
+    {q:'若 \\(x^2+x-1=0\\)，則 \\(x^3+2x^2+2=\\)', type:'number',ans:3,pfx:''},
     {q:'展開 \\((2x+1)(3x-2)(x-4)\\) 後，\\(x^2\\) 項的係數為', type:'number',ans:-25,pfx:'\\(x^2\\) 項係數'},
-    {q:'若 \\((x^2+ax+b)(x+c)=x^3+5x^2-2x-24\\)，求 \\(a+b+c\\)', type:'number',ans:-1,pfx:'\\(a+b+c\\)'},
+    {q:'若 \\((x^2+ax+b)(x+4)=x^3+5x^2-2x-24\\)，求 \\(a+b\\)', type:'number',ans:-5,pfx:'\\(a+b\\)'},
     {q:'展開 \\((x-2)(x^3+x^2-x+4)\\) 後，\\(x^2\\) 的係數為', type:'number',ans:-3,pfx:'\\(x^2\\) 的係數'},
     {q:'展開 \\((2x+1)(x^3-x^2+3x-2)\\) 後，\\(x^2\\) 的係數為', type:'number',ans:5,pfx:'\\(x^2\\) 的係數'},
     {q:'展開 \\((x^2-2x+1)(x^3+x^2-x+3)\\) 後，\\(x^3\\) 的係數為', type:'number',ans:-2,pfx:'\\(x^3\\) 的係數'},
@@ -6862,7 +6866,8 @@ function _8aSqrtMul(level) {
       const mPairs2=[{m:2,n:8,r:4},{m:3,n:12,r:6},{m:5,n:20,r:10},{m:6,n:24,r:12},{m:2,n:18,r:6}];
       const mp2=pick(mPairs2);
       const a2=randInt(2,5),b2=randInt(2,5),c2=randInt(2,6),x2=pick([2,3,5,6,7]);
-      const intPart=a2*b2*mp2.r;
+      // 整數部分 = ab·r + c√x 的整數部分
+      const intPart=a2*b2*mp2.r+Math.floor(c2*Math.sqrt(x2));
       return {question:`計算 \\(${a2}\\sqrt{${mp2.m}}\\times${b2}\\sqrt{${mp2.n}}+${c2}\\sqrt{${x2}}\\) 的整數部分`,
         answer:intPart,type:'number',answerPrefix:'整數部分'};
     }
@@ -7889,7 +7894,7 @@ function _8bStat(level){
       const missing=mean*n-s;
       if(missing<1||missing>150)return null;
       d.sort((a,b)=>a-b);
-      return {question:`五個資料 \\(${dj(d)}\\) 加上某數 \\(x\\) 的平均數為 \\(${mean}\\)，求 \\(x\\)`,
+      return {question:`四個資料 \\(${dj(d)}\\) 加上某數 \\(x\\) 共五個數的平均數為 \\(${mean}\\)，求 \\(x\\)`,
         answer:missing,type:'number'};
     }
     if(t===3){
@@ -7935,7 +7940,7 @@ function _8bStat(level){
     const missing=mean*n-s;
     if(missing<1||missing>200)return null;
     d.sort((a,b)=>a-b);
-    return {question:`六個資料 \\(${dj(d)}\\) 加上某數 \\(x\\) 的平均數為 \\(${mean}\\)，求 \\(x\\)`,
+    return {question:`五個資料 \\(${dj(d)}\\) 加上某數 \\(x\\) 共六個數的平均數為 \\(${mean}\\)，求 \\(x\\)`,
       answer:missing,type:'number'};
   }
   if(t===3){
@@ -8474,8 +8479,10 @@ function _8bTriCongruence(level){
     const deg=pick([30,40,50,60,70]);
     const m=randInt(6,14);
     if(t===1){
-      // BC < AB → 不一定全等（SSA 歧義）
-      const n=randInt(2,m-1);
+      // AB·sinA < BC < AB → 有兩個三角形，不一定全等（SSA 歧義）
+      const lo=Math.floor(m*Math.sin(deg*Math.PI/180))+1;
+      if(lo>m-1) return null;
+      const n=randInt(lo,m-1);
       return{question:`\\(\\triangle ABC\\) 與 \\(\\triangle DEF\\) 中，\\(\\angle A=\\angle D=${deg}^\\circ\\)（銳角），\\(AB=DE=${m}\\)，\\(BC=EF=${n}\\)，判斷是否一定全等`,
         answer:'不全等', type:'text', answerPrefix:'結論'};
     }
@@ -8881,8 +8888,10 @@ function _8bTriSideAngle(level){
   const sideNames=['BC','CA','AB'];
   const askType=randInt(0,1)===0;
   if(askType){
-    // 求最長邊
-    const idx=angs.indexOf(Math.max(...angs));
+    // 求最長邊（最大角須唯一）
+    const mx=Math.max(...angs);
+    if(angs.filter(v=>v===mx).length>1) return null;
+    const idx=angs.indexOf(mx);
     return {question:`\\(\\triangle ABC\\) 三內角之比為 \\(${r1}:${r2}:${r3}\\)，最長邊是___（填 BC、CA 或 AB）`,
       answer:sideNames[idx],type:'text'};
   }
@@ -9609,7 +9618,7 @@ function _9aRatioChain(level){
     {q:'若 \\(abc \\neq 0\\)，且 \\(5ab=6bc=7ac\\)，則 \\((a+b+c):(2a-2b+c)\\) 的比值為？',ans:6,type:'number',pfx:'比值'},
     {q:'若 \\(abc \\neq 0\\)，且 \\(5a=4b=3c\\)，則 \\(\\dfrac{1}{a}:\\dfrac{1}{b}:\\dfrac{1}{c}=\\)',ans:'5:4:3',type:'text',pfx:'比值'},
     {q:'酒 \\(3\\) 公斤可換茶 \\(2\\) 公斤，茶 \\(4\\) 公斤可換米 \\(9\\) 公斤，則米 \\(12\\) 公斤可換酒多少公斤？',ans:8,type:'number',pfx:'酒的重量'},
-    {q:'畢業旅行午餐，便當數量比 \\(A:B:C=7:6:3\\)，飲料數量比 \\(X:Y:Z=5:4:3\\)，且雞腿便當比珍珠紅茶多 \\(15\\) 份，請問參加旅遊的學生有多少人？',ans:720,type:'number',pfx:'人數'},
+    {q:'畢業旅行午餐，每人一個便當、一杯飲料，便當數量比雞腿：排骨：素食 \\(=7:6:3\\)，飲料數量比珍珠紅茶：綠茶：奶茶 \\(=5:4:3\\)，且雞腿便當比珍珠紅茶多 \\(15\\) 份，請問參加旅遊的學生有多少人？',ans:720,type:'number',pfx:'人數'},
     {q:'某飲料店「檸檬多多綠茶」每杯 \\(500\\) 毫升，其中檸檬汁：養樂多：綠茶 \\(=1:4:20\\)。若老闆準備了檸檬汁 \\(110\\) 毫升、養樂多 \\(250\\) 毫升、綠茶 \\(2200\\) 毫升，則最多可調製幾杯？',ans:3,type:'number',pfx:'杯數'},
     {q:'村長選舉，投開票所一的甲乙丙票數比為 \\(3:2:1\\)，投開票所二的甲乙丙票數比為 \\(4:5:6\\)，且投開票所一的總票數是投開票所二的 \\(2\\) 倍，則甲、乙、丙得票數的大小關係為？',ans:'甲>乙>丙',type:'text',pfx:'大小關係'},
     {q:'小毛、二毛、大毛三人零用錢的比為 \\(2:3:7\\)。今大毛分別給二毛、小毛各 \\(200\\) 元後，三人零用錢的比變為 \\(3:4:5\\)，則三人的零用錢共有多少元？',ans:2400,type:'number',pfx:'總金額'},
@@ -9676,7 +9685,6 @@ function _9aPropSeg(level){
       {q:'如圖，\\(\\overline{AD}=\\overline{EH}=6\\) cm，\\(\\triangle ABC\\) 面積 \\(=18\\) cm²，\\(\\triangle EFG\\) 面積 \\(=12\\) cm²，則 \\(\\overline{BC}:\\overline{FG}=\\)',ans:'3:2',type:'text',pfx:'比值'},
       {q:'如圖，\\(ABCD\\) 為梯形，\\(\\overline{AD}//\\overline{BC}\\)，若 \\(\\overline{AD}=2\\) 公分，\\(\\overline{BC}=4\\) 公分，\\(\\triangle ABC\\) 面積為 \\(36\\) 平方公分，則 \\(\\triangle ACD\\) 面積為',ans:18,type:'number',pfx:'面積（平方公分）'},
       {q:'如圖，\\(\\overline{AA\'}=3\\)，\\(\\overline{BB\'}=4\\)，\\(\\overline{AB}=2\\)，\\(\\overline{AC}=8\\)，則 \\(\\overline{CC\'}=\\)',ans:7,type:'number',pfx:'\\(\\overline{CC\'}\\)'},
-      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，圖中 \\(x-y-z=\\)',ans:frac(-14,5),type:'fraction',pfx:'\\(x-y-z\\)'},
       {q:'如圖，\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 兩點分別在 \\(\\overline{AC}\\)、\\(\\overline{BC}\\) 上，\\(F\\)、\\(G\\) 兩點在 \\(\\overline{AB}\\) 上，\\(\\overline{DF}//\\overline{CG}\\)，\\(\\overline{CF}//\\overline{EG}\\)，若 \\(\\triangle ADF=16\\)、\\(\\triangle CDF=24\\)、\\(\\triangle BCG=65\\)，則 \\(\\overline{BE}:\\overline{EC}=\\)',ans:'13:12',type:'text',pfx:'比值'},
       {q:'如圖，\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\)、\\(F\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{BC}\\)、\\(\\overline{AC}\\) 的中點，已知 \\(\\triangle DEF\\) 的面積為 \\(5\\)，則四邊形 \\(DBCF\\) 的面積為',ans:15,type:'number',pfx:'面積'},
       {q:'\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 兩點分別在 \\(\\overline{AC}\\)、\\(\\overline{BD}\\) 上，\\(\\overline{AD}:\\overline{DC}=\\overline{BE}:\\overline{DE}=3:2\\)，則 \\(\\triangle BCE\\) 面積：\\(\\triangle ABC\\) 面積的比值為',ans:frac(6,25),type:'fraction',pfx:'比值'},
@@ -9701,9 +9709,9 @@ function _9aPropSeg(level){
     {q:'如圖，在 \\(\\triangle ABC\\) 中，若 \\(\\triangle ABC\\) 的面積為 \\(60\\)，\\(\\triangle ADC\\) 的面積為 \\(24\\)，則 \\(\\overline{BD}:\\overline{DC}=\\)',ans:'3:2',type:'text',pfx:'比值'},
     {q:'如圖，已知 \\(\\overline{AD}:\\overline{DC}=4:3\\)，則 \\(\\triangle ABD\\) 面積與 \\(\\triangle ABC\\) 面積的比值為',ans:frac(4,7),type:'fraction',pfx:'比值'},
     {q:'如圖，\\(\\triangle ABC\\) 中，\\(M\\) 是 \\(\\overline{AB}\\) 中點，在 \\(\\overline{CM}\\) 上取一點 \\(N\\) 使 \\(\\overline{CN}:\\overline{NM}=5:3\\)，且 \\(\\overline{MP}//\\overline{AN}\\)，交 \\(\\overline{BC}\\) 於 \\(P\\)，則 \\(\\overline{BP}:\\overline{BC}=\\)',ans:'3:11',type:'text',pfx:'比值'},
-    {q:'如圖，直線 \\(L\\) 為一次函數 \\(y=-\\dfrac{1}{2}x+3\\) 之圖形，\\(A(-12,\\,0)\\)，\\(\\overline{AB}\\perp x\\) 軸，且 \\(\\overline{BD}:\\overline{CD}=2:1\\)，則 \\(D\\) 點坐標為',ans:'(-4,5)',type:'text',pfx:'\\(D\\) 坐標'},
+    {q:'如圖，直線 \\(L\\) 為一次函數 \\(y=-\\dfrac{1}{2}x+3\\) 之圖形，\\(A(-12,\\,0)\\)，\\(\\overline{AB}\\perp x\\) 軸，且 \\(\\overline{BD}:\\overline{CD}=2:1\\)，則 \\(D\\) 點坐標 \\((x,y)\\) 為',parts:[{prefix:'x',answer:-4,type:'number'},{prefix:'y',answer:5,type:'number'}]},
     {q:'如圖，平行四邊形 \\(ABCD\\)，\\(E\\) 為 \\(\\overline{BD}\\) 中點，在 \\(\\overline{AD}\\) 上取一點 \\(F\\) 使 \\(\\overline{DF}=\\dfrac{1}{3}\\overline{AF}\\)，則 \\(\\triangle DEF\\) 面積：四邊形 \\(ABEF\\) 面積 \\(=\\)',ans:'1:7',type:'text',pfx:'面積比'},
-    {q:'在坐標平面上，直線 \\(L\\) 的方程式為 \\(3x-8y+24=0\\)，分別交 \\(x\\) 軸、\\(y\\) 軸於 \\(A\\)、\\(B\\)，原點 \\(O\\) 與 \\(A\\)、\\(B\\) 形成 \\(\\triangle OAB\\)，\\(C\\) 為 \\(\\overline{OA}\\) 上一點，若 \\(\\triangle ABC\\) 面積：\\(\\triangle OAB\\) 面積 \\(=1:4\\)，則直線 \\(BC\\) 的方程式為',ans:'y=\\dfrac{1}{2}x+3',type:'text',pfx:'方程式'},
+    {q:'在坐標平面上，直線 \\(L\\) 的方程式為 \\(3x-8y+24=0\\)，分別交 \\(x\\) 軸、\\(y\\) 軸於 \\(A\\)、\\(B\\)，原點 \\(O\\) 與 \\(A\\)、\\(B\\) 形成 \\(\\triangle OAB\\)，\\(C\\) 為 \\(\\overline{OA}\\) 上一點，若 \\(\\triangle ABC\\) 面積：\\(\\triangle OAB\\) 面積 \\(=1:4\\)，則直線 \\(BC\\) 的方程式為 \\(y=mx+b\\)，求 \\(m\\)、\\(b\\)',parts:[{prefix:'m',answer:frac(1,2),type:'fraction'},{prefix:'b',answer:3,type:'number'}]},
     {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，\\(\\overline{FE}//\\overline{DC}\\)，若 \\(\\overline{AF}=9\\)，\\(\\overline{FD}=15\\)，則 \\(\\overline{BD}=\\)',ans:40,type:'number',pfx:'\\(\\overline{BD}\\)'},
     {q:'如圖，\\(\\overline{AB}//\\overline{CD}//\\overline{EF}\\)，若 \\(\\overline{AG}:\\overline{AF}=2:7\\)，\\(\\overline{AC}=6\\)，\\(\\overline{GD}=10\\)，則 \\(\\overline{AB}+\\overline{CE}=\\)',ans:29,type:'number',pfx:'\\(\\overline{AB}+\\overline{CE}\\)'},
     {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{BD}:\\overline{DC}=3:5\\)，若 \\(\\triangle ABC\\) 面積為 \\(32\\)，則 \\(\\triangle ABD\\) 面積為',ans:12,type:'number',pfx:'\\(\\triangle ABD\\) 面積'},
@@ -9721,6 +9729,7 @@ function _9aPropSeg(level){
     {q:'\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\)、\\(F\\) 分別為三邊中點（中位三角形），若 \\(\\triangle DEF\\) 的面積為 \\(3\\)，則 \\(\\triangle ABC\\) 的面積為',ans:12,type:'number',pfx:'\\(\\triangle ABC\\) 面積'},
   ];
   const item=jrQPick(pool,_psHQ);
+  if(item.parts) return {question:item.q,answerParts:item.parts};
   return {question:item.q,answer:item.ans,type:item.type,answerPrefix:item.pfx};
 }
 
@@ -9802,6 +9811,7 @@ function _9aSimilarPoly(level){
       const p0=randInt(2,6),q0=randInt(p0+1,p0+6),side1=p0*randInt(2,5),side2=randInt(2,10)*q0;
       if(side1%p0!==0||side2%q0!==0)return null;
       const target=randInt(2,8)*p0;
+      if((target*side2)%side1!==0)return null;
       return {question:`\\(\\triangle ABC \\sim \\triangle DEF\\)，\\(AB=${side1}\\)，\\(DE=${side2}\\)，\\(BC=${target}\\)，求 \\(EF\\)`,answer:target*side2/side1,type:'number',answerPrefix:'\\(EF\\)'};
     }
     if(t===1){
@@ -9815,7 +9825,8 @@ function _9aSimilarPoly(level){
       if(!Number.isInteger(area2))return null;
       const q=Math.round(Math.sqrt(area2/area1*p*p));
       if(q*q*area1!==p*p*area2)return null;
-      return {question:`兩相似三角形面積比為 \\(${p*p}:${q*q}\\)，求相似比`,answer:`${p}:${q}`,type:'text',answerPrefix:'相似比'};
+      const gq=_gcd(p,q);
+      return {question:`兩相似三角形面積比為 \\(${p*p}:${q*q}\\)，求相似比（最簡整數比）`,answer:`${p/gq}:${q/gq}`,type:'text',answerPrefix:'相似比'};
     }
     if(t===3){
     // 判斷相似條件，再求一邊
@@ -9986,8 +9997,9 @@ function _9aSimilarApp(level){
     // 已知兩物高度，求另一物影長
     const h1=randInt(2,8), h2=randInt(2,8);
     if(h1===h2)return null;
+    // 同一時刻高與影長成正比：影長 = k × 高
     const k=randInt(2,8);
-    const s1=k*h2, s2=k*h1;
+    const s1=k*h1, s2=k*h2;
     return {question:`某時刻，一棵高 \\(${h1}\\) 公尺的大樹，影長為 \\(${s1}\\) 公尺；同一時刻，一棟高 \\(${h2}\\) 公尺的建築物，影長為多少公尺？`, answer:s2, type:'number', answerPrefix:'影長'};
   }
 
@@ -10513,7 +10525,7 @@ function _9aTriCenter(level){
     }
     if(t===1){
       // 外心代數：OA=OB，代數求x
-      const xv=randInt(2,8),av=randInt(1,3),bv=randInt(1,8),cv=randInt(1,av),dv=(av-cv)*xv+bv;
+      const xv=randInt(2,8),av=randInt(2,4),bv=randInt(1,8),cv=randInt(1,av-1),dv=(av-cv)*xv+bv;
       if(dv<=0)return null;
       return {question:`\\(\\triangle ABC\\) 的外心為 \\(O\\)，\\(OA=(${av}x+${bv})\\)，\\(OB=(${cv}x+${dv})\\)，求 \\(x\\)`,answer:xv,type:'number',answerPrefix:'\\(x\\)'};
     }
