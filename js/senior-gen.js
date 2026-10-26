@@ -2051,48 +2051,34 @@ function genB1PolyRem(level,_n){
   return{question:'餘式定理',answer:0,type:'number',answerPrefix:''};
 }
 function _b1PolyRem(level){
+  // 所有答案由程式計算
+  const P=_sfPoly, L=a=>P([1,-a]);
+  const ev=(cs,x)=>cs.reduce((s,c)=>s*x+c,0);
+  const rp=(deg,lead)=>{const f=[lead??srRandInt(1,3)];for(let i=0;i<deg;i++)f.push(srRandInt(-6,6));return f;};
+  const parts=(names,vals)=>names.map((n,i)=>({prefix:n,answer:vals[i],type:'number'}));
+  // 含未知係數的多項式字串：第 idx 項係數以 k 表示
+  const withK=(f,idx)=>{const n=f.length-1;let s='';
+    f.forEach((c,i)=>{const e=n-i,xs=e===0?'':e===1?'x':`x^${e}`;
+      if(i===idx){s+=(s?'+':'')+'k'+xs;return;}
+      if(c===0)return;const a=Math.abs(c);s+=(c<0?'-':s?'+':'')+(a===1&&xs?'':a)+xs;});
+    return s;};
   if(level==='basic'){
     const t=srRandInt(0,2);
     if(t===0){
-      const pool=[
-        {f:'x^3-2x^2+3x-1',a:2,r:5},{f:'x^3+x^2-5x+3',a:2,r:5},
-        {f:'x^3-x^2+2x-4',a:1,r:-2},{f:'x^3-3x+2',a:-2,r:0},
-        {f:'x^2+3x-5',a:-1,r:-7},{f:'x^3+2x^2-x+1',a:-1,r:3},
-        {f:'2x^2-5x+1',a:3,r:4},{f:'x^3+x^2+x-3',a:1,r:0},
-        {f:'x^3-4x+3',a:-2,r:3},{f:'2x^3-3x^2+1',a:2,r:5},
-      ];
-      const p=srQPick(pool,_prB0Q);if(!p)return null;
-      const div=p.a>=0?`x-${p.a}`:`x+${-p.a}`;
-      return{question:`多項式 \\(f(x)=${p.f}\\) 除以 \\(${div}\\) 的餘式為何？`,answer:p.r,type:'number',answerPrefix:'餘式'};
+      // f(a) 即餘式
+      const f=rp(srRandInt(2,3)),a=srRnz(-3,3);
+      return{question:`多項式 \\(f(x)=${P(f)}\\) 除以 \\(${L(a)}\\) 的餘式為何？`,answer:ev(f,a),type:'number',answerPrefix:'餘式'};
     }
     if(t===1){
-      const pool=[
-        {f:'x^2+kx+1',div:'x-2',r:7,k:1},{f:'x^2+kx+3',div:'x-1',r:5,k:1},
-        {f:'x^3+kx-5',div:'x-1',r:0,k:4},{f:'x^2+3x+k',div:'x+2',r:1,k:3},
-        {f:'2x^2-kx+1',div:'x-2',r:3,k:3},{f:'x^3+2x^2+kx-1',div:'x-1',r:5,k:3},
-        {f:'x^2-kx+2',div:'x-2',r:2,k:2},{f:'kx^2+x-1',div:'x+1',r:2,k:4},
-        {f:'x^3-x^2+kx+1',div:'x-2',r:5,k:1},{f:'x^2+kx-4',div:'x+2',r:0,k:2},
-      ];
-      const p=srQPick(pool,_prB1Q);if(!p)return null;
-      return{question:`多項式 \\(f(x)=${p.f}\\) 除以 \\(${p.div}\\) 的餘式為 \\(${p.r}\\)，求 \\(k\\)。`,answer:p.k,type:'number',answerPrefix:'\\(k\\)'};
+      // 含 k，由餘式求 k
+      const f=rp(srRandInt(2,3)),a=srRnz(-3,3),idx=srRandInt(0,f.length-1),k=srRandInt(-5,5);
+      f[idx]=k;
+      if(f[0]===0)return null;
+      return{question:`多項式 \\(f(x)=${withK(f,idx)}\\) 除以 \\(${L(a)}\\) 的餘式為 \\(${ev(f,a)}\\)，求 \\(k\\)。`,answer:k,type:'number',answerPrefix:'\\(k\\)'};
     }
-    {
-      // f(x)=x²+ax+b，除以(x-1)餘r₁，除以(x+1)餘r₂，求f(0)=b
-      const pool=[
-        {r1:3,r2:7,desc:'除以 \\(x-1\\) 餘 \\(3\\)，除以 \\(x+1\\) 餘 \\(7\\)',q:'f(0)',a:4},
-        {r1:2,r2:4,desc:'除以 \\(x-1\\) 餘 \\(2\\)，除以 \\(x+1\\) 餘 \\(4\\)',q:'f(0)',a:2},
-        {r1:5,r2:9,desc:'除以 \\(x-1\\) 餘 \\(5\\)，除以 \\(x+1\\) 餘 \\(9\\)',q:'f(0)',a:6},
-        {r1:1,r2:5,desc:'除以 \\(x-1\\) 餘 \\(1\\)，除以 \\(x+1\\) 餘 \\(5\\)',q:'f(0)',a:2},
-        {r1:4,r2:2,desc:'除以 \\(x-1\\) 餘 \\(4\\)，除以 \\(x+1\\) 餘 \\(2\\)',q:'f(0)',a:2},
-        {r1:0,r2:8,desc:'除以 \\(x-1\\) 餘 \\(0\\)，除以 \\(x+1\\) 餘 \\(8\\)',q:'f(0)',a:3},
-        {r1:6,r2:4,desc:'除以 \\(x-1\\) 餘 \\(6\\)，除以 \\(x+1\\) 餘 \\(4\\)',q:'f(0)',a:4},
-        {r1:3,r2:1,desc:'除以 \\(x-1\\) 餘 \\(3\\)，除以 \\(x+1\\) 餘 \\(1\\)',q:'f(0)',a:1},
-        {r1:8,r2:2,desc:'除以 \\(x-1\\) 餘 \\(8\\)，除以 \\(x+1\\) 餘 \\(2\\)',q:'f(0)',a:4},
-        {r1:4,r2:8,desc:'除以 \\(x-1\\) 餘 \\(4\\)，除以 \\(x+1\\) 餘 \\(8\\)',q:'f(0)',a:5},
-      ];
-      const p=srQPick(pool,_prB2Q);if(!p)return null;
-      return{question:`設 \\(f(x)=x^2+ax+b\\)，${p.desc}，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
-    }
+    // f(x)=x²+ax+b，除以 x-1 餘 r1、除以 x+1 餘 r2，求 f(0)=b
+    const a=srRandInt(-6,6),b=srRandInt(-6,6),f=[1,a,b];
+    return{question:`設 \\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(${ev(f,1)}\\)，除以 \\(x+1\\) 餘 \\(${ev(f,-1)}\\)，求 \\(f(0)\\)。`,answer:b,type:'number',answerPrefix:'\\(f(0)\\)'};
   }
   if(level==='medium'){
     const t=srRandInt(0,3);
@@ -2100,71 +2086,35 @@ function _b1PolyRem(level){
     if(t===2) return _prQuadRem(false);
     if(t===0){
       // 兩條件確定 f(x)=x²+ax+b，再求 f(c)
-      const pool=[
-        {desc:'\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(3\\)，除以 \\(x+1\\) 餘 \\(7\\)',q:'f(0)',a:4},
-        {desc:'\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(2\\)，除以 \\(x+1\\) 餘 \\(4\\)',q:'f(0)',a:2},
-        {desc:'\\(f(x)=x^2+ax+b\\)，\\(x-1\\) 是其因式，除以 \\(x+1\\) 餘 \\(4\\)',q:'f(2)',a:1},
-        {desc:'\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(5\\)，除以 \\(x-2\\) 餘 \\(8\\)',q:'f(3)',a:13},
-        {desc:'\\(f(x)=x^2+ax+b\\)，除以 \\(x-1\\) 餘 \\(3\\)，除以 \\(x-2\\) 餘 \\(8\\)',q:'f(-1)',a:-1},
-        {desc:'\\(f(x)=x^2+ax+b\\)，除以 \\(x+1\\) 餘 \\(5\\)，除以 \\(x-2\\) 餘 \\(2\\)',q:'f(0)',a:3},
-      ];
-      const p=srQPick(pool,_prM0Q);if(!p)return null;
-      return{question:`設 ${p.desc}，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
+      const a=srRandInt(-6,6),b=srRandInt(-6,6),f=[1,a,b];
+      const z1=srRnz(-3,3),z2=srRnz(-3,3),c=srRandInt(-3,4);
+      if(z1===z2||c===z1||c===z2)return null;
+      const cond=z=>ev(f,z)===0&&srRandInt(0,1)===0?`\\(${L(z)}\\) 是其因式`:`除以 \\(${L(z)}\\) 餘 \\(${ev(f,z)}\\)`;
+      return{question:`設 \\(f(x)=x^2+ax+b\\)，${cond(z1)}，${cond(z2)}，求 \\(f(${c})\\)。`,answer:ev(f,c),type:'number',answerPrefix:`\\(f(${c})\\)`};
     }
-    {
-      // 除以 (x-a)(x-b) 的線性餘式 ax+b
-      const pool=[
-        {f:'x^3+2x+1',div:'(x-1)(x-2)',q:'a',ans:9},
-        {f:'x^3-x+2',div:'(x-1)(x-2)',q:'a',ans:6},
-        {f:'x^3+x^2',div:'(x-1)(x-2)',q:'b',ans:-8},
-        {f:'x^4+x-2',div:'(x-1)(x-2)',q:'a+b',ans:0},
-        {f:'x^3-2x+3',div:'(x-1)(x-2)',q:'b',ans:-3},
-        {f:'x^3+3x-4',div:'(x-1)(x-2)',q:'a',ans:12},
-      ];
-      const p=srQPick(pool,_prM1Q);if(!p)return null;
-      return{question:`多項式 \\(f(x)=${p.f}\\) 除以 \\(${p.div}\\) 的餘式為 \\(ax+b\\)，求 \\(${p.q}\\)。`,answer:p.ans,type:'number',answerPrefix:`\\(${p.q}\\)`};
-    }
+    // 除以 (x-p)(x-q) 的餘式 ax+b：a=(f(q)-f(p))/(q-p)
+    const f=rp(srRandInt(3,4),1),p=srRandInt(-2,2),q=srRandInt(-2,3);
+    if(p>=q||(ev(f,q)-ev(f,p))%(q-p)!==0)return null;
+    const a=(ev(f,q)-ev(f,p))/(q-p),b=ev(f,p)-a*p;
+    return{question:`多項式 \\(f(x)=${P(f)}\\) 除以 \\((${L(p)})(${L(q)})\\) 的餘式為 \\(ax+b\\)，求 \\(a\\)、\\(b\\)。`,answerParts:parts(['a','b'],[a,b])};
   }
   {
     const ht=srRandInt(0,3);
     if(ht===3) return _prTwoRem(true);
     if(ht===2) return _prQuadRem(true);
     if(ht===0){
-      // 三次多項式，除以兩個一次式，求兩未知數
-      const pool=[
-        {f:'x^3+ax^2+bx-2',d1:'x-1',r1:0,d2:'x+1',r2:-4,qa:0,qb:1,askQ:'a'},
-        {f:'x^3+ax^2+bx+1',d1:'x-1',r1:3,d2:'x+1',r2:5,qa:3,qb:-2,askQ:'b'},
-        {f:'x^3+ax^2+bx-3',d1:'x-1',r1:1,d2:'x-2',r2:3,qa:-4,qb:7,askQ:'a+b'},
-        {f:'x^3+ax^2+bx+2',d1:'x+1',r1:0,d2:'x-2',r2:6,qa:-1,qb:0,askQ:'a'},
-        {f:'x^3+ax^2+bx-4',d1:'x-1',r1:0,d2:'x-2',r2:0,qa:-5,qb:8,askQ:'a'},
-        {f:'x^3+ax^2+bx+4',d1:'x+1',r1:2,d2:'x-2',r2:8,qa:-1,qb:0,askQ:'b'},
-        {f:'x^3+ax^2+bx-5',d1:'x-1',r1:2,d2:'x+1',r2:-2,qa:5,qb:1,askQ:'a+b'},
-        {f:'x^3+ax^2+bx+6',d1:'x-1',r1:0,d2:'x+2',r2:0,qa:-2,qb:-5,askQ:'a'},
-        {f:'x^3+ax^2+bx-6',d1:'x-3',r1:0,d2:'x+1',r2:-8,qa:-2,qb:-1,askQ:'a+b'},
-      ];
-      const p=srQPick(pool,_prH0Q);if(!p)return null;
-      let ans;
-      if(p.askQ==='a')ans=p.qa;
-      else if(p.askQ==='b')ans=p.qb;
-      else ans=p.qa+p.qb;
-      return{question:`設 \\(f(x)=${p.f}\\)，除以 \\(${p.d1}\\) 餘 \\(${p.r1}\\)，除以 \\(${p.d2}\\) 餘 \\(${p.r2}\\)，求 \\(${p.askQ}\\)。`,answer:ans,type:'number',answerPrefix:`\\(${p.askQ}\\)`};
+      // x³+ax²+bx+c，兩個餘式條件求 a、b
+      const a=srRandInt(-5,5),b=srRandInt(-6,6),c=srRnz(-6,6),f=[1,a,b,c];
+      const z1=srRnz(-3,3),z2=srRnz(-3,3);
+      // 係數行列式 z1²·z2 − z2²·z1 ≠ 0
+      if(z1*z1*z2-z2*z2*z1===0)return null;
+      return{question:`設 \\(f(x)=x^3+ax^2+bx${c>0?'+'+c:c}\\)，除以 \\(${L(z1)}\\) 餘 \\(${ev(f,z1)}\\)，除以 \\(${L(z2)}\\) 餘 \\(${ev(f,z2)}\\)，求 \\(a\\)、\\(b\\)。`,answerParts:parts(['a','b'],[a,b])};
     }
-    {
-      // f(x) 除以 (x-1)² 的餘式為 ax+b
-      const pool=[
-        {f:'x^3+2x-3',a:5,b:-5,q:'a+b',ans:0},
-        {f:'x^3-3x+4',a:0,b:2,q:'b',ans:2},
-        {f:'x^3+x^2-1',a:5,b:-4,q:'a',ans:5},
-        {f:'x^3-2x^2+3',a:-1,b:3,q:'a+b',ans:2},
-        {f:'x^4-1',a:4,b:-3,q:'a',ans:4},
-        {f:'x^3+3x^2-1',a:9,b:-6,q:'a',ans:9},
-        {f:'x^4+x',a:5,b:-3,q:'b',ans:-3},
-        {f:'x^3-x^2+2',a:1,b:1,q:'a+b',ans:2},
-        {f:'x^3+2x^2-3',a:7,b:-7,q:'a+b',ans:0},
-      ];
-      const p=srQPick(pool,_prH1Q);if(!p)return null;
-      return{question:`多項式 \\(f(x)=${p.f}\\) 除以 \\((x-1)^2\\) 的餘式為 \\(ax+b\\)，求 \\(${p.q}\\)。`,answer:p.ans,type:'number',answerPrefix:`\\(${p.q}\\)`};
-    }
+    // f(x) 除以 (x-h)² 的餘式 ax+b：a=f'(h)，b=f(h)-h·f'(h)
+    const f=rp(srRandInt(3,4),1),h=pick([1,-1,2]);
+    const n=f.length-1,d=f.slice(0,-1).map((c,i)=>c*(n-i));
+    const a=ev(d,h),b=ev(f,h)-h*a;
+    return{question:`多項式 \\(f(x)=${P(f)}\\) 除以 \\((${L(h)})^2\\) 的餘式為 \\(ax+b\\)，求 \\(a\\)、\\(b\\)。`,answerParts:parts(['a','b'],[a,b])};
   }
 }
 
@@ -2217,7 +2167,7 @@ function _b1PolyFactor(level){
         {f:'x^3+2x^2-5x-6',a:-1,desc:'已知 \\((x+1)\\) 是因式',qc:1,q:'商式中 \\(x\\) 的係數'},
         {f:'x^3-2x^2-x+2',a:1,desc:'已知 \\((x-1)\\) 是因式',qc:-1,q:'商式中 \\(x\\) 的係數'},
         {f:'x^3+3x^2-4',a:1,desc:'已知 \\((x-1)\\) 是因式',qc:4,q:'商式中 \\(x\\) 的係數'},
-        {f:'x^3-7x+6',a:2,desc:'已知 \\((x-2)\\) 是因式',qc:-3,q:'商式中 \\(x\\) 的係數'},
+        {f:'x^3-7x+6',a:2,desc:'已知 \\((x-2)\\) 是因式',qc:2,q:'商式中 \\(x\\) 的係數'},
         {f:'x^3-x^2-9x+9',a:-3,desc:'已知 \\((x+3)\\) 是因式',qc:-4,q:'商式中 \\(x\\) 的係數'},
         {f:'x^3-3x^2-4x+12',a:3,desc:'已知 \\((x-3)\\) 是因式',qc:0,q:'商式中 \\(x\\) 的係數'},
         {f:'x^3+2x^2-x-2',a:-2,desc:'已知 \\((x+2)\\) 是因式',qc:0,q:'商式中 \\(x\\) 的係數'},
