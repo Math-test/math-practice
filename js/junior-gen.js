@@ -6880,7 +6880,7 @@ function _8aSqrtMul(level) {
     }
   }
   // hard
-  const t=randInt(0,4);
+  const t=randInt(0,3);
   if(t===0){
     // (a√m+b√n)(a√m-b√n) = a²m-b²n（擴大 m,n 選項與係數）
     const ms=[2,3,5,6,7,10,11,13];
@@ -6903,15 +6903,7 @@ function _8aSqrtMul(level) {
     const a=randInt(2,8);
     return {question:`計算 \\((\\sqrt{${m}}+${a})^2-${2*a}\\sqrt{${m}}\\)`, answer:m+a*a, type:'number'};
   }
-  if(t===3){
-    // 共軛有理化 a/(√m-b)，m=b²+1（擴充 6 組）
-    const conPairs=[{m:2,b:1},{m:5,b:2},{m:10,b:3},{m:17,b:4},{m:26,b:5},{m:37,b:6}];
-    const {m:cm,b:cb}=pick(conPairs);
-    const ca=randInt(2,7);
-    return {question:`有理化分母 \\(\\dfrac{${ca}}{\\sqrt{${cm}}-${cb}}\\)`,
-      type:'radical-mix',rational:ca*cb,radCoeff:ca,radM:cm};
-  }
-  // t===4: (√m+a)(√m+b) = (m+ab) + (a+b)√m
+  // t===3: (√m+a)(√m+b) = (m+ab) + (a+b)√m（分母兩項的有理化已移至「根號的四則運算」）
   const m=pick([2,3,5,6,7,10,11,13]);
   const a=randInt(1,9),b=randInt(1,9);
   return {question:`展開 \\((\\sqrt{${m}}+${a})(\\sqrt{${m}}+${b})\\)`,
@@ -7024,7 +7016,12 @@ function _8aSqrtMix(level) {
   }
 
   // hard
-  const t = randInt(0, 7);
+  const t = randInt(0, 8);
+  if (t === 8) {
+    // 分母兩項（共軛）：a/(√m−b)，m=b²+1 → a√m + ab（自「根號的乘除」移入）
+    const [m, b] = pick([[2, 1], [5, 2], [10, 3], [17, 4], [26, 5], [37, 6]]), a = randInt(2, 7);
+    return Q(`有理化分母 \\(\\dfrac{${a}}{\\sqrt{${m}}-${b}}\\)`, R(a * b, a, m));
+  }
   if (t === 6) {
     // 兩個共軛分式相加減：dp/(√m+b) ± dq/(√m−b) = (p±q)√m + (−p±q)·b... 以展開計算
     const m = pick([2, 3, 5, 6, 7, 10, 11]), b = randInt(1, 3), d = m - b * b;
