@@ -7136,6 +7136,13 @@ function genB3bExpFunc(level) {
 // ── b3a-log-func / b3b-log-func：對數函數性質 ───────────────────
 
 function genB3aLogFunc(level) {
+  // 合併計算題（真數含分數、小數）：基礎 30%、中等 50%、困難 45%
+  if (Math.random() < ({basic:0.3, medium:0.5, hard:0.45}[level] || 0)) {
+    for (let i = 0; i < 60; i++) {
+      const q = (level !== 'basic' && Math.random() < 0.35) ? _b3LogChain(level) : _b3LogCombine(level);
+      if (q) return q;
+    }
+  }
   if (level === 'basic') {
     const t = srRandInt(0, 2);
     if (t === 0) {
@@ -7242,6 +7249,81 @@ function genB3aLogFunc(level) {
 function genB3bLogFunc(level) {
   return genB3aLogFunc(level);
 }
+
+// ── 對數合併計算（真數含分數、小數）：數值以 2、3、5 的指數向量 [p,q,r] 表示 ──
+const _LGP = [2, 3, 5];
+function _lgND(v) {
+  let n = 1, d = 1;
+  v.forEach((e, i) => { const P = Math.pow(_LGP[i], Math.abs(e)); if (e > 0) n *= P; else d *= P; });
+  return [n, d];
+}
+// 真數顯示：整數、小數（分母只含 2、5 且至多三位）或分數
+function _lgArg(v, allowDec) {
+  const [n, d] = _lgND(v);
+  if (d === 1) return String(n);
+  const places = Math.max(0, -v[0], -v[2]);
+  if (allowDec && v[1] >= 0 && places <= 3) return String(+(n / d).toFixed(places));
+  return `\\dfrac{${n}}{${d}}`;
+}
+// 底數顯示（分數底用 \frac 以免過大）
+function _lgBase(v) {
+  if (v[0] === 1 && v[1] === 0 && v[2] === 1) return '\\log';
+  const [n, d] = _lgND(v);
+  return d === 1 ? `\\log_{${n}}` : `\\log_{\\frac{${n}}{${d}}}`;
+}
+const _lgOk = v => { const [n, d] = _lgND(v); return n <= 1000 && d <= 1000 && v.some(e => e !== 0); };
+const _lgAns = (n, d) => { const f = frac(n, d); return f.den === 1 ? {answer:f.num, type:'number'} : {answer:f, type:'fraction'}; };
+
+function _b3LogCombine(level) {
+  const BASES = level === 'basic'
+    ? [[1,0,0],[0,1,0],[0,0,1],[1,0,1]]
+    : [[1,0,0],[0,1,0],[0,0,1],[1,0,1],[1,0,1],[2,0,0],[3,0,0],[0,2,0],[-1,0,0]];
+  const B = pick(BASES), g = B.reduce((a, e) => e ? _gcdS(a, Math.abs(e)) : a, 0);
+  const m = srRnz(-4, 4) * (level === 'basic' ? g : 1);
+  const T = B.map(e => e * m / g);
+  const n = level === 'basic' ? 2 : 3;
+  const COEF = level === 'hard' ? [1, 1, 2, 3, -1, -2, 'h'] : level === 'medium' ? [1, 1, 1, 2, -1, -1] : [1, -1];
+  const terms = [], acc = [0, 0, 0];
+  for (let i = 0; i < n - 1; i++) {
+    let c = pick(COEF), v = [srRandInt(-3, 3), srRandInt(-2, 2), srRandInt(-3, 3)];
+    if (c === 'h') v = v.map(e => 2 * Math.trunc(e / 2 + (e > 0 ? 0.5 : -0.5)) || 0);
+    if (!_lgOk(v)) return null;
+    const cv = c === 'h' ? 0.5 : c;
+    v.forEach((e, k) => { acc[k] += cv * e; });
+    terms.push({c, v});
+  }
+  const cl = pick([1, -1]), last = T.map((t, k) => (t - acc[k]) / cl);
+  if (!last.every(Number.isInteger) || !_lgOk(last)) return null;
+  terms.push({c: cl, v: last});
+  // 避免與底數相同或過於單純（每項都是底數的整數次方）
+  const par = v => [0, 1, 2].every(k => [0, 1, 2].every(l => v[k] * B[l] === v[l] * B[k]));
+  if (terms.every(t => par(t.v))) return null;
+  if (!terms.some(t => _lgND(t.v)[1] > 1)) return null;   // 至少一項是分數或小數
+  const base = _lgBase(B);
+  const expr = terms.map(({c, v}, i) => {
+    const cs = c === 'h' ? (i ? '+' : '') + '\\dfrac{1}{2}' : c === 1 ? (i ? '+' : '') : c === -1 ? '-' : (c > 0 && i ? '+' : '') + c;
+    return `${cs}${base} ${_lgArg(v, Math.random() < 0.6)}`;
+  }).join('');
+  return Object.assign({question:`計算 \\(${expr}\\)`, answerPrefix:'值'}, _lgAns(m, g));
+}
+
+// 換底連乘：log_x y · log_y' z（x、z 同為質數 q 的次方；y、y' 同為質數 p 的次方）
+function _b3LogChain(level) {
+  const [p, q] = pick([[0,1],[1,0],[0,2],[2,0],[1,2],[2,1]]);
+  const E = () => srRnz(-3, 3), vec = (i, e) => { const v = [0, 0, 0]; v[i] = e; return v; };
+  // 底數多半為整數（偶爾 1/2、1/3 等），分數與小數放在真數
+  const BE = () => Math.random() < 0.85 ? srRandInt(1, 3) : -1;
+  const c = BE(), a = E(), b = BE(), d = E();
+  if (c === 1 && b === 1 && Math.random() < 0.7) return null;
+  const X = vec(q, c), Y = vec(p, a), Y2 = vec(p, b), Z = vec(q, d);
+  if (![X, Y, Y2, Z].every(_lgOk)) return null;
+  if (_lgND(X)[1] === 1 && _lgND(Y)[1] === 1 && _lgND(Y2)[1] === 1 && _lgND(Z)[1] === 1) return null;
+  const arg = v => _lgArg(v, Math.random() < 0.6);
+  // (a/c)·(d/b)
+  return Object.assign({question:`計算 \\(${_lgBase(X)} ${arg(Y)}\\times${_lgBase(Y2)} ${arg(Z)}\\)`, answerPrefix:'值'}, _lgAns(a * d, b * c));
+}
+
+function _gcdS(a, b) { return b ? _gcdS(b, a % b) : a; }
 
 // ── b3a-exp-eq / b3b-exp-eq：指數方程式 ─────────────────────────
 
