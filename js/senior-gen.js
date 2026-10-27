@@ -7056,7 +7056,7 @@ function genB3aInfGeo(level) {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 let _expFMQ=[], _expFHQ=[];
-let _logFMQ=[], _logFHQ=[];
+let _logFMQ=[], _logFHQ=[], _logFB0Q=[], _logFB1Q=[], _logFB2Q=[];
 let _expEqMQ=[], _expEqHQ=[];
 let _logEqMQ=[], _logEqHQ=[];
 let _expIneqMQ=[], _expIneqHQ=[];
@@ -7148,8 +7148,8 @@ function genB3aLogFunc(level) {
         {q:'\\(\\log_5 25\\)',     ans:2},  {q:'\\(\\log_5 125\\)',   ans:3},
         {q:'\\(\\log_{10} 100\\)', ans:2},  {q:'\\(\\log_{10} 1000\\)',ans:3},
       ];
-      const c=logCases[srRandInt(0,logCases.length-1)];
-      return {question:`計算 \\(${c.q}\\)`, answer:c.ans, type:'number', answerPrefix:'值'};
+      const c=srQPick(logCases, _logFB0Q);
+      return {question:`計算 ${c.q}`, answer:c.ans, type:'number', answerPrefix:'值'};
     }
     if (t === 1) {
       // log_a(1/a^n) = -n
@@ -7163,8 +7163,8 @@ function genB3aLogFunc(level) {
         {q:'\\(\\log_4\\dfrac{1}{16}\\)',  ans:-2},
         {q:'\\(\\log_5\\dfrac{1}{25}\\)',  ans:-2},
       ];
-      const c=logNeg[srRandInt(0,logNeg.length-1)];
-      return {question:`計算 \\(${c.q}\\)`, answer:c.ans, type:'number', answerPrefix:'值'};
+      const c=srQPick(logNeg, _logFB1Q);
+      return {question:`計算 ${c.q}`, answer:c.ans, type:'number', answerPrefix:'值'};
     }
     {
       // change of base: log_4(8) = 3/2 type
@@ -7178,8 +7178,8 @@ function genB3aLogFunc(level) {
         {q:'\\(\\log_4 2\\)',     ans:frac(1,2)},   // 4^x=2 → x=1/2 ✓
         {q:'\\(\\log_8 2\\)',     ans:frac(1,3)},   // 8^x=2 → x=1/3 ✓
       ];
-      const c=fracLog[srRandInt(0,fracLog.length-1)];
-      return {question:`計算 \\(${c.q}\\)`, answer:c.ans, type:'fraction', answerPrefix:'值'};
+      const c=srQPick(fracLog, _logFB2Q);
+      return {question:`計算 ${c.q}`, answer:c.ans, type:'fraction', answerPrefix:'值'};
     }
   }
   if (level === 'medium') {

@@ -663,8 +663,13 @@ function renderQuiz(questions, params) {
   const _radText = v => /\\|√|π/.test(String(v));
   const hasRadText = questions.some(q => (q.type === 'text' && _radText(q.answer)) || (q.answerParts && q.answerParts.some(p => p.type === 'text' && _radText(p.answer))));
   if (hasRadText) hintParts.push('根號填 <code>√5</code> 或 <code>sqrt(5)</code>，π 填 <code>π</code> 或 <code>pi</code>，例如 <code>2√3</code>、<code>(1+√5)/2</code>、<code>5π/6</code>');
-  document.getElementById('format-hint').innerHTML =
-    '答案格式：' + hintParts.join('　｜　');
+  // 依實際題型補充（高中等未列入上方清單的單元）
+  const _anyQ = f => questions.some(q => f(q) || (q.answerParts && q.answerParts.some(f)));
+  if (!hasFrac && _anyQ(q => q.type === 'fraction')) hintParts.push('分數：<code>3/4</code>　負分數：<code>-3/4</code>　整數：<code>2</code>');
+  if (_anyQ(q => q.exprAns && q.type === 'text' && /[a-z]/i.test(String(q.answer)) && !_radText(q.answer))) hintParts.push('以代數式作答，例如 <code>2m+1</code>、<code>m/2</code>、<code>(1+q)/p</code>');
+  const hintEl = document.getElementById('format-hint');
+  hintEl.innerHTML = '答案格式：' + hintParts.join('　｜　');
+  hintEl.style.display = hintParts.length ? '' : 'none';
 
   // 題目列表
   const list = document.getElementById('question-list');
