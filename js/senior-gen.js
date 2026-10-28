@@ -7876,7 +7876,136 @@ function _b3aExpIneq(level) {
   return _iqTwo(`解不等式 \\(${lhs}${TX[r]} ${rhs}\\)`, fmt, -k, k);
 }
 
+// ── 對數不等式隨機生成 ──
+const _logIneqRecent = [];
+const _LI_TX = ['\\lt', '\\gt', '\\leq', '\\geq'], _LI_OP = ['<', '>', '<=', '>='], _LI_SY = ['<', '>', '≤', '≥'];
+const _liFlip = r => [1, 0, 3, 2][r];
+// 解一次不等式組：每條為 [a, c, op]，代表 a·x + c op 0；回傳 {lo, hi}（含是否包含端點）
+function _liSolve(cons) {
+  let lo = null, hi = null;
+  for (let [a, c, op] of cons) {
+    if (a === 0) { const v = c; if (!(op === '>' ? v > 0 : op === '>=' ? v >= 0 : op === '<' ? v < 0 : v <= 0)) return null; continue; }
+    if (a < 0) { a = -a; c = -c; op = {'>':'<', '>=':'<=', '<':'>', '<=':'>='}[op]; }
+    const f = frac(-c, a), v = f.num / f.den, cl = op.length === 2;
+    if (op[0] === '>') { if (!lo || v > lo.v || (v === lo.v && !cl)) lo = {f, v, cl}; }
+    else { if (!hi || v < hi.v || (v === hi.v && !cl)) hi = {f, v, cl}; }
+  }
+  if (lo && hi && (lo.v > hi.v || (lo.v === hi.v && !(lo.cl && hi.cl)))) return null;
+  if (lo && hi && lo.v === hi.v) return null;
+  return {lo, hi};
+}
+const _liNice = f => f.den <= 12 && Math.abs(f.num / f.den) <= 60;
+function _liOut(q, s) {
+  if (!s || (!s.lo && !s.hi)) return null;
+  if (!s.hi) return _liNice(s.lo.f) ? _iqOne(q, s.lo.cl ? '≥' : '>', s.lo.f) : null;
+  if (!s.lo) return _liNice(s.hi.f) ? _iqOne(q, s.hi.cl ? '≤' : '<', s.hi.f) : null;
+  if (!_liNice(s.lo.f) || !_liNice(s.hi.f)) return null;
+  return _iqTwo(q, `a${s.lo.cl ? '\\leq' : '\\lt'} x${s.hi.cl ? '\\leq' : '\\lt'} b`, s.lo.f, s.hi.f);
+}
+// 「真數 rel V」轉為一次式條件：vd·(px+q) − vn REL 0
+const _liCon = (p, q, vn, vd, r) => [p * vd, q * vd - vn, _LI_OP[r]];
+
+function _logIneqRand(level) {
+  const PQ = () => [pick([1, 1, 2, 3, -1, -2]), srRandInt(-8, 8)];
+  const inc = b => b[0] > b[1];                 // 底數 > 1
+  if (level === 'basic') {
+    const t = srRandInt(0, 2), b = pick(_leBases), [p, q] = PQ(), r = srRandInt(0, 3);
+    const rr = inc(b) ? r : _liFlip(r);
+    if (t <= 1) {
+      // log_b(px+q) rel n（含真數為正的條件）
+      const n = b[0] === 10 ? srRandInt(-1, 2) : srRandInt(-2, 3), [vn, vd] = _lePow(b, n);
+      if (vn > 100) return null;
+      return _liOut(`解不等式 \\(${_leB(b)}${_leArg(p, q)}${_LI_TX[r]} ${n}\\)`, _liSolve([[p, q, '>'], _liCon(p, q, vn, vd, rr)]));
+    }
+    // c·log_b(px+q) + d rel e
+    const n = srRandInt(-1, 3), c = srRandInt(2, 4), d = srRnz(-6, 6), [vn, vd] = _lePow(b, n);
+    if (vn > 100 || !inc(b)) return null;
+    return _liOut(`解不等式 \\(${c}${_leB(b)}${_leArg(p, q)}${d > 0 ? '+' : '-'}${Math.abs(d)}${_LI_TX[r]} ${c * n + d}\\)`, _liSolve([[p, q, '>'], _liCon(p, q, vn, vd, r)]));
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 2), b = pick(_leBases), [p, q] = PQ(), [u, v] = PQ(), r = srRandInt(0, 3);
+    const rr = inc(b) ? r : _liFlip(r);
+    if (t === 0) {
+      // log_b(px+q) rel log_b(ux+v)：兩個真數都要為正
+      if (p === u) return null;
+      return _liOut(`解不等式 \\(${_leB(b)}${_leArg(p, q)}${_LI_TX[r]} ${_leB(b)}${_leArg(u, v)}\\)`,
+        _liSolve([[p, q, '>'], [u, v, '>'], [p - u, q - v, _LI_OP[rr]]]));
+    }
+    if (t === 1) {
+      // log_b(px+q) − log_b(ux+v) rel n → vd(px+q) − vn(ux+v) rel 0
+      const n = srRnz(-2, 2), [vn, vd] = _lePow(b, n);
+      if (vn > 30) return null;
+      return _liOut(`解不等式 \\(${_leB(b)}${_leArg(p, q)}-${_leB(b)}${_leArg(u, v)}${_LI_TX[r]} ${n}\\)`,
+        _liSolve([[p, q, '>'], [u, v, '>'], [vd * p - vn * u, vd * q - vn * v, _LI_OP[rr]]]));
+    }
+    // n1 rel1 log_b(px+q) rel2 n2（連續不等式）
+    const n1 = srRandInt(-2, 2), n2 = n1 + srRandInt(1, 3), r1 = pick([0, 2]), r2 = pick([0, 2]);
+    const [an, ad] = _lePow(b, n1), [cn, cd] = _lePow(b, n2);
+    if (an > 60 || cn > 60 || b[0] === 10 && n2 > 2) return null;
+    // n1 < log ⇔ log > n1（r1 對應 > 或 ≥）
+    const gA = r1 === 0 ? 1 : 3, gB = r2;
+    return _liOut(`解不等式 \\(${n1}${_LI_TX[r1]} ${_leB(b)}${_leArg(p, q)}${_LI_TX[r2]} ${n2}\\)`,
+      _liSolve([[p, q, '>'], _liCon(p, q, an, ad, inc(b) ? gA : _liFlip(gA)), _liCon(p, q, cn, cd, inc(b) ? gB : _liFlip(gB))]));
+  }
+
+  // hard
+  const t = srRandInt(0, 3), r = srRandInt(0, 3);
+  if (t === 0) {
+    // 令 u=log_b x 的二次不等式（底數可小於 1）
+    const b = pick([[2,1],[3,1],[1,2],[1,3]]), u1 = srRandInt(-3, 3), u2 = srRandInt(-3, 3);
+    if (u1 >= u2) return null;
+    const S = u1 + u2, P = u1 * u2, L = `${_leB(b)} x`;
+    const mid = S === 0 ? '' : `${S > 0 ? '-' : '+'}${Math.abs(S) === 1 ? '' : Math.abs(S)}${L}`;
+    const q = `解不等式 \\((${L})^2${mid}${P === 0 ? '' : P > 0 ? '+' + P : P}${_LI_TX[r]} 0\\)`;
+    const X = [_lePow(b, u1), _lePow(b, u2)].map(([n, d]) => frac(n, d)).sort((a, c) => a.num / a.den - c.num / c.den);
+    const inside = r === 0 || r === 2, eq = r >= 2;
+    return _iqTwo(q, inside ? (eq ? _IQ_INE : _IQ_IN) : (eq ? _IQ_ZOUTE : _IQ_ZOUT), X[0], X[1]);
+  }
+  if (t === 1) {
+    // log_b(x+u) + log_b(x+w) rel n：(x+u)(x+w) rel b^n，另需 x > max(−u, −w)
+    const b = pick([[2,1],[3,1],[10,1],[1,2],[1,3]]), u = srRandInt(-5, 6), w = srRandInt(-5, 6);
+    if (u === w) return null;
+    const m = Math.max(-u, -w), r2 = m + srRandInt(1, 6), r1 = -(u + w) - r2, V = u * w - r1 * r2;
+    if (V <= 0 || r1 >= m) return null;
+    let n = null;
+    for (let k = -3; k <= 6; k++) { const [vn, vd] = _lePow(b, k); if (vd === 1 && vn === V) n = k; }
+    if (n === null) return null;
+    const rr = inc(b) ? r : _liFlip(r), q = `解不等式 \\(${_leB(b)}${_leArg(1, u)}+${_leB(b)}${_leArg(1, w)}${_LI_TX[r]} ${n}\\)`;
+    // 乘積 < V ⇔ r1 < x < r2，與定義域交集得 m < x < r2；乘積 > V ⇔ x > r2
+    if (rr === 1 || rr === 3) return _iqOne(q, rr === 1 ? '>' : '≥', r2);
+    return _iqTwo(q, `a\\lt x${rr === 2 ? '\\leq' : '\\lt'} b`, m, r2);
+  }
+  if (t === 2) {
+    // log_B x − K·log_x B rel C：(u−u1)(u−u2)/u rel 0，u1 < 0 < u2
+    const B = pick([2, 3]), u1 = srRandInt(-3, -1), u2 = srRandInt(1, B === 2 ? 4 : 3);
+    const K = -u1 * u2, C = u1 + u2, eq = r >= 2;
+    const q = `解不等式 \\(\\log_{${B}} x-${K === 1 ? '' : K}\\log_{x} ${B}${_LI_TX[r]} ${C}\\)`;
+    const A = frac(..._lePow([B, 1], u1)), Bv = frac(..._lePow([B, 1], u2));
+    const fmt = (r === 1 || r === 3)
+      ? `a${eq ? '\\leq' : '\\lt'} x\\lt 1\\text{ 或 }x${eq ? '\\geq' : '\\gt'} b`
+      : `0\\lt x${eq ? '\\leq' : '\\lt'} a\\text{ 或 }1\\lt x${eq ? '\\leq' : '\\lt'} b`;
+    return _iqTwo(q, fmt, A, Bv);
+  }
+  // 不同底：log_{B^i} x ± log_{B^j} x rel R → u rel k
+  const B = pick([2, 3]), i = srRandInt(1, 3), j = pick([1, 2, 3].filter(v => v !== i)), plus = Math.random() < 0.6, k = srRnz(-3, 3);
+  const coef = plus ? frac(i + j, i * j) : frac(j - i, i * j), R = frac(coef.num * k, coef.den);
+  const base = e => `\\log_{${Math.pow(B, e)}}`;
+  const rhs = R.den === 1 ? `${R.num}` : `${R.num < 0 ? '-' : ''}\\dfrac{${Math.abs(R.num)}}{${R.den}}`;
+  const rr = coef.num > 0 ? r : _liFlip(r), [xn, xd] = _lePow([B, 1], k), X = frac(xn, xd);
+  const q = `解不等式 \\(${base(i)} x${plus ? '+' : '-'}${base(j)} x${_LI_TX[r]} ${rhs}\\)`;
+  if (rr === 1 || rr === 3) return _iqOne(q, _LI_SY[rr], X);
+  return { question: `${q}，其解為 \\(0\\lt x${rr === 2 ? '\\leq' : '\\lt'} b\\)，求 \\(b\\)`,
+    answer: X.den === 1 ? X.num : X, type: X.den === 1 ? 'number' : 'fraction', answerPrefix: 'b' };
+}
+
 function genB3aLogIneq(level) {
+  for (let i = 0; i < 400; i++) {
+    const q = _logIneqRand(level);
+    if (!q || (_logIneqRecent.includes(q.question) && i < 350)) continue;
+    _logIneqRecent.push(q.question); if (_logIneqRecent.length > 40) _logIneqRecent.shift();
+    return q;
+  }
   if (level === 'basic') {
     const a = srRandInt(2, 4), n = srRandInt(1, 3), val = Math.pow(a, n);
     if (srRandInt(0, 1) === 0) return _iqOne(`解不等式 \\(\\log_{${a}} x>${n}\\)`, '>', val);
