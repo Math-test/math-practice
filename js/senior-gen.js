@@ -7136,6 +7136,10 @@ function genB3bExpFunc(level) {
 // ── b3a-log-func / b3b-log-func：對數函數性質 ───────────────────
 
 function genB3aLogFunc(level) {
+  // 指數上有對數（a^{log_b c}、10^{a log m + b log n}）：中等、困難各 20%
+  if (level !== 'basic' && Math.random() < 0.2) {
+    for (let i = 0; i < 60; i++) { const q = _b3LogPow(level); if (q) return q; }
+  }
   // 合併計算題（真數含分數、小數）：基礎 30%、中等 50%、困難 45%
   if (Math.random() < ({basic:0.3, medium:0.5, hard:0.45}[level] || 0)) {
     for (let i = 0; i < 60; i++) {
@@ -7324,6 +7328,38 @@ function _b3LogChain(level) {
 }
 
 function _gcdS(a, b) { return b ? _gcdS(b, a % b) : a; }
+
+// 指數上有對數：(p^i)^{log_{p^j} c^k} = c^{ik/j}；或 10^{a·log m + b·log n} = m^a·n^b
+function _b3LogPowTerm() {
+  const pi = srRandInt(0, 2), p = _LGP[pi], i = srRandInt(1, 3), j = srRandInt(1, 3), k = pick([1, 1, 2, -1]);
+  if ((i * k) % j !== 0 || (i === j && k === 1)) return null;
+  const e = i * k / j;
+  if (Math.abs(e) > 3) return null;
+  const cv = [0, 0, 0]; cv[srRandInt(0, 2)] = pick([1, 1, -1]);
+  if (cv[pi] !== 0) cv[(pi + 1) % 3] = pick([1, -1]);            // 真數不只是 p 的次方
+  if (Math.random() < 0.3) cv[(pi + 2) % 3] = pick([1, -1]);
+  const arg = cv.map(x => x * k), val = cv.map(x => x * e);
+  if (!_lgOk(arg) || !_lgOk(val)) return null;
+  const [vn, vd] = _lgND(val);
+  if (vn > 400 || vd > 400) return null;
+  return {tex: `${Math.pow(p, i)}^{\\log_{${Math.pow(p, j)}} ${_lgArg(arg, Math.random() < 0.5)}}`, n: vn, d: vd};
+}
+function _b3LogPow(level) {
+  if (Math.random() < 0.3) {
+    const P = [2, 3, 5, 7], m = pick(P), n = pick(P.filter(x => x !== m)), a = pick([1, 2, 3, -1, -2]), b = pick([1, 2, -1, -2]);
+    const num = Math.pow(m, Math.max(a, 0)) * Math.pow(n, Math.max(b, 0)), den = Math.pow(m, Math.max(-a, 0)) * Math.pow(n, Math.max(-b, 0));
+    if (num > 500 || den > 500) return null;
+    const t = (c, s, first) => (c < 0 ? '-' : first ? '' : '+') + (Math.abs(c) === 1 ? '' : Math.abs(c)) + `\\log ${s}`;
+    return Object.assign({question:`計算 \\(10^{${t(a, m, true)}${t(b, n, false)}}\\)`, answerPrefix:'值'}, _lgAns(num, den));
+  }
+  const A = _b3LogPowTerm();
+  if (!A) return null;
+  if (level === 'medium' || Math.random() < 0.3) return Object.assign({question:`計算 \\(${A.tex}\\)`, answerPrefix:'值'}, _lgAns(A.n, A.d));
+  const B = _b3LogPowTerm();
+  if (!B || B.tex === A.tex) return null;
+  const s = pick([1, -1]), f = s > 0 ? fadd(frac(A.n, A.d), frac(B.n, B.d)) : fadd(frac(A.n, A.d), frac(-B.n, B.d));
+  return Object.assign({question:`計算 \\(${A.tex}${s > 0 ? '+' : '-'}${B.tex}\\)`, answerPrefix:'值'}, _lgAns(f.num, f.den));
+}
 
 // ── b3a-exp-eq / b3b-exp-eq：指數方程式 ─────────────────────────
 
@@ -7557,6 +7593,12 @@ function _logEqRand(level) {
     return _leOne(`解方程式 \\(${c}${_leB(b)}${_leArg(p, q)}${d > 0 ? '+' : '-'}${Math.abs(d)}=${c * n + d}\\)，求 \\(x\\)`, vn - q * vd, p * vd);
   }
 
+  // 雙層對數方程式：log_B(log_b(px+q)) = n ⇒ px+q = b^{B^n}
+  if (level !== 'basic' && Math.random() < 0.2) {
+    const N = _liNest(level === 'hard');
+    if (!N) return null;
+    return _leOne(`解方程式 \\(${N.expr}=${N.n}\\)，求 \\(x\\)`, N.W[0] - N.q * N.W[1], N.p * N.W[1]);
+  }
   if (level === 'medium') {
     const t = srRandInt(0, 3);
     if (t === 0) {
@@ -7905,6 +7947,19 @@ function _liOut(q, s) {
 // 「真數 rel V」轉為一次式條件：vd·(px+q) − vn REL 0
 const _liCon = (p, q, vn, vd, r) => [p * vd, q * vd - vn, _LI_OP[r]];
 
+// 雙層對數：log_B(log_b(px+q))；回傳外層值 V=B^n 與 b^V（化為真數的界）
+// 外層值限整數 1~3 或 1/2（此時內層底為完全平方數），使 b^V 為整數或簡單分數
+function _liNest(hardMode) {
+  const B = hardMode ? pick([[2,1],[3,1],[1,2],[1,3]]) : pick([[2,1],[3,1]]);
+  const n = srRandInt(-1, 1), [Vn, Vd] = _lePow(B, n);
+  if (!(Vd === 1 && Vn <= 3) && !(Vn === 1 && Vd === 2)) return null;
+  const b = Vd === 2 ? pick([[4,1],[9,1],[25,1]]) : hardMode ? pick([[2,1],[3,1],[5,1],[1,2]]) : pick([[2,1],[3,1],[5,1]]);
+  const W = Vd === 2 ? [Math.sqrt(b[0]), 1] : _lePow(b, Vn);
+  if (W[0] > 130) return null;
+  const [p, q] = hardMode ? [pick([1, 1, 2, -1]), srRandInt(-6, 6)] : [1, pick([0, 0, srRandInt(-5, 5)])];
+  return {B, n, b, W, p, q, expr: `${_leB(B)}\\left(${_leB(b)}${_leArg(p, q)}\\right)`};
+}
+
 function _logIneqRand(level) {
   const PQ = () => [pick([1, 1, 2, 3, -1, -2]), srRandInt(-8, 8)];
   const inc = b => b[0] > b[1];                 // 底數 > 1
@@ -7921,6 +7976,16 @@ function _logIneqRand(level) {
     const n = srRandInt(-1, 3), c = srRandInt(2, 4), d = srRnz(-6, 6), [vn, vd] = _lePow(b, n);
     if (vn > 100 || !inc(b)) return null;
     return _liOut(`解不等式 \\(${c}${_leB(b)}${_leArg(p, q)}${d > 0 ? '+' : '-'}${Math.abs(d)}${_LI_TX[r]} ${c * n + d}\\)`, _liSolve([[p, q, '>'], _liCon(p, q, vn, vd, r)]));
+  }
+
+  // 雙層對數不等式：log_B(log_b(px+q)) rel n
+  // 條件：px+q>0、內層 log>0（外層真數為正）、內層 log rel' B^n ⇔ px+q rel'' b^V
+  if ((level === 'medium' && Math.random() < 0.25) || (level === 'hard' && Math.random() < 0.2)) {
+    const N = _liNest(level === 'hard'), r = srRandInt(0, 3);
+    if (!N) return null;
+    const r1 = inc(N.B) ? r : _liFlip(r), r2 = inc(N.b) ? r1 : _liFlip(r1);
+    return _liOut(`解不等式 \\(${N.expr}${_LI_TX[r]} ${N.n}\\)`,
+      _liSolve([[N.p, N.q, '>'], _liCon(N.p, N.q, 1, 1, inc(N.b) ? 1 : 0), _liCon(N.p, N.q, N.W[0], N.W[1], r2)]));
   }
 
   if (level === 'medium') {
@@ -7950,7 +8015,20 @@ function _logIneqRand(level) {
   }
 
   // hard
-  const t = srRandInt(0, 3), r = srRandInt(0, 3);
+  const t = srRandInt(0, 4), r = srRandInt(0, 3);
+  if (t === 4) {
+    // x^{log_B x} rel C·x^N：兩邊取 log_B（B>1，x>0）⇒ u² − N·u − m rel 0，C = B^m
+    const B = pick([2, 3, 10]), u1 = srRandInt(-3, 3), u2 = srRandInt(-3, 3);
+    if (u1 >= u2) return null;
+    const N = u1 + u2, m = -u1 * u2, [cn, cd] = _lePow([B, 1], m);
+    if (cn > 1000 || cd > 1000 || (N === 0 && m === 0)) return null;
+    const L = B === 10 ? '\\log' : `\\log_{${B}}`;
+    const coef = cd === 1 ? (cn === 1 && N !== 0 ? '' : `${cn}`) : `\\dfrac{1}{${cd}}`;
+    const xs = N === 0 ? '' : N === 1 ? 'x' : `x^{${N}}`;
+    const q = `解不等式 \\(x^{${L} x}${_LI_TX[r]} ${coef}${xs}\\)`;
+    const inside = r === 0 || r === 2, eq = r >= 2;
+    return _iqTwo(q, inside ? (eq ? _IQ_INE : _IQ_IN) : (eq ? _IQ_ZOUTE : _IQ_ZOUT), frac(..._lePow([B, 1], u1)), frac(..._lePow([B, 1], u2)));
+  }
   if (t === 0) {
     // 令 u=log_b x 的二次不等式（底數可小於 1）
     const b = pick([[2,1],[3,1],[1,2],[1,3]]), u1 = srRandInt(-3, 3), u2 = srRandInt(-3, 3);
