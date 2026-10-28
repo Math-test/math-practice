@@ -7509,7 +7509,159 @@ function genB3bExpEq(level) {
 
 // ── b3a-log-eq / b3b-log-eq：對數方程式 ─────────────────────────
 
+// ── 對數方程式隨機生成 ──
+const _logEqRecent = [];
+// 底數 [分子, 分母]；顯示與次方
+const _leBases = [[2,1],[3,1],[5,1],[10,1],[1,2],[1,3]];
+const _leB = b => b[1] !== 1 ? `\\log_{\\frac{${b[0]}}{${b[1]}}}` : b[0] === 10 ? '\\log' : `\\log_{${b[0]}}`;
+const _lePow = (b, n) => n >= 0 ? [Math.pow(b[0], n), Math.pow(b[1], n)] : [Math.pow(b[1], -n), Math.pow(b[0], -n)];
+// px+q 的顯示（作為對數真數時加括號）
+function _leLin(p, q) {
+  const px = p === 1 ? 'x' : p === -1 ? '-x' : `${p}x`;
+  return q === 0 ? px : `${px}${q > 0 ? '+' : '-'}${Math.abs(q)}`;
+}
+const _leArg = (p, q) => (q === 0 && p === 1) ? ' x' : `(${_leLin(p, q)})`;
+const _leAns = (n, d) => { const f = frac(n, d); return f.den === 1 ? f.num : f; };
+const _leOne = (q, n, d) => { const f = frac(n, d); return {question:q, answer:f.den === 1 ? f.num : f, type:f.den === 1 ? 'number' : 'fraction', answerPrefix:'x'}; };
+
+function _logEqRand(level) {
+  const nzPQ = () => [srRnz(-4, 5), srRnz(-9, 9)];
+  if (level === 'basic') {
+    const t = srRandInt(0, 3);
+    if (t === 0) {
+      // log_b(px+q) = n → px+q = b^n
+      const b = pick(_leBases), n = b[0] === 10 ? srRandInt(-1, 2) : srRandInt(-2, 4);
+      const [p, q] = nzPQ(), [vn, vd] = _lePow(b, n);
+      if (vn > 200) return null;
+      return _leOne(`解方程式 \\(${_leB(b)}${_leArg(p, q)}=${n}\\)，求 \\(x\\)`, vn - q * vd, p * vd);
+    }
+    if (t === 1) {
+      // log_b(px+q) = log_b(rx+s)，需檢查真數為正
+      const b = pick(_leBases), [p, q] = nzPQ(), [r, s] = nzPQ();
+      if (p === r) return null;
+      const xn = s - q, xd = p - r;           // x = (s−q)/(p−r)
+      if ((p * xn + q * xd) / xd <= 0) return null;
+      return _leOne(`解方程式 \\(${_leB(b)}${_leArg(p, q)}=${_leB(b)}${_leArg(r, s)}\\)，求 \\(x\\)`, xn, xd);
+    }
+    if (t === 2) {
+      // log_b(px+q) = log_b m ± log_b k
+      const b = pick(_leBases.slice(0, 4)), m = srRandInt(2, 12), k = srRandInt(2, 9), plus = Math.random() < 0.6;
+      if (m === k || m === b[0] || k === b[0]) return null;
+      const [p, q] = nzPQ(), [vn, vd] = plus ? [m * k, 1] : [m, k];
+      return _leOne(`解方程式 \\(${_leB(b)}${_leArg(p, q)}=${_leB(b)} ${m}${plus ? '+' : '-'}${_leB(b)} ${k}\\)，求 \\(x\\)`, vn - q * vd, p * vd);
+    }
+    // c·log_b(px+q) + d = e  → log_b(px+q) = n
+    const b = pick(_leBases.slice(0, 4)), n = srRandInt(-1, 3), c = srRandInt(2, 4), d = srRnz(-6, 6);
+    const [p, q] = nzPQ(), [vn, vd] = _lePow(b, n);
+    if (vn > 200) return null;
+    return _leOne(`解方程式 \\(${c}${_leB(b)}${_leArg(p, q)}${d > 0 ? '+' : '-'}${Math.abs(d)}=${c * n + d}\\)，求 \\(x\\)`, vn - q * vd, p * vd);
+  }
+
+  if (level === 'medium') {
+    const t = srRandInt(0, 3);
+    if (t === 0) {
+      // log_b(px+q) − log_b(rx+s) = n → px+q = b^n(rx+s)
+      const b = pick(_leBases.slice(0, 4)), n = srRnz(-2, 2), [p, q] = nzPQ(), [r, s] = nzPQ(), [vn, vd] = _lePow(b, n);
+      const xd = p * vd - vn * r, xn = vn * s - q * vd;
+      if (xd === 0) return null;
+      const x = xn / xd;
+      if (p * x + q <= 0 || r * x + s <= 0 || frac(xn, xd).den > 12) return null;
+      return _leOne(`解方程式 \\(${_leB(b)}${_leArg(p, q)}-${_leB(b)}${_leArg(r, s)}=${n}\\)，求 \\(x\\)`, xn, xd);
+    }
+    if (t === 1) {
+      // log_b(x+u) + log_b(x+w) = n，一根不合
+      const b = pick([[2,1],[3,1],[10,1]]), r = srRandInt(-3, 8), s = srRandInt(-12, 3);
+      if (r === s) return null;
+      const u = srRandInt(-6, 9), w = -(r + s) - u, V = u * w - r * s;
+      let n = 0; while (Math.pow(b[0], n) < V) n++;
+      if (V < 2 || Math.pow(b[0], n) !== V || u === w) return null;
+      if (r + u <= 0 || r + w <= 0 || (s + u > 0 && s + w > 0)) return null;
+      return _leOne(`解方程式 \\(${_leB(b)}${_leArg(1, u)}+${_leB(b)}${_leArg(1, w)}=${n}\\)，求 \\(x\\)`, r, 1);
+    }
+    if (t === 2) {
+      // log_{b^i} x + log_{b^j} x = k(1/i+1/j) → x = b^k
+      const B = pick([2, 3]), i = srRandInt(1, 3), j = pick([1, 2, 3].filter(v => v !== i)), k = srRnz(-3, 4);
+      const R = frac(k * (i + j), i * j), base = e => e === 1 ? `\\log_{${B}}` : `\\log_{${Math.pow(B, e)}}`;
+      const rhs = R.den === 1 ? `${R.num}` : `${R.num < 0 ? '-' : ''}\\dfrac{${Math.abs(R.num)}}{${R.den}}`;
+      const [n, d] = _lePow([B, 1], k);
+      return _leOne(`解方程式 \\(${base(i)} x+${base(j)} x=${rhs}\\)，求 \\(x\\)`, n, d);
+    }
+    // 2log_b(x+u) = log_b(cx+d)，一根不合
+    return _leSqForm(pick([[2,1],[3,1],[10,1]]), false);
+  }
+
+  // hard
+  const t = srRandInt(0, 4);
+  if (t === 0) {
+    // (log_b x)² − S·log_b x + P = 0（或以 log_b x² 表示），兩根
+    const b = pick([[2,1],[3,1],[1,2]]), u1 = srRnz(-3, 3), u2 = srRnz(-3, 3);
+    if (u1 === u2) return null;
+    const S = u1 + u2, P = u1 * u2, L = `${_leB(b)} x`;
+    const useSq = S % 2 === 0 && S !== 0 && Math.random() < 0.5;
+    const mid = S === 0 ? '' : useSq ? `${S > 0 ? '-' : '+'}${Math.abs(S / 2) === 1 ? '' : Math.abs(S / 2)}${_leB(b)} x^2` : `${S > 0 ? '-' : '+'}${Math.abs(S) === 1 ? '' : Math.abs(S)}${L}`;
+    const q = `解方程式 \\((${L})^2${mid}${P === 0 ? '' : P > 0 ? '+' + P : P}=0\\)，求兩根`;
+    const [a1, d1] = _lePow(b, u1), [a2, d2] = _lePow(b, u2);
+    return {question:q, type:'quad-roots', root1:_leAns(a1, d1), root2:_leAns(a2, d2), answerPrefix:'x'};
+  }
+  if (t === 1) {
+    // log_b x − K·log_x b = C：u − K/u = C
+    const B = pick([2, 3, 5]), u1 = srRnz(-3, 3), u2 = srRnz(-3, 3);
+    if (u1 === u2 || u1 * u2 > 0) return null;
+    const K = -u1 * u2, C = u1 + u2;
+    const q = `解方程式 \\(\\log_{${B}} x-${K === 1 ? '' : K}\\log_{x} ${B}=${C}\\)，求兩根`;
+    const [a1, d1] = _lePow([B, 1], u1), [a2, d2] = _lePow([B, 1], u2);
+    return {question:q, type:'quad-roots', root1:_leAns(a1, d1), root2:_leAns(a2, d2), answerPrefix:'x'};
+  }
+  if (t === 2) {
+    // x^{log_b x} = b^M · x^N：u² = M + N·u
+    const B = pick([2, 3, 10]), u1 = srRnz(-2, 3), u2 = srRnz(-2, 3);
+    if (u1 === u2) return null;
+    const N = u1 + u2, M = -u1 * u2, L = B === 10 ? '\\log' : `\\log_{${B}}`;
+    if (N === 0 || M === 0) return null;
+    const [mn, md] = _lePow([B, 1], M);
+    const coef = md === 1 ? `${mn}` : `\\dfrac{1}{${md}}`;
+    const rhs = `${coef}${N === 1 ? 'x' : `x^{${N}}`}`;
+    const [a1, d1] = _lePow([B, 1], u1), [a2, d2] = _lePow([B, 1], u2);
+    return {question:`解方程式 \\(x^{${L} x}=${rhs}\\)，求兩根`, type:'quad-roots', root1:_leAns(a1, d1), root2:_leAns(a2, d2), answerPrefix:'x'};
+  }
+  if (t === 3) {
+    // log_b(x+u) + log_b(x+w) = log_b(cx+d)，一根不合
+    const b = pick([[2,1],[3,1],[10,1]]), r = srRandInt(1, 9), s = srRandInt(-9, 6), u = srRandInt(-5, 6), w = srRandInt(-5, 6);
+    if (r === s || u === w) return null;
+    const c = u + w + r + s, d = u * w - r * s;
+    if (c === 0 || (c === 1 && (d === u || d === w))) return null;
+    const ok = x => x + u > 0 && x + w > 0 && c * x + d > 0;
+    if (!ok(r) || ok(s)) return null;
+    return _leOne(`解方程式 \\(${_leB(b)}${_leArg(1, u)}+${_leB(b)}${_leArg(1, w)}=${_leB(b)}${_leArg(c, d)}\\)，求 \\(x\\)`, r, 1);
+  }
+  // log_b(x+u) = log_{b²}(cx+d)，一根不合
+  return _leSqForm(pick([[2,1],[3,1]]), true);
+}
+// (x+u)² = cx+d 型：一根合、一根不合
+function _leSqForm(b, diffBase) {
+  const r = srRandInt(-4, 9), s = srRandInt(-9, 6), u = srRandInt(-5, 6);
+  if (r === s) return null;
+  const c = 2 * u + r + s, d = u * u - r * s;
+  if (c === 0) return null;
+  const ok = x => x + u > 0 && c * x + d > 0;
+  if (!ok(r) || ok(s)) return null;
+  const B2 = `\\log_{${b[0] * b[0]}}`;
+  const q = diffBase
+    ? `解方程式 \\(${_leB(b)}${_leArg(1, u)}=${B2}${_leArg(c, d)}\\)，求 \\(x\\)`
+    : `解方程式 \\(2${_leB(b)}${_leArg(1, u)}=${_leB(b)}${_leArg(c, d)}\\)，求 \\(x\\)`;
+  return _leOne(q, r, 1);
+}
+
 function genB3aLogEq(level) {
+  // 基礎、中等全部隨機生成；困難保留少量原題庫
+  if (level !== 'hard' || Math.random() < 0.8) {
+    for (let i = 0; i < 300; i++) {
+      const q = _logEqRand(level);
+      if (!q || (_logEqRecent.includes(q.question) && i < 250)) continue;
+      _logEqRecent.push(q.question); if (_logEqRecent.length > 40) _logEqRecent.shift();
+      return q;
+    }
+  }
   if (level === 'basic') {
     // log_a(x) = n → x = a^n
     const t = srRandInt(0, 1);
