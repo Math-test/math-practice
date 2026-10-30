@@ -10621,42 +10621,37 @@ function _9aCircleLine(level){
     return {question:`圓 \\(O\\) 的弦 \\(AB=${2*hl}\\)，圓心到 \\(AB\\) 的距離為 \\(${d}\\)，求半徑`,answer:r,type:'number',answerPrefix:'半徑'};
   }
   if(t===1){
-    // 相交弦定理：PA·PB=PC·PD（圓內交點）
-    const a=randInt(2,6),b=randInt(2,6),c=randInt(2,6);
-    const d2=a*b/c;
-    if(!Number.isInteger(d2)||d2<1)return null;
-    return {question:`兩弦 \\(AB\\) 與 \\(CD\\) 在圓內交於點 \\(P\\)，\\(PA=${a}\\)，\\(PB=${b}\\)，\\(PC=${c}\\)，求 \\(PD\\)（相交弦定理：\\(PA \\cdot PB=PC \\cdot PD\\)）`,answer:d2,type:'number',answerPrefix:'\\(PD\\)'};
+    // 兩平行弦的距離（同側相減、異側相加）
+    const r=pick([5,10,13,15,17,25,26]);
+    const ps=PY3C.filter(v=>v[2]===r);
+    const P1=pick(ps),P2=pick(ps);
+    if(P1[0]===P2[0])return null;
+    const same=randInt(0,1);
+    return {question:`圓 \\(O\\) 的半徑為 \\(${r}\\)，\\(AB\\)、\\(CD\\) 為兩平行弦，\\(AB=${2*P1[1]}\\)，\\(CD=${2*P2[1]}\\)，且兩弦在圓心的${same?'同側':'兩側'}，求兩弦之間的距離`,
+      answer:same?Math.abs(P1[0]-P2[0]):P1[0]+P2[0],type:'number',answerPrefix:'距離'};
   }
   if(t===2){
-    // 切割線定理：PT²=PA·PB（圓外切線＋割線）
-    const tanSecPool=[
-      {PT:6,PA:4,PB:9},{PT:4,PA:2,PB:8},{PT:6,PA:3,PB:12},
-      {PT:8,PA:4,PB:16},{PT:6,PA:2,PB:18},{PT:4,PA:1,PB:16},
-      {PT:9,PA:3,PB:27},{PT:8,PA:2,PB:32},{PT:10,PA:4,PB:25},
-      {PT:12,PA:4,PB:36},{PT:15,PA:5,PB:45},{PT:12,PA:6,PB:24},
-      {PT:10,PA:2,PB:50},{PT:15,PA:9,PB:25},{PT:18,PA:6,PB:54},
-      {PT:12,PA:3,PB:48},{PT:16,PA:4,PB:64},{PT:20,PA:10,PB:40}
-    ];
-    const ts=pick(tanSecPool);
-    const askWhat=randInt(0,2);
-    if(askWhat===0)
-      return {question:`點 \\(P\\) 在圓外，\\(PT\\) 為切線（\\(T\\) 為切點），\\(PAB\\) 為割線，\\(PA=${ts.PA}\\)，\\(PB=${ts.PB}\\)，求切線長 \\(PT\\)（切割線定理：\\(PT^2=PA \\cdot PB\\)）`,answer:ts.PT,type:'number',answerPrefix:'\\(PT\\)'};
-    if(askWhat===1)
-      return {question:`點 \\(P\\) 在圓外，\\(PT\\) 為切線（\\(T\\) 為切點），\\(PT=${ts.PT}\\)，\\(PAB\\) 為割線，\\(PA=${ts.PA}\\)，求 \\(PB\\)（切割線定理：\\(PT^2=PA \\cdot PB\\)）`,answer:ts.PB,type:'number',answerPrefix:'\\(PB\\)'};
-    return {question:`點 \\(P\\) 在圓外，\\(PT\\) 為切線（\\(T\\) 為切點），\\(PT=${ts.PT}\\)，\\(PAB\\) 為割線，\\(PB=${ts.PB}\\)，求 \\(PA\\)（切割線定理：\\(PT^2=PA \\cdot PB\\)）`,answer:ts.PA,type:'number',answerPrefix:'\\(PA\\)'};
+    // 同心圓：大圓的弦切小圓
+    const [d,hl,R]=pick(PY3C);
+    if(randInt(0,1)===0)
+      return {question:`兩同心圓的圓心為 \\(O\\)，大圓半徑為 \\(${R}\\)，小圓半徑為 \\(${d}\\)，大圓的弦 \\(AB\\) 與小圓相切，求 \\(AB\\)`,answer:2*hl,type:'number',answerPrefix:'\\(AB\\)'};
+    return {question:`兩同心圓的圓心為 \\(O\\)，大圓的弦 \\(AB=${2*hl}\\) 與小圓相切，小圓半徑為 \\(${d}\\)，求大圓半徑`,answer:R,type:'number',answerPrefix:'大圓半徑'};
   }
-  // t===3: 割線定理：PA·PB=PC·PD（圓外兩割線）
-  const secSecPool=[
-    {PA:2,PB:8,PC:1,PD:16},{PA:3,PB:12,PC:4,PD:9},{PA:2,PB:18,PC:3,PD:12},
-    {PA:4,PB:16,PC:2,PD:32},{PA:2,PB:12,PC:3,PD:8},{PA:3,PB:9,PC:1,PD:27},
-    {PA:4,PB:9,PC:3,PD:12},{PA:5,PB:20,PC:4,PD:25},{PA:6,PB:24,PC:8,PD:18},
-    {PA:4,PB:25,PC:5,PD:20},{PA:5,PB:45,PC:9,PD:25},{PA:6,PB:16,PC:4,PD:24}
-  ];
-  const ss=pick(secSecPool);
-  const askSS=randInt(0,1);
-  if(askSS===0)
-    return {question:`點 \\(P\\) 在圓外，兩割線 \\(PAB\\) 和 \\(PCD\\)（\\(A\\)、\\(C\\) 為近交點），\\(PA=${ss.PA}\\)，\\(PB=${ss.PB}\\)，\\(PC=${ss.PC}\\)，求 \\(PD\\)（割線定理：\\(PA \\cdot PB=PC \\cdot PD\\)）`,answer:ss.PD,type:'number',answerPrefix:'\\(PD\\)'};
-  return {question:`點 \\(P\\) 在圓外，兩割線 \\(PAB\\) 和 \\(PCD\\)（\\(A\\)、\\(C\\) 為近交點），\\(PA=${ss.PA}\\)，\\(PB=${ss.PB}\\)，\\(PD=${ss.PD}\\)，求 \\(PC\\)（割線定理：\\(PA \\cdot PB=PC \\cdot PD\\)）`,answer:ss.PC,type:'number',answerPrefix:'\\(PC\\)'};
+  // t===3: 切線段等長
+  const k=randInt(0,2);
+  if(k===0){
+    // 三角形內切圓：切點分段 AD=(b+c-a)/2
+    const x=randInt(2,15),y=randInt(2,15),z=randInt(2,15);
+    return {question:`\\(\\triangle ABC\\) 的內切圓分別切 \\(\\overline{AB}\\)、\\(\\overline{BC}\\)、\\(\\overline{CA}\\) 於 \\(D\\)、\\(E\\)、\\(F\\)，\\(\\overline{AB}=${x+y}\\)，\\(\\overline{BC}=${y+z}\\)，\\(\\overline{CA}=${x+z}\\)，求 \\(\\overline{AD}\\)`,answer:x,type:'number',answerPrefix:'\\(\\overline{AD}\\)'};
+  }
+  if(k===1){
+    // 圓外切四邊形：對邊和相等
+    const w=randInt(2,12),x=randInt(2,12),y=randInt(2,12),z=randInt(2,12);
+    return {question:`四邊形 \\(ABCD\\) 的四邊都與圓 \\(O\\) 相切，\\(\\overline{AB}=${w+x}\\)，\\(\\overline{BC}=${x+y}\\)，\\(\\overline{CD}=${y+z}\\)，求 \\(\\overline{DA}\\)`,answer:z+w,type:'number',answerPrefix:'\\(\\overline{DA}\\)'};
+  }
+  // 圓外一點的兩切線：四邊形 PAOB 周長
+  const [l,r,PO]=pick(PY3C);
+  return {question:`\\(\\overline{PA}\\)、\\(\\overline{PB}\\) 分別切圓 \\(O\\) 於 \\(A\\)、\\(B\\)，圓的半徑為 \\(${r}\\)，\\(\\overline{PO}=${PO}\\)，求四邊形 \\(PAOB\\) 的周長`,answer:2*l+2*r,type:'number',answerPrefix:'周長'};
 }
 
 // ═══════════════════════════════════════════════════════════════════
