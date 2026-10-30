@@ -7582,29 +7582,31 @@ function _8bFactor2Ext(level){
     return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(1,n),B,C)}\\)`,`(1/${n})${p===q?fp+'^2':fp+fq}`);
   }
   // 困難：根式題只佔一部分，其餘為分數、小數
-  const t=pick([0,1,2,2,2,3,3,3]);
+  const t=pick([0,1,2,2,2,2,3,3,3,3]);
   if(t===3){
-    // (x+p/10)(x+q)：一次項、常數項為小數
-    const p=nz(-9,9),q=nz(-6,6);
-    if(p%10===0)return null;
+    // (x+p/10)(x+q)：一次項、常數項為小數，數字較大
+    const p=nz(-75,75),q=nz(-16,16);
+    if(p%10===0||Math.abs(p*q)<30)return null;
     const P=p/10;
+    if(Math.abs(P+q)<1)return null;
     return _jrFacQ(`因式分解 \\(${_jrDQuad(1,P+q,P*q)}\\)`,`(x${_jrDt(P)})(x${q>0?'+':''}${q})`);
   }
   if(t===0){
     // (x+p√m)(x+q√m) = x²+(p+q)√m x+pqm
-    const m=pick([2,3,5,6,7]),p=nz(-5,5),q=nz(-5,5);
-    if(p+q===0||p===q)return null;
+    const m=pick([2,3,5,6,7]),p=nz(-9,9),q=nz(-9,9);
+    if(p+q===0||p===q||Math.abs(p*q)<6)return null;
     return _jrFacQ(`在實數範圍內因式分解 \\(x^2${_jrRtTex(p+q,m,'x')}${p*q*m>0?'+':''}${p*q*m}\\)`,`(x${_jrRt(p,m)})(x${_jrRt(q,m)})`);
   }
   if(t===1){
     // (x+p√m)(x+q) = x²+(p√m+q)x+pq√m
-    const m=pick([2,3,5,6,7]),p=nz(-4,4),q=nz(-6,6);
+    const m=pick([2,3,5,6,7]),p=nz(-6,6),q=nz(-12,12);
+    if(Math.abs(p*q)<4)return null;
     const mid=`\\left(${_jrRtTex(p,m).replace(/^\+/,'')}${q>0?'+':''}${q}\\right)x`;
     return _jrFacQ(`在實數範圍內因式分解 \\(x^2+${mid}${_jrRtTex(p*q,m)}\\)`,`(x${_jrRt(p,m)})(x${q>0?'+':''}${q})`);
   }
-  // (ax+p/b)(x+q)：一次項、常數項為分數
-  const a=pick([2,3]),b=pick([2,3,4]),p=nz(-7,7),q=nz(-6,6);
-  if(gcd(p,b)!==1)return null;
+  // (ax+p/b)(x+q)：一次項、常數項為分數，數字較大
+  const a=pick([2,3,4,5,6]),b=pick([2,3,4,5,7]),p=nz(-15,15),q=nz(-12,12);
+  if(gcd(Math.abs(p),b)!==1||Math.abs(p*q)<6)return null;
   const P=frac(p,b);
   return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(a),fadd(frac(a*q),P),fmul(P,frac(q)))}\\)`,`(${a}x${_jrFt(P)})(x${q>0?'+':''}${q})`);
 }
@@ -7657,28 +7659,15 @@ function _8bFactor2(level){
     const p=randInt(1,10),q=randInt(1,10);
     return fq(`因式分解 \\(${eqStr(3,3*q+p,p*q)}\\)`,3,p,1,q);
   }
-  // hard：兩個根均為分數，常數項可達 1~999
-  const t=randInt(0,2);
-  if(t===0){
-    // (2x+p)(3x+q)，常數 pq 可達 ~900
-    const p=randInt(1,30),q=randInt(1,30);
-    if(p*q>999)return null;
-    if(gcd(gcd(6,2*q+3*p),p*q)>1)return null; // 避免整式有公因式
-    return fq(`因式分解 \\(${eqStr(6,2*q+3*p,p*q)}\\)`,2,p,3,q);
-  }
-  if(t===1){
-    // (2x+p)(3x-q)，常數 -pq 可達 ~-900
-    const p=randInt(1,30),q=randInt(1,30);
-    if(p*q>999)return null;
-    // (2x+p)(3x-q) = 6x²+(3p-2q)x-pq
-    if(gcd(gcd(6,3*p-2*q),p*q)>1)return null;
-    return fq(`因式分解 \\(${eqStr(6,3*p-2*q,-p*q)}\\)`,2,p,3,-q);
-  }
-  // (4x+p)(x+q)，常數 pq 可達 ~900
-  const p=randInt(1,30),q=randInt(1,30);
-  if(p*q>999)return null;
-  if(gcd(gcd(4,4*q+p),p*q)>1)return null;
-  return fq(`因式分解 \\(${eqStr(4,4*q+p,p*q)}\\)`,4,p,1,q);
+  // hard：(ax+p)(bx+q)，首項係數因數組合多（12、18、24、36…），常數項因數多、正負皆有
+  const [a,b]=pick([[3,4],[2,9],[4,6],[3,8],[6,6],[4,9],[3,10],[5,6],[2,15],[4,5],[6,7],[5,8],[3,14],[4,7]]);
+  const p=randInt(1,36)*pick([1,-1]),q=randInt(1,36)*pick([1,-1]);
+  if(Math.abs(p*q)<24||Math.abs(p*q)>720)return null;
+  if(gcd(a,Math.abs(p))!==1||gcd(b,Math.abs(q))!==1)return null; // 兩因式各自無公因數
+  if(a*q===b*p)return null;
+  const B=a*q+b*p,C=p*q;
+  if(B===0||Math.abs(B)<5)return null; // 一次項太小則太好猜
+  return fq(`因式分解 \\(${eqStr(a*b,B,C)}\\)`,a,p,b,q);
 }
 
 // ═══════════════════════════════════════════════════════════════════
