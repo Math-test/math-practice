@@ -7382,11 +7382,23 @@ const _jrRt=(k,m)=>(k<0?'-':'+')+(Math.abs(k)===1?'':Math.abs(k))+(m===1?'':'√
 // 帶號根式項 LaTeX：+k\sqrt{m}
 const _jrRtTex=(k,m,v)=>(k<0?'-':'+')+(Math.abs(k)===1&&(m>1||v)?'':Math.abs(k))+(m===1?'':`\\sqrt{${m}}`)+(v||'');
 
-// 提公因式與乘法公式：分數、根式係數
+// 小數字串（去除浮點誤差）
+const _jrD=v=>String(+v.toFixed(6));
+// 帶號小數項
+const _jrDt=v=>(v<0?'-':'+')+_jrD(Math.abs(v));
+// 小數係數二次式 LaTeX：ax²+bx+c（係數 0 省略）
+const _jrDQuad=(a,b,c)=>{
+  let s=(a===1?'':_jrD(a))+'x^2';
+  if(b)s+=(b<0?'-':'+')+(Math.abs(b)===1?'':_jrD(Math.abs(b)))+'x';
+  if(c)s+=_jrDt(c);
+  return s;
+};
+
+// 提公因式與乘法公式：整數、分數、小數係數（不含根式）
 function _8bFactor1Ext(level){
-  const nonSq=[2,3,5,6,7,10,11,13,14,15];
+  const dec=()=>randInt(1,9)/10;
   if(level==='basic'){
-    const t=randInt(0,2);
+    const t=randInt(0,3);
     if(t===0){
       // x²-p²/q² = (x+p/q)(x-p/q)
       const p=randInt(1,9),q=randInt(2,9);if(gcd(p,q)!==1)return null;
@@ -7394,13 +7406,23 @@ function _8bFactor1Ext(level){
       return _jrFacQ(`因式分解 \\(x^2-${fracToLatex(frac(p*p,q*q))}\\)`,`(x${_jrFt(f)})(x${_jrFt(frac(-p,q))})`);
     }
     if(t===1){
-      // x²-k = (x+√k)(x-√k)
-      const k=pick(nonSq);
-      return _jrFacQ(`在實數範圍內因式分解 \\(x^2-${k}\\)`,`(x+√${k})(x-√${k})`);
+      // x²-d² = (x+d)(x-d)，d 為小數
+      const d=pick([dec(),randInt(11,15)/10]);
+      return _jrFacQ(`因式分解 \\(${_jrDQuad(1,0,-d*d)}\\)`,`(x+${_jrD(d)})(x-${_jrD(d)})`);
     }
-    // x²±(2p/q)x+p²/q² = (x±p/q)²
-    const p=randInt(1,7)*pick([1,-1]),q=randInt(2,6);if(gcd(p,q)!==1)return null;
-    return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(1),frac(2*p,q),frac(p*p,q*q))}\\)`,`(x${_jrFt(frac(p,q))})^2`);
+    if(t===2){
+      // x²±(2p/q)x+p²/q² = (x±p/q)²
+      const p=randInt(1,7)*pick([1,-1]),q=randInt(2,6);if(gcd(p,q)!==1)return null;
+      return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(1),frac(2*p,q),frac(p*p,q*q))}\\)`,`(x${_jrFt(frac(p,q))})^2`);
+    }
+    // 提公因式：kx²+kmx = kx(x+m)，k 為小數或分數
+    const m=randInt(1,9)*pick([1,-1]);
+    if(randInt(0,1)){
+      const k=dec();
+      return _jrFacQ(`因式分解 \\(${_jrDQuad(k,k*m,0)}\\)`,`${_jrD(k)}x(x${m>0?'+':''}${m})`);
+    }
+    const n=randInt(2,6);if(gcd(Math.abs(m),n)!==1)return null;
+    return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(1,n),frac(m,n),frac(0))}\\)`,`(1/${n})x(x${m>0?'+':''}${m})`);
   }
   if(level==='medium'){
     const t=randInt(0,3);
@@ -7410,40 +7432,50 @@ function _8bFactor1Ext(level){
       return _jrFacQ(`因式分解 \\(${a*a}x^2-${fracToLatex(frac(p*p,q*q))}\\)`,`(${a}x${_jrFt(frac(p,q))})(${a}x${_jrFt(frac(-p,q))})`);
     }
     if(t===1){
-      // x²-k，k 含平方因數：(x+a√m)(x-a√m)
-      const a=randInt(2,5),m=pick([2,3,5,6,7]);
-      return _jrFacQ(`在實數範圍內因式分解 \\(x^2-${a*a*m}\\)`,`(x${_jrRt(a,m)})(x${_jrRt(-a,m)})`);
-    }
-    if(t===2){
       // x²/q²-p² = (x/q+p)(x/q-p)
       const q=randInt(2,6),p=randInt(1,9);
       return _jrFacQ(`因式分解 \\(\\dfrac{1}{${q*q}}x^2-${p*p}\\)`,`((1/${q})x+${p})((1/${q})x-${p})`);
     }
-    // kx²-m = (√k x+√m)(√k x-√m)
-    const k=pick([2,3,5,6,7]),m=pick([2,3,5,7,11]);if(k===m)return null;
-    return _jrFacQ(`在實數範圍內因式分解 \\(${k}x^2-${m}\\)`,`(√${k}x+√${m})(√${k}x-√${m})`);
+    if(t===2){
+      // x²±2dx+d² = (x±d)²，d 為小數
+      const d=pick([dec(),randInt(11,25)/10])*pick([1,-1]);
+      return _jrFacQ(`因式分解 \\(${_jrDQuad(1,2*d,d*d)}\\)`,`(x${_jrDt(d)})^2`);
+    }
+    // a²x²-b² = (ax+b)(ax-b)，a 為小數
+    const a=dec(),b=pick([randInt(1,9),dec()]);if(a===b)return null;
+    return _jrFacQ(`因式分解 \\(${_jrDQuad(a*a,0,-b*b)}\\)`,`(${_jrD(a)}x+${_jrD(b)})(${_jrD(a)}x-${_jrD(b)})`);
   }
-  const t=randInt(0,3);
+  const t=randInt(0,4);
   if(t===0){
-    // x²+2ax+(a²-k) = (x+a+√k)(x+a-√k)
-    const a=randInt(1,6)*pick([1,-1]),k=pick([2,3,5,6,7,8,12]);
-    if(a*a===k)return null;
-    const [kk,m]=_jrSqrtSplit(k);
-    return _jrFacQ(`在實數範圍內因式分解 \\(${_jrFQuad(frac(1),frac(2*a),frac(a*a-k))}\\)`,`(x${a>0?'+':''}${a}${_jrRt(kk,m)})(x${a>0?'+':''}${a}${_jrRt(-kk,m)})`);
-  }
-  if(t===1){
-    // x²∓2√k x+k = (x∓√k)²
-    const k=pick(nonSq),s=pick([1,-1]);
-    return _jrFacQ(`在實數範圍內因式分解 \\(x^2${s>0?'+':'-'}2\\sqrt{${k}}x+${k}\\)`,`(x${s>0?'+':'-'}√${k})^2`);
-  }
-  if(t===2){
     // (x+a)²-p²/q²
     const a=randInt(1,6)*pick([1,-1]),p=randInt(1,7),q=randInt(2,5);if(gcd(p,q)!==1)return null;
     return _jrFacQ(`因式分解 \\(${_jrLin(1,a)}^2-${fracToLatex(frac(p*p,q*q))}\\)`,`(x${_jrFt(frac(a*q+p,q))})(x${_jrFt(frac(a*q-p,q))})`);
   }
-  // (p/q x+r)² 展開
-  const p=randInt(1,5),q=randInt(2,5),r=randInt(1,6)*pick([1,-1]);if(gcd(p,q)!==1)return null;
-  return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(p*p,q*q),frac(2*p*r,q),frac(r*r))}\\)`,`((${p}/${q})x${r>0?'+':''}${r})^2`);
+  if(t===1){
+    // (p/q x+r)² 展開
+    const p=randInt(1,5),q=randInt(2,5),r=randInt(1,6)*pick([1,-1]);if(gcd(p,q)!==1)return null;
+    return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(p*p,q*q),frac(2*p*r,q),frac(r*r))}\\)`,`((${p}/${q})x${r>0?'+':''}${r})^2`);
+  }
+  if(t===2){
+    // 先提分數公因式：(1/n)(x+b)² 或 (1/n)(x+b)(x-b)
+    const n=randInt(2,6),b=randInt(1,8)*pick([1,-1]);
+    if(randInt(0,1)){
+      const B=frac(2*b,n),C=frac(b*b,n);if(B.den===1&&C.den===1)return null;
+      return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(1,n),B,C)}\\)`,`(1/${n})(x${b>0?'+':''}${b})^2`);
+    }
+    const c=Math.abs(b),C=frac(-c*c,n);if(C.den===1)return null;
+    return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(1,n),frac(0),C)}\\)`,`(1/${n})(x+${c})(x-${c})`);
+  }
+  if(t===3){
+    // (ax+b)² 展開，a 為小數
+    const a=dec(),b=randInt(1,9)*pick([1,-1]);
+    return _jrFacQ(`因式分解 \\(${_jrDQuad(a*a,2*a*b,b*b)}\\)`,`(${_jrD(a)}x${b>0?'+':''}${b})^2`);
+  }
+  // 先提小數公因式：k(x+b)(x-b) 或 k(x+b)²
+  const k=pick([0.2,0.3,0.4,0.5,0.6,1.5,2.5]),b=randInt(1,9);
+  if(randInt(0,1))return _jrFacQ(`因式分解 \\(${_jrDQuad(k,0,-k*b*b)}\\)`,`${_jrD(k)}(x+${b})(x-${b})`);
+  const s=pick([1,-1]);
+  return _jrFacQ(`因式分解 \\(${_jrDQuad(k,2*k*b*s,k*b*b)}\\)`,`${_jrD(k)}(x${s>0?'+':'-'}${b})^2`);
 }
 
 function gen8bFactor1(level){

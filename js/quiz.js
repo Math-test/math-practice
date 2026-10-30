@@ -691,7 +691,7 @@ function renderQuiz(questions, params) {
   const _anyQ = f => questions.some(q => f(q) || (q.answerParts && q.answerParts.some(f)));
   if (!hasFrac && _anyQ(q => q.type === 'fraction')) hintParts.push('分數：<code>3/4</code>　負分數：<code>-3/4</code>　整數：<code>2</code>');
   if (_anyQ(q => q.type === 'text' && /\\sqrt/.test(String(q.answer)) && /或/.test(String(q.answer)))) hintParts.push('兩根以「或」或逗號隔開，也可合寫，例如 <code>2±√3</code>、<code>(-1±√5)/2</code>');
-  if (_anyQ(q => q.mustFactor)) hintParts.push('因式分解寫成乘積，例如 <code>(x+1/2)(x-1/2)</code>、<code>(x+√3)(x-√3)</code>、<code>(x-1+√2)(x-1-√2)</code>');
+  if (_anyQ(q => q.mustFactor)) hintParts.push(_anyQ(q => q.mustFactor && /√/.test(String(q.answer))) ? '因式分解寫成乘積，例如 <code>(x+1/2)(x-1/2)</code>、<code>(x+√3)(x-√3)</code>、<code>(x-1+√2)(x-1-√2)</code>' : '因式分解寫成乘積，例如 <code>(x+1/2)(x-1/2)</code>、<code>(x+0.3)^2</code>、<code>0.2x(x+3)</code>');
   if (_anyQ(q => q.exprAns && !q.mustFactor && q.type === 'text' && /[a-z]/i.test(String(q.answer)) && !_radText(q.answer))) hintParts.push('以代數式作答，例如 <code>2m+1</code>、<code>m/2</code>、<code>(1+q)/p</code>');
   const hintEl = document.getElementById('format-hint');
   hintEl.innerHTML = '答案格式：' + hintParts.join('　｜　');
@@ -762,7 +762,7 @@ function renderQuiz(questions, params) {
       const _isRad = q.type==='radical-mix'||q.type==='radical2';
       const _isFQ = q.type==='factored-quad'||q.type==='factored-form'||q.type==='quad-roots';
       const _iCls = (_isRad||_isFQ||q.type==='poly'||q.type==='linear2'||q.mustFactor||(q.type==='text'&&/\\sqrt/.test(String(q.answer)))) ? 'q-input q-input-rad' : 'q-input';
-      const _ph = q.type==='fraction'?'例：3/4':q.type==='radical-mix'?'如：4+3√2':q.type==='radical2'?'如：2√5+2√2':q.type==='factored-quad'?'如：(2x+3)(x+2)':q.type==='factored-form'?'如：(x+5)^2':q.type==='quad-roots'?'如：-3/2, 2':q.type==='poly'?'如：2x^2-3x+5':q.type==='linear2'?'如：2x-3y+1':q.type==='sci'?'如：6.0×10^7':q.mustFactor?'如：(x+√3)(x-√3)':q.exprAns?'如：(p+1)/q':(q.type==='text'&&/\\sqrt/.test(String(q.answer))&&/或/.test(String(q.answer)))?'如：2±√3':q.type==='text'?(['全等','不全等'].includes(String(q.answer))?'全等 或 不全等':(['SSS','SAS','ASA','AAS','RHS'].includes(String(q.answer).toUpperCase())?'如：SSS':'填答案')):q.type==='number'?'填數字':'例：1.25';
+      const _ph = q.type==='fraction'?'例：3/4':q.type==='radical-mix'?'如：4+3√2':q.type==='radical2'?'如：2√5+2√2':q.type==='factored-quad'?'如：(2x+3)(x+2)':q.type==='factored-form'?'如：(x+5)^2':q.type==='quad-roots'?'如：-3/2, 2':q.type==='poly'?'如：2x^2-3x+5':q.type==='linear2'?'如：2x-3y+1':q.type==='sci'?'如：6.0×10^7':q.mustFactor?(/√/.test(String(q.answer))?'如：(x+√3)(x-√3)':'如：(x+3)(x-3)'):q.exprAns?'如：(p+1)/q':(q.type==='text'&&/\\sqrt/.test(String(q.answer))&&/或/.test(String(q.answer)))?'如：2±√3':q.type==='text'?(['全等','不全等'].includes(String(q.answer))?'全等 或 不全等':(['SSS','SAS','ASA','AAS','RHS'].includes(String(q.answer).toUpperCase())?'如：SSS':'填答案')):q.type==='number'?'填數字':'例：1.25';
       row.innerHTML = `
         <div class="q-number">${idx + 1}</div>
         <div class="q-body">
