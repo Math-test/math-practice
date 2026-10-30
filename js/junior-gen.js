@@ -7581,7 +7581,15 @@ function _8bFactor2Ext(level){
     const fp=`(x${p>0?'+':''}${p})`,fq=`(x${q>0?'+':''}${q})`;
     return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(1,n),B,C)}\\)`,`(1/${n})${p===q?fp+'^2':fp+fq}`);
   }
-  const t=randInt(0,2);
+  // 困難：根式題只佔一部分，其餘為分數、小數
+  const t=pick([0,1,2,2,2,3,3,3]);
+  if(t===3){
+    // (x+p/10)(x+q)：一次項、常數項為小數
+    const p=nz(-9,9),q=nz(-6,6);
+    if(p%10===0)return null;
+    const P=p/10;
+    return _jrFacQ(`因式分解 \\(${_jrDQuad(1,P+q,P*q)}\\)`,`(x${_jrDt(P)})(x${q>0?'+':''}${q})`);
+  }
   if(t===0){
     // (x+p√m)(x+q√m) = x²+(p+q)√m x+pqm
     const m=pick([2,3,5,6,7]),p=nz(-5,5),q=nz(-5,5);
