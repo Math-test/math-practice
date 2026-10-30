@@ -7151,11 +7151,73 @@ function _8aPythFD(level){
   return {question:`直角三角形兩股長分別為 \\(${a}x\\) 和 \\(${b}x\\)，斜邊長為 \\(${H}\\)，求 \\(x\\)（以小數表示）`,answer:x,type:'number',answerPrefix:'x'};
 }
 
+// 畢氏定理：答案為根式或分數根式
+function _8aPythRad(level){
+  if(level==='basic'){
+    const t=randInt(0,2);
+    if(t===0){
+      const a=randInt(1,9),b=randInt(1,9),n=a*a+b*b;if(_jrIsSq(n))return null;
+      return _jrSqrtAns(`直角三角形兩股長為 \\(${a}\\) 和 \\(${b}\\)，求斜邊長`,n);
+    }
+    if(t===1){
+      const c=randInt(3,12),a=randInt(1,c-1),n=c*c-a*a;if(_jrIsSq(n))return null;
+      return _jrSqrtAns(`直角三角形斜邊長 \\(${c}\\)，一股長 \\(${a}\\)，求另一股長`,n);
+    }
+    const a=randInt(2,10),b=randInt(1,a-1),n=a*a+b*b;if(_jrIsSq(n))return null;
+    return _jrSqrtAns(`長方形長 \\(${a}\\)，寬 \\(${b}\\)，求對角線長`,n);
+  }
+  if(level==='medium'){
+    const t=randInt(0,3);
+    if(t===0){
+      // 正三角形的高 = a√3/2
+      const a=randInt(2,12);
+      return _jrRadAns(`正三角形的邊長為 \\(${a}\\)，求其高`,a,3,2);
+    }
+    if(t===1){
+      // 等腰直角三角形斜邊 c，股長 = c√2/2
+      const c=randInt(2,12);
+      return _jrRadAns(`等腰直角三角形的斜邊長為 \\(${c}\\)，求一股長`,c,2,2);
+    }
+    if(t===2){
+      // 座標距離
+      const dx=randInt(1,8),dy=randInt(1,8),n=dx*dx+dy*dy;if(_jrIsSq(n))return null;
+      const x1=randInt(-5,5),y1=randInt(-5,5),sx=pick([1,-1]),sy=pick([1,-1]);
+      return _jrSqrtAns(`座標平面上 \\(A(${x1},\\,${y1})\\) 和 \\(B(${x1+sx*dx},\\,${y1+sy*dy})\\) 的距離為`,n);
+    }
+    // 分數股長 p/d、q/d → √(p²+q²)/d
+    const d=randInt(2,6),p=randInt(1,7),q=randInt(1,7),n=p*p+q*q;
+    if(_jrIsSq(n)||gcd(p,d)!==1||gcd(q,d)!==1)return null;
+    return _jrSqrtAns(`直角三角形兩股長為 \\(${fracToLatex(frac(p,d))}\\) 和 \\(${fracToLatex(frac(q,d))}\\)，求斜邊長`,n,d);
+  }
+  const t=randInt(0,3);
+  if(t===0){
+    // 兩股 √a、√b
+    const a=randInt(2,15),b=randInt(2,15);if(_jrIsSq(a)||_jrIsSq(b)||a===b)return null;
+    const [ka,ma]=_jrSqrtSplit(a),[kb,mb]=_jrSqrtSplit(b);
+    return _jrSqrtAns(`直角三角形兩股長為 \\(${_jrRadTex(ka,ma)}\\) 和 \\(${_jrRadTex(kb,mb)}\\)，求斜邊長`,a+b);
+  }
+  if(t===1){
+    // 正三角形面積 = √3/4·a²
+    const a=randInt(2,12);
+    return _jrRadAns(`正三角形的邊長為 \\(${a}\\)，求其面積`,a*a,3,4);
+  }
+  if(t===2){
+    // 斜邊 k√m、一股 n
+    const k=randInt(2,5),m=pick([2,3,5,6,7]),n2=k*k*m,a=randInt(1,Math.floor(Math.sqrt(n2-1)));
+    if(_jrIsSq(n2-a*a)&&randInt(0,2)>0)return null;
+    return _jrSqrtAns(`直角三角形斜邊長 \\(${_jrRadTex(k,m)}\\)，一股長 \\(${a}\\)，求另一股長`,n2-a*a);
+  }
+  // 長方體對角線
+  const l=randInt(1,8),w=randInt(1,8),h=randInt(1,8),n=l*l+w*w+h*h;if(_jrIsSq(n)&&randInt(0,2)>0)return null;
+  return _jrSqrtAns(`長方體的長、寬、高分別為 \\(${l}\\)、\\(${w}\\)、\\(${h}\\)，求其對角線（連接相對頂點）的長`,n);
+}
+
 function gen8aPyth(level) {
   for (let i=0;i<30;i++) { const q=_8aPyth(level); if(q) return q; }
   return _8aPyth('basic');
 }
 function _8aPyth(level) {
+  if(Math.random()<0.3)return _8aPythRad(level);
   const intTriples=[
     {a:3,b:4,c:5},{a:5,b:12,c:13},{a:8,b:15,c:17},{a:7,b:24,c:25},
     {a:6,b:8,c:10},{a:9,b:12,c:15},{a:10,b:24,c:26},{a:20,b:21,c:29}
@@ -7311,11 +7373,85 @@ function _8aPyth(level) {
 // ═══════════════════════════════════════════════════════════════════
 //  八下 ▸ 因式分解（提公因式與乘法公式）
 // ═══════════════════════════════════════════════════════════════════
+// 因式分解答案：數值比對且須為乘積形式
+const _jrFacQ=(question,ans)=>({question,answer:ans,type:'text',exprAns:true,mustFactor:true});
+// 分數的帶號 ASCII 項（如 +3/2、-1/4）
+const _jrFt=f=>(f.num<0?'-':'+')+Math.abs(f.num)+(f.den>1?'/'+f.den:'');
+// 帶號根式項：+k√m
+const _jrRt=(k,m)=>(k<0?'-':'+')+(Math.abs(k)===1?'':Math.abs(k))+(m===1?'':'√'+m);
+// 帶號根式項 LaTeX：+k\sqrt{m}
+const _jrRtTex=(k,m,v)=>(k<0?'-':'+')+(Math.abs(k)===1&&(m>1||v)?'':Math.abs(k))+(m===1?'':`\\sqrt{${m}}`)+(v||'');
+
+// 提公因式與乘法公式：分數、根式係數
+function _8bFactor1Ext(level){
+  const nonSq=[2,3,5,6,7,10,11,13,14,15];
+  if(level==='basic'){
+    const t=randInt(0,2);
+    if(t===0){
+      // x²-p²/q² = (x+p/q)(x-p/q)
+      const p=randInt(1,9),q=randInt(2,9);if(gcd(p,q)!==1)return null;
+      const f=frac(p,q);
+      return _jrFacQ(`因式分解 \\(x^2-${fracToLatex(frac(p*p,q*q))}\\)`,`(x${_jrFt(f)})(x${_jrFt(frac(-p,q))})`);
+    }
+    if(t===1){
+      // x²-k = (x+√k)(x-√k)
+      const k=pick(nonSq);
+      return _jrFacQ(`在實數範圍內因式分解 \\(x^2-${k}\\)`,`(x+√${k})(x-√${k})`);
+    }
+    // x²±(2p/q)x+p²/q² = (x±p/q)²
+    const p=randInt(1,7)*pick([1,-1]),q=randInt(2,6);if(gcd(p,q)!==1)return null;
+    return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(1),frac(2*p,q),frac(p*p,q*q))}\\)`,`(x${_jrFt(frac(p,q))})^2`);
+  }
+  if(level==='medium'){
+    const t=randInt(0,3);
+    if(t===0){
+      // a²x²-p²/q²
+      const a=randInt(2,6),p=randInt(1,9),q=randInt(2,7);if(gcd(p,q)!==1)return null;
+      return _jrFacQ(`因式分解 \\(${a*a}x^2-${fracToLatex(frac(p*p,q*q))}\\)`,`(${a}x${_jrFt(frac(p,q))})(${a}x${_jrFt(frac(-p,q))})`);
+    }
+    if(t===1){
+      // x²-k，k 含平方因數：(x+a√m)(x-a√m)
+      const a=randInt(2,5),m=pick([2,3,5,6,7]);
+      return _jrFacQ(`在實數範圍內因式分解 \\(x^2-${a*a*m}\\)`,`(x${_jrRt(a,m)})(x${_jrRt(-a,m)})`);
+    }
+    if(t===2){
+      // x²/q²-p² = (x/q+p)(x/q-p)
+      const q=randInt(2,6),p=randInt(1,9);
+      return _jrFacQ(`因式分解 \\(\\dfrac{1}{${q*q}}x^2-${p*p}\\)`,`((1/${q})x+${p})((1/${q})x-${p})`);
+    }
+    // kx²-m = (√k x+√m)(√k x-√m)
+    const k=pick([2,3,5,6,7]),m=pick([2,3,5,7,11]);if(k===m)return null;
+    return _jrFacQ(`在實數範圍內因式分解 \\(${k}x^2-${m}\\)`,`(√${k}x+√${m})(√${k}x-√${m})`);
+  }
+  const t=randInt(0,3);
+  if(t===0){
+    // x²+2ax+(a²-k) = (x+a+√k)(x+a-√k)
+    const a=randInt(1,6)*pick([1,-1]),k=pick([2,3,5,6,7,8,12]);
+    if(a*a===k)return null;
+    const [kk,m]=_jrSqrtSplit(k);
+    return _jrFacQ(`在實數範圍內因式分解 \\(${_jrFQuad(frac(1),frac(2*a),frac(a*a-k))}\\)`,`(x${a>0?'+':''}${a}${_jrRt(kk,m)})(x${a>0?'+':''}${a}${_jrRt(-kk,m)})`);
+  }
+  if(t===1){
+    // x²∓2√k x+k = (x∓√k)²
+    const k=pick(nonSq),s=pick([1,-1]);
+    return _jrFacQ(`在實數範圍內因式分解 \\(x^2${s>0?'+':'-'}2\\sqrt{${k}}x+${k}\\)`,`(x${s>0?'+':'-'}√${k})^2`);
+  }
+  if(t===2){
+    // (x+a)²-p²/q²
+    const a=randInt(1,6)*pick([1,-1]),p=randInt(1,7),q=randInt(2,5);if(gcd(p,q)!==1)return null;
+    return _jrFacQ(`因式分解 \\(${_jrLin(1,a)}^2-${fracToLatex(frac(p*p,q*q))}\\)`,`(x${_jrFt(frac(a*q+p,q))})(x${_jrFt(frac(a*q-p,q))})`);
+  }
+  // (p/q x+r)² 展開
+  const p=randInt(1,5),q=randInt(2,5),r=randInt(1,6)*pick([1,-1]);if(gcd(p,q)!==1)return null;
+  return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(p*p,q*q),frac(2*p*r,q),frac(r*r))}\\)`,`((${p}/${q})x${r>0?'+':''}${r})^2`);
+}
+
 function gen8bFactor1(level){
   for(let i=0;i<30;i++){const q=_8bFactor1(level);if(q)return q;}
   return _8bFactor1('basic');
 }
 function _8bFactor1(level){
+  if(Math.random()<0.35)return _8bFactor1Ext(level);
   function ff(question,coefA,coefB,coefC,answerLatex){
     return{question,type:'factored-form',coefA,coefB,coefC,answerLatex};
   }
@@ -7389,11 +7525,56 @@ function _8bFactor1(level){
 // ═══════════════════════════════════════════════════════════════════
 //  八下 ▸ 因式分解（十字交乘法）
 // ═══════════════════════════════════════════════════════════════════
+// 十字交乘法：分數、根式係數
+function _8bFactor2Ext(level){
+  const nz=(lo,hi)=>{let v=0;while(v===0)v=randInt(lo,hi);return v;};
+  if(level==='basic'){
+    // (x+p)(x+q/2)
+    const p=nz(-6,6),q=(2*randInt(0,4)+1)*pick([1,-1]);
+    return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(1),frac(2*p+q,2),frac(p*q,2))}\\)`,`(x${p>0?'+':''}${p})(x${_jrFt(frac(q,2))})`);
+  }
+  if(level==='medium'){
+    const t=randInt(0,1);
+    if(t===0){
+      // (x+p/a)(x+q/b)
+      const a=pick([2,3,4]),b=pick([2,3,4,5]),p=nz(-7,7),q=nz(-7,7);
+      if(gcd(p,a)!==1||gcd(q,b)!==1||a*q===b*p)return null;
+      const P=frac(p,a),Q=frac(q,b);
+      return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(1),fadd(P,Q),fmul(P,Q))}\\)`,`(x${_jrFt(P)})(x${_jrFt(Q)})`);
+    }
+    // (1/n)(x+p)(x+q)
+    const n=pick([2,3,4,5,6]),p=nz(-8,8),q=nz(-8,8);
+    const B=frac(p+q,n),C=frac(p*q,n);
+    if(B.den===1&&C.den===1)return null;
+    const fp=`(x${p>0?'+':''}${p})`,fq=`(x${q>0?'+':''}${q})`;
+    return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(1,n),B,C)}\\)`,`(1/${n})${p===q?fp+'^2':fp+fq}`);
+  }
+  const t=randInt(0,2);
+  if(t===0){
+    // (x+p√m)(x+q√m) = x²+(p+q)√m x+pqm
+    const m=pick([2,3,5,6,7]),p=nz(-5,5),q=nz(-5,5);
+    if(p+q===0||p===q)return null;
+    return _jrFacQ(`在實數範圍內因式分解 \\(x^2${_jrRtTex(p+q,m,'x')}${p*q*m>0?'+':''}${p*q*m}\\)`,`(x${_jrRt(p,m)})(x${_jrRt(q,m)})`);
+  }
+  if(t===1){
+    // (x+p√m)(x+q) = x²+(p√m+q)x+pq√m
+    const m=pick([2,3,5,6,7]),p=nz(-4,4),q=nz(-6,6);
+    const mid=`\\left(${_jrRtTex(p,m).replace(/^\+/,'')}${q>0?'+':''}${q}\\right)x`;
+    return _jrFacQ(`在實數範圍內因式分解 \\(x^2+${mid}${_jrRtTex(p*q,m)}\\)`,`(x${_jrRt(p,m)})(x${q>0?'+':''}${q})`);
+  }
+  // (ax+p/b)(x+q)：一次項、常數項為分數
+  const a=pick([2,3]),b=pick([2,3,4]),p=nz(-7,7),q=nz(-6,6);
+  if(gcd(p,b)!==1)return null;
+  const P=frac(p,b);
+  return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(a),fadd(frac(a*q),P),fmul(P,frac(q)))}\\)`,`(${a}x${_jrFt(P)})(x${q>0?'+':''}${q})`);
+}
+
 function gen8bFactor2(level){
   for(let i=0;i<30;i++){const q=_8bFactor2(level);if(q)return q;}
   return _8bFactor2('basic');
 }
 function _8bFactor2(level){
+  if(Math.random()<(level==='basic'?0.25:0.35))return _8bFactor2Ext(level);
   function eqStr(a,b,c){
     let s=a===1?'x^2':`${a}x^2`;
     if(b>0) s+=`+${b}x`; else if(b<0) s+=`${b}x`;
@@ -7473,11 +7654,201 @@ function _jrFQuad(a,b,c){
   };
   return t(a,'x^2',true)+t(b,'x',false)+t(c,'',false);
 }
+// √n 化簡為 k√m（m 無平方因數）
+function _jrSqrtSplit(n){let k=1,m=n;for(let f=2;f*f<=m;f++)while(m%(f*f)===0){m/=f*f;k*=f;}return [k,m];}
+const _jrIsSq=n=>n>=0&&Number.isInteger(Math.sqrt(n));
+// k√m 的 LaTeX（m=1 時為整數）
+function _jrRadTex(k,m){if(m===1)return String(k);const a=Math.abs(k);return (k<0?'-':'')+(a===1?'':a)+`\\sqrt{${m}}`;}
+// 兩根 (P±Q√M)/D 的 LaTeX，以「或」連接（Q>0，M>1 無平方因數）
+function _jrPmRoots(P,Q,M,D){
+  if(D<0){P=-P;D=-D;}
+  const g=gcd(gcd(P,Q),D);P/=g;Q/=g;D/=g;
+  const one=s=>{
+    const rad=_jrRadTex(Q,M);
+    if(P===0)return (s<0?'-':'')+(D===1?rad:`\\dfrac{${rad}}{${D}}`);
+    const num=`${P}${s<0?'-':'+'}${rad}`;
+    return D===1?num:`\\dfrac{${num}}{${D}}`;
+  };
+  return one(1)+'\\text{ 或 }'+one(-1);
+}
+// ax²+bx+c=0（整數係數）的無理根；判別式為正且非完全平方數時才回傳
+function _jrQuadRadRoots(a,b,c){
+  const d=b*b-4*a*c;if(d<=0||_jrIsSq(d))return null;
+  const [k,m]=_jrSqrtSplit(d);
+  return _jrPmRoots(-b,k,m,2*a);
+}
+const _jrRadQ=(question,ans)=>({question,answer:ans,type:'text',answerPrefix:'x'});
+// 答案 k√m/d：依情況用整數、分數、radical-mix 或 LaTeX 文字（數值比對）
+function _jrRadAns(question,k,m,d,prefix){
+  const g=gcd(k,d);k/=g;d/=g;
+  const o=m===1&&d===1?{question,answer:k,type:'number'}
+    :m===1?{question,answer:frac(k,d),type:'fraction'}
+    :d===1?{question,type:'radical-mix',rational:0,radCoeff:k,radM:m}
+    :{question,answer:`\\dfrac{${_jrRadTex(k,m)}}{${d}}`,type:'text'};
+  if(prefix)o.answerPrefix=prefix;
+  return o;
+}
+// 答案 √n/d
+function _jrSqrtAns(question,n,d,prefix){const [k,m]=_jrSqrtSplit(n);return _jrRadAns(question,k,m,d||1,prefix);}
+// (x+h) 的 LaTeX
+const _jrLin=(a,h)=>`(${a===1?'':a}x${h>0?'+'+h:h<0?h:''})`;
+
+// 因式分解法：平方根、分數根、無理根
+function _8bQuad1Ext(level){
+  const qr=(question,r1,r2)=>({question,type:'quad-roots',root1:r1,root2:r2,answerPrefix:'x'});
+  if(level==='basic'){
+    const t=randInt(0,2);
+    if(t===0){
+      // x²=k（k 非完全平方數）→ ±√k
+      const k=randInt(2,50);if(_jrIsSq(k))return null;
+      const [kk,m]=_jrSqrtSplit(k);
+      return _jrRadQ(`解方程式 \\(x^2=${k}\\)，求兩根`,_jrPmRoots(0,kk,m,1));
+    }
+    if(t===1){
+      // a²x²-b²=0 → ±b/a
+      const a=randInt(2,7),b=randInt(1,11);if(gcd(a,b)!==1)return null;
+      return qr(`解方程式 \\(${a*a}x^2-${b*b}=0\\)，求兩根`,frac(-b,a),frac(b,a));
+    }
+    const p=randInt(1,9),q=randInt(2,7);if(gcd(p,q)!==1)return null;
+    return qr(`解方程式 \\(x^2=${fracToLatex(frac(p*p,q*q))}\\)，求兩根`,frac(-p,q),frac(p,q));
+  }
+  if(level==='medium'){
+    const t=randInt(0,2);
+    if(t===0){
+      // (x+h)²-k=0 → -h±√k
+      const h=randInt(1,9)*pick([1,-1]),k=randInt(2,40);if(_jrIsSq(k))return null;
+      const [kk,m]=_jrSqrtSplit(k);
+      return _jrRadQ(`解方程式 \\(${_jrLin(1,h)}^2-${k}=0\\)，求兩根`,_jrPmRoots(-h,kk,m,1));
+    }
+    if(t===1){
+      // (ax+b)²=(c/d)² → x=(-bd±c)/(ad)
+      const a=randInt(1,4),b=randInt(1,6)*pick([1,-1]),c=randInt(1,9),d=randInt(2,5);
+      if(gcd(c,d)!==1)return null;
+      const r1=frac(-b*d-c,a*d),r2=frac(-b*d+c,a*d);
+      return qr(`解方程式 \\(${_jrLin(a,b)}^2=${fracToLatex(frac(c*c,d*d))}\\)，求兩根`,r1,r2);
+    }
+    // ax²=k → x²=k/a，√(k/a)=√(ka)/a
+    const a=randInt(2,6),k=randInt(2,30);
+    if(k%a===0&&_jrIsSq(k/a)||_jrIsSq(k*a))return null;
+    const [kk,m]=_jrSqrtSplit(k*a);
+    return _jrRadQ(`解方程式 \\(${a}x^2=${k}\\)，求兩根（分母須有理化）`,_jrPmRoots(0,kk,m,a));
+  }
+  const t=randInt(0,2);
+  if(t===0){
+    // (ax+b)²=k → (-b±√k)/a
+    const a=randInt(2,5),b=randInt(1,7)*pick([1,-1]),k=randInt(2,30);
+    if(_jrIsSq(k))return null;
+    const [kk,m]=_jrSqrtSplit(k);
+    return _jrRadQ(`解方程式 \\(${_jrLin(a,b)}^2=${k}\\)，求兩根`,_jrPmRoots(-b,kk,m,a));
+  }
+  if(t===1){
+    // (x+p/q)²=k/q² → (-p±√k)/q
+    const q=randInt(2,5),p=randInt(1,7)*pick([1,-1]),k=randInt(2,30);
+    if(gcd(p,q)!==1||_jrIsSq(k))return null;
+    const [kk,m]=_jrSqrtSplit(k);
+    const pf=frac(Math.abs(p),q);
+    return _jrRadQ(`解方程式 \\(\\left(x${p>0?'+':'-'}${fracToLatex(pf)}\\right)^2=${fracToLatex(frac(k,q*q))}\\)，求兩根`,_jrPmRoots(-p,kk,m,q));
+  }
+  // (ax+b)²=(cx+d)² → ax+b=±(cx+d)
+  const a=randInt(1,5),b=randInt(-7,7),c=randInt(1,5),d=randInt(-7,7);
+  if(a===c||b===d||b===0&&d===0)return null;
+  const r1=frac(d-b,a-c),r2=frac(-b-d,a+c);
+  if(feq(r1,r2))return null;
+  return qr(`解方程式 \\(${_jrLin(a,b)}^2=${_jrLin(c,d)}^2\\)，求兩根`,r1,r2);
+}
+
+// 配方法與公式解：無理根（含分數、小數係數）
+function _8bQuadRad(level){
+  const Q=(a,b,c)=>_jrFQuad(frac(a),frac(b),frac(c));
+  if(level==='basic'){
+    const t=randInt(0,2);
+    if(t===0){
+      const h=randInt(1,9)*pick([1,-1]),k=randInt(2,30);if(_jrIsSq(k))return null;
+      const [kk,m]=_jrSqrtSplit(k);
+      return _jrRadQ(`解方程式 \\(${_jrLin(1,h)}^2=${k}\\)（直接開方），求兩根`,_jrPmRoots(-h,kk,m,1));
+    }
+    if(t===1){
+      // x²+2px+c=0 → (x+p)²=d
+      const p=randInt(1,6)*pick([1,-1]),d=randInt(2,20);
+      if(_jrIsSq(d)||p*p===d)return null;
+      const [kk,m]=_jrSqrtSplit(d);
+      return _jrRadQ(`解方程式 \\(${Q(1,2*p,p*p-d)}=0\\)（配方法），求兩根`,_jrPmRoots(-p,kk,m,1));
+    }
+    const a=pick([2,3,4,5]),h=randInt(1,6)*pick([1,-1]),k=pick([2,3,5,6,7,10,11]);
+    return _jrRadQ(`解方程式 \\(${a}${_jrLin(1,h)}^2=${a*k}\\)，求兩根`,_jrPmRoots(-h,1,k,1));
+  }
+  if(level==='medium'){
+    const t=randInt(0,3);
+    if(t===0){
+      // x²+bx+c，b 為奇數
+      const b=(2*randInt(0,5)+1)*pick([1,-1]),c=randInt(-9,9);
+      const r=_jrQuadRadRoots(1,b,c);if(!r||c===0)return null;
+      return _jrRadQ(`解方程式 \\(${Q(1,b,c)}=0\\)（公式解），求兩根`,r);
+    }
+    if(t===1){
+      const a=randInt(2,5),b=randInt(-9,9),c=randInt(-9,9);
+      if(c===0||gcd(gcd(a,b),c)>1)return null;
+      const r=_jrQuadRadRoots(a,b,c);if(!r)return null;
+      return _jrRadQ(`解方程式 \\(${Q(a,b,c)}=0\\)（公式解），求兩根`,r);
+    }
+    if(t===2){
+      // 分數係數：(1/n)(x²+bx+c)=0
+      const n=pick([2,3,4]),b=randInt(-8,8),c=randInt(-9,9);
+      if(c===0)return null;
+      const r=_jrQuadRadRoots(1,b,c);if(!r)return null;
+      const B=frac(b,n),C=frac(c,n);if(B.den===1&&C.den===1)return null;
+      return _jrRadQ(`解方程式 \\(${_jrFQuad(frac(1,n),B,C)}=0\\)，求兩根`,r);
+    }
+    // 一次項係數為分數的配方：x²+(2p/n)x+(p²-k)/n²=0 → (-p±√k)/n
+    const n=pick([2,3,4,5]),p=randInt(1,5)*pick([1,-1]),k=randInt(2,20);
+    if(gcd(p,n)!==1||_jrIsSq(k)||p*p===k)return null;
+    const [kk,m]=_jrSqrtSplit(k);
+    return _jrRadQ(`解方程式 \\(${_jrFQuad(frac(1),frac(2*p,n),frac(p*p-k,n*n))}=0\\)（配方法），求兩根`,_jrPmRoots(-p,kk,m,n));
+  }
+  const t=randInt(0,4);
+  if(t===0){
+    // 整數係數同除以 L，形成不同分母的分數係數
+    const L=pick([2,3,4,6,12]),a=randInt(1,6),b=randInt(-9,9),c=randInt(-9,9);
+    if(b===0||c===0||gcd(gcd(a,b),c)>1)return null;
+    const A=frac(a,L),B=frac(b,L),C=frac(c,L);
+    if([A,B,C].filter(f=>f.den>1).length<2)return null;
+    const r=_jrQuadRadRoots(a,b,c);if(!r)return null;
+    return _jrRadQ(`解方程式 \\(${_jrFQuad(A,B,C)}=0\\)，求兩根`,r);
+  }
+  if(t===1){
+    // 判別式含平方因數，需化簡根式
+    const a=randInt(2,6),b=randInt(-12,12),c=randInt(-12,12);
+    if(c===0||gcd(gcd(a,b),c)>1)return null;
+    const d=b*b-4*a*c;if(d<=0||_jrIsSq(d)||_jrSqrtSplit(d)[0]===1)return null;
+    return _jrRadQ(`解方程式 \\(${Q(a,b,c)}=0\\)（公式解），求兩根`,_jrQuadRadRoots(a,b,c));
+  }
+  if(t===2){
+    // 需展開移項：(x+p)(x+q)=r
+    const p=randInt(-7,7),q=randInt(-7,7),r=randInt(-12,12);
+    if(p===0||q===0||r===0||p===q)return null;
+    const ans=_jrQuadRadRoots(1,p+q,p*q-r);if(!ans)return null;
+    return _jrRadQ(`解方程式 \\(${_jrLin(1,p)}${_jrLin(1,q)}=${r}\\)，求兩根`,ans);
+  }
+  if(t===3){
+    // 小數係數：(a x²+b x+c)/10
+    const a=randInt(1,9),b=randInt(-9,9),c=randInt(-9,9);
+    if(b===0||c===0||gcd(gcd(a,b),c)>1)return null;
+    const r=_jrQuadRadRoots(a,b,c);if(!r)return null;
+    const dt=(v,s,first)=>(v<0?'-':first?'':'+')+String(Math.abs(v)/10)+s;
+    return _jrRadQ(`解方程式 \\(${dt(a,'x^2',true)}${dt(b,'x')}${dt(c,'')}=0\\)，求兩根`,r);
+  }
+  // (ax+b)²=k → (-b±√k)/a，k 含平方因數
+  const a=randInt(2,5),b=randInt(1,7)*pick([1,-1]),k=pick([8,12,18,20,24,27,28,32,45,48,50]);
+  const [kk,m]=_jrSqrtSplit(k);
+  return _jrRadQ(`解方程式 \\(${_jrLin(a,b)}^2=${k}\\)，求兩根`,_jrPmRoots(-b,kk,m,a));
+}
+
 function gen8bQuad1(level){
   for(let i=0;i<30;i++){const q=_8bQuad1(level);if(q)return q;}
   return _8bQuad1('basic');
 }
 function _8bQuad1(level){
+  if(Math.random()<0.3)return _8bQuad1Ext(level);
   function roots2eqn(r1,r2){
     const B=-(r1+r2),C=r1*r2;
     let s='x^2';
@@ -7600,7 +7971,9 @@ function _8bCompSq(level){
     answerParts:parts(frac(a,n),frac(k*k,n*n),'fraction')};
 }
 function _8bQuad2(level){
-  if(Math.random()<0.4)return _8bCompSq(level);
+  const _r=Math.random();
+  if(_r<0.3)return _8bQuadRad(level);
+  if(_r<0.6)return _8bCompSq(level);
   function qrq(question,root1,root2){
     return{question,type:'quad-roots',root1,root2,answerPrefix:'x'};
   }
@@ -10459,11 +10832,76 @@ function _9aCircChorTan(level){
 // ═══════════════════════════════════════════════════════════════════
 //  九上 ▸ 三角形的心
 // ═══════════════════════════════════════════════════════════════════
+// 三角形的心：分數與根式答案
+function _9aTriCenterExt(level){
+  const T=[[3,4,5],[5,12,13],[8,15,17],[7,24,25],[20,21,29],[9,40,41]];
+  if(level==='basic'){
+    const t=randInt(0,2);
+    if(t===0){
+      // 直角三角形外接圓半徑 = 斜邊/2（奇數斜邊 → 分數）
+      const [a,b,c]=pick(T),k=pick([1,1,3]);
+      return {question:`直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，\\(\\overline{AC}=${a*k}\\)，\\(\\overline{BC}=${b*k}\\)，求外接圓半徑 \\(R\\)`,answer:frac(c*k,2),type:'fraction',answerPrefix:'\\(R\\)'};
+    }
+    if(t===1){
+      // 重心：中線 AM 不為 3 的倍數，求 AG
+      const AM=randInt(4,20);if(AM%3===0)return null;
+      const askAG=randInt(0,1)===0;
+      return {question:`\\(\\triangle ABC\\) 的重心為 \\(G\\)，\\(M\\) 為 \\(BC\\) 中點，中線 \\(AM=${AM}\\)，求 \\(${askAG?'AG':'GM'}\\)`,answer:frac(askAG?2*AM:AM,3),type:'fraction',answerPrefix:askAG?'\\(AG\\)':'\\(GM\\)'};
+    }
+    // 正三角形外接圓半徑 = a√3/3
+    const a=randInt(2,12);
+    return _jrRadAns(`正三角形 \\(ABC\\) 的邊長為 \\(${a}\\)，求其外接圓半徑 \\(R\\)`,a,3,3,'\\(R\\)');
+  }
+  if(level==='medium'){
+    const t=randInt(0,3);
+    if(t===0){
+      const a=randInt(2,12);
+      return _jrRadAns(`正三角形 \\(ABC\\) 的邊長為 \\(${a}\\)，求其內切圓半徑 \\(r\\)`,a,3,6,'\\(r\\)');
+    }
+    if(t===1){
+      // 正三角形的高 h：R=2h/3、r=h/3
+      const h=randInt(2,15);if(h%3===0)return null;
+      const askR=randInt(0,1)===0;
+      return {question:`正三角形 \\(ABC\\) 的高為 \\(${h}\\)，求其${askR?'外接圓半徑 \\(R\\)':'內切圓半徑 \\(r\\)'}`,answer:frac(askR?2*h:h,3),type:'fraction',answerPrefix:askR?'\\(R\\)':'\\(r\\)'};
+    }
+    if(t===2){
+      // 直角三角形（非整數斜邊）外接圓半徑 = √(a²+b²)/2
+      const a=randInt(1,9),b=randInt(1,9),n=a*a+b*b;if(_jrIsSq(n))return null;
+      return _jrSqrtAns(`直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，兩股長為 \\(${a}\\) 和 \\(${b}\\)，求外接圓半徑 \\(R\\)`,n,2,'\\(R\\)');
+    }
+    // 直角三角形重心到直角頂點的距離 = 斜邊/3
+    const a=randInt(1,9),b=randInt(1,9),n=a*a+b*b;
+    return _jrSqrtAns(`直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，\\(\\overline{AC}=${a}\\)，\\(\\overline{BC}=${b}\\)，\\(G\\) 為重心，求 \\(\\overline{CG}\\)`,n,3,'\\(\\overline{CG}\\)');
+  }
+  const t=randInt(0,3);
+  if(t<=1){
+    // 等腰三角形：腰 s、底 2u、高 h（整數三元組）
+    const [u0,h0,s0]=pick(T),sw=randInt(0,1)===0,k=pick([1,2]);
+    const u=(sw?h0:u0)*k,h=(sw?u0:h0)*k,s=s0*k;
+    const q0=`等腰 \\(\\triangle ABC\\) 中，\\(\\overline{AB}=\\overline{AC}=${s}\\)，\\(\\overline{BC}=${2*u}\\)，`;
+    // R = s²/(2h)；r = 面積/半周長 = u·h/(s+u)
+    if(t===0)return {question:q0+'求外接圓半徑 \\(R\\)',answer:frac(s*s,2*h),type:'fraction',answerPrefix:'\\(R\\)'};
+    return {question:q0+'求內切圓半徑 \\(r\\)',answer:frac(u*h,s+u),type:'fraction',answerPrefix:'\\(r\\)'};
+  }
+  if(t===2){
+    // 正三角形：已知外接圓半徑 R 求邊長 R√3；已知內切圓半徑 r 求邊長 2√3 r
+    const v=randInt(2,9),byR=randInt(0,1)===0;
+    return _jrRadAns(`正三角形 \\(ABC\\) 的${byR?'外接圓半徑':'內切圓半徑'}為 \\(${v}\\)，求其邊長`,byR?v:2*v,3,1,'邊長');
+  }
+  // 直角三角形內切圓半徑 r=(a+b-c)/2，斜邊為根式
+  const a=randInt(1,8),b=randInt(1,8),n=a*a+b*b;if(_jrIsSq(n))return null;
+  const [k,m]=_jrSqrtSplit(n);
+  let P=a+b,Q=k,D=2;const g=gcd(gcd(P,Q),D);P/=g;Q/=g;D/=g;
+  const num=`${P}-${_jrRadTex(Q,m)}`;
+  return {question:`直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，兩股長為 \\(${a}\\) 和 \\(${b}\\)，求內切圓半徑 \\(r\\)`,answer:D===1?num:`\\dfrac{${num}}{${D}}`,type:'text',answerPrefix:'\\(r\\)'};
+}
+
 function gen9aTriCenter(level){
   for(let i=0;i<30;i++){const q=_9aTriCenter(level);if(q)return q;}
   return _9aTriCenter('basic');
 }
 function _9aTriCenter(level){
+  if(Math.random()<0.35)return _9aTriCenterExt(level);
   if(level==='basic'){
     const t=randInt(0,6);
     if(t===0){
@@ -10609,14 +11047,80 @@ function _9aTriCenter(level){
 // ═══════════════════════════════════════════════════════════════════
 //  九下 ▸ 二次函數
 // ═══════════════════════════════════════════════════════════════════
+// 二次函數：分數頂點、無理數交點
+function _9bQuadFuncExt(level){
+  const Y=(a,b,c)=>`y=${_jrFQuad(frac(a),frac(b),frac(c))}`;
+  const nz=(lo,hi)=>{let v=0;while(v===0)v=randInt(lo,hi);return v;};
+  if(level==='basic'){
+    const t=randInt(0,1);
+    if(t===0){
+      // y=x²+bx+c，b 為奇數 → 對稱軸 x=-b/2
+      const b=(2*randInt(0,5)+1)*pick([1,-1]),c=randInt(-9,9),a=pick([1,1,-1]);
+      return {question:`二次函數 \\(${Y(a,a*b,c)}\\) 的對稱軸為 \\(x=\\)`,answer:frac(-b,2),type:'fraction',answerPrefix:'x'};
+    }
+    // y=a(x-p/q)²+k/q 讀頂點
+    const q=pick([2,3,4]),p=nz(-7,7),a=pick([-2,-1,1,2,3]),k=nz(-9,9);
+    if(gcd(p,q)!==1)return null;
+    const askX=randInt(0,1)===0,pf=frac(Math.abs(p),q),kf=frac(k,q);
+    const ac=a===1?'':a===-1?'-':a;
+    return {question:`二次函數 \\(y=${ac}\\left(x${p>0?'-':'+'}${fracToLatex(pf)}\\right)^2${kf.num>0?'+':''}${fracToLatex(kf)}\\) 的頂點${askX?'橫':'縱'}坐標為`,
+      answer:askX?frac(p,q):kf,type:'fraction',answerPrefix:askX?'頂點 \\(x\\)':'頂點 \\(y\\)'};
+  }
+  if(level==='medium'){
+    const t=randInt(0,2);
+    if(t===0){
+      // y=ax²+bx+c 的最大/最小值為分數
+      const a=pick([-3,-2,-1,1,2,3]),b=nz(-9,9),c=randInt(-9,9);
+      const k=frac(4*a*c-b*b,4*a);if(k.den===1)return null;
+      const ext=a>0?'最小值':'最大值';
+      return {question:`二次函數 \\(${Y(a,b,c)}\\) 的${ext}為`,answer:k,type:'fraction',answerPrefix:ext};
+    }
+    if(t===1){
+      // 頂點坐標（兩坐標皆可能為分數），問頂點橫坐標
+      const a=pick([2,3,4,-2,-3]),b=nz(-9,9),c=randInt(-9,9);
+      const h=frac(-b,2*a);if(h.den===1)return null;
+      return {question:`二次函數 \\(${Y(a,b,c)}\\) 的頂點橫坐標為`,answer:h,type:'fraction',answerPrefix:'頂點 \\(x\\)'};
+    }
+    // 與 x 軸交點（無理數）
+    const b=nz(-8,8),c=nz(-9,9),r=_jrQuadRadRoots(1,b,c);if(!r)return null;
+    return {question:`二次函數 \\(${Y(1,b,c)}\\) 的圖形與 \\(x\\) 軸交點的橫坐標為`,answer:r,type:'text',answerPrefix:'x'};
+  }
+  const t=randInt(0,3);
+  if(t===0){
+    // 與 x 軸兩交點的距離 = √Δ/|a|
+    const a=pick([1,2,3,-1,-2]),b=nz(-9,9),c=nz(-9,9),d=b*b-4*a*c;
+    if(d<=0||_jrIsSq(d))return null;
+    return _jrSqrtAns(`二次函數 \\(${Y(a,b,c)}\\) 的圖形與 \\(x\\) 軸兩交點之間的距離為`,d,Math.abs(a),'距離');
+  }
+  if(t===1){
+    const a=pick([2,3,-2,-3]),b=nz(-9,9),c=nz(-9,9);
+    if(gcd(gcd(a,b),c)>1)return null;
+    const r=_jrQuadRadRoots(a,b,c);if(!r)return null;
+    return {question:`二次函數 \\(${Y(a,b,c)}\\) 的圖形與 \\(x\\) 軸交點的橫坐標為`,answer:r,type:'text',answerPrefix:'x'};
+  }
+  if(t===2){
+    // 頂點 (h,k) 過 (x0,y0)，a 為分數
+    const h=randInt(-3,3),k=randInt(-6,6),dx=pick([-3,-2,2,3]),y0=k+nz(-9,9);
+    const a=frac(y0-k,dx*dx);if(a.den===1)return null;
+    const ht=h>0?`-${h}`:h<0?`+${-h}`:'',sk=k>0?`+${k}`:k<0?`${k}`:'';
+    return {question:`拋物線頂點為 \\((${h},\\ ${k})\\)，且過點 \\((${h+dx},\\ ${y0})\\)，求 \\(y=a${h?`(x${ht})`:'x'}^2${sk}\\) 中 \\(a\\) 的值`,answer:a,type:'fraction',answerPrefix:'\\(a\\)'};
+  }
+  // 與直線交點（無理數）：ax²+bx+c=mx+n
+  const b=nz(-6,6),c=randInt(-6,6),m=nz(-5,5),n=randInt(-6,6);
+  const r=_jrQuadRadRoots(1,b-m,c-n);if(!r)return null;
+  const line=`y=${m===1?'':m===-1?'-':m}x${n>0?'+'+n:n<0?n:''}`;
+  return {question:`拋物線 \\(${Y(1,b,c)}\\) 與直線 \\(${line}\\) 交點的橫坐標為`,answer:r,type:'text',answerPrefix:'x'};
+}
+
 function gen9bQuadFunc(level){
   for(let i=0;i<30;i++){const q=_9bQuadFunc(level);if(q)return q;}
   return _9bQuadFunc('basic');
 }
 function _9bQuadFunc(level){
+  if(Math.random()<0.45)return _9bQuadFuncExt(level);
   function ac(a){return a===1?'':(a===-1?'-':`${a}`);}
-  function sk(k){return k>=0?`+${k}`:`${k}`;}
-  function ht(h){return h>=0?`-${h}`:`+${-h}`;}
+  function sk(k){return k>0?`+${k}`:k<0?`${k}`:"";}
+  function ht(h){return h>0?`-${h}`:h<0?`+${-h}`:"";}
   if(level==='basic'){
     const t=randInt(0,2);
     if(t===0){
@@ -10647,7 +11151,7 @@ function _9bQuadFunc(level){
   const h=randInt(-3,3),k=randInt(-6,6);
   const xDiff=pick([-3,-2,-1,1,2,3]),a=pick([-3,-2,-1,1,2,3]);
   const x0=h+xDiff,y0=a*xDiff*xDiff+k;
-  return{question:`拋物線頂點為 \\((${h},\\ ${k})\\)，且過點 \\((${x0},\\ ${y0})\\)，求 \\(y=a(x${ht(h)})^2${sk(k)}\\) 中 \\(a\\) 的值`,answer:a,type:'number',answerPrefix:'\\(a\\)'};
+  return{question:`拋物線頂點為 \\((${h},\\ ${k})\\)，且過點 \\((${x0},\\ ${y0})\\)，求 \\(y=a${h?`(x${ht(h)})`:"x"}^2${sk(k)}\\) 中 \\(a\\) 的值`,answer:a,type:'number',answerPrefix:'\\(a\\)'};
 }
 
 // ═══════════════════════════════════════════════════════════════════

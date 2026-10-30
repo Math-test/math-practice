@@ -520,7 +520,7 @@ function exprAmbiguous(str){
 }
 // LaTeX 答案 → 可計算的式子（\dfrac{a}{b}→(a)/(b)、\sqrt{n}→√(n)、\pi→π）
 function latexToAscii(s){
-  let t=String(s).replace(/\\left|\\right|\\,|\\!|\\;/g,'').replace(/\\cdot|\\times/g,'*').replace(/\\pi/g,'π');
+  let t=String(s).replace(/\\text\{([^{}]*)\}/g,'$1').replace(/\\left|\\right|\\,|\\!|\\;/g,'').replace(/\\cdot|\\times/g,'*').replace(/\\pi/g,'π');
   for(let k=0;k<6;k++){
     t=t.replace(/\\sqrt\{([^{}]*)\}/g,'√($1)');
     t=t.replace(/\\d?frac\{([^{}]*)\}\{([^{}]*)\}/g,'(($1)/($2))');
@@ -534,15 +534,8 @@ function numAnsEq(user, ascii){
     return isFinite(u)&&isFinite(a)&&Math.abs(u-a)<=1e-6*Math.max(1,Math.abs(a));
   }catch(e){return false;}
 }
-// 含 LaTeX 的文字答案：數值比對；支援「a 或 b」（不計順序）與坐標 (x,y)
-function latexAnsMatch(user, ans){
-  const a=latexToAscii(ans).replace(/\s+/g,''), u=String(user).replace(/\s+/g,'').replace(/（/g,'(').replace(/）/g,')').replace(/，/g,',');
-  if(a.includes('或')){
-    const as=a.split('或'), us=u.split('或');
-    if(as.length!==us.length)return false;
-    const used=new Set();
-    return as.every(x=>{const j=us.findIndex((y,k)=>!used.has(k)&&numAnsEq(y,x));if(j<0)return false;used.add(j);return true;});
-  }
+// 單一值比較：數值或坐標 (x,y)
+function _oneAnsEq(u, a){
   const tm=/^\((.*)\)$/.exec(a);
   if(tm&&tm[1].includes(',')){
     const um=/^\((.*)\)$/.exec(u);
@@ -551,6 +544,37 @@ function latexAnsMatch(user, ans){
     return ap.length===up.length&&ap.every((x,k)=>numAnsEq(up[k],x));
   }
   return numAnsEq(u,a);
+}
+// 含 LaTeX 的文字答案：數值比對；支援「a 或 b」（不計順序，亦可用逗號分隔或 ± 合寫）與坐標 (x,y)
+function latexAnsMatch(user, ans){
+  const a=latexToAscii(ans).replace(/\s+/g,''), u=String(user).replace(/\s+/g,'').replace(/（/g,'(').replace(/）/g,')').replace(/，/g,',').replace(/\+-|\+\/-/g,'±');
+  if(a.includes('或')){
+    const as=a.split('或');
+    let us=u.split('或');
+    if(us.length===1&&as.length===2){
+      if((u.match(/±/g)||[]).length===1) us=[u.replace('±','+'),u.replace('±','-')];
+      else if(!/^\(.*,.*\)$/.test(as[0])) us=u.split(',');
+    }
+    if(as.length!==us.length)return false;
+    const used=new Set();
+    return as.every(x=>{const j=us.findIndex((y,k)=>!used.has(k)&&_oneAnsEq(y,x));if(j<0)return false;used.add(j);return true;});
+  }
+  return _oneAnsEq(u,a);
+}
+// 因式分解題：作答須為乘積（最外層無加減），且至少兩個含 x 的因式或一個含 x 的因式的次方
+function isFactoredForm(str){
+  const s=str.replace(/\s+/g,'').replace(/（/g,'(').replace(/）/g,')').replace(/[−–]/g,'-').replace(/sqrt/gi,'√');
+  let depth=0,factors=0,group=-1;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(c==='('){if(depth===0)group=i;depth++;}
+    else if(c===')'){depth--;if(depth===0&&/[a-z]/i.test(s.slice(group,i))){factors++;if(s[i+1]==='^')factors++;}}
+    else if(depth===0){
+      if((c==='+'||c==='-')&&i>0&&!/[\^*\/]/.test(s[i-1]))return false;
+      if(/[a-z]/i.test(c)){factors++;if(s[i+1]==='^')factors++;}
+    }
+  }
+  return depth===0&&factors>=2;
 }
 function exprAnsMatch(user, ans){
   const a0=ans.toLowerCase(),u0=user.toLowerCase();
@@ -634,7 +658,7 @@ function renderQuiz(questions, params) {
 
   // 答題格式提示
   const ELEM_TOPICS = ['int-arith','gcd-lcm','ratio-val','rate','unit','area','volume'];
-  const JR_INT_TOPICS  = ['7a-int-sign','7a-int-add','7a-int-sub','7a-int-mul','7a-int-div','7a-int-mix','7a-int-abs','7a-poly','7a-eqn-app','7b-poly','7b-coord','7b-eqn-app','8a-poly-add','8a-poly-mul','8a-poly-div','8a-sqrt-basic','8a-sqrt-add','8a-sqrt-mul','8a-sqrt-mix','8a-pyth','8a-quad3','8b-geo-seq','8b-linear-func','8b-trap','8b-kite','9a-circle-chord-tan','9b-quad-func','9b-stat'];
+  const JR_INT_TOPICS  = ['7a-int-sign','7a-int-add','7a-int-sub','7a-int-mul','7a-int-div','7a-int-mix','7a-int-abs','7a-poly','7a-eqn-app','7b-poly','7b-coord','7b-eqn-app','8a-poly-add','8a-poly-mul','8a-poly-div','8a-sqrt-basic','8a-sqrt-add','8a-sqrt-mul','8a-sqrt-mix','8a-quad3','8b-geo-seq','8b-linear-func','8b-trap','8b-kite','9a-circle-chord-tan','9b-stat'];
   const JR_FRAC_TOPICS = ['7a-frac-sign','7a-frac-add','7a-frac-sub','7a-frac-mul','7a-frac-div','7a-frac-mix','7a-frac-abs','7a-eqn','7b-subst','7b-elim','7b-linepic','7b-chain','7b-ratio','7b-prop','7b-dirprop','7b-invprop','7b-ineq','7b-stat','8a-mulform','8a-sq-sum','8a-sq-diff','8a-diff-sq','8b-arith-seq','8b-arith-series','9a-ratio-chain','9a-trig','9b-prob'];
   const JR_NUM_TOPICS  = ['7a-gcd-lcm','7a-prime','7a-int-exp'];
   const hasFrac  = params.topics.some(t => t.startsWith('frac') || t === 'mix-fd' || JR_FRAC_TOPICS.includes(t));
@@ -666,7 +690,9 @@ function renderQuiz(questions, params) {
   // 依實際題型補充（高中等未列入上方清單的單元）
   const _anyQ = f => questions.some(q => f(q) || (q.answerParts && q.answerParts.some(f)));
   if (!hasFrac && _anyQ(q => q.type === 'fraction')) hintParts.push('分數：<code>3/4</code>　負分數：<code>-3/4</code>　整數：<code>2</code>');
-  if (_anyQ(q => q.exprAns && q.type === 'text' && /[a-z]/i.test(String(q.answer)) && !_radText(q.answer))) hintParts.push('以代數式作答，例如 <code>2m+1</code>、<code>m/2</code>、<code>(1+q)/p</code>');
+  if (_anyQ(q => q.type === 'text' && /\\sqrt/.test(String(q.answer)) && /或/.test(String(q.answer)))) hintParts.push('兩根以「或」或逗號隔開，也可合寫，例如 <code>2±√3</code>、<code>(-1±√5)/2</code>');
+  if (_anyQ(q => q.mustFactor)) hintParts.push('因式分解寫成乘積，例如 <code>(x+1/2)(x-1/2)</code>、<code>(x+√3)(x-√3)</code>、<code>(x-1+√2)(x-1-√2)</code>');
+  if (_anyQ(q => q.exprAns && !q.mustFactor && q.type === 'text' && /[a-z]/i.test(String(q.answer)) && !_radText(q.answer))) hintParts.push('以代數式作答，例如 <code>2m+1</code>、<code>m/2</code>、<code>(1+q)/p</code>');
   const hintEl = document.getElementById('format-hint');
   hintEl.innerHTML = '答案格式：' + hintParts.join('　｜　');
   hintEl.style.display = hintParts.length ? '' : 'none';
@@ -735,8 +761,8 @@ function renderQuiz(questions, params) {
     } else {
       const _isRad = q.type==='radical-mix'||q.type==='radical2';
       const _isFQ = q.type==='factored-quad'||q.type==='factored-form'||q.type==='quad-roots';
-      const _iCls = (_isRad||_isFQ||q.type==='poly'||q.type==='linear2') ? 'q-input q-input-rad' : 'q-input';
-      const _ph = q.type==='fraction'?'例：3/4':q.type==='radical-mix'?'如：4+3√2':q.type==='radical2'?'如：2√5+2√2':q.type==='factored-quad'?'如：(2x+3)(x+2)':q.type==='factored-form'?'如：(x+5)^2':q.type==='quad-roots'?'如：-3/2, 2':q.type==='poly'?'如：2x^2-3x+5':q.type==='linear2'?'如：2x-3y+1':q.type==='sci'?'如：6.0×10^7':q.exprAns?'如：(p+1)/q':q.type==='text'?(['全等','不全等'].includes(String(q.answer))?'全等 或 不全等':(['SSS','SAS','ASA','AAS','RHS'].includes(String(q.answer).toUpperCase())?'如：SSS':'填答案')):q.type==='number'?'填數字':'例：1.25';
+      const _iCls = (_isRad||_isFQ||q.type==='poly'||q.type==='linear2'||q.mustFactor||(q.type==='text'&&/\\sqrt/.test(String(q.answer)))) ? 'q-input q-input-rad' : 'q-input';
+      const _ph = q.type==='fraction'?'例：3/4':q.type==='radical-mix'?'如：4+3√2':q.type==='radical2'?'如：2√5+2√2':q.type==='factored-quad'?'如：(2x+3)(x+2)':q.type==='factored-form'?'如：(x+5)^2':q.type==='quad-roots'?'如：-3/2, 2':q.type==='poly'?'如：2x^2-3x+5':q.type==='linear2'?'如：2x-3y+1':q.type==='sci'?'如：6.0×10^7':q.mustFactor?'如：(x+√3)(x-√3)':q.exprAns?'如：(p+1)/q':(q.type==='text'&&/\\sqrt/.test(String(q.answer))&&/或/.test(String(q.answer)))?'如：2±√3':q.type==='text'?(['全等','不全等'].includes(String(q.answer))?'全等 或 不全等':(['SSS','SAS','ASA','AAS','RHS'].includes(String(q.answer).toUpperCase())?'如：SSS':'填答案')):q.type==='number'?'填數字':'例：1.25';
       row.innerHTML = `
         <div class="q-number">${idx + 1}</div>
         <div class="q-body">
@@ -794,6 +820,8 @@ function textAnsToLatex(tv) {
     if (/[一-鿿㐀-䶿]/.test(p)) return p;
     let c = p.replace(/(-?)(\d+)\/(\d+)/g, (_, s, n, d) => `${s}\\dfrac{${n}}{${d}}`);
     c = c.replace(/\(([^)]+)\)\/(\d+)/g, (_, e, d) => `\\dfrac{${e}}{${d}}`);
+    c = c.replace(/\((-?\\dfrac\{\d+\}\{\d+\})\)/g, '$1');
+    c = c.replace(/√(\d+)/g, '\\sqrt{$1}');
     if (c.includes('\\')) return `\\(${c.replace(/</g,'&lt;')}\\)`;
     if (/^[-\d\s.+\-*^()[\]<>=≤≥|a-zA-Z]+$/.test(p) && /\d/.test(p)) return `\\(${p.replace(/</g,'&lt;')}\\)`;
     return p;
@@ -992,7 +1020,7 @@ function checkAnswers() {
     } else if (q.type === 'text') {
       // 去空白；「a 或 b」型答案不計順序
       const norm = s => { const t = s.replace(/\s+/g, '').replace(/一定|象限/g, '').toUpperCase(); return t.includes('或') ? t.split('或').sort().join('或') : t; };
-      isCorrect = q.exprAns ? exprAnsMatch(userVal, String(q.answer)) : norm(userVal) === norm(String(q.answer));
+      isCorrect = q.exprAns ? exprAnsMatch(userVal, String(q.answer)) && (!q.mustFactor || isFactoredForm(userVal)) : norm(userVal) === norm(String(q.answer));
       // 文字答案若本身是分數或整數（如 1/8），接受等值的分數
       if (!isCorrect && !q.exprAns) {
         const af = parseFrac(String(q.answer).trim()), uf = parseFrac(userVal);
@@ -1258,6 +1286,8 @@ async function downloadWord() {
       return `x = ${ml(rootStr(q.root1))} 或 x = ${ml(rootStr(q.root2))}`;
     if (q.type === 'sci')
       return ml(`${q.sciCoef} \\times 10^{${q.sciExp}}`);
+    if (q.type === 'text')
+      return q2wordHtml(textAnsToLatex(String(q.answer)));
     if (typeof q.answer === 'number' || typeof q.answer === 'string')
       return String(q.answer);
     return '—';
@@ -1466,6 +1496,7 @@ async function downloadPDF() {
         : q.type === 'factored-form' ? `\\(${q.answerLatex || ''}\\)`
         : q.type === 'quad-roots'    ? `\\(x=${rootStr(q.root1)}\\) 或 \\(x=${rootStr(q.root2)}\\)`
         : q.type === 'sci'           ? `\\(${q.sciCoef} \\times 10^{${q.sciExp}}\\)`
+        : q.type === 'text'          ? textAnsToLatex(String(q.answer))
         : (typeof q.answer === 'number' || typeof q.answer === 'string') ? String(q.answer)
         : '—';
     } catch(e) { val = String(q.answer ?? '—'); }
