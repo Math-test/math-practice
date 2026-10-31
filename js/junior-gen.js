@@ -6413,6 +6413,9 @@ function _8aSqrtFD(kind,level){
       if(n1%10===0||n2%10===0||isSq(n1)||isSq(n2))continue;
       const f=div?frac(n1*Math.pow(10,k2),n2*Math.pow(10,k1)):frac(n1*n2,Math.pow(10,k1+k2));
       if(!sqF(f))continue;
+      // 結果須為有限小數（分母只含 2、5）
+      let dd=sqrtF(f).den;while(dd%2===0)dd/=2;while(dd%5===0)dd/=5;
+      if(dd!==1)continue;
       return [rootD(n1,k1),rootD(n2,k2),sqrtF(f)];
     }
     return null;

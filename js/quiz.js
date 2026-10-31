@@ -658,7 +658,7 @@ function renderQuiz(questions, params) {
 
   // 答題格式提示
   const ELEM_TOPICS = ['int-arith','gcd-lcm','ratio-val','rate','unit','area','volume'];
-  const JR_INT_TOPICS  = ['7a-int-sign','7a-int-add','7a-int-sub','7a-int-mul','7a-int-div','7a-int-mix','7a-int-abs','7a-poly','7a-eqn-app','7b-poly','7b-coord','7b-eqn-app','8a-poly-add','8a-poly-mul','8a-poly-div','8a-sqrt-basic','8a-sqrt-add','8a-sqrt-mul','8a-sqrt-mix','8a-quad3','8b-geo-seq','8b-linear-func','8b-trap','8b-kite','9a-circle-chord-tan','9b-stat'];
+  const JR_INT_TOPICS  = ['7a-int-sign','7a-int-add','7a-int-sub','7a-int-mul','7a-int-div','7a-int-mix','7a-int-abs','7a-poly','7a-eqn-app','7b-poly','7b-coord','7b-eqn-app','8a-poly-add','8a-poly-mul','8a-poly-div','8a-sqrt-basic','8a-quad3','8b-geo-seq','8b-linear-func','8b-trap','8b-kite','9a-circle-chord-tan','9b-stat'];
   const JR_FRAC_TOPICS = ['7a-frac-sign','7a-frac-add','7a-frac-sub','7a-frac-mul','7a-frac-div','7a-frac-mix','7a-frac-abs','7a-eqn','7b-subst','7b-elim','7b-linepic','7b-chain','7b-ratio','7b-prop','7b-dirprop','7b-invprop','7b-ineq','7b-stat','8a-mulform','8a-sq-sum','8a-sq-diff','8a-diff-sq','8b-arith-seq','8b-arith-series','9a-ratio-chain','9a-trig','9b-prob'];
   const JR_NUM_TOPICS  = ['7a-gcd-lcm','7a-prime','7a-int-exp'];
   const hasFrac  = params.topics.some(t => t.startsWith('frac') || t === 'mix-fd' || JR_FRAC_TOPICS.includes(t));
@@ -690,6 +690,8 @@ function renderQuiz(questions, params) {
   // 依實際題型補充（高中等未列入上方清單的單元）
   const _anyQ = f => questions.some(q => f(q) || (q.answerParts && q.answerParts.some(f)));
   if (!hasFrac && _anyQ(q => q.type === 'fraction')) hintParts.push('分數：<code>3/4</code>　負分數：<code>-3/4</code>　整數：<code>2</code>');
+  if (_anyQ(q => q.type === 'radical-mix' || q.type === 'radical2')) hintParts.push('根式填 <code>√</code> 或 <code>sqrt</code> 並化到最簡，例如 <code>4+3√2</code>、<code>-2√5</code>、<code>2√5-√2</code>');
+  if (!hasDec && !hasNum && _anyQ(q => q.type === 'number' && !Number.isInteger(q.answer))) hintParts.push('小數：<code>0.75</code>');
   if (_anyQ(q => q.type === 'text' && /\\sqrt/.test(String(q.answer)) && /或/.test(String(q.answer)))) hintParts.push('兩根以「或」或逗號隔開，也可合寫，例如 <code>2±√3</code>、<code>(-1±√5)/2</code>');
   if (_anyQ(q => q.mustFactor)) hintParts.push(_anyQ(q => q.mustFactor && /√/.test(String(q.answer))) ? '因式分解寫成乘積，例如 <code>(x+1/2)(x-1/2)</code>、<code>(x+√3)(x-√3)</code>、<code>(x-1+√2)(x-1-√2)</code>' : '因式分解寫成乘積，例如 <code>(x+1/2)(x-1/2)</code>、<code>(x+0.3)^2</code>、<code>0.2x(x+3)</code>');
   if (_anyQ(q => q.exprAns && !q.mustFactor && q.type === 'text' && /[a-z]/i.test(String(q.answer)) && !_radText(q.answer))) hintParts.push('以代數式作答，例如 <code>2m+1</code>、<code>m/2</code>、<code>(1+q)/p</code>');
@@ -997,7 +999,9 @@ function checkAnswers() {
       isCorrect = p !== null && p.rational === q.rational && p.radCoeff === q.radCoeff && p.radM === q.radM;
     } else if (q.type === 'radical2') {
       const p = parseRad2(userVal);
-      isCorrect = p !== null && p.coeffA === q.coeffA && p.radA === q.radA && p.coeffB === q.coeffB && p.radB === q.radB;
+      // 兩項順序不拘（如 2√2+3√6 與 3√6+2√2）
+      isCorrect = p !== null && ((p.coeffA === q.coeffA && p.radA === q.radA && p.coeffB === q.coeffB && p.radB === q.radB) ||
+                                 (p.coeffA === q.coeffB && p.radA === q.radB && p.coeffB === q.coeffA && p.radB === q.radA));
     } else if (q.type === 'factored-quad') {
       const p = parseFactoredQuad(userVal);
       isCorrect = p !== null && factoredQuadMatch(p, {a:q.factA,b:q.factB,c:q.factC,d:q.factD});
