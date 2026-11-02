@@ -2232,8 +2232,108 @@ const _plqB0Q=[],_plqB1Q=[],_plqB2Q=[];
 const _plqM0Q=[],_plqM1Q=[],_plqM2Q=[];
 const _plqH0Q=[],_plqH1Q=[];
 
+// 一次函數 f(x)=ax+b：斜率、截距、函數值、平移、區間最值、與兩軸圍成面積、應用
+function _plqAns(f,prefix){
+  return f.den===1?{answer:f.num,type:'number',answerPrefix:prefix}:{answer:f,type:'fraction',answerPrefix:prefix};
+}
+function _b1Linear(level){
+  const L=(a,b)=>_sfPoly([a,b]);
+  if(level==='basic'){
+    const t=srRandInt(0,3);
+    if(t===0){
+      // 過兩點求 f(k)
+      const a=srRnz(-5,5),b=srRandInt(-9,9),x1=srRandInt(-5,5),x2=srRandInt(-5,5),k=srRandInt(-8,8);
+      if(x1===x2||k===x1||k===x2)return null;
+      return{question:`一次函數 \\(f(x)\\) 的圖形通過 \\(${_sfPt([x1,a*x1+b])}\\) 與 \\(${_sfPt([x2,a*x2+b])}\\)，求 \\(f(${k})\\)`,..._plqAns(frac(a*k+b),`\\(f(${k})\\)`)};
+    }
+    if(t===1){
+      // 由 f(p)、f(q) 求斜率 a 或 y 截距 b（可為分數）
+      const p=srRandInt(-4,4),q=srRandInt(-4,4);if(p===q)return null;
+      const fp=srRandInt(-12,12),fq=srRandInt(-12,12);
+      const a=frac(fq-fp,q-p),b=fsub(frac(fp),fmul(a,frac(p)));
+      if(a.num===0)return null;
+      const askA=srRandInt(0,1);
+      return{question:`一次函數 \\(f(x)=ax+b\\) 滿足 \\(f(${p})=${fp}\\)、\\(f(${q})=${fq}\\)，求 \\(${askA?'a':'b'}\\)`,..._plqAns(askA?a:b,askA?'a':'b')};
+    }
+    if(t===2){
+      // x 截距
+      const a=srRnz(-6,6),b=srRnz(-12,12);
+      const x0=frac(-b,a);if(x0.den===1&&srRandInt(0,1))return null;
+      return{question:`一次函數 \\(y=${L(a,b)}\\) 的圖形與 \\(x\\) 軸交點的 \\(x\\) 坐標為何？`,..._plqAns(x0,'\\(x\\)')};
+    }
+    // 函數值變化：x 增加 d 時 y 的變化量
+    const a=pick([frac(srRnz(-6,6)),frac(srRnz(-5,5),pick([2,3,4]))]),b=srRandInt(-9,9),d=srRandInt(2,9);
+    if(a.den>1&&gcd(Math.abs(a.num),a.den)!==1)return null;
+    return{question:`一次函數 \\(y=${_sfTerms([[a,'x'],[b,'']])}\\) 中，當 \\(x\\) 增加 \\(${d}\\) 時，\\(y\\) 的變化量為何？（減少填負數）`,..._plqAns(fmul(a,frac(d)),'變化量')};
+  }
+  if(level==='medium'){
+    const t=srRandInt(0,3);
+    if(t===0){
+      // 圖形平移後的 y 截距
+      const a=srRnz(-5,5),b=srRandInt(-9,9),h=srRnz(-6,6),k=srRnz(-6,6);
+      const nb=b-a*h+k;
+      return{question:`將一次函數 \\(y=${L(a,b)}\\) 的圖形向${h>0?'右':'左'}平移 \\(${Math.abs(h)}\\) 單位、再向${k>0?'上':'下'}平移 \\(${Math.abs(k)}\\) 單位，所得圖形的 \\(y\\) 截距為何？`,answer:nb,type:'number',answerPrefix:'\\(y\\) 截距'};
+    }
+    if(t===1){
+      // 區間上的最大值或最小值（斜率可為負）
+      const a=pick([frac(srRnz(-6,6)),frac(srRnz(-7,7),pick([2,3]))]),b=srRandInt(-9,9);
+      if(a.den>1&&gcd(Math.abs(a.num),a.den)!==1)return null;
+      const p=srRandInt(-6,2),q=p+srRandInt(2,7),wantMax=srRandInt(0,1);
+      const fp=fadd(fmul(a,frac(p)),frac(b)),fq=fadd(fmul(a,frac(q)),frac(b));
+      const v=(_sfLt(fp,fq)===!!wantMax)?fq:fp;
+      return{question:`一次函數 \\(f(x)=${_sfTerms([[a,'x'],[b,'']])}\\) 在 \\(${p}\\le x\\le ${q}\\) 的${wantMax?'最大值':'最小值'}為何？`,..._plqAns(v,wantMax?'最大值':'最小值')};
+    }
+    if(t===2){
+      // 兩一次函數圖形的交點
+      const x0=srRandInt(-6,6),y0=srRandInt(-9,9),a1=srRnz(-5,5),a2=srRnz(-5,5);if(a1===a2)return null;
+      const which=srRandInt(0,1);
+      return{question:`兩一次函數 \\(y=${L(a1,y0-a1*x0)}\\) 與 \\(y=${L(a2,y0-a2*x0)}\\) 的圖形交於點 \\(P\\)，求 \\(P\\) 的 ${which?'\\(y\\)':'\\(x\\)'} 坐標`,answer:which?y0:x0,type:'number',answerPrefix:which?'\\(y\\)':'\\(x\\)'};
+    }
+    // f(x+1)-f(x)=a 與 f(m)=n，求 f(k)
+    const a=srRnz(-7,7),m=srRandInt(-5,5),n=srRandInt(-15,15),k=srRandInt(-9,12);if(k===m)return null;
+    return{question:`一次函數 \\(f(x)\\) 滿足 \\(f(x+1)-f(x)=${a}\\) 且 \\(f(${m})=${n}\\)，求 \\(f(${k})\\)`,answer:n+a*(k-m),type:'number',answerPrefix:`\\(f(${k})\\)`};
+  }
+  const t=srRandInt(0,3);
+  if(t===0){
+    // 與兩軸圍成的三角形面積，求 b（b>0）
+    const p=srRandInt(1,9),q=srRandInt(1,12),s=pick([1,-1]);
+    const a=frac(-s*q,p); // 過 (s·p,0) 與 (0,q)
+    if(a.den===1&&srRandInt(0,1))return null;
+    const S=frac(p*q,2);
+    return{question:`一次函數 \\(y=${_sfTerms([[a,'x'],[1,'']]).replace(/\+1$/,'+b')}\\)（\\(b>0\\)）的圖形與兩坐標軸圍成的三角形面積為 \\(${_sfT(S)}\\)，求 \\(b\\)`,answer:q,type:'number',answerPrefix:'b'};
+  }
+  if(t===1){
+    // 定義域與值域，a<0 時端點對調，求 a、b
+    const a=srRnz(-5,5),b=srRandInt(-9,9),p=srRandInt(-5,1),q=p+srRandInt(2,6);
+    const m=Math.min(a*p+b,a*q+b),M=Math.max(a*p+b,a*q+b);
+    return{question:`一次函數 \\(f(x)=ax+b\\)（\\(a${a<0?'<':'>'}0\\)）在 \\(${p}\\le x\\le ${q}\\) 的值域為 \\(${m}\\le f(x)\\le ${M}\\)，求 \\(a\\)、\\(b\\)`,
+      answerParts:[{prefix:'a',answer:a,type:'number'},{prefix:'b',answer:b,type:'number'}]};
+  }
+  if(t===2){
+    // 線性關係應用：由兩組數據求另一值
+    const ctx=pick([
+      {u:'公克',y:'彈簧長度',yu:'公分',x:'所掛重物',b:[8,20],a:[frac(1,10),frac(1,5),frac(1,4),frac(1,2)],xs:[50,100,150,200,250,300]},
+      {u:'公里',y:'車資',yu:'元',x:'行駛距離',b:[70,90],a:[frac(20),frac(25),frac(30)],xs:[2,3,5,7,8,10,12]},
+      {u:'分鐘',y:'水箱水量',yu:'公升',x:'注水時間',b:[20,60],a:[frac(3),frac(5),frac(5,2),frac(15,2)],xs:[4,6,8,10,12,16,20]},
+    ]);
+    const a=pick(ctx.a),b=srRandInt(ctx.b[0],ctx.b[1]),xs=[...ctx.xs].sort(()=>Math.random()-0.5);
+    const [x1,x2,x3]=xs,y=x=>fadd(fmul(a,frac(x)),frac(b));
+    const y1=y(x1),y2=y(x2),y3=y(x3);
+    if(y1.den>1||y2.den>1)return null;
+    return{question:`已知${ctx.y}（${ctx.yu}）與${ctx.x}（${ctx.u}）成一次函數關係。${ctx.x}為 \\(${x1}\\) ${ctx.u}時${ctx.y}為 \\(${y1.num}\\) ${ctx.yu}，${ctx.x}為 \\(${x2}\\) ${ctx.u}時${ctx.y}為 \\(${y2.num}\\) ${ctx.yu}。求${ctx.x}為 \\(${x3}\\) ${ctx.u}時的${ctx.y}`,..._plqAns(y3,ctx.y)};
+  }
+  // 三點共線（皆在同一一次函數圖形上），求未知坐標
+  const a=frac(srRnz(-6,6),pick([1,1,2,3])),b=srRandInt(-9,9);
+  if(gcd(Math.abs(a.num),a.den)!==1)return null;
+  const xs=[srRandInt(-6,6),srRandInt(-6,6),srRandInt(-6,6)];
+  if(new Set(xs).size<3)return null;
+  const ys=xs.map(x=>fadd(fmul(a,frac(x)),frac(b)));
+  if(ys[0].den>1||ys[1].den>1)return null;
+  return{question:`點 \\(${_sfPt([xs[0],ys[0].num])}\\)、\\(${_sfPt([xs[1],ys[1].num])}\\)、\\((${xs[2]},k)\\) 都在同一個一次函數的圖形上，求 \\(k\\)`,..._plqAns(ys[2],'k')};
+}
+
 function genB1PolyLinQuad(level,_n){
-  for(let i=0;i<40;i++){const q=_b1PolyLinQuad(level);if(q)return q;}
+  for(let i=0;i<40;i++){const q=Math.random()<0.5?_b1Linear(level):_b1PolyLinQuad(level);if(q)return q;}
   return{question:'根與係數',answer:0,type:'number',answerPrefix:''};
 }
 function _b1PolyLinQuad(level){
