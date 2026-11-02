@@ -2332,8 +2332,41 @@ function _b1Linear(level){
   return{question:`點 \\(${_sfPt([xs[0],ys[0].num])}\\)、\\(${_sfPt([xs[1],ys[1].num])}\\)、\\((${xs[2]},k)\\) 都在同一個一次函數的圖形上，求 \\(k\\)`,..._plqAns(ys[2],'k')};
 }
 
+// 二次函數求頂點坐標：一般式配方、兩根式、首項分數、平移後的頂點
+function _b1Vertex(level){
+  const vq=(expr,h,k)=>({question:`求二次函數 \\(y=${expr}\\) 圖形的頂點坐標 \\((h,k)\\)`,answerParts:_sfParts(['h','k'],[_sfF(h),_sfF(k)])});
+  const fac=x=>x===0?'x':`(x${x>0?'-'+x:'+'+(-x)})`;
+  const co=a=>a===1?'':a===-1?'-':`${a}`;
+  if(level==='basic'){
+    const a=pick([-3,-2,-1,1,2,3]),h=srRnz(-7,7),k=srRandInt(-15,15);
+    return vq(_sfPoly([a,-2*a*h,a*h*h+k]),h,k);
+  }
+  if(level==='medium'){
+    if(srRandInt(0,1)){
+      const a=pick([-3,-2,-1,1,2,3]),b=srRnz(-11,11),c=srRandInt(-9,9);
+      const h=frac(-b,2*a);if(h.den===1)return null;
+      return vq(_sfPoly([a,b,c]),h,fsub(frac(c),frac(b*b,4*a)));
+    }
+    const a=pick([-3,-2,-1,1,2,3]),p=srRandInt(-7,7),q=srRandInt(-7,7);if(p===q)return null;
+    const h=frac(p+q,2);
+    return vq(`${co(a)}${fac(p)}${fac(q)}`,h,fmul(frac(a),fmul(fsub(h,frac(p)),fsub(h,frac(q)))));
+  }
+  if(srRandInt(0,1)){
+    // 首項係數為分數
+    const A=frac(pick([1,-1,3,-3,2,-2]),pick([2,3,4,5]));if(A.den===1)return null;
+    const b=srRnz(-6,6),c=srRandInt(-9,9),h=fdiv(frac(-b),fmul(frac(2),A));
+    if(h.den>6)return null;
+    return vq(_sfPoly([A,b,c]),h,fadd(fmul(A,fmul(h,h)),fadd(fmul(frac(b),h),frac(c))));
+  }
+  // 平移後的頂點
+  const a=pick([-3,-2,-1,1,2,3]),b=srRnz(-9,9),c=srRandInt(-9,9),dx=srRnz(-5,5),dy=srRnz(-6,6);
+  const h=frac(-b,2*a),k=fsub(frac(c),frac(b*b,4*a));
+  return {question:`將二次函數 \\(y=${_sfPoly([a,b,c])}\\) 的圖形向${dx>0?'右':'左'}平移 \\(${Math.abs(dx)}\\) 單位、再向${dy>0?'上':'下'}平移 \\(${Math.abs(dy)}\\) 單位，求新圖形的頂點坐標 \\((h,k)\\)`,
+    answerParts:_sfParts(['h','k'],[fadd(h,frac(dx)),fadd(k,frac(dy))])};
+}
+
 function genB1PolyLinQuad(level,_n){
-  for(let i=0;i<40;i++){const q=Math.random()<0.5?_b1Linear(level):_b1PolyLinQuad(level);if(q)return q;}
+  for(let i=0;i<40;i++){const r=Math.random(),q=r<0.4?_b1Linear(level):r<0.65?_b1Vertex(level):_b1PolyLinQuad(level);if(q)return q;}
   return{question:'根與係數',answer:0,type:'number',answerPrefix:''};
 }
 function _b1PolyLinQuad(level){

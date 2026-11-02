@@ -11139,8 +11139,59 @@ function _9bQuadFuncExt(level){
   return {question:`拋物線 \\(${Y(1,b,c)}\\) 與直線 \\(${line}\\) 交點的橫坐標為`,answer:r,type:'text',answerPrefix:'x'};
 }
 
+// 求頂點坐標 (h,k)：頂點式、一般式（配方）、兩根式
+function _9bVertex(level){
+  const nz=(lo,hi)=>{let v=0;while(v===0)v=randInt(lo,hi);return v;};
+  const vq=(expr,h,k)=>({question:`求二次函數 \\(y=${expr}\\) 圖形的頂點坐標 \\((h,k)\\)`,
+    answerParts:[{prefix:'h',answer:typeof h==='number'?frac(h):h,type:'fraction'},{prefix:'k',answer:typeof k==='number'?frac(k):k,type:'fraction'}]});
+  const ac=a=>a===1?'':a===-1?'-':`${a}`;
+  if(level==='basic'){
+    if(randInt(0,1)){
+      // 頂點式 y=a(x-h)²+k
+      const a=pick([-3,-2,-1,1,2,3]),h=randInt(-8,8),k=randInt(-9,9);
+      const inner=h===0?'x^2':`(x${h>0?'-'+h:'+'+(-h)})^2`;
+      return vq(`${ac(a)}${inner}${k>0?'+'+k:k<0?k:''}`,h,k);
+    }
+    // 一般式，a=1、整數頂點
+    const h=nz(-7,7),k=randInt(-12,12);
+    return vq(_jrFQuad(frac(1),frac(-2*h),frac(h*h+k)),h,k);
+  }
+  if(level==='medium'){
+    if(randInt(0,2)){
+      // 一般式 a≠1，整數頂點（需配方）
+      const a=pick([-3,-2,-1,2,3,4]),h=nz(-6,6),k=randInt(-15,15);
+      return vq(_jrFQuad(frac(a),frac(-2*a*h),frac(a*h*h+k)),h,k);
+    }
+    // 兩根式 y=a(x-p)(x-q)，p+q 為偶數
+    const a=pick([-2,-1,1,2]),p=randInt(-8,8),q=randInt(-8,8);
+    if(p===q||(p+q)%2)return null;
+    const h=(p+q)/2,f=x=>x===0?'x':`(x${x>0?'-'+x:'+'+(-x)})`;
+    return vq(`${ac(a)}${f(p)}${f(q)}`,h,a*(h-p)*(h-q));
+  }
+  const t=randInt(0,2);
+  if(t===0){
+    // 一般式，頂點為分數
+    const a=pick([-3,-2,-1,1,2,3]),b=nz(-11,11),c=randInt(-9,9);
+    const h=frac(-b,2*a);if(h.den===1)return null;
+    const k=fsub(frac(c),frac(b*b,4*a));
+    return vq(_jrFQuad(frac(a),frac(b),frac(c)),h,k);
+  }
+  if(t===1){
+    // 兩根式，p+q 為奇數
+    const a=pick([-2,-1,1,2]),p=randInt(-7,7),q=randInt(-7,7);
+    if(p===q||(p+q)%2===0)return null;
+    const h=frac(p+q,2),k=fmul(frac(a),fmul(fsub(h,frac(p)),fsub(h,frac(q))));
+    const f=x=>x===0?'x':`(x${x>0?'-'+x:'+'+(-x)})`;
+    return vq(`${ac(a)}${f(p)}${f(q)}`,h,k);
+  }
+  // 首項係數為分數：y=(1/n)x²+bx+c
+  const n=pick([2,3,4]),s=pick([1,-1]),h=nz(-6,6),k=randInt(-9,9);
+  const A=frac(s,n);
+  return vq(_jrFQuad(A,fmul(A,frac(-2*h)),fadd(fmul(A,frac(h*h)),frac(k))),h,k);
+}
+
 function gen9bQuadFunc(level){
-  for(let i=0;i<30;i++){const q=_9bQuadFunc(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=Math.random()<0.25?_9bVertex(level):_9bQuadFunc(level);if(q)return q;}
   return _9bQuadFunc('basic');
 }
 function _9bQuadFunc(level){
