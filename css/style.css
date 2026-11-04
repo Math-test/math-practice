@@ -259,6 +259,35 @@ body {
 .q-row.correct .q-input { border-color: var(--success); }
 .q-row.wrong   .q-input { border-color: var(--error); }
 
+/* 符號按鈕列（√、π…） */
+#sym-bar {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 1000;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.15);
+}
+#sym-bar.show { display: flex; }
+#sym-bar button {
+  min-width: 40px;
+  height: 40px;
+  font-size: 1.15rem;
+  font-family: monospace;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #f5f7fa;
+  cursor: pointer;
+}
+#sym-bar button:hover { background: #e6ecf5; }
+@media print { #sym-bar { display: none !important; } }
+
 /* 難度標籤 */
 .badge {
   display: inline-block;

@@ -795,12 +795,51 @@ function renderQuiz(questions, params) {
 
   renderMathInElement(list, _KATEX_OPTS);
 
+  // 有根號、π 的題目才顯示符號按鈕列（手機、鍵盤打不出 √）
+  _symBarOn = !!list.querySelector('.q-input-rad') ||
+    _anyQ(q => /\\sqrt|√|\\pi|π|±/.test(String(q.answer) + ' ' + q.question));
+  initSymBar();
+
   document.getElementById('score-bar').style.display = 'none';
   document.getElementById('btn-check').disabled = false;
   document.getElementById('btn-check').textContent = '對答案';
 
   // 解答頁只在列印時才需要，延後到列印前再排版
   _pendingAnswerSheet = [questions, topicLabel, levelLabel, dateStr];
+}
+
+// 符號按鈕列：聚焦輸入框時浮在畫面底部，按鈕插入符號到游標處
+let _symBarOn = false, _symInput = null;
+function initSymBar() {
+  if (document.getElementById('sym-bar')) return;
+  const bar = document.createElement('div');
+  bar.id = 'sym-bar';
+  bar.innerHTML = ['√','π','±','(',')','^','/'].map(s => `<button type="button" data-s="${s}">${s}</button>`).join('');
+  document.body.appendChild(bar);
+  // mousedown/touch 時不搶走輸入框焦點
+  bar.addEventListener('pointerdown', e => e.preventDefault());
+  bar.addEventListener('mousedown', e => e.preventDefault());
+  bar.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b || !_symInput) return;
+    const s = b.dataset.s, inp = _symInput;
+    const st = inp.selectionStart ?? inp.value.length, en = inp.selectionEnd ?? st;
+    inp.setRangeText(s, st, en, 'end');
+    inp.focus();
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  document.addEventListener('focusin', e => {
+    if (_symBarOn && e.target.classList && e.target.classList.contains('q-input')) {
+      _symInput = e.target;
+      bar.classList.add('show');
+    }
+  });
+  document.addEventListener('focusout', () => {
+    setTimeout(() => {
+      const a = document.activeElement;
+      if (!a || !a.classList || !a.classList.contains('q-input')) bar.classList.remove('show');
+    }, 0);
+  });
 }
 
 let _pendingAnswerSheet = null;
