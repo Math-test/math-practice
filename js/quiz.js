@@ -748,7 +748,7 @@ function renderQuiz(questions, params) {
           `<span class="q-eq">${p.prefix} =</span>` +
           `<input class="${p.type==='poly'?'q-input q-input-rad':'q-input'}" type="text" id="ans-${idx}-${pi}"` +
           ` autocomplete="off" autocorrect="off" spellcheck="false"` +
-          ` placeholder="${p.type === 'fraction' ? '例：3/4' : p.type === 'poly' ? '如：x^2+3x-2' : p.type === 'text' ? '填文字' : '填數字'}">`
+          ` placeholder="${p.type === 'fraction' ? '例：3/4' : p.type === 'poly' ? '如：x^2+3x-2' : p.type === 'text' ? (String(p.answer).includes('\\') ? '如：2√5' : '填文字') : '填數字'}">`
         ).join('');
       }
       row.innerHTML = `
@@ -852,6 +852,14 @@ window.addEventListener('beforeprint', ensureAnswerSheet);
 
 // ─── 解答頁 ───────────────────────────────────────────────────────
 
+// 多格答案中單一格的顯示（分數、多項式、根式、文字、數字）
+function partAnsStr(p) {
+  if (p.type === 'fraction') return `\\(${fracToLatex(p.answer)}\\)`;
+  if (p.type === 'poly') return `\\(${polyToLatex(p.answer.a2,p.answer.a1,p.answer.a0)}\\)`;
+  if (p.type === 'text') return String(p.answer).includes('\\') ? textAnsToLatex(String(p.answer)) : String(p.answer);
+  return dStr(p.answer);
+}
+
 function textAnsToLatex(tv) {
   const parts = String(tv).split(';');
   const rendered = parts.map(p => {
@@ -905,12 +913,9 @@ function renderAnswerSheet(questions, topicLabel, levelLabel, dateStr) {
         });
         val = `\\(${expr}\\)`;
       } else if (q.coordAnswer) {
-        val = `(${dStr(q.answerParts[0].answer)}, ${dStr(q.answerParts[1].answer)})`;
+        val = `(${q.answerParts.map(partAnsStr).join(', ')})`;
       } else {
-        val = q.answerParts.map(p => {
-          const v = p.type === 'fraction' ? `\\(${fracToLatex(p.answer)}\\)` : p.type === 'poly' ? `\\(${polyToLatex(p.answer.a2,p.answer.a1,p.answer.a0)}\\)` : dStr(p.answer);
-          return `${p.prefix} = ${v}`;
-        }).join('，');
+        val = q.answerParts.map(p => `${p.prefix} = ${partAnsStr(p)}`).join('，');
       }
     } else {
       const _ip = q.sym ? `x ${q.sym} ` : (q.answerPrefix && /[<>≤≥]$/.test(q.answerPrefix) ? `${q.answerPrefix} ` : '');
@@ -1002,12 +1007,9 @@ function checkAnswers() {
           });
           ansStr = `\\(${expr}\\)`;
         } else if (q.coordAnswer) {
-          ansStr = `(${dStr(q.answerParts[0].answer)}, ${dStr(q.answerParts[1].answer)})`;
+          ansStr = `(${q.answerParts.map(partAnsStr).join(', ')})`;
         } else {
-          ansStr = q.answerParts.map(p => {
-            const v = p.type === 'fraction' ? `\\(${fracToLatex(p.answer)}\\)` : p.type === 'poly' ? `\\(${polyToLatex(p.answer.a2,p.answer.a1,p.answer.a0)}\\)` : p.type === 'text' ? String(p.answer) : dStr(p.answer);
-            return `${p.prefix} = ${v}`;
-          }).join('，');
+          ansStr = q.answerParts.map(p => `${p.prefix} = ${partAnsStr(p)}`).join('，');
         }
         fb.innerHTML = `<span class="fb-wrong">✗</span> <span class="fb-ans">正確：${ansStr}</span>`;
       }

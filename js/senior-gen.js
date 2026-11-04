@@ -8260,6 +8260,411 @@ function genB3bExpIneq(level) { return genB3aExpIneq(level); }
 function genB3bLogIneq(level) { return genB3aLogIneq(level); }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  第三冊A/B ▸ 平面向量（表示法、內積）
+//  B 版與 A 版共用題型，困難題不含三角形內交點、加權點、外分點、柯西不等式等
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// 答案：整數或分數
+function _vNum(v) {
+  const f = typeof v === 'number' ? frac(v) : v;
+  return f.den === 1 ? { answer: f.num, type: 'number' } : { answer: f, type: 'fraction' };
+}
+// (p/q)·√n：根號化簡後為有理數時填整數或分數，否則為 LaTeX 根式（以數值比對）
+function _vRadAns(p, q, n) {
+  let c = 1, m = n;
+  for (let k = 2; k * k <= m; k++) while (m % (k * k) === 0) { m /= k * k; c *= k; }
+  const f = frac(p * c, q);
+  if (m === 1 || f.num === 0) return _vNum(f);
+  const a = Math.abs(f.num), co = (a === 1 ? '' : a) + `\\sqrt{${m}}`;
+  return { answer: (f.num < 0 ? '-' : '') + (f.den === 1 ? co : `\\dfrac{${co}}{${f.den}}`), type: 'text' };
+}
+const _vOne = (question, ans, prefix) => Object.assign({ question, answerPrefix: prefix }, ans);
+const _vCoord = (question, x, y) => ({ question, coordAnswer: true, answerParts: [_vNum(x), _vNum(y)] });
+const _vParts = (question, names, ans) => ({ question, answerParts: ans.map((a, i) => Object.assign({ prefix: names[i] }, a)) });
+const _vP = (x, y) => `(${x},${y})`;
+const _vV = s => `\\vec{${s}}`;
+const _vAB = s => `\\overrightarrow{${s}}`;
+const _vNz = r => srRnz(-r, r);
+const _vPt = () => [srRandInt(-8, 8), srRandInt(-8, 8)];
+function _vVec(r) {
+  let x, y;
+  do { x = srRandInt(-r, r); y = srRandInt(-r, r); } while (x === 0 && y === 0);
+  return [x, y];
+}
+const _vDot = (u, v) => u[0] * v[0] + u[1] * v[1];
+const _vCross = (u, v) => u[0] * v[1] - u[1] * v[0];
+const _vCol = (P, Q, R) => _vCross([Q[0] - P[0], Q[1] - P[1]], [R[0] - P[0], R[1] - P[1]]) === 0;
+// 係數式，如 2\vec{a}-\vec{b}
+function _vLin(cs, names) {
+  let s = '';
+  cs.forEach((c, i) => {
+    if (c === 0) return;
+    const t = (Math.abs(c) === 1 ? '' : Math.abs(c)) + names[i];
+    s += c < 0 ? '-' + t : (s ? '+' : '') + t;
+  });
+  return s || '0';
+}
+// 特殊角：[度數, cos 分子, 分母, 根號內]，cosθ = (分子/分母)·√根號內
+const _vAngles = [[30, 1, 2, 3], [45, 1, 2, 2], [60, 1, 2, 1], [90, 0, 1, 1], [120, -1, 2, 1], [135, -1, 2, 2], [150, -1, 2, 3]];
+const _vAng = list => pick(_vAngles.filter(x => list.includes(x[0])));
+// 夾角為 45°、90°、135° 的兩整數向量（整數坐標的向量夾角不會是 30°、60° 等）
+function _vNiceAngle() {
+  const u = _vVec(5), s = pick([1, -1]), deg = pick([45, 45, 90, 135, 135]);
+  let v = deg === 45 ? [u[0] - s * u[1], s * u[0] + u[1]]
+        : deg === 90 ? [-s * u[1], s * u[0]]
+        : [-(u[0] + s * u[1]), -(-s * u[0] + u[1])];
+  const g = srGcd(Math.abs(v[0]), Math.abs(v[1])), k = srRandInt(1, 2);
+  v = [v[0] / g * k, v[1] / g * k];
+  return { a: u, b: v, deg };
+}
+
+const _vQs = {};
+const _vType = (key, list) => srQPick(list, _vQs[key] = _vQs[key] || []);
+
+// ── b3a-vec-repr / b3b-vec-repr：平面向量的表示法 ──────────────────
+function _vRepr(level, B) {
+  const a = _vV('a'), b = _vV('b'), c = _vV('c');
+  const given2 = (u, v) => `已知 \\(${a}=${_vP(...u)}\\)、\\(${b}=${_vP(...v)}\\)`;
+  const given3 = (u, v, w) => `${given2(u, v)}、\\(${c}=${_vP(...w)}\\)`;
+  const pts = (...L) => '已知 ' + L.map(([n, P]) => `\\(${n}${_vP(...P)}\\)`).join('、');
+  if (level === 'basic') {
+    const t = _vType('r-basic', [0, 1, 2, 3, 4, 5]);
+    if (t === 0) {
+      // 兩點求向量坐標
+      const P = _vPt(), Q = _vPt();
+      if (P[0] === Q[0] && P[1] === Q[1]) return null;
+      return _vCoord(`${pts(['A', P], ['B', Q])}，求 \\(${_vAB('AB')}\\) 的坐標`, Q[0] - P[0], Q[1] - P[1]);
+    }
+    if (t === 1) {
+      // p·a + q·b
+      const u = _vVec(5), v = _vVec(5), p = _vNz(4), q = _vNz(4);
+      return _vCoord(`${given2(u, v)}，求 \\(${_vLin([p, q], [a, b])}\\) 的坐標`, p * u[0] + q * v[0], p * u[1] + q * v[1]);
+    }
+    if (t === 2) {
+      // 向量長度
+      if (Math.random() < 0.5) {
+        const u = _vVec(9);
+        if (u[0] === 0 || u[1] === 0) return null;
+        return _vOne(`已知 \\(${a}=${_vP(...u)}\\)，求 \\(|${a}|\\)`, _vRadAns(1, 1, u[0] ** 2 + u[1] ** 2), `\\(|${a}|\\)`);
+      }
+      const P = _vPt(), Q = _vPt(), dx = Q[0] - P[0], dy = Q[1] - P[1];
+      if (dx === 0 || dy === 0) return null;
+      return _vOne(`${pts(['A', P], ['B', Q])}，求 \\(|${_vAB('AB')}|\\)`, _vRadAns(1, 1, dx * dx + dy * dy), `\\(|${_vAB('AB')}|\\)`);
+    }
+    if (t === 3) {
+      // 平行求 k：a=(w,k) ∥ b → k = w·b₂/b₁；a=(k,w) → k = w·b₁/b₂
+      const v = [_vNz(6), _vNz(6)], w = _vNz(6), first = Math.random() < 0.5;
+      const k = first ? frac(w * v[1], v[0]) : frac(w * v[0], v[1]);
+      return _vOne(`已知 \\(${a}=${first ? `(${w},k)` : `(k,${w})`}\\)、\\(${b}=${_vP(...v)}\\)，且 \\(${a}\\parallel${b}\\)，求 \\(k\\)`, _vNum(k), 'k');
+    }
+    if (t === 4) {
+      // 平行四邊形 ABCD 求 D = A + C − B
+      const P = _vPt(), Q = _vPt(), R = _vPt();
+      if (_vCol(P, Q, R)) return null;
+      return _vCoord(`平行四邊形 \\(ABCD\\) 中，\\(A${_vP(...P)}\\)、\\(B${_vP(...Q)}\\)、\\(C${_vP(...R)}\\)，求頂點 \\(D\\) 的坐標`, P[0] + R[0] - Q[0], P[1] + R[1] - Q[1]);
+    }
+    // 已知向量與一端點，求另一端點
+    const u = _vVec(7), P = _vPt();
+    if (Math.random() < 0.5) return _vCoord(`已知 \\(${_vAB('AB')}=${_vP(...u)}\\) 且 \\(A${_vP(...P)}\\)，求 \\(B\\) 點坐標`, P[0] + u[0], P[1] + u[1]);
+    return _vCoord(`已知 \\(${_vAB('AB')}=${_vP(...u)}\\) 且 \\(B${_vP(...P)}\\)，求 \\(A\\) 點坐標`, P[0] - u[0], P[1] - u[1]);
+  }
+
+  if (level === 'medium') {
+    const t = _vType('r-med', [0, 1, 2, 3, 4, 5, 6]);
+    if (t === 0) {
+      // 單位向量、指定長度的向量（畢氏數，答案為分數）
+      const tr = pick([[3, 4], [5, 12], [8, 15], [6, 8], [7, 24], [20, 21]]);
+      let [x, y] = Math.random() < 0.5 ? tr : [tr[1], tr[0]];
+      x *= pick([1, -1]); y *= pick([1, -1]);
+      const L = Math.round(Math.sqrt(x * x + y * y));
+      if (Math.random() < 0.5) return _vCoord(`已知 \\(${a}=${_vP(x, y)}\\)，求與 \\(${a}\\) 同方向的單位向量`, frac(x, L), frac(y, L));
+      const k = srRandInt(2, 10), s = pick([1, -1]);
+      return _vCoord(`已知 \\(${a}=${_vP(x, y)}\\)，求與 \\(${a}\\) ${s > 0 ? '同' : '反'}方向且長度為 \\(${k}\\) 的向量`, frac(s * k * x, L), frac(s * k * y, L));
+    }
+    if (t === 1) {
+      // 線性組合 c = xa + yb（整數解）
+      const u = _vVec(5), v = _vVec(5), x = _vNz(4), y = _vNz(4);
+      if (_vCross(u, v) === 0) return null;
+      const w = [x * u[0] + y * v[0], x * u[1] + y * v[1]];
+      return _vParts(`${given3(u, v, w)}，若 \\(${c}=x${a}+y${b}\\)，求 \\(x\\)、\\(y\\)`, ['x', 'y'], [_vNum(x), _vNum(y)]);
+    }
+    if (t === 2) {
+      // 內分點 P = (nA + mB)/(m+n)
+      const P = _vPt(), Q = _vPt(), m = srRandInt(1, 5), n = srRandInt(1, 5);
+      if (srGcd(m, n) !== 1 || (P[0] === Q[0] && P[1] === Q[1])) return null;
+      return _vCoord(`${pts(['A', P], ['B', Q])}，點 \\(P\\) 在 \\(\\overline{AB}\\) 上且 \\(\\overline{AP}:\\overline{PB}=${m}:${n}\\)，求 \\(P\\) 點坐標`,
+        frac(n * P[0] + m * Q[0], m + n), frac(n * P[1] + m * Q[1], m + n));
+    }
+    if (t === 3) {
+      // 重心
+      const P = _vPt(), Q = _vPt(), R = _vPt();
+      if (_vCol(P, Q, R)) return null;
+      return _vCoord(`\\(\\triangle ABC\\) 中，\\(A${_vP(...P)}\\)、\\(B${_vP(...Q)}\\)、\\(C${_vP(...R)}\\)，求重心 \\(G\\) 的坐標`,
+        frac(P[0] + Q[0] + R[0], 3), frac(P[1] + Q[1] + R[1], 3));
+    }
+    if (t === 4) {
+      // (k a + b) ∥ c：k(a×c) + b×c = 0
+      const u = _vVec(5), v = _vVec(5), w = _vVec(5), den = _vCross(u, w), num = -_vCross(v, w);
+      if (den === 0 || num === 0) return null;
+      return _vOne(`${given3(u, v, w)}，若 \\((k${a}+${b})\\parallel${c}\\)，求 \\(k\\)`, _vNum(frac(num, den)), 'k');
+    }
+    if (t === 5) {
+      // 三點共線求 k
+      const P = _vPt(), Q = _vPt(), x3 = srRandInt(-9, 9);
+      if (P[0] === Q[0] || x3 === P[0] || x3 === Q[0]) return null;
+      const k = fadd(frac(P[1]), frac((Q[1] - P[1]) * (x3 - P[0]), Q[0] - P[0]));
+      return _vOne(`已知 \\(A${_vP(...P)}\\)、\\(B${_vP(...Q)}\\)、\\(C(${x3},k)\\) 三點共線，求 \\(k\\)`, _vNum(k), 'k');
+    }
+    // |p a + q b|
+    const u = _vVec(5), v = _vVec(5), p = srRandInt(1, 3), q = _vNz(3), w = [p * u[0] + q * v[0], p * u[1] + q * v[1]];
+    if (w[0] === 0 && w[1] === 0) return null;
+    const L = `|${_vLin([p, q], [a, b])}|`;
+    return _vOne(`${given2(u, v)}，求 \\(${L}\\)`, _vRadAns(1, 1, w[0] ** 2 + w[1] ** 2), `\\(${L}\\)`);
+  }
+
+  // hard
+  const t = _vType(B ? 'r-hardB' : 'r-hardA', B ? [0, 3, 5, 6] : [0, 1, 2, 3, 4, 5, 6]);
+  const AB = _vAB('AB'), AC = _vAB('AC'), xy = '求 \\(x\\)、\\(y\\)';
+  if (t === 0) {
+    // BD:DC = m:n → AD = n/(m+n)·AB + m/(m+n)·AC；再取 AP:PD = r:s
+    const m = srRandInt(1, 5), n = srRandInt(1, 5);
+    if (m === n || srGcd(m, n) !== 1) return null;
+    const x = frac(n, m + n), y = frac(m, m + n), D = `點 \\(D\\) 在 \\(\\overline{BC}\\) 上且 \\(\\overline{BD}:\\overline{DC}=${m}:${n}\\)`;
+    if (Math.random() < 0.5)
+      return _vParts(`\\(\\triangle ABC\\) 中，${D}，若 \\(${_vAB('AD')}=x${AB}+y${AC}\\)，${xy}`, ['x', 'y'], [_vNum(x), _vNum(y)]);
+    const r = srRandInt(1, 4), s = srRandInt(1, 4);
+    if (srGcd(r, s) !== 1) return null;
+    const k = frac(r, r + s);
+    return _vParts(`\\(\\triangle ABC\\) 中，${D}，點 \\(P\\) 在 \\(\\overline{AD}\\) 上且 \\(\\overline{AP}:\\overline{PD}=${r}:${s}\\)，若 \\(${_vAB('AP')}=x${AB}+y${AC}\\)，${xy}`,
+      ['x', 'y'], [_vNum(fmul(k, x)), _vNum(fmul(k, y))]);
+  }
+  if (t === 1) {
+    // D 在 AB、E 在 AC，P = BE ∩ CD：d=AD/AB、e=AE/AC，x = d(1−e)/(1−de)、y = e(1−d)/(1−de)
+    const p = srRandInt(1, 4), q = srRandInt(1, 4), r = srRandInt(1, 4), s = srRandInt(1, 4);
+    if (srGcd(p, q) !== 1 || srGcd(r, s) !== 1) return null;
+    const one = frac(1), d = frac(p, p + q), e = frac(r, r + s), D = fsub(one, fmul(d, e));
+    const x = fdiv(fmul(d, fsub(one, e)), D), y = fdiv(fmul(e, fsub(one, d)), D);
+    return _vParts(`\\(\\triangle ABC\\) 中，點 \\(D\\) 在 \\(\\overline{AB}\\) 上且 \\(\\overline{AD}:\\overline{DB}=${p}:${q}\\)，點 \\(E\\) 在 \\(\\overline{AC}\\) 上且 \\(\\overline{AE}:\\overline{EC}=${r}:${s}\\)，\\(\\overline{BE}\\) 與 \\(\\overline{CD}\\) 交於點 \\(P\\)。若 \\(${_vAB('AP')}=x${AB}+y${AC}\\)，${xy}`,
+      ['x', 'y'], [_vNum(x), _vNum(y)]);
+  }
+  if (t === 2) {
+    // αPA + βPB + γPC = 0 → AP = (β AB + γ AC)/S，△PBC:△PCA:△PAB = α:β:γ
+    const al = srRandInt(1, 6), be = srRandInt(1, 6), ga = srRandInt(1, 6), S = al + be + ga;
+    if (al === be && be === ga) return null;
+    const eq = `\\(${_vLin([al, be, ga], [_vAB('PA'), _vAB('PB'), _vAB('PC')])}=\\vec{0}\\)`;
+    if (Math.random() < 0.5)
+      return _vParts(`\\(\\triangle ABC\\) 內一點 \\(P\\) 滿足 ${eq}，若 \\(${_vAB('AP')}=x${AB}+y${AC}\\)，${xy}`, ['x', 'y'], [_vNum(frac(be, S)), _vNum(frac(ga, S))]);
+    const i = srRandInt(0, 2);
+    return _vOne(`\\(\\triangle ABC\\) 內一點 \\(P\\) 滿足 ${eq}，則 \\(\\triangle ${['PBC', 'PCA', 'PAB'][i]}\\) 的面積是 \\(\\triangle ABC\\) 面積的幾倍？`, _vNum(frac([al, be, ga][i], S)), '');
+  }
+  if (t === 3) {
+    // 線性組合（分數解，克拉瑪公式）
+    const u = _vVec(6), v = _vVec(6), w = _vVec(9), D = _vCross(u, v);
+    if (D === 0) return null;
+    const x = frac(_vCross(w, v), D), y = frac(_vCross(u, w), D);
+    if ((x.den === 1 && y.den === 1) || x.num === 0 || y.num === 0) return null;
+    return _vParts(`${given3(u, v, w)}，若 \\(${c}=x${a}+y${b}\\)，${xy}`, ['x', 'y'], [_vNum(x), _vNum(y)]);
+  }
+  if (t === 4) {
+    // 外分點 P = (mB − nA)/(m − n)
+    const P = _vPt(), Q = _vPt(), m = srRandInt(1, 5), n = srRandInt(1, 5);
+    if (m === n || srGcd(m, n) !== 1 || (P[0] === Q[0] && P[1] === Q[1])) return null;
+    return _vCoord(`${pts(['A', P], ['B', Q])}，點 \\(P\\) 在直線 \\(AB\\) 上但不在 \\(\\overline{AB}\\) 上，且 \\(\\overline{AP}:\\overline{PB}=${m}:${n}\\)，求 \\(P\\) 點坐標`,
+      frac(m * Q[0] - n * P[0], m - n), frac(m * Q[1] - n * P[1], m - n));
+  }
+  if (t === 5) {
+    // 單位向量、指定長度的向量（答案含根號）
+    const u = _vVec(6), n = u[0] ** 2 + u[1] ** 2;
+    if (Number.isInteger(Math.sqrt(n))) return null;
+    if (Math.random() < 0.5)
+      return { question: `已知 \\(${a}=${_vP(...u)}\\)，求與 \\(${a}\\) 同方向的單位向量`, coordAnswer: true, answerParts: [_vRadAns(u[0], n, n), _vRadAns(u[1], n, n)] };
+    const k = srRandInt(2, 6), s = pick([1, -1]);
+    return { question: `已知 \\(${a}=${_vP(...u)}\\)，求與 \\(${a}\\) ${s > 0 ? '同' : '反'}方向且長度為 \\(${k}\\) 的向量`, coordAnswer: true, answerParts: [_vRadAns(s * k * u[0], n, n), _vRadAns(s * k * u[1], n, n)] };
+  }
+  // 向量式求點：m·PA ± n·PB = 0 → P = (mA ± nB)/(m ± n)
+  const P = _vPt(), Q = _vPt(), m = srRandInt(1, 5), n = srRandInt(1, 5), s = B || Math.random() < 0.5 ? 1 : -1;
+  if (srGcd(m, n) !== 1 || (s < 0 && m === n) || (P[0] === Q[0] && P[1] === Q[1])) return null;
+  return _vCoord(`${pts(['A', P], ['B', Q])}，點 \\(P\\) 滿足 \\(${_vLin([m, s * n], [_vAB('PA'), _vAB('PB')])}=\\vec{0}\\)，求 \\(P\\) 點坐標`,
+    frac(m * P[0] + s * n * Q[0], m + s * n), frac(m * P[1] + s * n * Q[1], m + s * n));
+}
+
+// ── b3a-vec-dot / b3b-vec-dot：平面向量的內積 ──────────────────────
+function _vDotQ(level, B) {
+  const a = _vV('a'), b = _vV('b'), c = _vV('c'), ab = `${a}\\cdot${b}`;
+  const given2 = (u, v) => `已知 \\(${a}=${_vP(...u)}\\)、\\(${b}=${_vP(...v)}\\)`;
+  const lens = (m, n) => `已知 \\(|${a}|=${m}\\)、\\(|${b}|=${n}\\)`;
+  const ang = A => `\\(${a}\\) 與 \\(${b}\\) 的夾角為 \\(${A}^\\circ\\)`;
+  const askAng = `求 \\(${a}\\) 與 \\(${b}\\) 的夾角 \\(\\theta\\)（\\(0^\\circ\\le\\theta\\le180^\\circ\\)，以度表示）`;
+  if (level === 'basic') {
+    const t = _vType('d-basic', [0, 1, 2, 3, 4]);
+    if (t === 0) {
+      // 坐標內積
+      const u = _vVec(7), v = _vVec(7);
+      if (Math.random() < 0.6) return _vOne(`${given2(u, v)}，求 \\(${ab}\\)`, _vNum(_vDot(u, v)), `\\(${ab}\\)`);
+      return _vOne(`${given2(u, v)}，求 \\((${a}+${b})\\cdot(${a}-${b})\\)`, _vNum(_vDot([u[0] + v[0], u[1] + v[1]], [u[0] - v[0], u[1] - v[1]])), '');
+    }
+    if (t === 1) {
+      // |a||b|cosθ
+      const m = srRandInt(1, 8), n = srRandInt(1, 8), A = _vAng([30, 45, 60, 120, 135, 150]);
+      return _vOne(`${lens(m, n)}，且 ${ang(A[0])}，求 \\(${ab}\\)`, _vRadAns(m * n * A[1], A[2], A[3]), `\\(${ab}\\)`);
+    }
+    if (t === 2) {
+      // 垂直求 k
+      const u = [_vNz(6), _vNz(6)], w = _vNz(6), first = Math.random() < 0.5;
+      const k = first ? frac(-u[1] * w, u[0]) : frac(-u[0] * w, u[1]);
+      return _vOne(`已知 \\(${a}=${_vP(...u)}\\)、\\(${b}=${first ? `(k,${w})` : `(${w},k)`}\\)，且 \\(${a}\\perp${b}\\)，求 \\(k\\)`, _vNum(k), 'k');
+    }
+    if (t === 3) {
+      // 坐標求夾角
+      const N = _vNiceAngle();
+      return _vOne(`${given2(N.a, N.b)}，${askAng}`, _vNum(N.deg), '\\(\\theta\\)');
+    }
+    // (p a + q b)·(r a + s b) = pr|a|² + (ps+qr) a·b + qs|b|²
+    const m = srRandInt(2, 8), n = srRandInt(2, 8), d = srRnz(-m * n + 1, m * n - 1), p = _vNz(3), q = _vNz(3), r = _vNz(3), s = _vNz(3);
+    return _vOne(`${lens(m, n)}、\\(${ab}=${d}\\)，求 \\((${_vLin([p, q], [a, b])})\\cdot(${_vLin([r, s], [a, b])})\\)`,
+      _vNum(p * r * m * m + (p * s + q * r) * d + q * s * n * n), '');
+  }
+
+  if (level === 'medium') {
+    const t = _vType(B ? 'd-medB' : 'd-medA', B ? [0, 1, 2, 3, 4, 5, 7] : [0, 1, 2, 3, 4, 5, 6]);
+    if (t === 0) {
+      // |p a + q b|² = p²|a|² + 2pq a·b + q²|b|²
+      const m = srRandInt(1, 8), n = srRandInt(1, 8), A = _vAng([60, 90, 120]), p = srRandInt(1, 3), q = _vNz(3);
+      const S = p * p * m * m + q * q * n * n + 2 * p * q * m * n * A[1] / A[2], L = `|${_vLin([p, q], [a, b])}|`;
+      if (S <= 0) return null;
+      return _vOne(`${lens(m, n)}，且 ${ang(A[0])}，求 \\(${L}\\)`, _vRadAns(1, 1, S), `\\(${L}\\)`);
+    }
+    if (t === 1) {
+      const m = srRandInt(1, 8), n = srRandInt(1, 8), sg = pick(['+', '-']), e = sg === '+' ? 1 : -1;
+      if (Math.random() < 0.5) {
+        // 由 |a ± b| 求夾角
+        const A = _vAng([60, 90, 120]), S = m * m + n * n + 2 * e * m * n * A[1] / A[2], L = _vRadAns(1, 1, S);
+        return _vOne(`${lens(m, n)}、\\(|${a}${sg}${b}|=${L.answer}\\)，${askAng}`, _vNum(A[0]), '\\(\\theta\\)');
+      }
+      // 由 |a ± b| 求 a·b
+      const s = srRandInt(Math.abs(m - n) + 1, m + n - 1);
+      return _vOne(`${lens(m, n)}、\\(|${a}${sg}${b}|=${s}\\)，求 \\(${ab}\\)`, _vNum(frac(e * (s * s - m * m - n * n), 2)), `\\(${ab}\\)`);
+    }
+    if (t === 2) {
+      // 正射影 (a·b/|b|²) b
+      const u = _vVec(6), v = _vVec(6), d = _vDot(u, v), n = v[0] ** 2 + v[1] ** 2;
+      if (d === 0) return null;
+      return _vCoord(`${given2(u, v)}，求 \\(${a}\\) 在 \\(${b}\\) 上的正射影`, frac(d * v[0], n), frac(d * v[1], n));
+    }
+    if (t === 3) {
+      // cosθ = a·b/(|a||b|)
+      const u = _vVec(6), v = _vVec(6), d = _vDot(u, v), L = (u[0] ** 2 + u[1] ** 2) * (v[0] ** 2 + v[1] ** 2);
+      if (d === 0 || d * d === L) return null;
+      // 根號化簡後不超過 √30，避免 √1066 之類的答案
+      let sf = L;
+      for (let k = 2; k * k <= sf; k++) while (sf % (k * k) === 0) sf /= k * k;
+      if (sf > 30) return null;
+      return _vOne(`${given2(u, v)}，設 \\(${a}\\) 與 \\(${b}\\) 的夾角為 \\(\\theta\\)，求 \\(\\cos\\theta\\)`, _vRadAns(d, L, L), '\\(\\cos\\theta\\)');
+    }
+    if (t === 4) {
+      // (k a + b) ⊥ c：k(a·c) + b·c = 0
+      const u = _vVec(5), v = _vVec(5), w = _vVec(5), den = _vDot(u, w), num = -_vDot(v, w);
+      if (den === 0 || num === 0) return null;
+      return _vOne(`${given2(u, v)}、\\(${c}=${_vP(...w)}\\)，若 \\((k${a}+${b})\\perp${c}\\)，求 \\(k\\)`, _vNum(frac(num, den)), 'k');
+    }
+    if (t === 5) {
+      // 三邊長求內積：AB·AC = (AB² + AC² − BC²)/2
+      const x = srRandInt(3, 9), y = srRandInt(3, 9), z = srRandInt(Math.abs(x - y) + 1, x + y - 1);
+      const tri = `\\(\\triangle ABC\\) 中，\\(\\overline{AB}=${x}\\)、\\(\\overline{AC}=${y}\\)、\\(\\overline{BC}=${z}\\)`;
+      if (Math.random() < 0.5) return _vOne(`${tri}，求 \\(${_vAB('AB')}\\cdot${_vAB('AC')}\\)`, _vNum(frac(x * x + y * y - z * z, 2)), '');
+      return _vOne(`${tri}，求 \\(${_vAB('BA')}\\cdot${_vAB('BC')}\\)`, _vNum(frac(x * x + z * z - y * y, 2)), '');
+    }
+    if (t === 6) {
+      // 正射影長 |a·b|/|b|
+      const u = _vVec(6), v = _vVec(6), d = _vDot(u, v), n = v[0] ** 2 + v[1] ** 2;
+      if (d === 0) return null;
+      return _vOne(`${given2(u, v)}，求 \\(${a}\\) 在 \\(${b}\\) 上的正射影長`, _vRadAns(Math.abs(d), n, n), '');
+    }
+    // 定力作功 W = F·AB
+    const F = [srRandInt(1, 9), _vNz(6)], P = _vPt(), Q = _vPt(), W = _vDot(F, [Q[0] - P[0], Q[1] - P[1]]);
+    if (W <= 0) return null;
+    return _vOne(`一物體受定力 \\(\\vec{F}=${_vP(...F)}\\)（單位：牛頓）作用，由點 \\(A${_vP(...P)}\\) 沿直線移動到點 \\(B${_vP(...Q)}\\)（單位：公尺），求 \\(\\vec{F}\\) 對物體所作的功（單位：焦耳）`, _vNum(W), 'W');
+  }
+
+  // hard
+  const t = _vType(B ? 'd-hardB' : 'd-hardA', B ? [0, 2, 3, 5, 6] : [0, 1, 2, 3, 4, 5, 6]);
+  if (t === 0) {
+    // |a + t b|² = |b|²t² + 2(a·b)t + |a|²，最小值 = |a×b|/|b|
+    const u = _vVec(6), v = _vVec(5), d = _vDot(u, v), cr = _vCross(u, v), n = v[0] ** 2 + v[1] ** 2;
+    if (d === 0 || cr === 0) return null;
+    return _vParts(`${given2(u, v)}，\\(t\\) 為實數，求 \\(|${a}+t${b}|\\) 有最小值時的 \\(t\\) 值及此最小值`,
+      ['\\(t\\)', '最小值'], [_vNum(frac(-d, n)), _vRadAns(Math.abs(cr), n, n)]);
+  }
+  if (t === 1) {
+    // 柯西不等式
+    const p = _vNz(5), q = _vNz(5), v = Math.random(), lin = _vLin([p, q], ['x', 'y']);
+    if (v < 0.35) {
+      const R = srRandInt(2, 30), mx = Math.random() < 0.5;
+      return _vOne(`實數 \\(x\\)、\\(y\\) 滿足 \\(x^2+y^2=${R}\\)，求 \\(${lin}\\) 的${mx ? '最大' : '最小'}值`, _vRadAns(mx ? 1 : -1, 1, R * (p * p + q * q)), '');
+    }
+    if (v < 0.7) {
+      const C = _vNz(15);
+      return _vOne(`實數 \\(x\\)、\\(y\\) 滿足 \\(${lin}=${C}\\)，求 \\(x^2+y^2\\) 的最小值`, _vNum(frac(C * C, p * p + q * q)), '');
+    }
+    // αx² + βy² = R：(px+qy)² ≤ (p²/α + q²/β)(αx² + βy²)
+    const al = srRandInt(1, 4), be = srRandInt(1, 4), R = srRandInt(2, 36);
+    if (al === 1 && be === 1) return null;
+    const D = al * be, N = R * (p * p * be + q * q * al);
+    return _vOne(`實數 \\(x\\)、\\(y\\) 滿足 \\(${al === 1 ? '' : al}x^2+${be === 1 ? '' : be}y^2=${R}\\)，求 \\(${lin}\\) 的最大值`, _vRadAns(1, D, N * D), '');
+  }
+  if (t === 2) {
+    // 三角形面積
+    if (Math.random() < 0.5) {
+      const P = _vPt(), Q = _vPt(), R = _vPt();
+      if (_vCol(P, Q, R)) return null;
+      return _vOne(`已知 \\(A${_vP(...P)}\\)、\\(B${_vP(...Q)}\\)、\\(C${_vP(...R)}\\)，求 \\(\\triangle ABC\\) 的面積`,
+        _vNum(frac(Math.abs(_vCross([Q[0] - P[0], Q[1] - P[1]], [R[0] - P[0], R[1] - P[1]])), 2)), '');
+    }
+    const m = srRandInt(2, 8), n = srRandInt(2, 8), d = srRnz(-m * n + 1, m * n - 1);
+    return _vOne(`${lens(m, n)}、\\(${ab}=${d}\\)，求以 \\(${a}\\)、\\(${b}\\) 為兩邊的三角形面積`, _vRadAns(1, 2, m * m * n * n - d * d), '');
+  }
+  if (t === 3) {
+    // 平行四邊形定理：|a+b|² + |a−b|² = 2|a|² + 2|b|²
+    const m = srRandInt(2, 9), n = srRandInt(2, 9), L = srRandInt(Math.abs(m - n) + 1, m + n - 1), sg = pick(['+', '-']);
+    const L2 = `|${a}${sg === '+' ? '-' : '+'}${b}|`;
+    return _vOne(`${lens(m, n)}、\\(|${a}${sg}${b}|=${L}\\)，求 \\(${L2}\\)`, _vRadAns(1, 1, 2 * m * m + 2 * n * n - L * L), `\\(${L2}\\)`);
+  }
+  if (t === 4) {
+    // (a + k b) ⊥ (p a + q b)：p|a|² + q(a·b) + k(p(a·b) + q|b|²) = 0
+    const m = srRandInt(1, 6), n = srRandInt(1, 6), A = _vAng([60, 120]), d = frac(m * n * A[1], A[2]), p = srRandInt(1, 3), q = _vNz(3);
+    const den = fadd(fmul(frac(p), d), frac(q * n * n)), num = fsub(frac(0), fadd(frac(p * m * m), fmul(frac(q), d)));
+    if (den.num === 0 || num.num === 0 || srGcd(Math.abs(p), Math.abs(q)) !== 1) return null;
+    return _vOne(`${lens(m, n)}，且 ${ang(A[0])}，若 \\((${a}+k${b})\\perp(${_vLin([p, q], [a, b])})\\)，求 \\(k\\)`, _vNum(fdiv(num, den)), 'k');
+  }
+  if (t === 5) {
+    // (p a + q b) ⊥ b 或 ⊥ a，求夾角（a·b = ±mn/2）
+    for (let i = 0; i < 300; i++) {
+      const m = srRandInt(1, 6), n = srRandInt(1, 6), p = srRandInt(1, 3), q = _vNz(3), s = pick([1, -1]), onA = Math.random() < 0.5;
+      // ⊥b：p(a·b) + q n² = 0 → p s m = −2 q n；⊥a：p m² + q(a·b) = 0 → 2 p m = −q s n
+      if (onA ? 2 * p * m !== -q * s * n : p * s * m !== -2 * q * n) continue;
+      if (srGcd(Math.abs(p), Math.abs(q)) !== 1) continue;
+      return _vOne(`${lens(m, n)}，且 \\((${_vLin([p, q], [a, b])})\\perp${onA ? a : b}\\)，${askAng}`, _vNum(s > 0 ? 60 : 120), '\\(\\theta\\)');
+    }
+    return null;
+  }
+  // P 在 x（y）軸上：PA·PB = t² − (A₀+B₀)t + A₀B₀ + A₁B₁
+  const P = _vPt(), Q = _vPt(), onX = Math.random() < 0.5, [i, j] = onX ? [0, 1] : [1, 0], ax = onX ? 'x' : 'y';
+  if (P[0] === Q[0] && P[1] === Q[1]) return null;
+  const sum = P[i] + Q[i];
+  return _vParts(`已知 \\(A${_vP(...P)}\\)、\\(B${_vP(...Q)}\\)，點 \\(P\\) 在 \\(${ax}\\) 軸上移動，求 \\(${_vAB('PA')}\\cdot${_vAB('PB')}\\) 有最小值時 \\(P\\) 的 \\(${ax}\\) 坐標及此最小值`,
+    [`\\(P\\) 的 \\(${ax}\\) 坐標`, '最小值'], [_vNum(frac(sum, 2)), _vNum(fsub(frac(P[i] * Q[i] + P[j] * Q[j]), frac(sum * sum, 4)))]);
+}
+
+function _vGen(f, level, B) {
+  for (let i = 0; i < 300; i++) { const q = f(i < 200 ? level : 'basic', B); if (q) return q; }
+  return null;
+}
+function genB3aVecRepr(level) { return _vGen(_vRepr, level, false); }
+function genB3aVecDot(level)  { return _vGen(_vDotQ, level, false); }
+function genB3bVecRepr(level) { return _vGen(_vRepr, level, true); }
+function genB3bVecDot(level)  { return _vGen(_vDotQ, level, true); }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  分數類似題（依 _SF_RATE 比例混入下列各主題）
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -8694,6 +9099,10 @@ const SR_GENERATORS = {
   'b3b-log-eq':      genB3bLogEq,
   'b3b-exp-ineq':    genB3bExpIneq,
   'b3b-log-ineq':    genB3bLogIneq,
+  'b3a-vec-repr':    genB3aVecRepr,
+  'b3a-vec-dot':     genB3aVecDot,
+  'b3b-vec-repr':    genB3bVecRepr,
+  'b3b-vec-dot':     genB3bVecDot,
 };
 
 Object.keys(_SR_FRAC_VARIANTS).forEach(key => {
