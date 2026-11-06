@@ -175,7 +175,7 @@ const TOPIC_NAMES = {
   'b3a-log-ineq':      '三冊A·對數不等式',
   'b3a-vec-repr':      '三冊A·平面向量的表示法',
   'b3a-vec-dot':       '三冊A·平面向量的內積',
-  'b3a-area-det':      '三冊A·面積與二階行列式',
+  'b3a-area-det':      '三冊A·面積、二階行列式與克拉瑪公式',
   // 第三冊B（高二上‧文）
   'b3b-trig-arc':    '三冊B·弧度量',
   'b3b-trig-period': '三冊B·週期性數學模型',

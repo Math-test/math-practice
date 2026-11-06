@@ -8664,6 +8664,160 @@ function genB3aVecDot(level)  { return _vGen(_vDotQ, level, false); }
 function genB3bVecRepr(level) { return _vGen(_vRepr, level, true); }
 function genB3bVecDot(level)  { return _vGen(_vDotQ, level, true); }
 
+// ── b3a-area-det：面積與二階行列式（含克拉瑪公式） ─────────────────
+const _dM = (a, b, c, d) => `\\begin{vmatrix}${a}&${b}\\\\${c}&${d}\\end{vmatrix}`;
+const _dSys = (r1, r2, gap) => `\\begin{cases}${r1}\\\\${gap ? `[${gap}]` : ''}${r2}\\end{cases}`;
+const _dEq = (a, b, c) => `${_vLin([a, b], ['x', 'y'])}=${c}`;
+const _dGiven = k => `已知 \\(${_dM('a', 'b', 'c', 'd')}=${k}\\)`;
+// 含 k 的係數，如 (k-2)x、kx
+const _dK = (s, v) => s === 0 ? `k${v}` : `(k${s > 0 ? '+' : '-'}${Math.abs(s)})${v}`;
+// N 的因數 q（可負）且 |q|、|N/q| 不超過 lim
+function _dDiv(N, lim) {
+  const ds = [];
+  for (let q = 1; q <= lim; q++) if (N % q === 0 && Math.abs(N / q) <= lim) ds.push(q, -q);
+  return ds.length ? pick(ds) : null;
+}
+const _dArea = (P, Q, R) => frac(Math.abs(_vCross([Q[0] - P[0], Q[1] - P[1]], [R[0] - P[0], R[1] - P[1]])), 2);
+
+function _areaDet(level) {
+  if (level === 'basic') {
+    const t = _vType('ad-basic', [0, 1, 2, 3]);
+    if (t === 0) {
+      // 計算二階行列式
+      const a = srRandInt(-9, 9), b = srRandInt(-9, 9), c = srRandInt(-9, 9), d = srRandInt(-9, 9);
+      if ([a, b, c, d].filter(v => v === 0).length > 1) return null;
+      return _vOne(`計算 \\(${_dM(a, b, c, d)}\\)`, _vNum(a * d - b * c), '');
+    }
+    if (t === 1) {
+      // |px+q r; s t| = k → t(px+q) − rs = k
+      const p = _vNz(4), q = _vNz(9), r = _vNz(9), s = _vNz(9), u = _vNz(6), k = srRandInt(-30, 30);
+      return _vOne(`解方程式 \\(${_dM(_leLin(p, q), r, s, u)}=${k}\\)，求 \\(x\\)`, _vNum(frac(k + r * s - u * q, u * p)), 'x');
+    }
+    if (t === 2) {
+      // 向量張成的平行四邊形、三角形面積
+      const u = _vVec(8), v = _vVec(8), D = _vCross(u, v), a = _vV('a'), b = _vV('b'), tri = Math.random() < 0.5;
+      if (D === 0) return null;
+      return _vOne(`已知 \\(${a}=${_vP(...u)}\\)、\\(${b}=${_vP(...v)}\\)，求由 \\(${a}\\)、\\(${b}\\) 所張成的${tri ? '三角形' : '平行四邊形'}面積`,
+        _vNum(frac(Math.abs(D), tri ? 2 : 1)), '');
+    }
+    // 行列式性質：列交換、某列乘 m、全部乘 m、轉置、列運算、行交換
+    const k = _vNz(9), m = srRandInt(2, 5);
+    const [M, v] = pick([
+      [_dM('c', 'd', 'a', 'b'), -k],
+      [_dM(`${m}a`, `${m}b`, 'c', 'd'), m * k],
+      [_dM(`${m}a`, `${m}b`, `${m}c`, `${m}d`), m * m * k],
+      [_dM('a', 'c', 'b', 'd'), k],
+      [_dM(`a+${m}c`, `b+${m}d`, 'c', 'd'), k],
+      [_dM('b', 'a', 'd', 'c'), -k],
+    ]);
+    return _vOne(`${_dGiven(k)}，求 \\(${M}\\)`, _vNum(v), '');
+  }
+
+  if (level === 'medium') {
+    const t = _vType('ad-med', [0, 1, 2, 3, 4]);
+    if (t === 0) {
+      // 三點求三角形面積
+      const P = _vPt(), Q = _vPt(), R = _vPt();
+      if (_vCol(P, Q, R)) return null;
+      return _vOne(`已知 \\(A${_vP(...P)}\\)、\\(B${_vP(...Q)}\\)、\\(C${_vP(...R)}\\)，求 \\(\\triangle ABC\\) 的面積`, _vNum(_dArea(P, Q, R)), '');
+    }
+    if (t === 1 || t === 2) {
+      const a1 = _vNz(7), b1 = _vNz(7), a2 = _vNz(7), b2 = _vNz(7), D = a1 * b2 - a2 * b1;
+      if (D === 0) return null;
+      let c1, c2;
+      if (Math.random() < 0.5) { const x = _vNz(6), y = _vNz(6); c1 = a1 * x + b1 * y; c2 = a2 * x + b2 * y; }
+      else { c1 = srRandInt(-15, 15); c2 = srRandInt(-15, 15); }
+      const Dx = c1 * b2 - c2 * b1, Dy = a1 * c2 - a2 * c1, sys = _dSys(_dEq(a1, b1, c1), _dEq(a2, b2, c2));
+      if (t === 2)
+        return _vParts(`以克拉瑪公式解聯立方程式 \\(${sys}\\)，求 \\(\\Delta\\)、\\(\\Delta_x\\)、\\(\\Delta_y\\)`,
+          ['\\(\\Delta\\)', '\\(\\Delta_x\\)', '\\(\\Delta_y\\)'], [_vNum(D), _vNum(Dx), _vNum(Dy)]);
+      const x = frac(Dx, D), y = frac(Dy, D);
+      if (x.den > 12 || y.den > 12) return null;
+      return _vParts(`以克拉瑪公式解聯立方程式 \\(${sys}\\)，求 \\(x\\)、\\(y\\)`, ['x', 'y'], [_vNum(x), _vNum(y)]);
+    }
+    if (t === 3) {
+      // 性質綜合
+      const k = _vNz(9), p = srRandInt(2, 4), q = _vNz(4), r = srRandInt(2, 4), m = _vNz(4);
+      const [M, v] = pick([
+        [_dM(_vLin([p, q], ['a', 'c']), _vLin([p, q], ['b', 'd']), `${r}c`, `${r}d`), p * r * k],
+        [_dM(`${p}a`, `${r}b`, `${p}c`, `${r}d`), p * r * k],
+        [_dM(_vLin([1, m], ['a', 'b']), 'b', _vLin([1, m], ['c', 'd']), 'd'), k],
+        [_dM('-a', '-b', '-c', '-d'), k],
+        [_dM(`${p}c`, `${p}d`, 'a', 'b'), -p * k],
+      ]);
+      return _vOne(`${_dGiven(k)}，求 \\(${M}\\)`, _vNum(v), '');
+    }
+    // |x+p q; r x+s| = 0，兩整數根
+    const r1 = srRandInt(-8, 8), r2 = srRandInt(-8, 8), p = srRandInt(-6, 6);
+    if (r1 >= r2) return null;
+    const s = -(r1 + r2) - p, N = p * s - r1 * r2;
+    if (N === 0) return null;
+    const q = _dDiv(N, 15);
+    if (q === null) return null;
+    return _vParts(`解方程式 \\(${_dM(_leLin(1, p), q, N / q, _leLin(1, s))}=0\\)，求 \\(x\\) 的兩根`,
+      ['較小的 \\(x\\)', '較大的 \\(x\\)'], [_vNum(r1), _vNum(r2)]);
+  }
+
+  // hard
+  const t = _vType('ad-hard', [0, 1, 2, 3, 4]);
+  if (t === 0) {
+    // 含參數聯立方程式：Δ = (k−k₁)(k−k₂)，k₁ 時無限多解、k₂ 時無解
+    const k1 = srRandInt(-6, 6), k2 = srRandInt(-6, 6), al = srRandInt(-5, 5), de = k1 + k2 - al, N = al * de - k1 * k2;
+    if (k1 === k2 || N === 0 || k1 === al || k2 === al) return null;
+    const be = _dDiv(N, 12);
+    if (be === null) return null;
+    const ga = N / be, m = _vNz(3), c1 = (k1 - al) * m, c2 = ga * m;
+    const row1 = `${_dK(-al, 'x')}${be > 0 ? '+' : '-'}${Math.abs(be) === 1 ? '' : Math.abs(be)}y=${c1}`;
+    const row2 = `${_vLin([ga], ['x'])}+${_dK(-de, 'y')}=${c2}`;
+    const inf = Math.random() < 0.5;
+    return _vOne(`已知聯立方程式 \\(${_dSys(row1, row2)}\\) ${inf ? '有無限多組解' : '無解'}，求 \\(k\\)`, _vNum(inf ? k1 : k2), 'k');
+  }
+  if (t === 1) {
+    // a/x + b/y = c 型：令 u = 1/x、v = 1/y
+    const x = _vNz(6), y = _vNz(6), a1 = _vNz(6), b1 = _vNz(6), a2 = _vNz(6), b2 = _vNz(6);
+    if (a1 * b2 - a2 * b1 === 0 || x === y) return null;
+    const rhs = (a, b) => fadd(frac(a, x), frac(b, y));
+    const term = (c, v, first) => `${c < 0 ? '-' : first ? '' : '+'}\\dfrac{${Math.abs(c)}}{${v}}`;
+    const row = (a, b) => `${term(a, 'x', true)}${term(b, 'y', false)}=${_sfT(rhs(a, b))}`;
+    return _vParts(`解聯立方程式 \\(${_dSys(row(a1, b1), row(a2, b2), '8pt')}\\)，求 \\(x\\)、\\(y\\)`, ['x', 'y'], [_vNum(x), _vNum(y)]);
+  }
+  if (t === 2) {
+    // C(k, c) 使 △ABC 面積為 S：det 為 k 的一次式，取 ±2S 兩解
+    const P = _vPt(), Q = _vPt(), c0 = srRandInt(-8, 8), k1 = srRandInt(-8, 8), dx = Q[0] - P[0], dy = Q[1] - P[1];
+    if (dy === 0) return null;
+    const L = k => dx * (c0 - P[1]) - dy * (k - P[0]), L1 = L(k1);
+    if (L1 === 0) return null;
+    const k2 = frac(dx * (c0 - P[1]) + L1 + dy * P[0], dy), K1 = frac(k1), lo = _sfLt(K1, k2);
+    if (Math.abs(k2.num / k2.den) > 20) return null;
+    return _vParts(`已知 \\(A${_vP(...P)}\\)、\\(B${_vP(...Q)}\\)、\\(C(k,${c0})\\)，且 \\(\\triangle ABC\\) 的面積為 \\(${_sfT(frac(Math.abs(L1), 2))}\\)，求 \\(k\\) 的兩個值`,
+      ['較小的 \\(k\\)', '較大的 \\(k\\)'], [_vNum(lo ? K1 : k2), _vNum(lo ? k2 : K1)]);
+  }
+  if (t === 3) {
+    const p = srRandInt(1, 4), q = _vNz(4), k = _vNz(9);
+    if (Math.random() < 0.5) {
+      // 行的線性組合：|pa+qb ra+sb; pc+qd rc+sd| = (ps−qr)k
+      const r = _vNz(4), s = _vNz(4);
+      if (p * s - q * r === 0) return null;
+      return _vOne(`${_dGiven(k)}，求 \\(${_dM(_vLin([p, q], ['a', 'b']), _vLin([r, s], ['a', 'b']), _vLin([p, q], ['c', 'd']), _vLin([r, s], ['c', 'd']))}\\)`,
+        _vNum((p * s - q * r) * k), '');
+    }
+    // 兩個行列式的線性組合
+    const k2 = _vNz(9);
+    return _vOne(`已知 \\(${_dM('a', 'b', 'c', 'd')}=${k}\\)、\\(${_dM('a', 'e', 'c', 'f')}=${k2}\\)，求 \\(${_dM('a', _vLin([p, q], ['b', 'e']), 'c', _vLin([p, q], ['d', 'f']))}\\)`,
+      _vNum(p * k + q * k2), '');
+  }
+  // 凸四邊形面積
+  const pts = [_vPt(), _vPt(), _vPt(), _vPt()], cx = pts.reduce((s, p) => s + p[0], 0) / 4, cy = pts.reduce((s, p) => s + p[1], 0) / 4;
+  pts.sort((u, v) => Math.atan2(u[1] - cy, u[0] - cx) - Math.atan2(v[1] - cy, v[0] - cx));
+  for (let i = 0; i < 4; i++) {
+    const A = pts[i], B = pts[(i + 1) % 4], C = pts[(i + 2) % 4];
+    if (_vCross([B[0] - A[0], B[1] - A[1]], [C[0] - B[0], C[1] - B[1]]) <= 0) return null;
+  }
+  const S = pts.reduce((s, p, i) => s + _vCross(p, pts[(i + 1) % 4]), 0);
+  return _vOne(`已知四邊形 \\(ABCD\\) 的頂點依序為 ${pts.map((p, i) => `\\(${'ABCD'[i]}${_vP(...p)}\\)`).join('、')}，求四邊形 \\(ABCD\\) 的面積`, _vNum(frac(Math.abs(S), 2)), '');
+}
+function genB3aAreaDet(level) { return _vGen(_areaDet, level, false); }
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  分數類似題（依 _SF_RATE 比例混入下列各主題）
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -9101,6 +9255,7 @@ const SR_GENERATORS = {
   'b3b-log-ineq':    genB3bLogIneq,
   'b3a-vec-repr':    genB3aVecRepr,
   'b3a-vec-dot':     genB3aVecDot,
+  'b3a-area-det':    genB3aAreaDet,
   'b3b-vec-repr':    genB3bVecRepr,
   'b3b-vec-dot':     genB3bVecDot,
 };
