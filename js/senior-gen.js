@@ -8697,23 +8697,17 @@ function _vDotQ(level, B) {
     [`\\(P\\) 的 \\(${ax}\\) 坐標`, '最小值'], [_vNum(frac(sum, 2)), _vNum(fsub(frac(P[i] * Q[i] + P[j] * Q[j]), frac(sum * sum, 4)))]);
 }
 
-// 外心：坐標、外接圓半徑、AO·AB = |AB|²/2、AO = xAB + yAC
+// 外心（向量性質）：AO·AB = |AB|²/2、AO = xAB + yAC
 function _vCircum() {
   const AB = _vAB('AB'), AC = _vAB('AC'), AO = _vAB('AO'), r = Math.random();
-  if (r < 0.35) {
-    // 2(B−A)·O = |B|²−|A|²、2(C−A)·O = |C|²−|A|²
+  if (r < 0.3) {
+    // 坐標給三角形，以 AO·AB = |AB|²/2 求內積（不需求出外心）
     const P = _vPt(), Q = _vPt(), R = _vPt();
     if (_vCol(P, Q, R)) return null;
-    const a1 = 2 * (Q[0] - P[0]), b1 = 2 * (Q[1] - P[1]), c1 = Q[0] ** 2 + Q[1] ** 2 - P[0] ** 2 - P[1] ** 2;
-    const a2 = 2 * (R[0] - P[0]), b2 = 2 * (R[1] - P[1]), c2 = R[0] ** 2 + R[1] ** 2 - P[0] ** 2 - P[1] ** 2, D = a1 * b2 - a2 * b1;
-    const O = [frac(c1 * b2 - c2 * b1, D), frac(a1 * c2 - a2 * c1, D)];
-    if (O[0].den > 12 || O[1].den > 12) return null;
-    const tri = `\\(\\triangle ABC\\) 中，\\(A${_vP(...P)}\\)、\\(B${_vP(...Q)}\\)、\\(C${_vP(...R)}\\)`;
-    if (Math.random() < 0.6)
-      return { question: `${tri}，求 \\(\\triangle ABC\\) 的外心 \\(O\\) 的坐標`, coordAnswer: true, answerParts: [_vNum(O[0]), _vNum(O[1])] };
-    const I = _vFint([fsub(O[0], frac(P[0])), fsub(O[1], frac(P[1]))]), N = I.v[0] ** 2 + I.v[1] ** 2;
-    if (_vSqf(N) > 30) return null;
-    return _vOne(`${tri}，求 \\(\\triangle ABC\\) 外接圓的半徑`, _vRadAns(1, I.D, N), '');
+    const u = [Q[0] - P[0], Q[1] - P[1]], v = [R[0] - P[0], R[1] - P[1]], k = srRandInt(0, 2);
+    const ask = [`${AO}\\cdot${AB}`, `${AO}\\cdot${AC}`, `${AO}\\cdot${_vAB('BC')}`][k];
+    const val = [_vDot(u, u), _vDot(v, v), _vDot(v, v) - _vDot(u, u)][k];
+    return _vOne(`\\(\\triangle ABC\\) 中，\\(A${_vP(...P)}\\)、\\(B${_vP(...Q)}\\)、\\(C${_vP(...R)}\\)，\\(O\\) 為 \\(\\triangle ABC\\) 的外心，求 \\(${ask}\\)`, _vNum(frac(val, 2)), '');
   }
   // 由兩邊長與夾角（或第三邊）給定三角形
   const b = srRandInt(2, 9), c = srRandInt(2, 9);
