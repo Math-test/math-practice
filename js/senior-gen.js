@@ -8370,7 +8370,7 @@ function _vRepr(level, B) {
   }
 
   if (level === 'medium') {
-    const t = _vType('r-med', [0, 1, 2, 3, 4, 5, 6]);
+    const t = _vType('r-med', [0, 1, 2, 3, 4, 5, 6, 7, 8]);
     if (t === 0) {
       // 單位向量、指定長度的向量（畢氏數，答案為分數）
       const tr = pick([[3, 4], [5, 12], [8, 15], [6, 8], [7, 24], [20, 21]]);
@@ -8414,6 +8414,47 @@ function _vRepr(level, B) {
       if (P[0] === Q[0] || x3 === P[0] || x3 === Q[0]) return null;
       const k = fadd(frac(P[1]), frac((Q[1] - P[1]) * (x3 - P[0]), Q[0] - P[0]));
       return _vOne(`已知 \\(A${_vP(...P)}\\)、\\(B${_vP(...Q)}\\)、\\(C(${x3},k)\\) 三點共線，求 \\(k\\)`, _vNum(k), 'k');
+    }
+    const OP = _vAB('OP'), OA = _vAB('OA'), OB = _vAB('OB');
+    if (t === 7) {
+      if (Math.random() < 0.5) {
+        // 分點公式的向量形式：OP = n/(m+n)·OA + m/(m+n)·OB
+        const m = srRandInt(1, 6), n = srRandInt(1, 6);
+        if (srGcd(m, n) !== 1) return null;
+        return _vParts(`點 \\(P\\) 在 \\(\\overline{AB}\\) 上且 \\(\\overline{AP}:\\overline{PB}=${m}:${n}\\)，\\(O\\) 為平面上任一點。若 \\(${OP}=x${OA}+y${OB}\\)，求 \\(x\\)、\\(y\\)`,
+          ['x', 'y'], [_vNum(frac(n, m + n)), _vNum(frac(m, m + n))]);
+      }
+      // 三點共線 ⇔ 係數和為 1
+      const c = frac(srRnz(-9, 9), srRandInt(2, 7)), first = Math.random() < 0.5;
+      if (c.den === 1) return null;
+      const cs = _sfT(c), rhs = first ? `${cs}${OA}+k${OB}` : `k${OA}${c.num < 0 ? '' : '+'}${cs}${OB}`;
+      return _vOne(`\\(O\\)、\\(A\\)、\\(B\\) 三點不共線，若點 \\(P\\) 在直線 \\(AB\\) 上且 \\(${OP}=${rhs}\\)，求 \\(k\\)`, _vNum(fsub(frac(1), c)), 'k');
+    }
+    if (t === 8) {
+      const r = Math.random();
+      if (r < 0.35) {
+        // 已知 A、B 與重心 G，求 C = 3G − A − B
+        const P = _vPt(), Q = _vPt(), G = _vPt(), C = [3 * G[0] - P[0] - Q[0], 3 * G[1] - P[1] - Q[1]];
+        if (_vCol(P, Q, C)) return null;
+        return _vCoord(`\\(\\triangle ABC\\) 中，\\(A${_vP(...P)}\\)、\\(B${_vP(...Q)}\\)，重心為 \\(G${_vP(...G)}\\)，求頂點 \\(C\\) 的坐標`, C[0], C[1]);
+      }
+      if (r < 0.7) {
+        // AG = (AB + AC)/3；P 在 AG 上 AP:PG = p:q
+        const AB = _vAB('AB'), AC = _vAB('AC');
+        if (Math.random() < 0.4)
+          return _vParts(`\\(G\\) 為 \\(\\triangle ABC\\) 的重心，若 \\(${_vAB('AG')}=x${AB}+y${AC}\\)，求 \\(x\\)、\\(y\\)`, ['x', 'y'], [_vNum(frac(1, 3)), _vNum(frac(1, 3))]);
+        const p = srRandInt(1, 5), q = srRandInt(1, 5);
+        if (srGcd(p, q) !== 1) return null;
+        const v = frac(p, 3 * (p + q));
+        return _vParts(`\\(G\\) 為 \\(\\triangle ABC\\) 的重心，點 \\(P\\) 在 \\(\\overline{AG}\\) 上且 \\(\\overline{AP}:\\overline{PG}=${p}:${q}\\)，若 \\(${_vAB('AP')}=x${AB}+y${AC}\\)，求 \\(x\\)、\\(y\\)`,
+          ['x', 'y'], [_vNum(v), _vNum(v)]);
+      }
+      // 重心到頂點的距離
+      const P = _vPt(), Q = _vPt(), R = _vPt();
+      if (_vCol(P, Q, R)) return null;
+      const g = [Q[0] + R[0] - 2 * P[0], Q[1] + R[1] - 2 * P[1]], N = g[0] ** 2 + g[1] ** 2;   // AG = g/3
+      if (_vSqf(N) > 30) return null;
+      return _vOne(`\\(\\triangle ABC\\) 中，\\(A${_vP(...P)}\\)、\\(B${_vP(...Q)}\\)、\\(C${_vP(...R)}\\)，\\(G\\) 為重心，求 \\(\\overline{AG}\\) 的長`, _vRadAns(1, 3, N), '');
     }
     // |p a + q b|
     const u = _vVec(5), v = _vVec(5), p = srRandInt(1, 3), q = _vNz(3), w = [p * u[0] + q * v[0], p * u[1] + q * v[1]];
@@ -8587,7 +8628,8 @@ function _vDotQ(level, B) {
   }
 
   // hard
-  const t = _vType(B ? 'd-hardB' : 'd-hardA', B ? [0, 2, 3, 5, 6] : [0, 1, 2, 3, 4, 5, 6]);
+  const t = _vType(B ? 'd-hardB' : 'd-hardA', B ? [0, 2, 3, 5, 6, 7, 7] : [0, 1, 2, 3, 4, 5, 6, 7, 7]);
+  if (t === 7) return _vCircum();
   if (t === 0) {
     // |a + t b|² = |b|²t² + 2(a·b)t + |a|²，最小值 = |a×b|/|b|
     const u = _vVec(6), v = _vVec(5), d = _vDot(u, v), cr = _vCross(u, v), n = v[0] ** 2 + v[1] ** 2;
@@ -8653,6 +8695,47 @@ function _vDotQ(level, B) {
   const sum = P[i] + Q[i];
   return _vParts(`已知 \\(A${_vP(...P)}\\)、\\(B${_vP(...Q)}\\)，點 \\(P\\) 在 \\(${ax}\\) 軸上移動，求 \\(${_vAB('PA')}\\cdot${_vAB('PB')}\\) 有最小值時 \\(P\\) 的 \\(${ax}\\) 坐標及此最小值`,
     [`\\(P\\) 的 \\(${ax}\\) 坐標`, '最小值'], [_vNum(frac(sum, 2)), _vNum(fsub(frac(P[i] * Q[i] + P[j] * Q[j]), frac(sum * sum, 4)))]);
+}
+
+// 外心：坐標、外接圓半徑、AO·AB = |AB|²/2、AO = xAB + yAC
+function _vCircum() {
+  const AB = _vAB('AB'), AC = _vAB('AC'), AO = _vAB('AO'), r = Math.random();
+  if (r < 0.35) {
+    // 2(B−A)·O = |B|²−|A|²、2(C−A)·O = |C|²−|A|²
+    const P = _vPt(), Q = _vPt(), R = _vPt();
+    if (_vCol(P, Q, R)) return null;
+    const a1 = 2 * (Q[0] - P[0]), b1 = 2 * (Q[1] - P[1]), c1 = Q[0] ** 2 + Q[1] ** 2 - P[0] ** 2 - P[1] ** 2;
+    const a2 = 2 * (R[0] - P[0]), b2 = 2 * (R[1] - P[1]), c2 = R[0] ** 2 + R[1] ** 2 - P[0] ** 2 - P[1] ** 2, D = a1 * b2 - a2 * b1;
+    const O = [frac(c1 * b2 - c2 * b1, D), frac(a1 * c2 - a2 * c1, D)];
+    if (O[0].den > 12 || O[1].den > 12) return null;
+    const tri = `\\(\\triangle ABC\\) 中，\\(A${_vP(...P)}\\)、\\(B${_vP(...Q)}\\)、\\(C${_vP(...R)}\\)`;
+    if (Math.random() < 0.6)
+      return { question: `${tri}，求 \\(\\triangle ABC\\) 的外心 \\(O\\) 的坐標`, coordAnswer: true, answerParts: [_vNum(O[0]), _vNum(O[1])] };
+    const I = _vFint([fsub(O[0], frac(P[0])), fsub(O[1], frac(P[1]))]), N = I.v[0] ** 2 + I.v[1] ** 2;
+    if (_vSqf(N) > 30) return null;
+    return _vOne(`${tri}，求 \\(\\triangle ABC\\) 外接圓的半徑`, _vRadAns(1, I.D, N), '');
+  }
+  // 由兩邊長與夾角（或第三邊）給定三角形
+  const b = srRandInt(2, 9), c = srRandInt(2, 9);
+  let cond, d;   // d = AB·AC
+  if (Math.random() < 0.5) {
+    const A = pick([60, 120]);
+    cond = `\\(\\angle BAC=${A}^\\circ\\)`; d = frac((A === 60 ? 1 : -1) * b * c, 2);
+  } else {
+    const a = srRandInt(Math.abs(b - c) + 1, b + c - 1);
+    cond = `\\(\\overline{BC}=${a}\\)`; d = frac(b * b + c * c - a * a, 2);
+  }
+  const head = `\\(\\triangle ABC\\) 中，\\(\\overline{AB}=${c}\\)、\\(\\overline{AC}=${b}\\)、${cond}，\\(O\\) 為 \\(\\triangle ABC\\) 的外心`;
+  if (r < 0.65) {
+    const k = srRandInt(0, 2);
+    const ask = [`${AO}\\cdot${AB}`, `${AO}\\cdot${AC}`, `${AO}\\cdot${_vAB('BC')}`][k];
+    return _vOne(`${head}，求 \\(${ask}\\)`, _vNum(frac([c * c, b * b, b * b - c * c][k], 2)), '');
+  }
+  // x c² + y d = c²/2、x d + y b² = b²/2
+  const c2 = frac(c * c), b2 = frac(b * b), D = fsub(fmul(b2, c2), fmul(d, d));
+  if (D.num === 0) return null;
+  const x = fdiv(fmul(b2, fsub(c2, d)), fmul(frac(2), D)), y = fdiv(fmul(c2, fsub(b2, d)), fmul(frac(2), D));
+  return _vParts(`${head}，若 \\(${AO}=x${AB}+y${AC}\\)，求 \\(x\\)、\\(y\\)`, ['x', 'y'], [_vNum(x), _vNum(y)]);
 }
 
 function _vGen(f, level, B) {
