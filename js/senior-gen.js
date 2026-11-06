@@ -8659,10 +8659,259 @@ function _vGen(f, level, B) {
   for (let i = 0; i < 300; i++) { const q = f(i < 200 ? level : 'basic', B); if (q) return q; }
   return null;
 }
-function genB3aVecRepr(level) { return _vGen(_vRepr, level, false); }
-function genB3aVecDot(level)  { return _vGen(_vDotQ, level, false); }
-function genB3bVecRepr(level) { return _vGen(_vRepr, level, true); }
-function genB3bVecDot(level)  { return _vGen(_vDotQ, level, true); }
+// ── 平面向量：分數、小數、根號類似題（依 _V_VAR_RATE 比例混入） ──────
+const _V_VAR_RATE = 0.4;
+const _vFq = () => { const d = pick([2, 3, 4, 5, 6]); let n; do { n = srRnz(-3 * d, 3 * d); } while (n % d === 0); return frac(n, d); };
+const _vDq = () => frac(srRnz(-45, 45), 10);
+const _vIsDec = f => { let d = f.den; while (d % 2 === 0) d /= 2; while (d % 5 === 0) d /= 5; return d === 1; };
+// 小數題的數值顯示為小數（不能整除時改為分數）
+const _vS = (f, dec) => dec && _vIsDec(f) ? String(f.num / f.den) : _sfT(f);
+const _vAnsF = (f, dec) => dec && f.den > 1 && 1000 % f.den === 0 ? { answer: f.num / f.den, type: 'number' } : _vNum(f);
+// 根號內化簡後的數（如 72 → 2）
+const _vSqf = n => { for (let k = 2; k * k <= n; k++) while (n % (k * k) === 0) n /= k * k; return n; };
+const _vPf = (u, dec) => `(${_vS(u[0], dec)},${_vS(u[1], dec)})`;
+const _vFv = dec => dec ? [_vDq(), _vDq()] : [_vFq(), _vFq()];
+const _vFadd = (u, v) => [fadd(u[0], v[0]), fadd(u[1], v[1])];
+const _vFsc = (k, u) => [fmul(k, u[0]), fmul(k, u[1])];
+const _vFdot = (u, v) => fadd(fmul(u[0], v[0]), fmul(u[1], v[1]));
+const _vFcr = (u, v) => fsub(fmul(u[0], v[1]), fmul(u[1], v[0]));
+const _vFzero = u => u[0].num === 0 && u[1].num === 0;
+// 分數向量 → 同方向的整數向量 [x, y] 與公分母 D（u = (x, y)/D）
+function _vFint(u) {
+  const D = u[0].den * u[1].den / srGcd(u[0].den, u[1].den);
+  return { v: [u[0].num * D / u[0].den, u[1].num * D / u[1].den], D };
+}
+// 係數式（分數或小數係數），如 \dfrac{1}{2}\vec{a}-\dfrac{2}{3}\vec{b}
+function _vLinF(cs, names, dec) {
+  let s = '';
+  cs.forEach((c, i) => {
+    if (c.num === 0) return;
+    const a = frac(Math.abs(c.num), c.den), t = (a.num === 1 && a.den === 1 ? '' : _vS(a, dec)) + names[i];
+    s += c.num < 0 ? '-' + t : (s ? '+' : '') + t;
+  });
+  return s;
+}
+// 根式 c√r 的顯示
+const _vRt = (c, r) => c === 0 ? '0' : r === 1 ? String(c) : `${c === 1 ? '' : c === -1 ? '-' : c}\\sqrt{${r}}`;
+// √n 化簡後的顯示
+const _vSq = n => { const r = _vRadAns(1, 1, n); return r.type === 'text' ? r.answer : String(r.answer); };
+// 30° 倍角的 2(cosα, sinα)，每個分量為 [係數, 根號內]
+const _v30 = [[[2, 1], [0, 1]], [[1, 3], [1, 1]], [[1, 1], [1, 3]], [[0, 1], [2, 1]], [[-1, 1], [1, 3]], [[-1, 3], [1, 1]],
+              [[-2, 1], [0, 1]], [[-1, 3], [-1, 1]], [[-1, 1], [-1, 3]], [[0, 1], [-2, 1]], [[1, 1], [-1, 3]], [[1, 3], [-1, 1]]];
+const _v30P = (i, m) => `(${_vRt(_v30[i][0][0] * m, _v30[i][0][1])},${_vRt(_v30[i][1][0] * m, _v30[i][1][1])})`;
+// 0°,30°,…,180° 的 cos：[分子, 分母, 根號內]
+const _vCos30 = [[1, 1, 1], [1, 2, 3], [1, 2, 1], [0, 1, 1], [-1, 2, 1], [-1, 2, 3], [-1, 1, 1]];
+// 有理數答案在小數題中改填小數
+const _vRadD = (p, q, n, dec) => { const r = _vRadAns(p, q, n); return r.type === 'fraction' ? _vAnsF(r.answer, dec) : r; };
+
+function _vReprVar(level) {
+  const a = _vV('a'), b = _vV('b'), c = _vV('c'), dec = Math.random() < 0.4;
+  const coord = (q, u) => ({ question: q, coordAnswer: true, answerParts: [_vAnsF(u[0], dec), _vAnsF(u[1], dec)] });
+  if (level === 'basic') {
+    const t = _vType('rv-basic', [0, 1, 2, 3]);
+    if (t === 0) {
+      const P = _vFv(dec), Q = _vFv(dec), d = _vFadd(Q, _vFsc(frac(-1), P));
+      if (_vFzero(d)) return null;
+      return coord(`已知 \\(A${_vPf(P, dec)}\\)、\\(B${_vPf(Q, dec)}\\)，求 \\(${_vAB('AB')}\\) 的坐標`, d);
+    }
+    if (t === 1) {
+      if (Math.random() < 0.5) {
+        // 分數（小數）向量、整數係數
+        const u = _vFv(dec), v = _vFv(dec), p = _vNz(4), q = _vNz(4);
+        return coord(`已知 \\(${a}=${_vPf(u, dec)}\\)、\\(${b}=${_vPf(v, dec)}\\)，求 \\(${_vLin([p, q], [a, b])}\\) 的坐標`, _vFadd(_vFsc(frac(p), u), _vFsc(frac(q), v)));
+      }
+      // 整數向量、分數（小數）係數
+      const u = _vVec(8), v = _vVec(8), p = dec ? frac(pick([5, 15, 25, -5, -15]), 10) : _vFq(), q = dec ? frac(srRnz(-25, 25), 10) : _vFq();
+      const U = [frac(u[0]), frac(u[1])], V2 = [frac(v[0]), frac(v[1])];
+      return coord(`已知 \\(${a}=${_vP(...u)}\\)、\\(${b}=${_vP(...v)}\\)，求 \\(${_vLinF([p, q], [a, b], dec)}\\) 的坐標`, _vFadd(_vFsc(p, U), _vFsc(q, V2)));
+    }
+    if (t === 2) {
+      const r = Math.random();
+      if (r < 0.4) {
+        // (√p, √q)
+        const p = srRandInt(1, 12), q = srRandInt(1, 12);
+        if (Number.isInteger(Math.sqrt(p)) && Number.isInteger(Math.sqrt(q))) return null;
+        const sp = s => Math.random() < 0.3 ? '-' + _vSq(s) : _vSq(s);
+        return _vOne(`已知 \\(${a}=(${sp(p)},${sp(q)})\\)，求 \\(|${a}|\\)`, _vRadAns(1, 1, p + q), `\\(|${a}|\\)`);
+      }
+      if (r < 0.7) {
+        // 小數畢氏數
+        const tr = pick([[3, 4, 5], [5, 12, 13], [8, 15, 17], [7, 24, 25]]), s = pick([1, 2, 3, 5, 15, 25]);
+        const u = [frac(tr[0] * s * pick([1, -1]), 10), frac(tr[1] * s * pick([1, -1]), 10)];
+        return _vOne(`已知 \\(${a}=${_vPf(u, true)}\\)，求 \\(|${a}|\\)`, _vAnsF(frac(tr[2] * s, 10), true), `\\(|${a}|\\)`);
+      }
+      // 分數坐標
+      const u = [_vFq(), _vFq()], I = _vFint(u);
+      if (_vSqf(I.v[0] ** 2 + I.v[1] ** 2) > 30) return null;
+      return _vOne(`已知 \\(${a}=${_vPf(u, false)}\\)，求 \\(|${a}|\\)`, _vRadAns(1, I.D, I.v[0] ** 2 + I.v[1] ** 2), `\\(|${a}|\\)`);
+    }
+    // 平行求 k（分數或小數坐標）
+    const v = _vFv(dec), w = dec ? _vDq() : _vFq(), first = Math.random() < 0.5;
+    if (v[0].num === 0 || v[1].num === 0) return null;
+    const k = first ? fdiv(fmul(w, v[1]), v[0]) : fdiv(fmul(w, v[0]), v[1]), ws = _vS(w, dec);
+    return _vOne(`已知 \\(${a}=${first ? `(${ws},k)` : `(k,${ws})`}\\)、\\(${b}=${_vPf(v, dec)}\\)，且 \\(${a}\\parallel${b}\\)，求 \\(k\\)`, _vAnsF(k, dec), 'k');
+  }
+
+  if (level === 'medium') {
+    const t = _vType('rv-med', [0, 1, 2, 3, 4]);
+    if (t === 0) {
+      // c = xa + yb，a、b 為小數或分數向量，x、y 為整數
+      const u = _vFv(dec), v = _vFv(dec), x = _vNz(4), y = _vNz(4);
+      if (_vFcr(u, v).num === 0) return null;
+      const w = _vFadd(_vFsc(frac(x), u), _vFsc(frac(y), v));
+      return _vParts(`已知 \\(${a}=${_vPf(u, dec)}\\)、\\(${b}=${_vPf(v, dec)}\\)、\\(${c}=${_vPf(w, dec)}\\)，若 \\(${c}=x${a}+y${b}\\)，求 \\(x\\)、\\(y\\)`,
+        ['x', 'y'], [_vNum(x), _vNum(y)]);
+    }
+    if (t === 1) {
+      // 內分點（小數題取 m+n 使結果為有限小數）
+      const P = _vFv(dec), Q = _vFv(dec);
+      const [m, n] = dec ? pick([[1, 1], [1, 3], [3, 1], [1, 4], [4, 1], [2, 3], [3, 2], [3, 5], [5, 3], [1, 9], [3, 7], [7, 3]]) : [srRandInt(1, 5), srRandInt(1, 5)];
+      if (srGcd(m, n) !== 1 || _vFzero(_vFadd(Q, _vFsc(frac(-1), P)))) return null;
+      return coord(`已知 \\(A${_vPf(P, dec)}\\)、\\(B${_vPf(Q, dec)}\\)，點 \\(P\\) 在 \\(\\overline{AB}\\) 上且 \\(\\overline{AP}:\\overline{PB}=${m}:${n}\\)，求 \\(P\\) 點坐標`,
+        _vFsc(frac(1, m + n), _vFadd(_vFsc(frac(n), P), _vFsc(frac(m), Q))));
+    }
+    if (t === 2) {
+      // 重心（分數坐標）
+      const P = _vFv(false), Q = _vFv(false), R = _vFv(false), d1 = _vFadd(Q, _vFsc(frac(-1), P)), d2 = _vFadd(R, _vFsc(frac(-1), P));
+      if (_vFcr(d1, d2).num === 0) return null;
+      const G = _vFsc(frac(1, 3), _vFadd(_vFadd(P, Q), R));
+      return { question: `\\(\\triangle ABC\\) 中，\\(A${_vPf(P)}\\)、\\(B${_vPf(Q)}\\)、\\(C${_vPf(R)}\\)，求重心 \\(G\\) 的坐標`, coordAnswer: true, answerParts: [_vNum(G[0]), _vNum(G[1])] };
+    }
+    if (t === 3) {
+      // 根號坐標的單位向量：a = m·2(cosα, sinα)
+      const i = pick([1, 2, 4, 5, 7, 8, 10, 11]), m = srRandInt(1, 3), C = _v30[i];
+      if (Math.random() < 0.5)
+        return { question: `已知 \\(${a}=${_v30P(i, m)}\\)，求與 \\(${a}\\) 同方向的單位向量`, coordAnswer: true, answerParts: [_vRadAns(C[0][0], 2, C[0][1]), _vRadAns(C[1][0], 2, C[1][1])] };
+      const k = srRandInt(2, 8), s = pick([1, -1]);
+      return { question: `已知 \\(${a}=${_v30P(i, m)}\\)，求與 \\(${a}\\) ${s > 0 ? '同' : '反'}方向且長度為 \\(${k}\\) 的向量`, coordAnswer: true,
+        answerParts: [_vRadAns(s * k * C[0][0], 2, C[0][1]), _vRadAns(s * k * C[1][0], 2, C[1][1])] };
+    }
+    // |pa + qb|（分數向量）
+    const u = _vFv(false), v = _vFv(false), p = srRandInt(1, 3), q = _vNz(3), w = _vFadd(_vFsc(frac(p), u), _vFsc(frac(q), v));
+    if (_vFzero(w)) return null;
+    const I = _vFint(w), L = `|${_vLin([p, q], [a, b])}|`;
+    if (_vSqf(I.v[0] ** 2 + I.v[1] ** 2) > 30) return null;
+    return _vOne(`已知 \\(${a}=${_vPf(u)}\\)、\\(${b}=${_vPf(v)}\\)，求 \\(${L}\\)`, _vRadAns(1, I.D, I.v[0] ** 2 + I.v[1] ** 2), `\\(${L}\\)`);
+  }
+
+  // hard
+  const t = _vType('rv-hard', [0, 1, 2]);
+  if (t === 0) {
+    // 分數係數的向量式：(1/u)PA ± (1/w)PB = 0
+    const P = _vPt(), Q = _vPt(), c1 = frac(1, srRandInt(2, 5)), c2 = frac(pick([1, -1]) * srRandInt(1, 3), srRandInt(2, 5)), S = fadd(c1, c2);
+    if (S.num === 0 || c2.den === 1 || (P[0] === Q[0] && P[1] === Q[1])) return null;
+    const X = _vFsc(fdiv(frac(1), S), _vFadd(_vFsc(c1, [frac(P[0]), frac(P[1])]), _vFsc(c2, [frac(Q[0]), frac(Q[1])])));
+    return { question: `已知 \\(A${_vP(...P)}\\)、\\(B${_vP(...Q)}\\)，點 \\(P\\) 滿足 \\(${_vLinF([c1, c2], [_vAB('PA'), _vAB('PB')])}=\\vec{0}\\)，求 \\(P\\) 點坐標`,
+      coordAnswer: true, answerParts: [_vNum(X[0]), _vNum(X[1])] };
+  }
+  if (t === 1) {
+    // c = xa + yb，全部為分數向量
+    const u = _vFv(false), v = _vFv(false), w = _vFv(false), D = _vFcr(u, v);
+    if (D.num === 0) return null;
+    const x = fdiv(_vFcr(w, v), D), y = fdiv(_vFcr(u, w), D);
+    if (x.num === 0 || y.num === 0 || x.den > 30 || y.den > 30) return null;
+    return _vParts(`已知 \\(${a}=${_vPf(u)}\\)、\\(${b}=${_vPf(v)}\\)、\\(${c}=${_vPf(w)}\\)，若 \\(${c}=x${a}+y${b}\\)，求 \\(x\\)、\\(y\\)`, ['x', 'y'], [_vNum(x), _vNum(y)]);
+  }
+  // 分數（小數）坐標的單位向量，答案含根號
+  const u = _vFv(dec), I = _vFint(u), N = I.v[0] ** 2 + I.v[1] ** 2;
+  if (_vFzero(u) || Number.isInteger(Math.sqrt(N)) || _vSqf(N) > 30) return null;
+  return { question: `已知 \\(${a}=${_vPf(u, dec)}\\)，求與 \\(${a}\\) 同方向的單位向量`, coordAnswer: true, answerParts: [_vRadAns(I.v[0], N, N), _vRadAns(I.v[1], N, N)] };
+}
+
+function _vDotVar(level) {
+  const a = _vV('a'), b = _vV('b'), c = _vV('c'), ab = `${a}\\cdot${b}`, dec = Math.random() < 0.4;
+  const given2 = (u, v) => `已知 \\(${a}=${_vPf(u, dec)}\\)、\\(${b}=${_vPf(v, dec)}\\)`;
+  const askAng = `求 \\(${a}\\) 與 \\(${b}\\) 的夾角 \\(\\theta\\)（\\(0^\\circ\\le\\theta\\le180^\\circ\\)，以度表示）`;
+  const ang = A => `\\(${a}\\) 與 \\(${b}\\) 的夾角為 \\(${A}^\\circ\\)`;
+  if (level === 'basic') {
+    const t = _vType('dv-basic', [0, 1, 2, 3]);
+    if (t === 0) {
+      const u = _vFv(dec), v = _vFv(dec);
+      return _vOne(`${given2(u, v)}，求 \\(${ab}\\)`, _vAnsF(_vFdot(u, v), dec), `\\(${ab}\\)`);
+    }
+    if (t === 1) {
+      // 長度為根號、分數或小數
+      const n = srRandInt(1, 8), A = _vAng([30, 45, 60, 120, 135, 150]), r = Math.random();
+      let L, ans;
+      if (r < 0.4) { const p = pick([2, 3, 5, 6]); L = `\\sqrt{${p}}`; ans = _vRadAns(n * A[1], A[2], p * A[3]); }
+      else { const f = dec ? frac(pick([5, 15, 25, 35, 45]), 10) : frac(srRandInt(1, 7), pick([2, 3, 4])); if (f.den === 1) return null; L = _vS(f, dec); ans = _vRadD(f.num * n * A[1], f.den * A[2], A[3], dec); }
+      return _vOne(`已知 \\(|${a}|=${L}\\)、\\(|${b}|=${n}\\)，且 ${ang(A[0])}，求 \\(${ab}\\)`, ans, `\\(${ab}\\)`);
+    }
+    if (t === 2) {
+      // 垂直求 k（分數或小數坐標）
+      const u = _vFv(dec), w = dec ? _vDq() : _vFq(), first = Math.random() < 0.5;
+      if (u[0].num === 0 || u[1].num === 0) return null;
+      const k = first ? fdiv(fmul(frac(-1), fmul(u[1], w)), u[0]) : fdiv(fmul(frac(-1), fmul(u[0], w)), u[1]), ws = _vS(w, dec);
+      return _vOne(`已知 \\(${a}=${_vPf(u, dec)}\\)、\\(${b}=${first ? `(k,${ws})` : `(${ws},k)`}\\)，且 \\(${a}\\perp${b}\\)，求 \\(k\\)`, _vAnsF(k, dec), 'k');
+    }
+    // 根號坐標求夾角
+    const i = srRandInt(0, 11), j = srRandInt(0, 11), d = Math.abs(i - j), deg = (d > 6 ? 12 - d : d) * 30;
+    if (deg === 0 || deg === 180 || (_v30[i][0][1] === 1 && _v30[i][1][1] === 1 && _v30[j][0][1] === 1 && _v30[j][1][1] === 1)) return null;
+    return _vOne(`已知 \\(${a}=${_v30P(i, srRandInt(1, 3))}\\)、\\(${b}=${_v30P(j, srRandInt(1, 3))}\\)，${askAng}`, _vNum(deg), '\\(\\theta\\)');
+  }
+
+  if (level === 'medium') {
+    const t = _vType('dv-med', [0, 1, 2, 3, 4]);
+    if (t === 0) {
+      // 根號坐標的內積：a·b = 4mn·cos(α−β)
+      const i = srRandInt(0, 11), j = srRandInt(0, 11), m = srRandInt(1, 3), n = srRandInt(1, 3), d = Math.abs(i - j), C = _vCos30[d > 6 ? 12 - d : d];
+      if (i === j) return null;
+      return _vOne(`已知 \\(${a}=${_v30P(i, m)}\\)、\\(${b}=${_v30P(j, n)}\\)，求 \\(${ab}\\)`, _vRadAns(4 * m * n * C[0], C[1], C[2]), `\\(${ab}\\)`);
+    }
+    if (t === 1) {
+      // |a| = √2（45°、135°）或 √3（30°、150°），使 a·b 為有理數
+      const s = pick([2, 3]), n = srRandInt(1, 6), p = srRandInt(1, 3), q = _vNz(3), obt = Math.random() < 0.5;
+      const deg = s === 2 ? (obt ? 135 : 45) : (obt ? 150 : 30), D2 = (obt ? -1 : 1) * (s === 2 ? 2 * n : 3 * n);  // 2·a·b
+      const S = p * p * s + q * q * n * n + p * q * D2, L = `|${_vLin([p, q], [a, b])}|`;
+      if (S <= 0) return null;
+      return _vOne(`已知 \\(|${a}|=\\sqrt{${s}}\\)、\\(|${b}|=${n}\\)，且 ${ang(deg)}，求 \\(${L}\\)`, _vRadAns(1, 1, S), `\\(${L}\\)`);
+    }
+    if (t === 2) {
+      // cosθ（分數或小數坐標）
+      const u = _vFv(dec), v = _vFv(dec), U = _vFint(u).v, V = _vFint(v).v, d = _vDot(U, V), L = (U[0] ** 2 + U[1] ** 2) * (V[0] ** 2 + V[1] ** 2);
+      if (d === 0 || d * d === L) return null;
+      let sf = L;
+      for (let k = 2; k * k <= sf; k++) while (sf % (k * k) === 0) sf /= k * k;
+      if (sf > 30) return null;
+      return _vOne(`${given2(u, v)}，設 \\(${a}\\) 與 \\(${b}\\) 的夾角為 \\(\\theta\\)，求 \\(\\cos\\theta\\)`, _vRadAns(d, L, L), '\\(\\cos\\theta\\)');
+    }
+    if (t === 3) {
+      // 正射影（分數或小數坐標）
+      const u = _vFv(dec), v = _vFv(dec), d = _vFdot(u, v);
+      if (d.num === 0) return null;
+      const P = _vFsc(fdiv(d, _vFdot(v, v)), v);
+      if (P[0].den > 200 || P[1].den > 200) return null;
+      return { question: `${given2(u, v)}，求 \\(${a}\\) 在 \\(${b}\\) 上的正射影`, coordAnswer: true, answerParts: [_vAnsF(P[0], dec), _vAnsF(P[1], dec)] };
+    }
+    // 根號長度：(a∓b)⊥a → a·b = ±|a|²
+    const k = pick([2, 3, 5, 6, 7]), half = Math.random() < 0.5, plus = Math.random() < 0.5;
+    const Lb = half ? _vSq(2 * k) : `2\\sqrt{${k}}`, deg = half ? (plus ? 135 : 45) : (plus ? 120 : 60);
+    return _vOne(`已知 \\(|${a}|=\\sqrt{${k}}\\)、\\(|${b}|=${Lb}\\)，且 \\((${a}${plus ? '+' : '-'}${b})\\perp${a}\\)，${askAng}`, _vNum(deg), '\\(\\theta\\)');
+  }
+
+  // hard
+  if (Math.random() < 0.5) {
+    // |a + t b| 的最小值（分數向量）
+    const u = _vFv(false), v = _vFv(false), d = _vFdot(u, v), X = _vFcr(u, v);
+    if (d.num === 0 || X.num === 0) return null;
+    const I = _vFint(v), n = I.v[0] ** 2 + I.v[1] ** 2, tt = fdiv(fmul(frac(-1), d), _vFdot(v, v));
+    if (tt.den > 100) return null;
+    return _vParts(`已知 \\(${a}=${_vPf(u)}\\)、\\(${b}=${_vPf(v)}\\)，\\(t\\) 為實數，求 \\(|${a}+t${b}|\\) 有最小值時的 \\(t\\) 值及此最小值`,
+      ['\\(t\\)', '最小值'], [_vNum(tt), _vRadAns(Math.abs(X.num) * I.D, X.den * n, n)]);
+  }
+  // 三邊長含根號：AB·AC = (AB² + AC² − BC²)/2
+  const p = srRandInt(2, 30), q = srRandInt(2, 30), r = srRandInt(2, 30), sp = Math.sqrt(p), sq = Math.sqrt(q), sr = Math.sqrt(r);
+  if (sp + sq <= sr + 1e-9 || sp + sr <= sq + 1e-9 || sq + sr <= sp + 1e-9 || [p, q, r].every(x => Number.isInteger(Math.sqrt(x))) || p + q === r) return null;
+  const tri = `\\(\\triangle ABC\\) 中，\\(\\overline{AB}=${_vSq(p)}\\)、\\(\\overline{AC}=${_vSq(q)}\\)、\\(\\overline{BC}=${_vSq(r)}\\)`;
+  if (Math.random() < 0.5) return _vOne(`${tri}，求 \\(${_vAB('AB')}\\cdot${_vAB('AC')}\\)`, _vNum(frac(p + q - r, 2)), '');
+  return _vOne(`${tri}，求 \\(${_vAB('BA')}\\cdot${_vAB('BC')}\\)`, _vNum(frac(p + r - q, 2)), '');
+}
+
+const _vMix = (f, fv, level, B) => Math.random() < _V_VAR_RATE ? (_vGen(fv, level, B) || _vGen(f, level, B)) : _vGen(f, level, B);
+function genB3aVecRepr(level) { return _vMix(_vRepr, _vReprVar, level, false); }
+function genB3aVecDot(level)  { return _vMix(_vDotQ, _vDotVar, level, false); }
+function genB3bVecRepr(level) { return _vMix(_vRepr, _vReprVar, level, true); }
+function genB3bVecDot(level)  { return _vMix(_vDotQ, _vDotVar, level, true); }
 
 // ── b3a-area-det：面積與二階行列式（含克拉瑪公式） ─────────────────
 const _dM = (a, b, c, d) => `\\begin{vmatrix}${a}&${b}\\\\${c}&${d}\\end{vmatrix}`;
