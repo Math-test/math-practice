@@ -10602,7 +10602,7 @@ function _9aCircleLine(level){
     if(t===1){
       // 兩等弦等距：弦長相等→圓心距相等
       const [d,hl,r]=pick(PY3C);
-      return {question:`圓 \\(O\\) 半徑為 \\(${r}\\)，弦 \\(AB=CD=${2*hl}\\)，求圓心 \\(O\\) 到兩弦的距離`,answer:d,type:'number',answerPrefix:'距離'};
+      return {question:`圓 \\(O\\) 的半徑為 \\(${r}\\)，\\(AB\\)、\\(CD\\) 是圓 \\(O\\) 的兩條弦，長度都是 \\(${2*hl}\\)。因為等長的弦到圓心的距離相等，求圓心 \\(O\\) 到弦 \\(AB\\)（也就是到弦 \\(CD\\)）的距離`,answer:d,type:'number',answerPrefix:'圓心到弦的距離'};
     }
     if(t===2){
       // 切線長代數
