@@ -10629,7 +10629,14 @@ function _9aCircleLine(level){
     const ps=PY3C.filter(v=>v[2]===r);
     const P1=pick(ps),P2=pick(ps);
     if(P1[0]===P2[0])return null;
-    const same=randInt(0,1);
+    const same=randInt(0,1),kind=randInt(0,2);
+    const lo=Math.min(P1[0],P2[0]),hi=Math.max(P1[0],P2[0]);
+    if(kind===1)// 未說明同側或兩側：兩種可能
+      return {question:`圓 \\(O\\) 的半徑為 \\(${r}\\)，\\(AB\\)、\\(CD\\) 為兩平行弦，\\(AB=${2*P1[1]}\\)，\\(CD=${2*P2[1]}\\)，求兩弦之間的距離（有兩種可能，兩弦在圓心同側或兩側）`,
+        answerParts:[{prefix:'同側時距離',answer:hi-lo,type:'number'},{prefix:'兩側時距離',answer:hi+lo,type:'number'}]};
+    if(kind===2)// 反求半徑：已知兩弦長與兩弦距離
+      return {question:`圓 \\(O\\) 中，\\(AB\\)、\\(CD\\) 為兩平行弦，\\(AB=${2*P1[1]}\\)，\\(CD=${2*P2[1]}\\)，兩弦在圓心的${same?'同側':'兩側'}，且兩弦之間的距離為 \\(${same?hi-lo:hi+lo}\\)，求圓 \\(O\\) 的半徑`,
+        answer:r,type:'number',answerPrefix:'半徑'};
     return {question:`圓 \\(O\\) 的半徑為 \\(${r}\\)，\\(AB\\)、\\(CD\\) 為兩平行弦，\\(AB=${2*P1[1]}\\)，\\(CD=${2*P2[1]}\\)，且兩弦在圓心的${same?'同側':'兩側'}，求兩弦之間的距離`,
       answer:same?Math.abs(P1[0]-P2[0]):P1[0]+P2[0],type:'number',answerPrefix:'距離'};
   }
