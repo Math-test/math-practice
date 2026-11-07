@@ -10864,6 +10864,102 @@ function _9aCircChorTan(level){
 }
 
 // ═══════════════════════════════════════════════════════════════════
+//  九上 ▸ 圓內角與圓外角（補充，非108課綱）
+//  圓內角＝所對兩弧和的一半；圓外角＝所夾兩弧差的一半
+// ═══════════════════════════════════════════════════════════════════
+function gen9aCircInOut(level){
+  for(let i=0;i<50;i++){const q=_9aCircInOut(level);if(q)return q;}
+  return _9aCircInOut('basic');
+}
+function _9aCircInOut(level){
+  const arc=s=>`\\(\\overset{\\frown}{${s}}\\)`;
+  const deg=v=>`\\(${v}^\\circ\\)`;
+  const ang=s=>`\\(\\angle ${s}\\)`;
+  const IN4='\\(A\\)、\\(B\\)、\\(C\\)、\\(D\\) 依序在圓 \\(O\\) 上，弦 \\(AC\\) 與 \\(BD\\) 交於圓內一點 \\(P\\)';
+  const SEC2='點 \\(P\\) 在圓 \\(O\\) 外，割線 \\(PAB\\) 與 \\(PCD\\) 分別交圓於 \\(A\\)、\\(B\\) 與 \\(C\\)、\\(D\\)（\\(A\\)、\\(C\\) 離 \\(P\\) 較近）';
+  const TAN2='點 \\(P\\) 在圓 \\(O\\) 外，\\(PA\\)、\\(PB\\) 為圓的兩切線，\\(A\\)、\\(B\\) 為切點';
+  const TS='點 \\(P\\) 在圓 \\(O\\) 外，\\(PA\\) 切圓於 \\(A\\)，割線 \\(PBC\\) 交圓於 \\(B\\)、\\(C\\)（\\(B\\) 離 \\(P\\) 較近）';
+  const NOTE='（弧皆指不含其他標示點的那段弧）';
+  // 兩弧：差為偶數、和 < 360
+  const twoArcs=(lo,hi,sumMax,parity)=>{const a=randInt(lo,hi)*10,b=randInt(lo,hi)*10;
+    if(a+b>sumMax)return null;if(parity==='diff'&&a===b)return null;return[a,b];};
+  if(level==='basic'){
+    const t=randInt(0,3);
+    if(t===0){// 圓內角：∠APB＝(AB＋CD)/2
+      const p=twoArcs(2,16,300);if(!p)return null;const[a,b]=p;
+      return{question:`${IN4}，${arc('AB')}\\(=${a}^\\circ\\)、${arc('CD')}\\(=${b}^\\circ\\)${NOTE}，求 ${ang('APB')}（圓內角＝所對兩弧和的一半）`,
+        answer:(a+b)/2,type:'number',answerPrefix:ang('APB')};
+    }
+    if(t===1){// 圓內角的鄰角：∠BPC＝180−(AB＋CD)/2
+      const p=twoArcs(2,16,300);if(!p)return null;const[a,b]=p;
+      return{question:`${IN4}，${arc('AB')}\\(=${a}^\\circ\\)、${arc('CD')}\\(=${b}^\\circ\\)${NOTE}，求 ${ang('BPC')}`,
+        answer:180-(a+b)/2,type:'number',answerPrefix:ang('BPC')};
+    }
+    if(t===2){// 兩割線圓外角：∠P＝(BD−AC)/2
+      const near=randInt(2,10)*10,far=near+randInt(2,16)*10;if(near+far>320)return null;
+      return{question:`${SEC2}，${arc('BD')}\\(=${far}^\\circ\\)、${arc('AC')}\\(=${near}^\\circ\\)${NOTE}，求 ${ang('P')}（圓外角＝所夾兩弧差的一半）`,
+        answer:(far-near)/2,type:'number',answerPrefix:ang('P')};
+    }
+    // 兩切線：∠APB＝(優弧−劣弧)/2＝180−劣弧
+    const m=randInt(4,16)*10;
+    return{question:`${TAN2}，劣弧 ${arc('AB')}\\(=${m}^\\circ\\)，求 ${ang('APB')}（圓外角＝優弧與劣弧差的一半）`,
+      answer:180-m,type:'number',answerPrefix:ang('APB')};
+  }
+  if(level==='medium'){
+    const t=randInt(0,4);
+    if(t===0){// 圓內角反求弧
+      const p=twoArcs(2,16,300);if(!p)return null;const[a,b]=p;
+      return{question:`${IN4}，${ang('APB')}\\(=${(a+b)/2}^\\circ\\)，${arc('AB')}\\(=${a}^\\circ\\)${NOTE}，求 ${arc('CD')} 的度數`,
+        answer:b,type:'number',answerPrefix:arc('CD')};
+    }
+    if(t===1){// 兩割線反求遠弧
+      const near=randInt(2,10)*10,far=near+randInt(2,16)*10;if(near+far>320)return null;
+      return{question:`${SEC2}，${ang('P')}\\(=${(far-near)/2}^\\circ\\)，${arc('AC')}\\(=${near}^\\circ\\)${NOTE}，求 ${arc('BD')} 的度數`,
+        answer:far,type:'number',answerPrefix:arc('BD')};
+    }
+    if(t===2){// 切線與割線：∠P＝(AC−AB)/2
+      const m=randInt(2,10)*10,n=m+randInt(2,16)*10;if(m+n>320)return null;
+      return{question:`${TS}，${arc('AC')}\\(=${n}^\\circ\\)、${arc('AB')}\\(=${m}^\\circ\\)${NOTE}，求 ${ang('P')}`,
+        answer:(n-m)/2,type:'number',answerPrefix:ang('P')};
+    }
+    if(t===3){// 四弧比，求圓內角
+      const r=[randInt(1,6),randInt(1,6),randInt(1,6),randInt(1,6)],s=r[0]+r[1]+r[2]+r[3];
+      if(360%s||gcd(gcd(r[0],r[1]),gcd(r[2],r[3]))!==1)return null;const u=360/s;if((r[0]+r[2])*u%2)return null;
+      return{question:`${IN4}，且 ${arc('AB')}：${arc('BC')}：${arc('CD')}：${arc('DA')}\\(=${r.join(':')}\\)${NOTE}，求 ${ang('APB')}`,
+        answer:(r[0]+r[2])*u/2,type:'number',answerPrefix:ang('APB')};
+    }
+    // 兩切線：已知 ∠APB 求優弧
+    const m=randInt(4,16)*10;
+    return{question:`${TAN2}，${ang('APB')}\\(=${180-m}^\\circ\\)，求優弧 ${arc('AB')} 的度數`,
+      answer:360-m,type:'number',answerPrefix:'優弧 '+arc('AB')};
+  }
+  // hard
+  const t=randInt(0,3);
+  if(t===0){// 圓內角與圓外角聯立：∠P＝(BC−AD)/2，∠AQD＝(AD+BC)/2
+    const AD=randInt(2,12)*10,BC=AD+randInt(1,10)*20;if(AD+BC>300)return null;
+    const P=(BC-AD)/2,Q=(AD+BC)/2,askBC=randInt(0,1);
+    return{question:`\\(A\\)、\\(B\\)、\\(C\\)、\\(D\\) 依序在圓 \\(O\\) 上，直線 \\(BA\\) 與 \\(CD\\) 延長後交於圓外一點 \\(P\\)，弦 \\(AC\\) 與 \\(BD\\) 交於圓內一點 \\(Q\\)。若 ${ang('P')}\\(=${P}^\\circ\\)、${ang('AQD')}\\(=${Q}^\\circ\\)，求 ${arc(askBC?'BC':'AD')} 的度數${NOTE}`,
+      answer:askBC?BC:AD,type:'number',answerPrefix:arc(askBC?'BC':'AD')};
+  }
+  if(t===1){// 兩切線＋弧比
+    const p=randInt(1,7),q=randInt(1,7);if(p<=q||gcd(p,q)!==1)return null;const s=p+q;if(360%s)return null;
+    const m=360*q/s;if(m<20)return null;
+    return{question:`${TAN2}，優弧 ${arc('AB')} 與劣弧 ${arc('AB')} 的度數比為 \\(${p}:${q}\\)，求 ${ang('APB')}`,
+      answer:180-m,type:'number',answerPrefix:ang('APB')};
+  }
+  if(t===2){// 代數：圓內角
+    const p=twoArcs(2,16,300);if(!p)return null;const[a,b]=p;const v=(a+b)/2;
+    const xv=randInt(2,9),av=randInt(2,5),bv=v-av*xv;if(bv<=0)return null;
+    return{question:`${IN4}，${arc('AB')}\\(=${a}^\\circ\\)、${arc('CD')}\\(=${b}^\\circ\\)${NOTE}，${ang('APB')}\\(=(${av}x+${bv})^\\circ\\)，求 \\(x\\)`,
+      answer:xv,type:'number',answerPrefix:'\\(x\\)'};
+  }
+  // 切線與割線：已知 ∠P 與近弧，求弧 BC
+  const m=randInt(2,8)*10,n=m+randInt(2,14)*10,BC=360-m-n;if(BC<20)return null;
+  return{question:`${TS}，${ang('P')}\\(=${(n-m)/2}^\\circ\\)，${arc('AB')}\\(=${m}^\\circ\\)${NOTE}，求 ${arc('BC')} 的度數`,
+    answer:BC,type:'number',answerPrefix:arc('BC')};
+}
+
+// ═══════════════════════════════════════════════════════════════════
 //  九上 ▸ 三角形的心
 // ═══════════════════════════════════════════════════════════════════
 // 三角形的心：分數與根式答案
@@ -11413,6 +11509,7 @@ const JR_GENERATORS = {
   '9a-circle-line':    gen9aCircleLine,
   '9a-circle-angle':   gen9aCircleAngle,
   '9a-circle-chord-tan': gen9aCircChorTan,
+  '9a-circle-inout': gen9aCircInOut,
   '9a-tri-center':     gen9aTriCenter,
   // 八下（梯形・箏形單獨出題）
   '8b-trap':           gen8bTrapezoid,

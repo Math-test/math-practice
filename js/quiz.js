@@ -114,6 +114,7 @@ const TOPIC_NAMES = {
   '9a-circle-line':    '九上·點線圓',
   '9a-circle-angle':   '九上·圓心角與圓周角',
   '9a-circle-chord-tan': '九上·弦切角',
+  '9a-circle-inout': '九上·圓內角與圓外角（補充）',
   '9a-tri-center':     '九上·三角形的心',
   // 九下
   '9b-quad-func':  '九下·二次函數',
@@ -659,7 +660,7 @@ function renderQuiz(questions, params) {
 
   // 答題格式提示
   const ELEM_TOPICS = ['int-arith','gcd-lcm','ratio-val','rate','unit','area','volume'];
-  const JR_INT_TOPICS  = ['7a-int-sign','7a-int-add','7a-int-sub','7a-int-mul','7a-int-div','7a-int-mix','7a-int-abs','7a-poly','7a-eqn-app','7b-poly','7b-coord','7b-eqn-app','8a-poly-add','8a-poly-mul','8a-poly-div','8a-sqrt-basic','8a-quad3','8b-geo-seq','8b-linear-func','8b-trap','8b-kite','9a-circle-chord-tan','9b-stat'];
+  const JR_INT_TOPICS  = ['7a-int-sign','7a-int-add','7a-int-sub','7a-int-mul','7a-int-div','7a-int-mix','7a-int-abs','7a-poly','7a-eqn-app','7b-poly','7b-coord','7b-eqn-app','8a-poly-add','8a-poly-mul','8a-poly-div','8a-sqrt-basic','8a-quad3','8b-geo-seq','8b-linear-func','8b-trap','8b-kite','9a-circle-chord-tan','9a-circle-inout','9b-stat'];
   const JR_FRAC_TOPICS = ['7a-frac-sign','7a-frac-add','7a-frac-sub','7a-frac-mul','7a-frac-div','7a-frac-mix','7a-frac-abs','7a-eqn','7b-subst','7b-elim','7b-linepic','7b-chain','7b-ratio','7b-prop','7b-dirprop','7b-invprop','7b-ineq','7b-stat','8a-mulform','8a-sq-sum','8a-sq-diff','8a-diff-sq','8b-arith-seq','8b-arith-series','9a-ratio-chain','9a-trig','9b-prob'];
   const JR_NUM_TOPICS  = ['7a-gcd-lcm','7a-prime','7a-int-exp'];
   const hasFrac  = params.topics.some(t => t.startsWith('frac') || t === 'mix-fd' || JR_FRAC_TOPICS.includes(t));
