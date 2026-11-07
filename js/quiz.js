@@ -1518,14 +1518,8 @@ async function downloadPDF() {
         return parts.join('');
       }
       if (q.coordAnswer)
-        return `(${dStr(q.answerParts[0].answer)}, ${dStr(q.answerParts[1].answer)})`;
-      return q.answerParts.map(p => {
-        const v = p.type === 'fraction' && p.answer && 'num' in p.answer
-          ? `\\(${fracToLatex(p.answer)}\\)`
-          : p.type === 'poly' ? `\\(${polyToLatex(p.answer.a2, p.answer.a1, p.answer.a0)}\\)`
-          : dStr(p.answer ?? 0);
-        return `${p.prefix} = ${v}`;
-      }).join('，');
+        return `(${partAnsStr(q.answerParts[0])}, ${partAnsStr(q.answerParts[1])})`;
+      return q.answerParts.map(p => `${p.prefix} = ${partAnsStr(p)}`).join('，');
     }
     const pfx = q.sym ? `x ${q.sym} `
       : q.answerPrefix && /[<>≤≥]$/.test(q.answerPrefix) ? `${q.answerPrefix} `
