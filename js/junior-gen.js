@@ -7159,14 +7159,14 @@ function _8aPythRad(level){
   if(level==='basic'){
     const t=randInt(0,2);
     if(t===0){
-      const a=randInt(1,9),b=randInt(1,9),n=a*a+b*b;if(_jrIsSq(n))return null;
+      const a=randInt(1,15),b=randInt(1,15),n=a*a+b*b;if(_jrIsSq(n))return null;
       return _jrSqrtAns(`直角三角形兩股長為 \\(${a}\\) 和 \\(${b}\\)，求斜邊長`,n);
     }
     if(t===1){
-      const c=randInt(3,12),a=randInt(1,c-1),n=c*c-a*a;if(_jrIsSq(n))return null;
+      const c=randInt(3,20),a=randInt(1,c-1),n=c*c-a*a;if(_jrIsSq(n))return null;
       return _jrSqrtAns(`直角三角形斜邊長 \\(${c}\\)，一股長 \\(${a}\\)，求另一股長`,n);
     }
-    const a=randInt(2,10),b=randInt(1,a-1),n=a*a+b*b;if(_jrIsSq(n))return null;
+    const a=randInt(2,15),b=randInt(1,a-1),n=a*a+b*b;if(_jrIsSq(n))return null;
     return _jrSqrtAns(`長方形長 \\(${a}\\)，寬 \\(${b}\\)，求對角線長`,n);
   }
   if(level==='medium'){
@@ -7215,6 +7215,31 @@ function _8aPythRad(level){
   return _jrSqrtAns(`長方體的長、寬、高分別為 \\(${l}\\)、\\(${w}\\)、\\(${h}\\)，求其對角線（連接相對頂點）的長`,n);
 }
 
+// 隨機畢氏三元數 [股, 股, 斜邊]，斜邊 ≤ maxC（Euclid 公式 × 倍數，兩股順序隨機）
+function _8aTri(maxC){
+  for(;;){
+    const m=randInt(2,9),n=randInt(1,m-1);
+    if((m-n)%2===0||gcd(m,n)!==1)continue;
+    const a=m*m-n*n,b=2*m*n,c=m*m+n*n;if(c>maxC)continue;
+    const k=randInt(1,Math.floor(maxC/c));
+    return randInt(0,1)?[a*k,b*k,c*k]:[b*k,a*k,c*k];
+  }
+}
+// 邊長呈現方式：60% 整數、20% 小數、20% 分數；s(v) 顯示、ans(v) 答案
+function _8aScale(vals){
+  const r=Math.random();
+  if(r<0.2){
+    const ns=[2,3,4,5,6,7,8,9].filter(n=>vals.some(v=>v%n));
+    if(ns.length){const n=pick(ns);
+      return {s:v=>v%n?fracToLatex(frac(v,n)):String(v/n),
+        ans:v=>v%n?{answer:frac(v,n),type:'fraction'}:{answer:v/n,type:'number'}};}
+  }else if(r<0.4){
+    const d=pick([10,10,2,4,5,20]),dn=v=>Math.round(v/d*1000)/1000;
+    if(vals.some(v=>v%d))return {s:v=>String(dn(v)),ans:v=>({answer:dn(v),type:'number'})};
+  }
+  return {s:v=>String(v),ans:v=>({answer:v,type:'number'})};
+}
+
 function gen8aPyth(level) {
   for (let i=0;i<30;i++) { const q=_8aPyth(level); if(q) return q; }
   return _8aPyth('basic');
@@ -7226,41 +7251,43 @@ function _8aPyth(level) {
     {a:6,b:8,c:10},{a:9,b:12,c:15},{a:10,b:24,c:26},{a:20,b:21,c:29}
   ];
   if(level==='basic'){
+    // 隨機產生畢氏三元數（含倍數），再以整數／小數／分數呈現，降低重複率
     const t=randInt(0,4);
-    if(t===0){
-      const tr=pick(intTriples);
-      const [l1,l2]=randInt(0,1)===0?[tr.a,tr.b]:[tr.b,tr.a];
-      return {question:`直角三角形兩股長為 \\(${l1}\\) 和 \\(${l2}\\)，求斜邊長`, answer:tr.c, type:'number'};
-    }
-    if(t===1){
-      const tr=pick(intTriples);
-      const [kn,uk]=randInt(0,1)===0?[tr.a,tr.b]:[tr.b,tr.a];
-      return {question:`直角三角形斜邊長 \\(${tr.c}\\)，一股長 \\(${kn}\\)，求另一股長`, answer:uk, type:'number'};
-    }
+    const [a,b,c]=_8aTri(t===4?65:100),sc=_8aScale([a,b,c]);
+    if(t===0)
+      return {question:`直角三角形兩股長為 \\(${sc.s(a)}\\) 和 \\(${sc.s(b)}\\)，求斜邊長`,...sc.ans(c)};
+    if(t===1)
+      return {question:`直角三角形斜邊長 \\(${sc.s(c)}\\)，一股長 \\(${sc.s(a)}\\)，求另一股長`,...sc.ans(b)};
     if(t===2){
-      // 判斷直角三角形
-      if(randInt(0,1)===0){
-        const tr=pick(intTriples);
-        const sides=[tr.a,tr.b,tr.c].sort((x,y)=>x-y);
-        return {question:`三角形三邊長為 \\(${sides[0]}\\)、\\(${sides[1]}\\)、\\(${sides[2]}\\)，此三角形是否為直角三角形？（填「是」或「否」）`,
-          answer:'是', type:'text'};
+      // 判斷直角三角形：是（三元數）／否（隨機三角形或三元數差一點）
+      let s=[a,b,c],yes=randInt(0,1)===0,S=sc;
+      if(!yes){
+        if(randInt(0,1)===0){s=[a,b,c+pick([-1,1])];}
+        else{for(;;){const x=randInt(2,40),y=randInt(x,40),z=randInt(y+1,x+y-1);if(x*x+y*y!==z*z&&z>y){s=[x,y,z];break;}}}
+        if(!(s[0]+s[1]>s[2]))return null;
+        S=_8aScale(s);
       }
-      const nonTriples=[[3,4,6],[5,6,9],[4,5,7],[6,8,11],[3,5,6],[5,7,9]];
-      const s=pick(nonTriples);
-      return {question:`三角形三邊長為 \\(${s[0]}\\)、\\(${s[1]}\\)、\\(${s[2]}\\)，此三角形是否為直角三角形？（填「是」或「否」）`,
-        answer:'否', type:'text'};
+      s.sort((x,y)=>x-y);
+      return {question:`三角形三邊長為 \\(${S.s(s[0])}\\)、\\(${S.s(s[1])}\\)、\\(${S.s(s[2])}\\)，此三角形是否為直角三角形？（填「是」或「否」）`,
+        answer:yes?'是':'否', type:'text'};
     }
     if(t===3){
-      // 正方形對角線 = 邊長 × √2
-      const a=randInt(2,10);
-      return {question:`正方形的邊長為 \\(${a}\\)，求其對角線長`,
-        type:'radical-mix', rational:0, radCoeff:a, radM:2};
+      // 正方形對角線 = 邊長 × √2；或由對角線反求邊長
+      const k=randInt(2,30);
+      if(randInt(0,2)===0)
+        return {question:`正方形的對角線長為 \\(${k}\\sqrt{2}\\)，求其邊長`,answer:k,type:'number'};
+      return {question:`正方形的邊長為 \\(${k}\\)，求其對角線長`,
+        type:'radical-mix', rational:0, radCoeff:k, radM:2};
     }
-    // t===4: 梯子問題（整數三元組）
-    const tr=pick(intTriples);
-    const [foot,height]=randInt(0,1)===0?[tr.a,tr.b]:[tr.b,tr.a];
-    return {question:`一把梯子長 \\(${tr.c}\\) 公尺，梯腳距牆壁 \\(${foot}\\) 公尺，求梯頂距地面的高度`,
-      answer:height, type:'number'};
+    // t===4: 梯子問題（整數公尺或小數公尺）
+    const dec=c>30||randInt(0,1)===0,f=v=>dec?String(Math.round(v)/10):String(v);
+    const foot=Math.min(a,b),height=Math.max(a,b);// 梯腳距牆較短、梯頂較高
+    const ask=randInt(0,1);
+    if(ask===0)
+      return {question:`一把梯子長 \\(${f(c)}\\) 公尺，梯腳距牆壁 \\(${f(foot)}\\) 公尺，求梯頂距地面的高度（公尺）`,
+        answer:dec?height/10:height, type:'number'};
+    return {question:`一把梯子斜靠在牆上，梯頂距地面 \\(${f(height)}\\) 公尺，梯腳距牆壁 \\(${f(foot)}\\) 公尺，求梯子長（公尺）`,
+      answer:dec?c/10:c, type:'number'};
   }
   if(level==='medium'){
     const t=randInt(0,9);
