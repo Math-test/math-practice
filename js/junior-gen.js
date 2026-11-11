@@ -7371,10 +7371,10 @@ function _8aPyth(level) {
       type:'radical-mix',rational:0,radCoeff:c,radM:m};
   }
   if(t===4){
-    // 正方形邊長 a+b√2，對角線 = (a+b√2)√2 = 2b + a√2
-    const a=randInt(2,5),b=randInt(2,4);
-    return {question:`正方形邊長為 \\(${a}+${b}\\sqrt{2}\\)，求對角線長`,
-      type:'radical-mix',rational:2*b,radCoeff:a,radM:2};
+    // 正方形邊長 k√m（單一根號），對角線 = √(2k²m)，用畢氏定理不會出現雙重根號
+    const k=randInt(1,6),m=pick([3,5,6,7,10,11,13,15]),[kk,mm]=_jrSqrtSplit(2*m);
+    return {question:`正方形邊長為 \\(${_jrRadTex(k,m)}\\)，求對角線長`,
+      type:'radical-mix',rational:0,radCoeff:k*kk,radM:mm};
   }
   if(t===5){
     // 代數型：三邊含 x，解方程求 x
