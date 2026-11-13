@@ -7570,8 +7570,21 @@ function _8bFactorMV(level){
   }
   // 公因式 g·x^i·y^j（至少含一個字母）
   const gPart=()=>{for(;;){const g=randInt(2,6),e=[randInt(0,2),randInt(0,2)];if(e.some(x=>x))return{g,e};}};
+  // 二元一次式 cu·u + cv·v（cv≠0）
+  const lin=(cu,cv)=>`${_mvK(cu,u)}${_mvKs(cv,v)}`;
   if(level==='medium'){
-    const t=randInt(0,3);
+    const t=randInt(0,4);
+    if(t===4){// 兩個因式一起提：單項式×二項式，g·a·u(B)+g·b·v(B) → g(B)(au+bv)，可含字母 u 與變號
+      const g=randInt(2,6),le=randInt(0,1),[a,b]=cp();
+      const k=randInt(1,5),s=pick([1,-1]),kk=k===1?'':k;
+      const B=`${p1}${s>0?'+':'-'}${kk}${p2}`;
+      const flip=s<0&&randInt(0,1);// 第二項寫成 (kp2−p1)
+      const B2=flip?`${kk}${p2}-${p1}`:B,b2=flip?-b:b;// 題目中第二項係數
+      const L1=le?`${u}^{2}`:u,L2=le?`${u}${v}`:v;
+      const G=`${g}${le?u:''}`;
+      return _jrMvQ(`因式分解 \\(${g*a}${L1}(${B})${b2>0?'+':'-'}${Math.abs(g*b2)}${L2}(${B2})\\)`,
+        `${G}(${B})(${lin(a,b)})`,G,2);
+    }
     if(t===0)return _mvGCF(V,3,8,3,3,randInt(0,2)===0);
     if(t===1)return _mvGCF(pick([['a','b','c'],['x','y','z']]),3,6,1,2,false);
     if(t===2){// 提公因式後平方差：G(p²u²−q²v²)=G(pu+qv)(pu−qv)
@@ -7586,7 +7599,21 @@ function _8bFactorMV(level){
     const G=_mvMono(g,e,V,false);
     return _jrMvQ(`因式分解 \\(${_mvPoly(T,V,true)}\\)`,`${G}(${_mvK(a,u)}${_mvKs(b,v)})^2`,G,2);
   }
-  const t=randInt(0,3);
+  const t=randInt(0,5);
+  if(t===4){// 單項式×二項式次方一起提：g·a·u(B)^{n+1}+g·b·u²(B)^n → gu(B)^n(a(B)+bu)
+    const g=randInt(2,6),a=randInt(2,7),b=randInt(1,9)*pick([1,-1]);if(gcd(a,Math.abs(b))!==1)return null;
+    const B=bin(),n=randInt(1,2),pw=e=>e===1?'':`^{${e}}`;
+    return _jrMvQ(`因式分解 \\(${g*a}${u}(${B})${pw(n+1)}${b>0?'+':'-'}${Math.abs(g*b)}${u}^{2}(${B})${pw(n)}\\)`,
+      `${g}${u}(${B})${n>1?'^'+n:''}(${a}(${B})${_mvKs(b,u)})`,`${g}${u}`,n+1);
+  }
+  if(t===5){// 兩個二項式因式：(B)(C1)±(B)(C2) 合併後還要再提數字 → d(B)(C)
+    const d=randInt(2,5),[a,b]=cp();// C = au+bv
+    const c1u=randInt(1,6),c1v=randInt(1,6)*pick([1,-1]);
+    const c2u=d*a-c1u,c2v=d*b-c1v;if(!c2u||!c2v||(c1u===c2u&&c1v===c2v))return null;
+    const B=bin(),sw=randInt(0,1),f=c=>sw?`(${c})(${B})`:`(${B})(${c})`;
+    const second=c2u>0?'+'+f(lin(c2u,c2v)):'-'+f(lin(-c2u,-c2v));
+    return _jrMvQ(`因式分解 \\(${f(lin(c1u,c1v))}${second}\\)`,`${d}(${B})(${lin(a,b)})`,String(d),2);
+  }
   if(t===0){// 二項式的次方為公因式：g·a(B)³ − g·b(B)² = g(B)²(a(B) − b)
     const g=randInt(2,6),a=randInt(2,7),b=randInt(1,9)*pick([1,-1]);if(gcd(a,Math.abs(b))!==1)return null;
     const B=bin(),n=randInt(2,3);
