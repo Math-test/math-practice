@@ -7508,12 +7508,113 @@ function _8bFactor1Ext(level){
   return _jrFacQ(`因式分解 \\(${_jrDQuad(k,2*k*b*s,k*b*b)}\\)`,`${_jrD(k)}(x${s>0?'+':'-'}${b})^2`);
 }
 
+// ── 多元提公因式（x、y、a、b…）──────────────────────────────────
+// 單項式：係數 c（取絕對值）、各變數次方 e；tex=true 輸出 LaTeX，否則 ASCII
+function _mvMono(c,e,vars,tex){
+  const a=Math.abs(c),allZero=e.every(v=>v===0);
+  let s=(a!==1||allZero)?String(a):'';
+  vars.forEach((v,i)=>{if(!e[i])return;s+=v;if(e[i]>1)s+=tex?`^{${e[i]}}`:`^${e[i]}`;});
+  return s;
+}
+// 多項式（項依序串接，第一項負號保留）
+const _mvPoly=(terms,vars,tex)=>terms.map((t,i)=>(t.c<0?'-':i?'+':'')+_mvMono(t.c,t.e,vars,tex)).join('');
+// 帶係數的字母項：k=1 省略、k=-1 只留負號
+const _mvK=(k,v)=>(k<0?'-':'')+(Math.abs(k)===1?'':Math.abs(k))+v;
+const _mvKs=(k,v)=>(k<0?'-':'+')+(Math.abs(k)===1?'':Math.abs(k))+v;// 帶正負號
+const _MV_VARS=[['x','y'],['a','b'],['m','n']];
+// 提出單項式公因式：g·x^i·y^j·(餘因式)，餘因式各項係數互質、每個變數最低次為 0
+function _mvGCF(vars,nT,gHi,gExpHi,eHi,neg){
+  const g=randInt(2,gHi),ge=vars.map(()=>randInt(0,gExpHi));
+  if(ge.every(v=>v===0))return null;
+  const cof=[];
+  for(let k=0;k<nT;k++)cof.push({c:randInt(1,9)*(k?pick([1,-1]):1),e:vars.map(()=>randInt(0,eHi))});
+  if(cof.map(t=>Math.abs(t.c)).reduce(gcd)!==1)return null;
+  if(vars.some((v,i)=>Math.min(...cof.map(t=>t.e[i]))!==0))return null;
+  const keys=cof.map(t=>t.e.join(','));if(new Set(keys).size!==nT)return null;
+  // 依第一個變數次方遞減排列，同次再依下一個變數，常數項在最後
+  cof.sort((p,q)=>{for(let i=0;i<vars.length;i++)if(q.e[i]!==p.e[i])return q.e[i]-p.e[i];return 0;});
+  if(cof[0].c<0)cof.forEach(t=>t.c=-t.c);
+  // 避免餘因式還能用乘法公式再分解（兩項平方差、三項完全平方）
+  const sq=n=>Number.isInteger(Math.sqrt(Math.abs(n)));
+  if(nT===2&&cof[0].c*cof[1].c<0&&sq(cof[0].c)&&sq(cof[1].c)&&cof.every(t=>t.e.every(v=>v%2===0)))return null;
+  if(nT===3){const[p,q,r]=cof;if(p.c>0&&r.c>0&&sq(p.c)&&sq(r.c)&&p.e.every(v=>v%2===0)&&r.e.every(v=>v%2===0)
+    &&Math.abs(q.c)===2*Math.sqrt(p.c*r.c)&&q.e.every((v,i)=>2*v===p.e[i]+r.e[i]))return null;}
+  const s=neg?-1:1,G=s*g;
+  const qTerms=cof.map(t=>({c:G*t.c,e:t.e.map((v,i)=>v+ge[i])}));
+  const gm=(s<0?'-':'')+_mvMono(g,ge,vars,false);
+  return _jrMvQ(`因式分解 \\(${_mvPoly(qTerms,vars,true)}\\)`,`${gm}(${_mvPoly(cof,vars,false)})`,gm,1);
+}
+// 多元因式分解題：gcf 為應提出的單項式公因式（ASCII），nG 為至少應有的多項式因式個數（次方計重數）
+const _jrMvQ=(question,ans,gcf,nG)=>({..._jrFacQ(question,ans),gcfMono:gcf,nGroups:nG});
+function _8bFactorMV(level){
+  const V=pick(_MV_VARS),[u,v]=V;
+  // 二項式公因式用另一組字母
+  const W=pick(_MV_VARS.filter(w=>w!==V)),[p1,p2]=W;
+  const bin=()=>{const k=randInt(1,5)*pick([1,-1]);return `${p1}${_mvKs(k,p2)}`;};
+  const cp=()=>{for(;;){const a=randInt(1,9),b=randInt(1,9)*pick([1,-1]);if(gcd(a,Math.abs(b))===1&&!(a===1&&Math.abs(b)===1&&randInt(0,1)))return[a,b];}};
+  if(level==='basic'){
+    const t=randInt(0,3);
+    if(t===0)return _mvGCF(V,2,6,2,2,false);
+    if(t===1)return _mvGCF(V,3,5,1,2,false);
+    if(t===2){// p·u(B)+q·v(B) 或 p·u(B)+q(B) → (B)(pu+qv)
+      const B=bin(),[a,b]=cp(),w2=randInt(0,1)?v:'';
+      const sg=b<0?'-':'+',ab=Math.abs(b);
+      const qSecond=w2?_mvKs(b,w2):sg+(ab===1?'':ab);// 題目中第二項的係數（常數 1 省略）
+      const aSecond=w2?_mvKs(b,w2):sg+ab;// 答案中第二項
+      return _jrMvQ(`因式分解 \\(${_mvK(a,u)}(${B})${qSecond}(${B})\\)`,`(${B})(${_mvK(a,u)}${aSecond})`,'1',2);
+    }
+    // 變號：p·u(x−y)+q·v(y−x) → (x−y)(pu−qv)
+    const k=randInt(1,5),[a,b]=cp();
+    const B=`${p1}-${k===1?'':k}${p2}`,Br=`${k===1?'':k}${p2}-${p1}`;
+    return _jrMvQ(`因式分解 \\(${_mvK(a,u)}(${B})${_mvKs(b,v)}(${Br})\\)`,`(${B})(${_mvK(a,u)}${_mvKs(-b,v)})`,'1',2);
+  }
+  // 公因式 g·x^i·y^j（至少含一個字母）
+  const gPart=()=>{for(;;){const g=randInt(2,6),e=[randInt(0,2),randInt(0,2)];if(e.some(x=>x))return{g,e};}};
+  if(level==='medium'){
+    const t=randInt(0,3);
+    if(t===0)return _mvGCF(V,3,8,3,3,randInt(0,2)===0);
+    if(t===1)return _mvGCF(pick([['a','b','c'],['x','y','z']]),3,6,1,2,false);
+    if(t===2){// 提公因式後平方差：G(p²u²−q²v²)=G(pu+qv)(pu−qv)
+      const{g,e}=gPart();const[a,b0]=cp(),b=Math.abs(b0);if(a>6||b>6)return null;
+      const T=[{c:g*a*a,e:[e[0]+2,e[1]]},{c:-g*b*b,e:[e[0],e[1]+2]}];
+      const G=_mvMono(g,e,V,false),A=_mvK(a,u),Bv=_mvK(b,v);
+      return _jrMvQ(`因式分解 \\(${_mvPoly(T,V,true)}\\)`,`${G}(${A}+${Bv})(${A}-${Bv})`,G,2);
+    }
+    // 提公因式後完全平方：G(pu±qv)²
+    const{g,e}=gPart();const[a,b]=cp();if(a>6||Math.abs(b)>6)return null;
+    const T=[{c:g*a*a,e:[e[0]+2,e[1]]},{c:2*g*a*b,e:[e[0]+1,e[1]+1]},{c:g*b*b,e:[e[0],e[1]+2]}];
+    const G=_mvMono(g,e,V,false);
+    return _jrMvQ(`因式分解 \\(${_mvPoly(T,V,true)}\\)`,`${G}(${_mvK(a,u)}${_mvKs(b,v)})^2`,G,2);
+  }
+  const t=randInt(0,3);
+  if(t===0){// 二項式的次方為公因式：g·a(B)³ − g·b(B)² = g(B)²(a(B) − b)
+    const g=randInt(2,6),a=randInt(2,7),b=randInt(1,9)*pick([1,-1]);if(gcd(a,Math.abs(b))!==1)return null;
+    const B=bin(),n=randInt(2,3);
+    return _jrMvQ(`因式分解 \\(${g*a}(${B})^{${n+1}}${b*g>0?'+':'-'}${Math.abs(b*g)}(${B})^{${n}}\\)`,
+      `${g}(${B})^${n}(${a}(${B})${b>0?'+':'-'}${Math.abs(b)})`,String(g),n+1);
+  }
+  if(t===1){// 分組提公因式：(pu+qv)(x+ky) 展開成四項
+    const[a,b]=cp(),k=randInt(1,6)*pick([1,-1]);
+    const L=(x,y)=>[x,y].sort().join('');// 字母依字母順序（如 ax 而非 xa）
+    const terms=[_mvK(a,L(u,p1)),_mvKs(a*k,L(u,p2)),_mvKs(b,L(v,p1)),_mvKs(b*k,L(v,p2))].join('');
+    return _jrMvQ(`因式分解 \\(${terms}\\)`,`(${_mvK(a,u)}${_mvKs(b,v)})(${p1}${_mvKs(k,p2)})`,'1',2);
+  }
+  if(t===2){// 二項式公因式後平方差：p²u²(B) − q²v²(B) = (B)(pu+qv)(pu−qv)
+    const[a,b0]=cp(),b=Math.abs(b0),B=bin(),A=_mvK(a,u),Bv=_mvK(b,v);
+    return _jrMvQ(`因式分解 \\(${a*a===1?'':a*a}${u}^{2}(${B})-${b*b===1?'':b*b}${v}^{2}(${B})\\)`,`(${B})(${A}+${Bv})(${A}-${Bv})`,'1',3);
+  }
+  // 三個變數、四項以內的單項式公因式
+  return _mvGCF(pick([['a','b','c'],['x','y','z']]),randInt(3,4),9,2,2,randInt(0,2)===0);
+}
+
 function gen8bFactor1(level){
   for(let i=0;i<30;i++){const q=_8bFactor1(level);if(q)return q;}
   return _8bFactor1('basic');
 }
 function _8bFactor1(level){
-  if(Math.random()<0.35)return _8bFactor1Ext(level);
+  const r0=Math.random();
+  if(r0<0.35)return _8bFactorMV(level);
+  if(r0<0.6)return _8bFactor1Ext(level);
   function ff(question,coefA,coefB,coefC,answerLatex){
     return{question,type:'factored-form',coefA,coefB,coefC,answerLatex};
   }

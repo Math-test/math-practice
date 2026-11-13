@@ -578,6 +578,43 @@ function isFactoredForm(str){
   }
   return depth===0&&factors>=2;
 }
+// 多元提公因式：檢查公因式是否提完全
+// 把作答拆成「最外層的單項式部分」與「最外層的多項式因式」；
+// 單項式部分須與應提出的公因式 gcf 相差 ±1 倍，多項式因式個數（次方計重數）須 ≥ nG
+function gcfComplete(user, gcf, nG){
+  const s=user.replace(/\s+/g,'').replace(/（/g,'(').replace(/）/g,')').replace(/[−–]/g,'-').replace(/[×·]/g,'*').toLowerCase();
+  let out='',polyN=0,depth=0,start=-1;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(c==='('){if(depth===0)start=i;depth++;continue;}
+    if(c===')'){
+      depth--;
+      if(depth===0){
+        const inner=s.slice(start+1,i);
+        let j=i+1,pw=1;const m=/^\^(\d+)/.exec(s.slice(j));if(m){pw=+m[1];j+=m[0].length;}
+        // 括號內最外層有加減 → 多項式因式；否則視為單項式
+        let d=0,isPoly=false;
+        for(let k=0;k<inner.length;k++){const ch=inner[k];if(ch==='(')d++;else if(ch===')')d--;else if(d===0&&(ch==='+'||ch==='-')&&k>0&&!/[\^*\/]/.test(inner[k-1]))isPoly=true;}
+        if(isPoly)polyN+=pw;else out+='('+inner+')'+(m?m[0]:'');
+        i=j-1;
+      }
+      continue;
+    }
+    if(depth===0)out+=c;
+  }
+  if(depth!==0)return false;
+  out=out.replace(/\*+/g,'*').replace(/^\*|\*$/g,'');
+  if(out===''||out==='-'||out==='+')out+='1';
+  const letters=[...new Set((s+gcf).match(/[a-z]/g)||[])];
+  try{
+    for(let k=0;k<3;k++){
+      const vars={};letters.forEach(l=>{vars[l]=1.37+Math.random()*2.5;});
+      const r=evalExprAt(out,vars)/evalExprAt(gcf,vars);
+      if(!isFinite(r)||Math.abs(Math.abs(r)-1)>1e-9)return false;
+    }
+  }catch(e){return false;}
+  return polyN>=nG;
+}
 function exprAnsMatch(user, ans){
   const a0=ans.toLowerCase(),u0=user.toLowerCase();
   const letters=[...new Set(a0.match(/[a-z]/g)||[])];
@@ -695,6 +732,7 @@ function renderQuiz(questions, params) {
   if (_anyQ(q => q.type === 'radical-mix' || q.type === 'radical2')) hintParts.push('根式填 <code>√</code> 或 <code>sqrt</code> 並化到最簡，例如 <code>4+3√2</code>、<code>-2√5</code>、<code>2√5-√2</code>');
   if (!hasDec && !hasNum && _anyQ(q => q.type === 'number' && !Number.isInteger(q.answer))) hintParts.push('小數：<code>0.75</code>');
   if (_anyQ(q => q.type === 'text' && /\\sqrt/.test(String(q.answer)) && /或/.test(String(q.answer)))) hintParts.push('兩根以「或」或逗號隔開，也可合寫，例如 <code>2±√3</code>、<code>(-1±√5)/2</code>');
+  if (_anyQ(q => q.gcfMono)) hintParts.push('多個未知數也一樣寫成乘積，公因式要全部提出，例如 <code>3xy(2x+3y)</code>、<code>(a-2b)(3x+5y)</code>');
   if (_anyQ(q => q.mustFactor)) hintParts.push(_anyQ(q => q.mustFactor && /√/.test(String(q.answer))) ? '因式分解寫成乘積，例如 <code>(x+1/2)(x-1/2)</code>、<code>(x+√3)(x-√3)</code>、<code>(x-1+√2)(x-1-√2)</code>' : '因式分解寫成乘積，例如 <code>(x+1/2)(x-1/2)</code>、<code>(x+0.3)^2</code>、<code>0.2x(x+3)</code>');
   if (_anyQ(q => q.exprAns && !q.mustFactor && q.type === 'text' && /[a-z]/i.test(String(q.answer)) && !_radText(q.answer))) hintParts.push('以代數式作答，例如 <code>2m+1</code>、<code>m/2</code>、<code>(1+q)/p</code>');
   const hintEl = document.getElementById('format-hint');
@@ -1067,7 +1105,12 @@ function checkAnswers() {
     } else if (q.type === 'text') {
       // 去空白；「a 或 b」型答案不計順序
       const norm = s => { const t = s.replace(/\s+/g, '').replace(/一定|象限/g, '').toUpperCase(); return t.includes('或') ? t.split('或').sort().join('或') : t; };
-      isCorrect = q.exprAns ? exprAnsMatch(userVal, String(q.answer)) && (!q.mustFactor || isFactoredForm(userVal)) : norm(userVal) === norm(String(q.answer));
+      const _valEq = q.exprAns && exprAnsMatch(userVal, String(q.answer));
+      isCorrect = q.exprAns ? _valEq && (!q.mustFactor || isFactoredForm(userVal)) : norm(userVal) === norm(String(q.answer));
+      // 多元提公因式：值相等但公因式沒提完（或沒再用乘法公式分解完）
+      if (isCorrect && q.gcfMono && !gcfComplete(userVal, q.gcfMono, q.nGroups || 1)) isCorrect = false;
+      // 值相等卻判錯 → 提示還沒分解完全
+      q._notDone = !!(q.mustFactor && _valEq && !isCorrect);
       // 文字答案若本身是分數或整數（如 1/8），接受等值的分數
       if (!isCorrect && !q.exprAns) {
         const af = parseFrac(String(q.answer).trim()), uf = parseFrac(userVal);
@@ -1101,7 +1144,7 @@ function checkAnswers() {
       else if (q.type === 'sci') correctStr = `\\(${q.sciCoef} \\times 10^{${q.sciExp}}\\)`;
       else if (q.type === 'text') { correctStr = textAnsToLatex(String(q.answer)); }
       else correctStr = dStr(q.answer);
-      fb.innerHTML = `<span class="fb-wrong">✗</span> <span class="fb-ans">正確：${_ip2}${correctStr}</span>`;
+      fb.innerHTML = `<span class="fb-wrong">✗</span> ${q._notDone ? '<span class="fb-ans">還沒分解完全（公因式要全部提出、能再分解的要繼續分解）</span> ' : ''}<span class="fb-ans">正確：${_ip2}${correctStr}</span>`;
     }
   });
 
