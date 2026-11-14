@@ -2493,17 +2493,32 @@ function _b1PolyLinQuad(level){
 }
 
 // ── b1-poly-cubic：三次函數 ──────────────────────────────────────
-const _pcB0Q=[];
-const _pcM0Q=[],_pcM1Q=[];
-const _pcH0Q=[],_pcH1Q=[];
 
 function genB1PolyCubic(level,_n){
   for(let i=0;i<40;i++){const q=_b1PolyCubic(level);if(q)return q;}
   return{question:'三次函數',answer:0,type:'number',answerPrefix:''};
 }
+// a(x-h)^3+b(x-h)^2+c(x-h)+d 的 LaTeX
+function _pcShift(a,b,c,d,h){
+  const S=h===0?'x':`(x${h>0?'-'+h:'+'+(-h)})`;
+  return _sfTerms([[a,`${S}^3`],[b,`${S}^2`],[c,S],[d,'']]);
+}
 function _b1PolyCubic(level){
   if(level==='basic'){
-    const t=srRandInt(0,1);
+    const t=srRandInt(0,3);
+    if(t===2){
+      // 大域特徵：y=a(x-h)^3+p(x-h)+k 在 |x| 很大時像 y=ax^3
+      const a=srRnz(-4,4),h=srRnz(-4,4),p=srRandInt(-6,6),k=srRandInt(-9,9);
+      return{question:`三次函數 \\(y=${_pcShift(a,0,p,k,h)}\\) 的大域特徵：當 \\(|x|\\) 很大時，圖形與 \\(y=ax^3\\) 的圖形相近，求 \\(a\\)`,
+        answer:a,type:'number',answerPrefix:'a'};
+    }
+    if(t===3){
+      // 大域特徵：x 往右或往左很遠時，f(x) 趨向正或負無限大
+      const cs=[srRnz(-4,4),srRandInt(-9,9),srRandInt(-9,9),srRandInt(-9,9)],right=srRandInt(0,1);
+      const s=Math.sign(cs[0])*(right?1:-1);
+      return{question:`三次函數 \\(f(x)=${_sfPoly(cs)}\\)，當 \\(x\\) ${right?'往正向越來越大':'往負向越來越小'}時，\\(f(x)\\) 的值趨向正無限大還是負無限大？（正無限大填 \\(1\\)，負無限大填 \\(-1\\)）`,
+        answer:s,type:'number',answerPrefix:'填'};
+    }
     if(t===0){
       // y=a(x-h)^3+k 的圖形通過已知點，求 a
       const a=srRnz(-3,3),h=srRandInt(-4,4),k=srRandInt(-9,9),d=srRnz(-2,2);
@@ -2522,7 +2537,7 @@ function _b1PolyCubic(level){
     }
   }
   if(level==='medium'){
-    const t=srRandInt(0,1);
+    const t=srRandInt(0,3);
     if(t===0){
       // 展開式 y=a(x-h)^3+p(x-h)+k，求對稱中心
       const a=pick([-2,-1,1,1,2]),h=srRnz(-3,3),p=srRandInt(-6,6),k=srRandInt(-9,9);
@@ -2530,38 +2545,47 @@ function _b1PolyCubic(level){
       return{question:`求三次函數 \\(y=${_sfPoly(cs)}\\) 圖形的對稱中心 \\((h,k)\\)`,
         answerParts:[{prefix:'h',answer:h,type:'number'},{prefix:'k',answer:k,type:'number'}]};
     }
+    if(t===1){
+      // 大域特徵：乘積形式的首項係數
+      const fs=[];let lead=1;
+      for(let i=0;i<3;i++){
+        const p=pick([1,1,-1,2,-2,3]),q=srRnz(-5,5);lead*=p;
+        fs.push(p<0&&q>0?`(${q}${_sfTerms([[p,'x']])})`:`(${_sfPoly([p,q])})`);
+      }
+      return{question:`三次函數 \\(y=${fs.join('')}\\) 的大域特徵：當 \\(|x|\\) 很大時，圖形與 \\(y=ax^3\\) 的圖形相近，求 \\(a\\)`,
+        answer:lead,type:'number',answerPrefix:'a'};
+    }
+    if(t===2){
+      // 一次近似（非對稱中心）：f(x)=a(x-h)^3+b(x-h)^2+c(x-h)+d 在 x=h 附近 ≈ c(x-h)+d
+      const a=srRnz(-3,3),h=srRnz(-4,4),b=srRnz(-5,5),c=srRandInt(-6,6),d=srRandInt(-9,9);
+      return{question:`設 \\(f(x)=${_pcShift(a,b,c,d,h)}\\)，則在 \\(x=${h}\\) 附近，\\(y=f(x)\\) 的圖形近似於直線 \\(y=mx+n\\)，求 \\(m\\)、\\(n\\)`,
+        answerParts:[{prefix:'m',answer:c,type:'number'},{prefix:'n',answer:d-c*h,type:'number'}]};
+    }
     {
-      // 已知三次多項式有一根，利用因式定理求另一根
-      const pool=[
-        {f:'x^3-6x^2+11x-6',root1:1,desc:'\\(x=1\\) 是根',qRoot:'最大根',a:3},
-        {f:'x^3+x^2-4x-4',root1:2,desc:'\\(x=2\\) 是根',qRoot:'最小根',a:-2},
-        {f:'x^3-3x^2-4x+12',root1:3,desc:'\\(x=3\\) 是根',qRoot:'最小根',a:-2},
-        {f:'x^3-x^2-9x+9',root1:1,desc:'\\(x=1\\) 是根',qRoot:'最大根',a:3},
-        {f:'x^3+2x^2-x-2',root1:1,desc:'\\(x=1\\) 是根',qRoot:'最小根',a:-2},
-        {f:'x^3-4x^2+x+6',root1:2,desc:'\\(x=2\\) 是根',qRoot:'最大根',a:3},
-        {f:'x^3+x^2-9x-9',root1:3,desc:'\\(x=3\\) 是根',qRoot:'最小根',a:-3},
-        {f:'x^3-7x+6',root1:2,desc:'\\(x=2\\) 是根',qRoot:'最小根',a:-3},
-        {f:'x^3-2x^2-5x+6',root1:1,desc:'\\(x=1\\) 是根',qRoot:'最大根',a:3},
-      ];
-      const p=srQPick(pool,_pcM1Q);if(!p)return null;
-      return{question:`已知 \\(f(x)=${p.f}\\) 且 ${p.desc}，求其${p.qRoot}。`,answer:p.a,type:'number',answerPrefix:p.qRoot};
+      // 圖形形狀：y=a(x-h)^3+p(x-h)+k，ap<0 時圖形有起伏，水平線最多交 3 點；ap≥0 時遞增或遞減，只交 1 點
+      const a=pick([-2,-1,1,2]),h=srRnz(-3,3),p=pick([-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6]),k=srRandInt(-9,9);
+      const cs=[a,-3*a*h,3*a*h*h+p,-a*h**3-p*h+k];
+      return{question:`三次函數 \\(y=${_sfPoly(cs)}\\) 的圖形與水平線 \\(y=t\\)（\\(t\\) 為任意實數）最多有幾個交點？（提示：先寫成 \\(y=a(x-h)^3+p(x-h)+k\\) 的形式）`,
+        answer:a*p<0?3:1,type:'number',answerPrefix:'最多交點數'};
     }
   }
   {
-    const ht=srRandInt(0,1);
-    if(ht===0){
-      // 完全因式分解後求根的乘積/總和
-      const pool=[
-        {f:'x^3-6x^2+11x-6',roots:[1,2,3],q:'三根的積',a:6},
-        {f:'x^3-x^2-4x+4',roots:[1,2,-2],q:'三根的和',a:1},
-        {f:'x^3+x^2-9x-9',roots:[-1,3,-3],q:'最大根',a:3},
-        {f:'x^3-3x^2-4x+12',roots:[2,-2,3],q:'三根的積',a:-12},
-        {f:'x^3+2x^2-x-2',roots:[1,-1,-2],q:'三根的積',a:2},
-        {f:'x^3+3x^2-x-3',roots:[1,-1,-3],q:'最大根',a:1},
-        {f:'x^3-4x',roots:[0,2,-2],q:'非零根的積',a:-4},
-      ];
-      const p=srQPick(pool,_pcH0Q);if(!p)return null;
-      return{question:`將 \\(f(x)=${p.f}\\) 完全因式分解後，求${p.q}。`,answer:p.a,type:'number',answerPrefix:p.q};
+    const ht=srRandInt(0,3);
+    if(ht===1||ht===2){
+      // 任一點 x=h（非對稱中心）的一次近似：由展開式求，或用來估計函數值
+      const a=pick([-2,-1,1,2]),h=srRnz(-3,3),b=srRnz(-4,4),c=srRandInt(-6,6),d=srRandInt(-9,9);
+      const cs=[a,-3*a*h+b,3*a*h*h-2*b*h+c,-a*h**3+b*h*h-c*h+d];
+      if(ht===1)return{question:`設 \\(f(x)=${_sfPoly(cs)}\\)，在 \\(x=${h}\\) 附近，\\(y=f(x)\\) 的圖形近似於直線 \\(y=mx+n\\)（一次近似），求 \\(m\\)、\\(n\\)`,
+        answerParts:[{prefix:'m',answer:c,type:'number'},{prefix:'n',answer:d-c*h,type:'number'}]};
+      const del=pick([0.01,-0.01,0.02,-0.02,0.05,-0.05]),xv=(h+del).toFixed(2);
+      return{question:`設 \\(f(x)=${_sfPoly(cs)}\\)，利用 \\(f(x)\\) 在 \\(x=${h}\\) 附近的一次近似，估計 \\(f(${xv})\\) 的值`,
+        answer:Math.round((d+c*del)*1000)/1000,type:'number',answerPrefix:`\\(f(${xv})\\approx\\)`};
+    }
+    if(ht===3){
+      // 由對稱中心、大域特徵、中心附近的一次近似還原 f(x)
+      const a=pick([-3,-2,-1,1,2,3]),h=srRnz(-3,3),p=srRnz(-6,6),k=srRandInt(-9,9);
+      return{question:`三次函數 \\(y=f(x)\\) 的圖形對稱中心為 \\((${h},${k})\\)，當 \\(|x|\\) 很大時圖形與 \\(y=${_sfTerms([[a,'x^3']])}\\) 相近，且在對稱中心附近近似於直線 \\(y=${_sfPoly([p,k-p*h])}\\)。設 \\(f(x)=ax^3+bx^2+cx+d\\)，求 \\(b\\)、\\(d\\)`,
+        answerParts:[{prefix:'b',answer:-3*a*h,type:'number'},{prefix:'d',answer:-a*h**3-p*h+k,type:'number'}]};
     }
     {
       // 對稱中心附近的局部近似直線：y=a(x-h)^3+p(x-h)+k 在 (h,k) 附近近似 y=p(x-h)+k
