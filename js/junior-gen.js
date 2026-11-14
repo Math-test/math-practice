@@ -2794,83 +2794,92 @@ function _7aEqn(level) {
 //  七上 ▸ 一元一次方程式應用問題
 // ═══════════════════════════════════════════════════════════════════
 function gen7aEqnApp(level){
-  for(let i=0;i<30;i++){const q=_7aEqnAppQ(level);if(q)return q;}
+  for(let i=0;i<200;i++){const q=_7aEqnAppQ(level);if(q)return q;}
   return _7aEqnAppQ('basic');
 }
 function _7aEqnAppQ(level){
-  if(level==='basic'){
-    const t=randInt(0,4);
-    if(t===0){
-      const n=randInt(5,30);
-      return{question:`兩個連續正整數的和為 \\(${2*n+1}\\)，求較小的整數`,answer:n,type:'number'};
-    }
-    if(t===1){
-      const n=randInt(4,20);
-      return{question:`三個連續正整數的和為 \\(${3*n+3}\\)，求最小的整數`,answer:n,type:'number'};
-    }
-    if(t===2){
-      const b=randInt(5,30),k=randInt(1,10);
-      return{question:`甲比乙多 \\(${k}\\)，甲乙之和為 \\(${2*b+k}\\)，求甲`,answer:b+k,type:'number',answerPrefix:'甲'};
-    }
-    if(t===3){
-      const m=randInt(2,4),small=randInt(3,15);
-      return{question:`甲是乙的 \\(${m}\\) 倍，甲比乙多 \\(${(m-1)*small}\\)，求乙`,answer:small,type:'number',answerPrefix:'乙'};
-    }
-    // t===4: 購物
-    const p1=randInt(2,10)*5,n1=randInt(2,5),p2=randInt(2,10)*5,n2=randInt(2,5);
-    return{question:`買了 \\(${n1}\\) 件甲商品和 \\(${n2}\\) 件乙商品，共花 \\(${p1*n1+p2*n2}\\) 元，甲商品每件 \\(${p1}\\) 元，求乙商品每件幾元`,answer:p2,type:'number',answerPrefix:'乙商品每件（元）'};
-  }
-  if(level==='medium'){
-    const t=randInt(0,3);
-    if(t===0){
-      // 年齡：父P歲，子C歲，k年後父是子的m倍
-      const C=randInt(5,15),m=randInt(2,4),D=randInt(18,30),P=C+D;
-      const num=P-m*C,den=m-1;
-      if(num<=0||num%den!==0)return null;
-      const k=num/den;
-      if(k<1||k>25)return null;
-      return{question:`父親現年 \\(${P}\\) 歲，兒子現年 \\(${C}\\) 歲，幾年後父親年齡恰好是兒子的 \\(${m}\\) 倍？`,answer:k,type:'number',answerPrefix:'年後'};
-    }
-    if(t===1){
-      // 相遇行程
-      const va=randInt(3,9),vb=randInt(3,9),T=randInt(1,5);
-      return{question:`甲乙相距 \\(${(va+vb)*T}\\) 公里，同時相向而行，甲速 \\(${va}\\) 公里/時，乙速 \\(${vb}\\) 公里/時，幾小時後相遇？`,answer:T,type:'number',answerPrefix:'小時'};
-    }
-    if(t===2){
-      // 追及行程
-      const va=randInt(2,5),diff=randInt(2,4),vb=va+diff,H=randInt(1,4);
-      if(va*H%diff!==0)return null;
-      const T=va*H/diff;
-      if(T<1||T>12)return null;
-      return{question:`甲先出發，速 \\(${va}\\) 公里/時，\\(${H}\\) 小時後乙以 \\(${vb}\\) 公里/時追趕，乙需幾小時追上甲？`,answer:T,type:'number',answerPrefix:'小時'};
-    }
-    // t===3: 折扣
-    const disc=pick([7,8,9]),orig=randInt(4,20)*50;
-    const sale=orig*disc/10;
-    if(!Number.isInteger(sale))return null;
-    return{question:`某商品打 \\(${disc}\\) 折後售價為 \\(${sale}\\) 元，原價為多少元？`,answer:orig,type:'number',answerPrefix:'原價（元）'};
-  }
-  // hard
-  const t=randInt(0,2);
-  if(t===0){
-    // 工程問題：合作 T 天，甲單獨需 a 天
-    const T=randInt(2,6),extraA=randInt(1,4),a=T+extraA;
-    const numB=a*T,denB=a-T;
-    if(denB<=0||numB%denB!==0)return null;
-    const b=numB/denB;
-    if(b<1||b>60)return null;
-    return{question:`一項工程甲單獨完成需 \\(${a}\\) 天，乙單獨完成需 \\(${b}\\) 天，兩人合作需幾天完成？`,answer:T,type:'number',answerPrefix:'天'};
-  }
-  if(t===1){
-    // 分配問題：n人分total元，再加extra人，每人新得額
-    const n=randInt(3,8),total=randInt(5,20)*n,extra=randInt(1,4);
-    const newAvg=total/(n+extra);
-    if(!Number.isInteger(newAvg)||newAvg<1)return null;
-    return{question:`原有 \\(${n}\\) 人平分 \\(${total}\\) 元，再加入 \\(${extra}\\) 人一起平分，每人可得幾元？`,answer:newAvg,type:'number',answerPrefix:'每人（元）'};
-  }
-  // t===2: 長方形周長
-  const W=randInt(5,15),k=randInt(2,6),L=W+k;
-  return{question:`長方形的長比寬多 \\(${k}\\) 公分，周長為 \\(${2*(L+W)}\\) 公分，求寬`,answer:W,type:'number',answerPrefix:'寬（公分）'};
+  const N=(v,p)=>({answer:v,type:'number',answerPrefix:p});
+  const S={
+    basic:[
+      ()=>{const n=randInt(5,30);return{question:`兩個連續正整數的和為 \\(${2*n+1}\\)，求較小的整數`,...N(n,'較小的整數')};},
+      ()=>{const n=randInt(4,20);return{question:`三個連續正整數的和為 \\(${3*n+3}\\)，求最小的整數`,...N(n,'最小的整數')};},
+      ()=>{const b=randInt(5,30),k=randInt(1,10);return{question:`甲比乙多 \\(${k}\\)，甲乙之和為 \\(${2*b+k}\\)，求甲`,...N(b+k,'甲')};},
+      ()=>{const m=randInt(2,4),s=randInt(3,15);return{question:`甲是乙的 \\(${m}\\) 倍，甲比乙多 \\(${(m-1)*s}\\)，求乙`,...N(s,'乙')};},
+      ()=>{const p1=randInt(2,10)*5,n1=randInt(2,5),p2=randInt(2,10)*5,n2=randInt(2,5);
+        return{question:`買了 \\(${n1}\\) 件甲商品和 \\(${n2}\\) 件乙商品，共花 \\(${p1*n1+p2*n2}\\) 元，甲商品每件 \\(${p1}\\) 元，求乙商品每件幾元`,...N(p2,'乙商品每件（元）')};},
+      ()=>{// 存錢
+        const A=randInt(2,30)*10,d=randInt(2,9)*5,k=randInt(3,20);
+        return{question:`小明現在有 \\(${A}\\) 元，之後每天存 \\(${d}\\) 元，幾天後他的存款會達到 \\(${A+d*k}\\) 元？`,...N(k,'天數')};},
+      ()=>{// 分糖果
+        const a=randInt(3,9),n=randInt(4,15),r=randInt(1,a-1);
+        return{question:`把 \\(${a*n+r}\\) 顆糖果分給一群小朋友，每人分 \\(${a}\\) 顆後還剩 \\(${r}\\) 顆，共有幾位小朋友？`,...N(n,'人數')};},
+      ()=>{// 雞兔同籠（一元）
+        const c=randInt(3,20),r=randInt(3,20);
+        return{question:`籠子裡有雞和兔共 \\(${c+r}\\) 隻，腳共有 \\(${2*c+4*r}\\) 隻，兔有幾隻？`,...N(r,'兔（隻）')};},
+      ()=>{// 平均分數
+        const m=randInt(70,90),s=[0,0,0].map(()=>randInt(m-15,Math.min(100,m+12))),x=4*m-s[0]-s[1]-s[2];
+        if(x<0||x>100)return null;
+        return{question:`小華前三次數學小考分別得 \\(${s[0]}\\)、\\(${s[1]}\\)、\\(${s[2]}\\) 分，第四次要考幾分，四次的平均才會剛好是 \\(${m}\\) 分？`,...N(x,'分數')};},
+      ()=>{// 某數的倍數
+        const a=randInt(2,9),x=randInt(-12,20),b=randInt(1,30);if(x===0)return null;
+        return{question:`某數的 \\(${a}\\) 倍再加上 \\(${b}\\)，結果是 \\(${a*x+b}\\)，求某數`,...N(x,'某數')};},
+    ],
+    medium:[
+      ()=>{const C=randInt(5,15),m=randInt(2,4),D=randInt(18,30),P=C+D,num=P-m*C,den=m-1;
+        if(num<=0||num%den)return null;const k=num/den;if(k<1||k>25)return null;
+        return{question:`父親現年 \\(${P}\\) 歲，兒子現年 \\(${C}\\) 歲，幾年後父親年齡恰好是兒子的 \\(${m}\\) 倍？`,...N(k,'年後')};},
+      ()=>{const va=randInt(3,9),vb=randInt(3,9),T=randInt(1,5);
+        return{question:`甲乙相距 \\(${(va+vb)*T}\\) 公里，同時相向而行，甲速 \\(${va}\\) 公里/時，乙速 \\(${vb}\\) 公里/時，幾小時後相遇？`,...N(T,'小時')};},
+      ()=>{const va=randInt(2,5),diff=randInt(2,4),vb=va+diff,H=randInt(1,4);if(va*H%diff)return null;const T=va*H/diff;if(T<1||T>12)return null;
+        return{question:`甲先出發，速 \\(${va}\\) 公里/時，\\(${H}\\) 小時後乙以 \\(${vb}\\) 公里/時追趕，乙需幾小時追上甲？`,...N(T,'小時')};},
+      ()=>{const disc=pick([6,7,8,9]),orig=randInt(4,20)*50,sale=orig*disc/10;if(!Number.isInteger(sale))return null;
+        return{question:`某商品打 \\(${disc}\\) 折後售價為 \\(${sale}\\) 元，原價為多少元？`,...N(orig,'原價（元）')};},
+      ()=>{// 盈虧問題
+        const n=randInt(5,20),a=randInt(2,6),b=a+randInt(1,3),r1=randInt(1,15),r2=n*(b-a)-r1;if(r2<1)return null;
+        const ask=randInt(0,1);
+        return{question:`老師把一些作業簿分給學生，若每人分 \\(${a}\\) 本，會多出 \\(${r1}\\) 本；若每人分 \\(${b}\\) 本，則少 \\(${r2}\\) 本。${ask?'作業簿共有幾本？':'學生共有幾人？'}`,...N(ask?a*n+r1:n,ask?'作業簿（本）':'學生（人）')};},
+      ()=>{// 兩人存款相等
+        const a=randInt(2,10)*10,b=a+randInt(1,6)*10,k=randInt(2,15),B=randInt(1,30)*10,A=B+(b-a)*k;
+        return{question:`甲現有存款 \\(${A}\\) 元，每週存 \\(${a}\\) 元；乙現有存款 \\(${B}\\) 元，每週存 \\(${b}\\) 元。幾週後兩人的存款相同？`,...N(k,'週')};},
+      ()=>{// 成本、加成、打折
+        const c=randInt(4,30)*50,up=pick([20,30,40,50,60]),d=pick([7,8,9]),sale=c*(100+up)/100*d/10,g=sale-c;
+        if(!Number.isInteger(sale)||g<=0)return null;
+        return{question:`某商品依成本加 \\(${up}\\%\\) 作為定價，再打 \\(${d}\\) 折出售，結果每件賺 \\(${g}\\) 元，求每件的成本（元）`,...N(c,'成本（元）')};},
+      ()=>{// 植樹（兩端都種）
+        const d=randInt(2,10),n=randInt(5,40),both=randInt(0,1);
+        return{question:`在一條長 \\(${d*n}\\) 公尺的直路${both?'兩端及':''}一側，每隔 \\(${d}\\) 公尺種一棵樹${both?'（兩端都種）':'（起點種、終點不種）'}，共需種幾棵樹？`,...N(both?n+1:n,'棵')};},
+    ],
+    hard:[
+      ()=>{// 合作天數 T：a=T+d、b=T+T²/d（d 為 T² 的因數）
+        const T=randInt(2,12),ds=[];for(let d=1;d<=T*T;d++)if(T*T%d===0)ds.push(d);
+        const d=pick(ds),a=T+d,b=T+T*T/d;if(b>90||a>90)return null;
+        return{question:`一項工程甲單獨完成需 \\(${a}\\) 天，乙單獨完成需 \\(${b}\\) 天，兩人合作需幾天完成？`,...N(T,'天')};},
+      ()=>{const n=randInt(3,8),total=randInt(5,20)*n,extra=randInt(1,4),v=total/(n+extra);if(!Number.isInteger(v))return null;
+        return{question:`原有 \\(${n}\\) 人平分 \\(${total}\\) 元，再加入 \\(${extra}\\) 人一起平分，每人可得幾元？`,...N(v,'每人（元）')};},
+      ()=>{const W=randInt(5,40),k=randInt(1,25),L=W+k;
+        return{question:`長方形的長比寬多 \\(${k}\\) 公分，周長為 \\(${2*(L+W)}\\) 公分，求寬`,...N(W,'寬（公分）')};},
+      ()=>{// 工程：甲先做幾天，再合作
+        const a=randInt(4,15),b=randInt(4,15),m=randInt(1,a-1),t=(a-m)*b/(a+b);
+        if(!Number.isInteger(t)||t<1)return null;
+        return{question:`一項工程甲單獨做需 \\(${a}\\) 天，乙單獨做需 \\(${b}\\) 天。甲先單獨做 \\(${m}\\) 天後，乙加入一起做，還要幾天才能完成？`,...N(t,'天')};},
+      ()=>{// 濃度：加水稀釋
+        const q=pick([5,8,10,12,15,20]),p=q+randInt(1,4)*5,W=randInt(1,10)*100,x=W*(p-q)/q;
+        if(!Number.isInteger(x)||p>=60)return null;
+        return{question:`濃度 \\(${p}\\%\\) 的食鹽水 \\(${W}\\) 克，要加入多少克的水，才能使濃度變為 \\(${q}\\%\\)？`,...N(x,'水（克）')};},
+      ()=>{// 環形跑道
+        const L=randInt(2,8)*100,vb=randInt(2,6)*10,same=randInt(0,1),va=vb+randInt(1,6)*10,v=same?va-vb:va+vb;
+        if(L%v)return null;
+        return{question:`甲、乙兩人在周長 \\(${L}\\) 公尺的環形跑道上，從同一地點同時出發${same?'同向':'反向'}而跑，甲每分鐘跑 \\(${va}\\) 公尺，乙每分鐘跑 \\(${vb}\\) 公尺，幾分鐘後兩人第一次相遇？`,...N(L/v,'分鐘')};},
+      ()=>{// 火車過橋：兩座橋求車長
+        const v=randInt(10,30),l=randInt(5,30)*10,B1=randInt(2,20)*50,B2=B1+randInt(2,20)*50,t1=(l+B1)/v,t2=(l+B2)/v;
+        if(!Number.isInteger(t1)||!Number.isInteger(t2))return null;
+        return{question:`一列火車以固定速率行駛，完全通過一座長 \\(${B1}\\) 公尺的橋需 \\(${t1}\\) 秒，完全通過另一座長 \\(${B2}\\) 公尺的橋需 \\(${t2}\\) 秒，求火車的長度（公尺）`,...N(l,'車長（公尺）')};},
+      ()=>{// 二位數數字對調
+        const a=randInt(1,9),b=randInt(1,9);if(a===b)return null;
+        return{question:`一個二位數的十位數字比個位數字${a<b?'小':'大'} \\(${Math.abs(b-a)}\\)，將十位數字與個位數字對調後，新數與原數的和為 \\(${11*(a+b)}\\)，求原來的二位數`,...N(10*a+b,'原數')};},
+    ]
+  };
+  return pick(S[level])();
 }
 
 // ─── 二元一次方程式輔助 ────────────────────────────────────────────
@@ -3097,56 +3106,83 @@ function _7bElim(level) {
 //  七下 ▸ 聯立方程式應用問題
 // ═══════════════════════════════════════════════════════════════════
 function gen7bEqnApp(level){
-  for(let i=0;i<30;i++){const q=_7bEqnApp(level);if(q)return q;}
+  for(let i=0;i<200;i++){const q=_7bEqnApp(level);if(q)return q;}
   return _7bEqnApp('basic');
 }
 function _7bEqnApp(level){
-  if(level==='basic'){
-    const t=randInt(0,2);
-    if(t===0){
-      const a=randInt(5,30),b=randInt(1,a-1);
-      return{question:`兩數之和為 \\(${a+b}\\)，差為 \\(${a-b}\\)，求較大的數`,answer:a,type:'number',answerPrefix:'較大的數'};
-    }
-    if(t===1){
-      const b=randInt(3,20),k=randInt(2,5);
-      return{question:`兩數之和為 \\(${(k+1)*b}\\)，其中一數是另一數的 \\(${k}\\) 倍，求較小的數`,answer:b,type:'number',answerPrefix:'較小的數'};
-    }
-    const qa=randInt(2,6),qb=randInt(2,6),pa=randInt(2,8)*5,pb=randInt(2,8)*5;
-    if(pa===pb)return null;
-    return{question:`甲、乙兩種商品共 \\(${qa+qb}\\) 件，共花 \\(${qa*pa+qb*pb}\\) 元，甲每件 \\(${pa}\\) 元，乙每件 \\(${pb}\\) 元，求甲商品幾件`,answer:qa,type:'number',answerPrefix:'甲商品（件）'};
-  }
-  if(level==='medium'){
-    const t=randInt(0,2);
-    if(t===0){
-      const va=randInt(3,8),vb=randInt(3,8),T=randInt(1,4);
-      if(va===vb)return null;
-      return{question:`甲乙兩地相距 \\(${(va+vb)*T}\\) 公里，甲從甲地、乙從乙地同時相向而行，甲速 \\(${va}\\) 公里/時，乙速 \\(${vb}\\) 公里/時，幾小時後相遇？`,answer:T,type:'number',answerPrefix:'小時'};
-    }
-    if(t===1){
-      const childAge=randInt(5,15),mult=randInt(2,4),diff=randInt(18,35);
-      const fatherAge=childAge+diff;
-      const num=fatherAge-mult*childAge,den=mult-1;
-      if(num<=0||num%den!==0)return null;
-      const k=num/den; if(k<1||k>25)return null;
-      return{question:`父親現年 \\(${fatherAge}\\) 歲，兒子現年 \\(${childAge}\\) 歲，幾年後父親年齡恰好是兒子的 \\(${mult}\\) 倍？`,answer:k,type:'number',answerPrefix:'年後'};
-    }
-    const daysA=randInt(3,10),daysB=randInt(3,10);
-    const nW=daysA*daysB,dW=daysA+daysB;
-    if(nW%dW!==0)return null;
-    return{question:`一項工程，甲獨立需 \\(${daysA}\\) 天，乙獨立需 \\(${daysB}\\) 天，合作需幾天完成？`,answer:nW/dW,type:'number',answerPrefix:'天'};
-  }
-  const t=randInt(0,1);
-  if(t===0){
-    const c1=randInt(1,4)*10,c2=randInt(5,9)*10,cMix=randInt(c1/10+1,c2/10-1)*10;
-    const total=randInt(2,6)*100;
-    const x=total*(c2-cMix)/(c2-c1);
-    if(!Number.isInteger(x)||x<=0||x>=total)return null;
-    return{question:`濃度 \\(${c1}\\%\\) 與 \\(${c2}\\%\\) 的食鹽水混合成濃度 \\(${cMix}\\%\\) 共 \\(${total}\\) 克，需要 \\(${c1}\\%\\) 的食鹽水幾克？`,answer:x,type:'number',answerPrefix:`${c1}% 食鹽水（克）`};
-  }
-  const va=randInt(2,5),H=randInt(1,3),vb=va+randInt(1,4);
-  const T=va*H/(vb-va);
-  if(!Number.isInteger(T)||T<1||T>20)return null;
-  return{question:`甲先出發，速 \\(${va}\\) 公里/時，\\(${H}\\) 小時後乙以 \\(${vb}\\) 公里/時追趕，乙需幾小時追上甲？`,answer:T,type:'number',answerPrefix:'小時'};
+  const N=(v,p)=>({answer:v,type:'number',answerPrefix:p});
+  const P2=(p1,v1,p2,v2)=>({answerParts:[{prefix:p1,answer:v1,type:'number'},{prefix:p2,answer:v2,type:'number'}]});
+  const S={
+    basic:[
+      ()=>{const a=randInt(5,30),b=randInt(1,a-1);return{question:`兩數之和為 \\(${a+b}\\)，差為 \\(${a-b}\\)，求這兩數`,...P2('較大的數',a,'較小的數',b)};},
+      ()=>{const b=randInt(3,20),k=randInt(2,5);return{question:`兩數之和為 \\(${(k+1)*b}\\)，其中一數是另一數的 \\(${k}\\) 倍，求較小的數`,...N(b,'較小的數')};},
+      ()=>{const qa=randInt(2,9),qb=randInt(2,9),pa=randInt(2,12)*5,pb=randInt(2,12)*5;if(pa===pb)return null;
+        return{question:`甲、乙兩種商品共買了 \\(${qa+qb}\\) 件，共花 \\(${qa*pa+qb*pb}\\) 元，甲每件 \\(${pa}\\) 元，乙每件 \\(${pb}\\) 元，兩種各買幾件？`,...P2('甲（件）',qa,'乙（件）',qb)};},
+      ()=>{// 雞兔同籠
+        const c=randInt(3,25),r=randInt(3,25);
+        return{question:`雞和兔關在同一個籠子裡，共有 \\(${c+r}\\) 個頭、\\(${2*c+4*r}\\) 隻腳，雞和兔各有幾隻？`,...P2('雞（隻）',c,'兔（隻）',r)};},
+      ()=>{// 全票、學生票
+        const a=randInt(6,20)*10,b=a-randInt(2,a/10-2)*10,x=randInt(2,15),y=randInt(2,15);
+        return{question:`某展覽全票每張 \\(${a}\\) 元、學生票每張 \\(${b}\\) 元。一團人共買了 \\(${x+y}\\) 張票，付了 \\(${a*x+b*y}\\) 元，全票和學生票各買了幾張？`,...P2('全票（張）',x,'學生票（張）',y)};},
+      ()=>{// 硬幣
+        const [c1,c2]=pick([[1,5],[5,10],[10,50],[1,10],[5,50]]),x=randInt(2,20),y=randInt(2,20);
+        return{question:`撲滿裡只有 \\(${c1}\\) 元和 \\(${c2}\\) 元硬幣，共 \\(${x+y}\\) 枚，總金額 \\(${c1*x+c2*y}\\) 元，兩種硬幣各有幾枚？`,...P2(`${c1} 元（枚）`,x,`${c2} 元（枚）`,y)};},
+      ()=>{// 兩種文具
+        const pa=randInt(2,9)*5,pb=randInt(2,9)*5,a1=randInt(1,5),b1=randInt(1,5),a2=randInt(1,5),b2=randInt(1,5);
+        if(a1*b2===a2*b1||pa===pb)return null;
+        return{question:`買 \\(${a1}\\) 枝筆和 \\(${b1}\\) 本筆記本共 \\(${a1*pa+b1*pb}\\) 元；買 \\(${a2}\\) 枝筆和 \\(${b2}\\) 本筆記本共 \\(${a2*pa+b2*pb}\\) 元。筆和筆記本每個各多少元？`,...P2('筆（元）',pa,'筆記本（元）',pb)};},
+    ],
+    medium:[
+      ()=>{// 年齡
+        const s=randInt(5,15),f=s+randInt(20,35),k=randInt(2,15),m=(f+k)/(s+k);
+        if(!Number.isInteger(m)||m<2)return null;
+        return{question:`父子兩人現在的年齡和為 \\(${f+s}\\) 歲，\\(${k}\\) 年後父親的年齡是兒子的 \\(${m}\\) 倍，求父子現在的年齡`,...P2('父（歲）',f,'子（歲）',s)};},
+      ()=>{const childAge=randInt(5,15),mult=randInt(2,4),diff=randInt(18,35),fatherAge=childAge+diff,num=fatherAge-mult*childAge,den=mult-1;
+        if(num<=0||num%den)return null;const k=num/den;if(k<1||k>25)return null;
+        return{question:`父親現年 \\(${fatherAge}\\) 歲，兒子現年 \\(${childAge}\\) 歲，幾年後父親年齡恰好是兒子的 \\(${mult}\\) 倍？`,...N(k,'年後')};},
+      ()=>{// 順水逆水
+        // (b+w)t1=(b−w)t2 → b=w(t1+t2)/(t2−t1)
+        const t1=randInt(2,6),t2=t1+randInt(1,4),w=randInt(1,6),b=w*(t1+t2)/(t2-t1),D=(b+w)*t1;
+        if(!Number.isInteger(b)||b>40)return null;
+        return{question:`一艘船順流航行 \\(${D}\\) 公里需 \\(${t1}\\) 小時，逆流航行同樣的距離需 \\(${t2}\\) 小時，求船在靜水中的速率與水流速率（公里/時）`,...P2('船速',b,'水速',w)};},
+      ()=>{// 二位數
+        const a=randInt(1,9),b=randInt(0,9);if(a===b||b===0)return null;
+        return{question:`一個二位數，其十位數字與個位數字的和為 \\(${a+b}\\)，若將十位與個位數字對調，所得的新數比原數${b>a?'大':'小'} \\(${9*Math.abs(b-a)}\\)，求原來的二位數`,...N(10*a+b,'原數')};},
+      ()=>{// 盈虧（二元）
+        const n=randInt(5,20),a=randInt(2,6),b=a+randInt(1,3),r1=randInt(1,15),r2=n*(b-a)-r1;if(r2<1)return null;
+        return{question:`一些蘋果分給一群小朋友，每人 \\(${a}\\) 個會剩 \\(${r1}\\) 個；每人 \\(${b}\\) 個則不夠 \\(${r2}\\) 個。小朋友有幾人？蘋果有幾個？`,...P2('小朋友（人）',n,'蘋果（個）',a*n+r1)};},
+      ()=>{// 平均速率不同的兩段路
+        const v1=randInt(3,6),v2=randInt(10,20),t1=randInt(1,3),t2=randInt(1,3);
+        return{question:`小明從家到學校共 \\(${v1*t1+v2*t2}\\) 公里，先步行再騎腳踏車，步行每小時 \\(${v1}\\) 公里，騎車每小時 \\(${v2}\\) 公里，共花了 \\(${t1+t2}\\) 小時，步行與騎車各花了幾小時？`,...P2('步行（時）',t1,'騎車（時）',t2)};},
+      ()=>{// 兩班人數
+        const a=randInt(25,40),b=randInt(25,40),k=randInt(1,6);if(b+k<=a-k||a===b)return null;
+        return{question:`甲、乙兩班共 \\(${a+b}\\) 人，若從甲班調 \\(${k}\\) 人到乙班，則乙班人數比甲班多 \\(${b+k-(a-k)}\\) 人，求兩班原有人數`,...P2('甲班（人）',a,'乙班（人）',b)};},
+    ],
+    hard:[
+      ()=>{const c1=randInt(1,4)*10,c2=randInt(5,9)*10,cMix=randInt(c1/10+1,c2/10-1)*10,total=randInt(2,6)*100,x=total*(c2-cMix)/(c2-c1);
+        if(!Number.isInteger(x)||x<=0||x>=total)return null;
+        return{question:`濃度 \\(${c1}\\%\\) 與 \\(${c2}\\%\\) 的食鹽水混合成濃度 \\(${cMix}\\%\\) 的食鹽水共 \\(${total}\\) 克，兩種食鹽水各需幾克？`,...P2(`${c1}\\%（克）`,x,`${c2}\\%（克）`,total-x)};},
+      ()=>{const va=randInt(2,5),H=randInt(1,3),vb=va+randInt(1,4),T=va*H/(vb-va);if(!Number.isInteger(T)||T>20)return null;
+        return{question:`甲先出發，速 \\(${va}\\) 公里/時，\\(${H}\\) 小時後乙以 \\(${vb}\\) 公里/時追趕，乙需幾小時追上甲？`,...N(T,'小時')};},
+      ()=>{// 環形跑道：反向與同向
+        const vb=randInt(2,8)*10,va=vb+randInt(1,6)*10,L=randInt(2,8)*100,t1=L/(va+vb),t2=L/(va-vb);
+        if(!Number.isInteger(t1)||!Number.isInteger(t2))return null;
+        return{question:`甲、乙在周長 \\(${L}\\) 公尺的環形跑道上跑步，甲比乙快。若兩人同時同地反向而跑，\\(${t1}\\) 分鐘後第一次相遇；若同時同地同向而跑，\\(${t2}\\) 分鐘後甲第一次追上乙。求兩人每分鐘各跑幾公尺`,...P2('甲',va,'乙',vb)};},
+      ()=>{// 工程（二元）：合作 T 天；甲先做 p 天、乙再做 q 天也完成
+        const a=randInt(4,30),b=randInt(4,30),T=a*b/(a+b);if(!Number.isInteger(T)||a===b)return null;
+        const p=randInt(1,a-1),q=(a-p)*b/a;if(!Number.isInteger(q)||q<1||p===T)return null;
+        return{question:`一項工程由甲、乙合作 \\(${T}\\) 天可完成；若甲先單獨做 \\(${p}\\) 天，剩下的由乙單獨做 \\(${q}\\) 天也可完成。甲、乙單獨完成各需幾天？`,...P2('甲（天）',a,'乙（天）',b)};},
+      ()=>{// 兩種糖果混合
+        const a=randInt(10,30)*10,b=randInt(31,60)*10,x=randInt(2,10),y=randInt(2,10),m=(a*x+b*y)/(x+y);
+        if(!Number.isInteger(m))return null;
+        return{question:`每公斤 \\(${a}\\) 元與每公斤 \\(${b}\\) 元的兩種糖果混合成 \\(${x+y}\\) 公斤，混合後每公斤 \\(${m}\\) 元（總價不變），兩種糖果各用了幾公斤？`,...P2(`${a} 元的（公斤）`,x,`${b} 元的（公斤）`,y)};},
+      ()=>{// 漲價後的總收入
+        const pa=randInt(4,12)*10,pb=randInt(4,12)*10,x=randInt(10,50),y=randInt(10,50),r=pick([10,20,50]);
+        const tot1=pa*x+pb*y,tot2=pa*x*(100+r)/100+pb*y;if(!Number.isInteger(tot2)||pa===pb)return null;
+        return{question:`商店賣甲、乙兩種商品，原本甲每個 \\(${pa}\\) 元、乙每個 \\(${pb}\\) 元，某天兩種商品的收入共 \\(${tot1}\\) 元。若甲漲價 \\(${r}\\%\\) 而乙不變，同樣的銷量收入會變成 \\(${tot2}\\) 元。甲、乙各賣出幾個？`,...P2('甲（個）',x,'乙（個）',y)};},
+    ]
+  };
+  return pick(S[level])();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -8314,58 +8350,83 @@ function _8bQuad2(level){
 //  八上 ▸ 一元二次方程式應用問題
 // ═══════════════════════════════════════════════════════════════════
 function gen8bQuad3(level){
-  for(let i=0;i<30;i++){const q=_8bQuad3(level);if(q)return q;}
+  for(let i=0;i<200;i++){const q=_8bQuad3(level);if(q)return q;}
   return _8bQuad3('basic');
 }
 function _8bQuad3(level){
-  if(level==='basic'){
-    const t=randInt(0,2);
-    if(t===0){
-      // 兩連續正整數之積
-      const n=randInt(3,12);
-      return{question:`兩個連續正整數的乘積為 \\(${n*(n+1)}\\)，求較小的整數`,answer:n,type:'number'};
-    }
-    if(t===1){
-      // 長方形面積：長比寬多k，面積A
-      const w=randInt(3,10),k=randInt(1,5),l=w+k;
-      return{question:`長方形的長比寬多 \\(${k}\\) 公分，面積為 \\(${w*l}\\) 平方公分，求寬`,answer:w,type:'number',answerPrefix:'寬（公分）'};
-    }
-    // t===2: 某正整數平方減去a倍等於b
-    const n=randInt(3,10),a=randInt(1,2*n-2);
-    const b=n*n-a*n;
-    if(b<0)return null;
-    return{question:`某正整數的平方減去它的 \\(${a}\\) 倍等於 \\(${b}\\)，求此正整數`,answer:n,type:'number'};
-  }
-  if(level==='medium'){
-    const t=randInt(0,2);
-    if(t===0){
-      // 外加邊框：(a+2x)(b+2x)=outerArea，求x
-      const a=randInt(4,10),b=randInt(4,10),x=randInt(1,3);
-      return{question:`在 \\(${a}\\times${b}\\) 公分的長方形四周各加寬 \\(x\\) 公分的邊框後，面積變為 \\(${(a+2*x)*(b+2*x)}\\) 平方公分，求 \\(x\\)`,answer:x,type:'number',answerPrefix:'\\(x\\)（公分）'};
-    }
-    if(t===1){
-      // 裁去邊框：(aO-2x)(bO-2x)=innerArea，求x
-      const aO=randInt(8,16),bO=randInt(8,16),x=randInt(1,3);
-      const iA=aO-2*x,iB=bO-2*x;
-      if(iA<=2||iB<=2)return null;
-      return{question:`\\(${aO}\\times${bO}\\) 公分的長方形四邊各裁去等寬 \\(x\\) 公分後，剩餘面積為 \\(${iA*iB}\\) 平方公分，求 \\(x\\)`,answer:x,type:'number',answerPrefix:'\\(x\\)（公分）'};
-    }
-    // t===2: 兩正整數和積
-    const n1=randInt(2,10),n2=randInt(2,10);
-    if(n1===n2)return null;
-    return{question:`兩正整數之和為 \\(${n1+n2}\\)，積為 \\(${n1*n2}\\)，求較小的正整數`,answer:Math.min(n1,n2),type:'number'};
-  }
-  // hard
-  const t=randInt(0,1);
-  if(t===0){
-    // 拋體：h=v0*t-5t²，從固定組合保證兩個不同正整數根
-    const combos=[{v0:15,t:1,H:10},{v0:20,t:1,H:15},{v0:25,t:1,H:20},{v0:25,t:2,H:30},{v0:30,t:1,H:25},{v0:30,t:2,H:40}];
-    const {v0,t:tV,H}=pick(combos);
-    return{question:`從地面以初速 \\(${v0}\\) 公尺/秒向上拋球，高度公式 \\(h=${v0}t-5t^2\\)（公尺），求球到達高度 \\(${H}\\) 公尺的最短時間`,answer:tV,type:'number',answerPrefix:'\\(t\\)（秒）'};
-  }
-  // t===1: 連續偶數之積
-  const n=randInt(1,7)*2;
-  return{question:`兩個連續偶數的乘積為 \\(${n*(n+2)}\\)，求較小的偶數`,answer:n,type:'number'};
+  const N=(v,p)=>({answer:v,type:'number',answerPrefix:p});
+  const S={
+    basic:[
+      ()=>{const n=randInt(3,45);return{question:`兩個連續正整數的乘積為 \\(${n*(n+1)}\\)，求較小的整數`,...N(n,'較小的整數')};},
+      ()=>{const w=randInt(3,15),k=randInt(1,8);return{question:`長方形的長比寬多 \\(${k}\\) 公分，面積為 \\(${w*(w+k)}\\) 平方公分，求寬`,...N(w,'寬（公分）')};},
+      ()=>{const n=randInt(3,15),a=randInt(1,2*n-2),b=n*n-a*n;if(b<=0)return null;
+        return{question:`某正整數的平方減去它的 \\(${a}\\) 倍等於 \\(${b}\\)，求此正整數`,...N(n,'此正整數')};},
+      ()=>{// 正方形邊長增加
+        const s=randInt(2,20),k=randInt(1,8);
+        return{question:`一個正方形的邊長增加 \\(${k}\\) 公分後，面積變成 \\(${(s+k)**2}\\) 平方公分，求原來正方形的邊長（公分）`,...N(s,'原邊長（公分）')};},
+      ()=>{// 握手
+        const n=randInt(4,40);
+        return{question:`一場聚會中，每兩個人都恰好握手一次，共握了 \\(${n*(n-1)/2}\\) 次手，聚會共有幾人？`,...N(n,'人數')};},
+      ()=>{// 數與平方的和
+        const n=randInt(3,45);
+        return{question:`某正整數與它的平方的和為 \\(${n*n+n}\\)，求此正整數`,...N(n,'此正整數')};},
+      ()=>{// 直角三角形兩股差
+        const [a0,b0,c0]=pick([[3,4,5],[5,12,13],[8,15,17],[7,24,25],[20,21,29],[9,40,41],[12,35,37],[11,60,61],[28,45,53],[33,56,65]]),k=randInt(1,6),[a,b,c]=[a0*k,b0*k,c0*k];
+        if(c>150)return null;
+        return{question:`直角三角形的斜邊長 \\(${c}\\)，兩股的長度相差 \\(${b-a}\\)，求較短的股長`,...N(a,'較短股長')};},
+    ],
+    medium:[
+      ()=>{const a=randInt(4,12),b=randInt(4,12),x=randInt(1,4);
+        return{question:`在長 \\(${a}\\) 公分、寬 \\(${b}\\) 公分的長方形相片四周各加寬 \\(x\\) 公分的相框後，總面積變為 \\(${(a+2*x)*(b+2*x)}\\) 平方公分，求 \\(x\\)`,...N(x,'\\(x\\)（公分）')};},
+      ()=>{const aO=randInt(8,20),bO=randInt(8,20),x=randInt(1,3),iA=aO-2*x,iB=bO-2*x;if(iA<=2||iB<=2)return null;
+        return{question:`長 \\(${aO}\\) 公分、寬 \\(${bO}\\) 公分的長方形紙板，四邊各裁去寬 \\(x\\) 公分的長條後，剩餘面積為 \\(${iA*iB}\\) 平方公分，求 \\(x\\)`,...N(x,'\\(x\\)（公分）')};},
+      ()=>{const n1=randInt(2,15),n2=randInt(2,15);if(n1===n2)return null;
+        return{question:`兩正整數之和為 \\(${n1+n2}\\)，積為 \\(${n1*n2}\\)，求較小的正整數`,...N(Math.min(n1,n2),'較小的數')};},
+      ()=>{// 開路
+        const a=randInt(10,40),b=randInt(10,40),x=randInt(1,4);
+        return{question:`一塊長 \\(${a}\\) 公尺、寬 \\(${b}\\) 公尺的長方形土地，要開闢兩條寬度都是 \\(x\\) 公尺且互相垂直的道路（分別與長、寬平行），剩下的土地面積為 \\(${(a-x)*(b-x)}\\) 平方公尺，求 \\(x\\)`,...N(x,'\\(x\\)（公尺）')};},
+      ()=>{// 平均成長率
+        const r=pick([10,20,25,50]),P=randInt(1,20)*(r===25?16:r===50?4:100),Q=P*(100+r)**2/10000;
+        if(!Number.isInteger(Q))return null;
+        return{question:`某商店一月份的營業額為 \\(${P}\\) 萬元，三月份的營業額為 \\(${Q}\\) 萬元，若二月、三月的月成長率相同，求每月的成長率為百分之幾`,...N(r,'成長率（%）')};},
+      ()=>{// 單循環賽
+        const n=randInt(4,32);
+        return{question:`一場比賽採單循環制（每兩隊都恰好比賽一場），共比賽了 \\(${n*(n-1)/2}\\) 場，共有幾隊參加？`,...N(n,'隊數')};},
+      ()=>{// 連續正整數平方和
+        const n=randInt(2,45);
+        return{question:`兩個連續正整數的平方和為 \\(${n*n+(n+1)**2}\\)，求較小的整數`,...N(n,'較小的整數')};},
+    ],
+    hard:[
+      ()=>{// 拋體：h=5(t1+t2)t−5t²，到達 H 的兩時刻 t1、t2
+        const t1=randInt(1,4),t2=t1+randInt(1,5),v=5*(t1+t2),H=5*t1*t2,ask=randInt(0,1);
+        return{question:`從地面以每秒 \\(${v}\\) 公尺的初速向上拋球，\\(t\\) 秒後的高度為 \\(h=${v}t-5t^2\\)（公尺）。球${ask?'在上升時':'在下降時'}經過高度 \\(${H}\\) 公尺是在第幾秒？`,...N(ask?t1:t2,'\\(t\\)（秒）')};},
+      ()=>{const n=randInt(1,40)*2;return{question:`兩個連續正偶數的乘積為 \\(${n*(n+2)}\\)，求較小的偶數`,...N(n,'較小的偶數')};},
+      ()=>{// 降價促銷
+        const m=pick([2,5,10]),p=randInt(6,20)*5,n=randInt(2,10)*m*5,s=p-n/m,x1=randInt(1,Math.floor(s/2)),x2=s-x1;
+        if(x2<=x1||x2>=p)return null;
+        const R=p*n+m*x1*x2,more=randInt(0,1);
+        return{question:`某商品每個賣 \\(${p}\\) 元時，每天可賣出 \\(${n}\\) 個；每降價 \\(1\\) 元，每天可多賣 \\(${m}\\) 個。若希望每天的營業額為 \\(${R}\\) 元，且${more?'讓顧客得到最多優惠':'降價盡量少'}，每個應降價幾元？`,...N(more?x2:x1,'降價（元）')};},
+      ()=>{// 籬笆靠牆，牆長限制
+        // 垂直牆的邊 x、平行牆的邊 y=L−2x；x(L−2x)=A 的兩根為 x 與 y/2（另一解平行牆的邊為 2x）
+        const x=randInt(3,15),y=2*randInt(2,15);if(y===2*x)return null;
+        const L=2*x+y,A=x*y,lo=Math.min(y,2*x),hi=Math.max(y,2*x),W=randInt(lo,hi-1);
+        const ans=y<=W?x:y/2;// 平行牆的邊不能超過牆長
+        return{question:`用 \\(${L}\\) 公尺長的籬笆靠著一面長 \\(${W}\\) 公尺的牆圍成一個長方形菜園（靠牆的一邊不用籬笆，且這一邊不能超過牆長），若菜園面積為 \\(${A}\\) 平方公尺，求與牆垂直的一邊長（公尺）`,...N(ans,'垂直牆的邊（公尺）')};},
+      ()=>{// 動點：P 從 A 往 B 每秒 1，Q 從 B 往 C 每秒 2
+        const AB=randInt(6,16),t1=randInt(1,Math.floor(AB/2)-1),t2=AB-t1,BC=2*t1+randInt(1,4);
+        // 面積 t(AB−t) 在 t<AB/2 時遞增，且 Q 尚未到 C（2t1≤BC），故第一次為 t1
+        if(t1>=t2)return null;
+        return{question:`矩形 \\(ABCD\\) 中，\\(\\overline{AB}=${AB}\\) 公分、\\(\\overline{BC}=${BC}\\) 公分。點 \\(P\\) 從 \\(A\\) 出發沿 \\(\\overline{AB}\\) 以每秒 \\(1\\) 公分向 \\(B\\) 移動，同時點 \\(Q\\) 從 \\(B\\) 出發沿 \\(\\overline{BC}\\) 以每秒 \\(2\\) 公分向 \\(C\\) 移動，到達端點即停止。出發幾秒後，\\(\\triangle PBQ\\) 的面積第一次等於 \\(${t1*t2}\\) 平方公分？`,...N(t1,'秒')};},
+      ()=>{// 連續三個正整數：最大數平方等於另兩數平方和以外的關係 → 用乘積
+        const n=randInt(3,40);
+        return{question:`三個連續正整數中，最大數與最小數的乘積比中間數的 \\(3\\) 倍多 \\(${n*(n+2)-3*(n+1)}\\)，求最小的數`,...N(n,'最小的數')};},
+      ()=>{// 平均成長率（兩年）
+        const r=pick([10,20,30,40,50]),P=randInt(1,40)*100,Q=P*(100+r)**2/10000;
+        if(!Number.isInteger(Q))return null;
+        return{question:`某城市前年的觀光人數為 \\(${P}\\) 萬人，今年為 \\(${Q}\\) 萬人，若這兩年的年成長率相同，求年成長率為百分之幾`,...N(r,'成長率（%）')};},
+    ]
+  };
+  return pick(S[level])();
 }
 
 // ═══════════════════════════════════════════════════════════════════
