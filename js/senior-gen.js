@@ -2227,10 +2227,8 @@ function _b1PolyFactor(level){
   }
 }
 
-// ── b1-poly-linquad：一次函數與二次函數（根與係數） ───────────────
-const _plqB0Q=[],_plqB1Q=[],_plqB2Q=[];
-const _plqM0Q=[],_plqM1Q=[],_plqM2Q=[];
-const _plqH0Q=[],_plqH1Q=[];
+// ── b1-poly-linquad：一次函數與二次函數 ───────────────
+const _plqB2Q=[],_plqM1Q=[],_plqM2Q=[];
 
 // 一次函數 f(x)=ax+b：斜率、截距、函數值、平移、區間最值、與兩軸圍成面積、應用
 function _plqAns(f,prefix){
@@ -2367,35 +2365,21 @@ function _b1Vertex(level){
 
 function genB1PolyLinQuad(level,_n){
   for(let i=0;i<40;i++){const r=Math.random(),q=r<0.35?_b1Linear(level):r<0.55?_b1Vertex(level):r<0.72?_b1QuadGraph(level):_b1PolyLinQuad(level);if(q)return q;}
-  return{question:'根與係數',answer:0,type:'number',answerPrefix:''};
+  return{question:'二次函數',answer:0,type:'number',answerPrefix:''};
 }
 function _b1PolyLinQuad(level){
+  const Q=(a,b,c)=>_sfPoly([a,b,c]);
   if(level==='basic'){
     const t=srRandInt(0,2);
     if(t===0){
-      const pool=[
-        {eq:'x^2-5x+6=0',q:'x_1+x_2',a:5},{eq:'x^2-5x+6=0',q:'x_1 x_2',a:6},
-        {eq:'x^2+4x+3=0',q:'x_1+x_2',a:-4},{eq:'x^2+4x+3=0',q:'x_1 x_2',a:3},
-        {eq:'x^2-3x-4=0',q:'x_1+x_2',a:3},{eq:'x^2-3x-4=0',q:'x_1 x_2',a:-4},
-        {eq:'x^2+x-6=0',q:'x_1+x_2',a:-1},{eq:'x^2+x-6=0',q:'x_1 x_2',a:-6},
-        {eq:'2x^2-6x+4=0',q:'x_1+x_2',a:3},{eq:'2x^2-6x+4=0',q:'x_1 x_2',a:2},
-        {eq:'3x^2+9x-6=0',q:'x_1+x_2',a:-3},{eq:'3x^2+9x-6=0',q:'x_1 x_2',a:-2},
-      ];
-      const p=srQPick(pool,_plqB0Q);if(!p)return null;
-      return{question:`設 \\(x_1, x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
+      // 圖形與 x 軸的交點個數（判別式）：kind 0 兩點、1 相切、2 無交點
+      const a=srRnz(-3,3),kind=srRandInt(0,2);let b,c;
+      if(kind===1){const r=srRandInt(-4,4);b=-2*a*r;c=a*r*r;}
+      else{b=srRandInt(-8,8);c=srRnz(-9,9);const D=b*b-4*a*c;if(D===0||(kind===0)!==(D>0))return null;}
+      const D=b*b-4*a*c;
+      return{question:`二次函數 \\(y=${Q(a,b,c)}\\) 的圖形與 \\(x\\) 軸有幾個交點？`,answer:D>0?2:D===0?1:0,type:'number',answerPrefix:'交點個數'};
     }
     if(t===1){
-      // 判別式
-      const pool=[
-        {eq:'x^2-3x+2=0',d:1,ans:'兩相異實根'},{eq:'x^2-2x+1=0',d:0,ans:'重根'},
-        {eq:'x^2+x+1=0',d:-3,ans:'無實根'},{eq:'2x^2-5x+3=0',d:1,ans:'兩相異實根'},
-        {eq:'x^2+4x+4=0',d:0,ans:'重根'},{eq:'x^2-x+1=0',d:-3,ans:'無實根'},
-        {eq:'3x^2-2x-1=0',d:16,ans:'兩相異實根'},{eq:'x^2+2x+2=0',d:-4,ans:'無實根'},
-      ];
-      const p=srQPick(pool,_plqB1Q);if(!p)return null;
-      return{question:`方程式 \\(${p.eq}\\) 的根的狀況為何？（填「兩相異實根」、「重根」或「無實根」）`,answer:p.ans,type:'text',answerPrefix:''};
-    }
-    {
       // 頂點坐標或對稱軸
       const pool=[
         {f:'x^2-4x+3',q:'對稱軸',a:'x=2'},{f:'x^2+6x+5',q:'對稱軸',a:'x=-3'},
@@ -2407,24 +2391,19 @@ function _b1PolyLinQuad(level){
       const isNum=typeof p.a==='number';
       return{question:`二次函數 \\(f(x)=${p.f}\\) 的${p.q}為何？`,answer:p.a,type:isNum?'number':'text',answerPrefix:p.q};
     }
+    // 與 x 軸兩交點的距離
+    const a=srRnz(-3,3),r1=srRandInt(-6,6),r2=srRandInt(-6,6);if(r1===r2)return null;
+    return{question:`二次函數 \\(y=${Q(a,-a*(r1+r2),a*r1*r2)}\\) 的圖形與 \\(x\\) 軸交於 \\(A\\)、\\(B\\) 兩點，求 \\(\\overline{AB}\\) 的長`,
+      answer:Math.abs(r1-r2),type:'number',answerPrefix:'\\(\\overline{AB}\\)'};
   }
   if(level==='medium'){
     const t=srRandInt(0,2);
     if(t===0){
-      const pool=[
-        {eq:'x^2-5x+6=0',q:'x_1^2+x_2^2',a:13},{eq:'x^2-3x+1=0',q:'x_1^2+x_2^2',a:7},
-        {eq:'x^2-4x+2=0',q:'x_1^2+x_2^2',a:12},{eq:'x^2+2x-1=0',q:'x_1^2+x_2^2',a:6},
-        {eq:'x^2-5x+3=0',q:'x_1^2+x_2^2',a:19},{eq:'x^2-6x+4=0',q:'x_1^2+x_2^2',a:28},
-        {eq:'x^2+3x-4=0',q:'x_1^2+x_2^2',a:17},{eq:'x^2-2x-3=0',q:'x_1^2+x_2^2',a:10},
-        {eq:'x^2-5x+6=0',q:'\\dfrac{1}{x_1}+\\dfrac{1}{x_2}',num:5,den:6},
-        {eq:'x^2-3x+2=0',q:'\\dfrac{1}{x_1}+\\dfrac{1}{x_2}',num:3,den:2},
-        {eq:'x^2+3x-4=0',q:'\\dfrac{1}{x_1}+\\dfrac{1}{x_2}',num:3,den:4},
-      ];
-      const p=srQPick(pool,_plqM0Q);if(!p)return null;
-      if(p.num!==undefined){
-        return{question:`設 \\(x_1,x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,answer:frac(p.num,p.den),type:'fraction',answerPrefix:`\\(${p.q}\\)`};
-      }
-      return{question:`設 \\(x_1,x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
+      // 區間內的最大值與最小值（頂點可能在區間內或外）
+      const a=srRnz(-2,2),h=srRandInt(-3,3),k=srRandInt(-9,9),p=srRandInt(-5,3),q=p+srRandInt(2,5);
+      const f=x=>a*(x-h)**2+k,vals=[f(p),f(q)];if(h>=p&&h<=q)vals.push(k);
+      return{question:`二次函數 \\(f(x)=${Q(a,-2*a*h,a*h*h+k)}\\) 在 \\(${p}\\le x\\le ${q}\\) 的範圍內，求最大值 \\(M\\) 與最小值 \\(m\\)`,
+        answerParts:[{prefix:'\\(M\\)',answer:Math.max(...vals),type:'number'},{prefix:'\\(m\\)',answer:Math.min(...vals),type:'number'}]};
     }
     if(t===1){
       // 由兩個條件求f(x)=x²+ax+b的參數
@@ -2459,37 +2438,26 @@ function _b1PolyLinQuad(level){
       return{question:`設 ${p.desc}，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
     }
   }
-  {
-    const ht=srRandInt(0,1);
-    if(ht===0){
-      const pool=[
-        {eq:'x^2-5x+6=0',q:'(x_1-x_2)^2',a:1},{eq:'x^2-5x+3=0',q:'(x_1-x_2)^2',a:13},
-        {eq:'x^2-7x+5=0',q:'(x_1-x_2)^2',a:29},{eq:'x^2-4x+1=0',q:'(x_1-x_2)^2',a:12},
-        {eq:'x^2-4x+2=0',q:'x_1^3+x_2^3',a:40},{eq:'x^2-3x+1=0',q:'x_1^3+x_2^3',a:18},
-        {eq:'x^2-6x+4=0',q:'x_1^3+x_2^3',a:144},{eq:'x^2-5x+3=0',q:'x_1^3+x_2^3',a:80},
-        {eq:'x^2-5x+6=0',q:'x_1^2 x_2+x_1 x_2^2',a:30},{eq:'x^2-3x+2=0',q:'x_1^2 x_2+x_1 x_2^2',a:6},
-      ];
-      const p=srQPick(pool,_plqH0Q);if(!p)return null;
-      return{question:`設 \\(x_1,x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求 \\(${p.q}\\)。`,answer:p.a,type:'number',answerPrefix:`\\(${p.q}\\)`};
-    }
-    {
-      // 由對稱函數構造新方程（以和與積求新方程係數）
-      const pool=[
-        {eq:'x^2-3x+1=0',newq:'以 \\(x_1^2, x_2^2\\) 為根的方程式的兩根之積',a:1},
-        {eq:'x^2-5x+6=0',newq:'以 \\(x_1+1, x_2+1\\) 為根的方程式的兩根之積',a:12},
-        {eq:'x^2-4x+3=0',newq:'以 \\(x_1-1, x_2-1\\) 為根的方程式的兩根之積',a:0},
-        {eq:'x^2-3x+2=0',newq:'以 \\(\\frac{1}{x_1}, \\frac{1}{x_2}\\) 為根的方程式的兩根之積',a:frac(1,2)},
-        {eq:'x^2-5x+4=0',newq:'以 \\(2x_1, 2x_2\\) 為根的方程式的兩根之積',a:16},
-        {eq:'x^2-5x+6=0',newq:'以 \\(x_1^2, x_2^2\\) 為根的方程式的兩根之積',a:36},
-        {eq:'x^2-4x+3=0',newq:'以 \\(x_1+2, x_2+2\\) 為根的方程式的兩根之積',a:15},
-        {eq:'x^2-4x+2=0',newq:'以 \\(x_1-1, x_2-1\\) 為根的方程式的兩根之和',a:2},
-        {eq:'x^2-5x+3=0',newq:'以 \\(\\frac{1}{x_1}, \\frac{1}{x_2}\\) 為根的方程式的兩根之積',a:frac(1,3)},
-      ];
-      const p=srQPick(pool,_plqH1Q);if(!p)return null;
-      const isF=p.a&&p.a.num!==undefined;
-      return{question:`設 \\(x_1,x_2\\) 是方程式 \\(${p.eq}\\) 的兩根，求${p.newq}。`,answer:p.a,type:isF?'fraction':'number',answerPrefix:'所求值'};
-    }
+  const ht=srRandInt(0,2);
+  if(ht===0){
+    // 與直線恰交一點：ax²+(b−m)x+(k−n)=0 的判別式為 0
+    const a=pick([1,1,2,-1,-2]),m=srRandInt(-4,4),n=srRandInt(-6,6),s=2*srRnz(-4,4),b=m+s,k=n+s*s/(4*a);
+    if(!Number.isInteger(k))return null;
+    return{question:`二次函數 \\(y=${_sfTerms([[a,'x^2'],[b,'x']])}+k\\) 的圖形與直線 \\(y=${_sfPoly([m,n])}\\) 恰有一個交點，求 \\(k\\)`,
+      answer:k,type:'number',answerPrefix:'\\(k\\)'};
   }
+  if(ht===1){
+    // 應用：籬笆圍矩形的最大面積
+    const j=srRandInt(3,15),L=4*j;
+    if(srRandInt(0,1))return{question:`用長 \\(${L}\\) 公尺的籬笆，靠著一面很長的牆圍成一個矩形花圃（靠牆的一邊不用籬笆），求花圃的最大面積（平方公尺）`,
+      answer:2*j*j,type:'number',answerPrefix:'最大面積'};
+    return{question:`用長 \\(${L}\\) 公尺的繩子圍成一個矩形，求矩形的最大面積（平方公尺）`,answer:j*j,type:'number',answerPrefix:'最大面積'};
+  }
+  // 由頂點與圖形上一點求函數值
+  const h=srRandInt(-4,4),k=srRandInt(-9,9),a=srRnz(-3,3),x1=h+srRnz(-3,3),x2=h+srRnz(-4,4);
+  if(x2===x1||x2===2*h-x1)return null;
+  return{question:`二次函數 \\(y=f(x)\\) 的圖形頂點為 \\((${h},${k})\\)，且通過點 \\((${x1},${a*(x1-h)**2+k})\\)，求 \\(f(${x2})\\)`,
+    answer:a*(x2-h)**2+k,type:'number',answerPrefix:`\\(f(${x2})\\)`};
 }
 
 // ── b1-poly-cubic：三次函數 ──────────────────────────────────────
