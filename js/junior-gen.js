@@ -10199,95 +10199,135 @@ function _9aRatioChain(level){
 // ═══════════════════════════════════════════════════════════════════
 //  九上 ▸ 比例線段
 // ═══════════════════════════════════════════════════════════════════
-let _psBQ=[],_psMQ=[],_psHQ=[];
+// 全部隨機產生，題目以文字完整敘述（不依賴圖）
+const _psSeg=s=>`\\(\\overline{${s}}\\)`;
+const _psTri=s=>`\\(\\triangle ${s}\\)`;
 function gen9aPropSeg(level){
-  return _9aPropSeg(level);
+  for(let i=0;i<40;i++){const q=_9aPropSeg(level);if(q)return q;}
+  return _9aPropSeg('basic');
 }
 function _9aPropSeg(level){
+  const S=_psSeg,T=_psTri,N=(v,p)=>({answer:v,type:'number',answerPrefix:p});
+  const F=(v,p)=>{const f=frac(v.num??v,v.den??1);return f.den===1?N(f.num,p):{answer:f,type:'fraction',answerPrefix:p};};
+  const coprime=()=>{for(;;){const p=randInt(1,6),q=randInt(1,7);if(p!==q&&gcd(p,q)===1)return[p,q];}};
   if(level==='basic'){
-    const pool=[
-      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{BD}=2\\overline{CD}\\)，若 \\(\\triangle ABC\\) 的面積為 \\(36\\)，則 \\(\\triangle ABD\\) 的面積為',ans:24,type:'number',pfx:'\\(\\triangle ABD\\) 面積'},
-      {q:'如圖，\\(L//M\\)，\\(\\overline{DE}=5\\)，\\(\\overline{AB}=6\\)，\\(\\overline{BC}=4\\)，則 \\(\\triangle ABE\\) 面積：\\(\\triangle BCD\\) 面積 \\(=\\)',ans:'3:2',type:'text',pfx:'面積比'},
-      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(D\\) 為 \\(\\overline{AC}\\) 中點，\\(\\overline{DG}//\\overline{AE}\\)，若 \\(\\overline{BF}:\\overline{FD}=3:4\\)，\\(\\overline{BC}=22\\)，則 \\(\\overline{CG}=\\)',ans:8,type:'number',pfx:'\\(\\overline{CG}\\)'},
-      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{AD}:\\overline{BD}=1:2\\)，\\(\\overline{AE}:\\overline{CE}=3:2\\)，若 \\(\\triangle DBE\\) 的面積為 \\(12\\)，則 \\(\\triangle ABC\\) 的面積為',ans:30,type:'number',pfx:'\\(\\triangle ABC\\) 面積'},
-      {q:'如圖，在四邊形 \\(ABCD\\) 中，\\(E\\)、\\(F\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{AD}\\) 的中點，\\(G\\)、\\(H\\) 分別為 \\(\\overline{BC}\\)、\\(\\overline{CD}\\) 的中點，若 \\(\\overline{GH}=12\\)，則 \\(\\overline{EF}+\\overline{BD}=\\)',ans:36,type:'number',pfx:'\\(\\overline{EF}+\\overline{BD}\\)'},
-      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 的中點，若 \\(\\overline{BC}=22\\)，則 \\(\\overline{DE}=\\)',ans:11,type:'number',pfx:'\\(\\overline{DE}\\)'},
-      {q:'在 \\(\\triangle ABC\\) 中，直線 \\(L\\) 分別交 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 於 \\(E\\)、\\(F\\) 兩點，若 \\(\\overline{AE}=12\\)，\\(\\overline{EB}=8\\)，\\(\\overline{AC}=30\\)，則 \\(\\overline{AF}=\\)【】，可使直線 \\(L\\) 平行 \\(\\overline{BC}\\)',ans:18,type:'number',pfx:'\\(\\overline{AF}\\)'},
-      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 的中點，\\(F\\)、\\(G\\) 分別為 \\(\\overline{AD}\\)、\\(\\overline{AE}\\) 的中點，若 \\(\\overline{BC}=36\\)，則 \\(\\overline{DE}+\\overline{FG}=\\)',ans:27,type:'number',pfx:'\\(\\overline{DE}+\\overline{FG}\\)'},
-      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，若 \\(\\overline{AD}=x-1\\)，\\(\\overline{BD}=x+1\\)，\\(\\overline{CE}=x-3\\)，\\(\\overline{AE}=3\\)，則 \\(x=\\)',ans:7,type:'number',pfx:'\\(x\\)'},
-      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 兩點在 \\(\\overline{BC}\\) 上，\\(\\triangle ABD\\) 的面積為 \\(12\\)，\\(\\overline{BD}:\\overline{DE}=\\overline{DE}:\\overline{EC}=1:2\\)，則 \\(\\triangle ACE\\) 的面積為',ans:48,type:'number',pfx:'\\(\\triangle ACE\\) 面積'},
-      {q:'如圖，\\(L_1//L_2//L_3\\)，\\(M_1\\)、\\(M_2\\) 為截線，若 \\(\\overline{AB}:\\overline{AC}=1:3\\)，\\(\\overline{DF}=24\\)，則 \\(\\overline{EF}=\\)',ans:16,type:'number',pfx:'\\(\\overline{EF}\\)'},
-      {q:'如圖，若 \\(\\triangle ABC\\) 的面積：\\(\\triangle ABD\\) 的面積 \\(=2:3\\)，已知 \\(\\overline{AC}=14\\)，則 \\(\\overline{BD}=\\)',ans:21,type:'number',pfx:'\\(\\overline{BD}\\)'},
-      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 的中點，\\(F\\) 點為 \\(\\overline{AE}\\) 的中點，若 \\(\\overline{AB}+\\overline{BE}=54\\)，\\(\\overline{AC}=24\\)，則 \\(\\triangle ADF\\) 的周長為',ans:33,type:'number',pfx:'周長'},
-      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，若 \\(\\overline{AD}=2x-1\\)，\\(\\overline{AE}=3x-9\\)，\\(\\overline{BD}=3\\)，\\(\\overline{AC}=8\\)，則 \\(\\overline{CE}=\\)',ans:2,type:'number',pfx:'\\(\\overline{CE}\\)'},
-      {q:'在比例式 \\(3:5=12:x\\) 中，求 \\(x\\)',ans:20,type:'number',pfx:'x'},
-      {q:'在比例式 \\(x:6=4:8\\) 中，求 \\(x\\)',ans:3,type:'number',pfx:'x'},
-      {q:'在比例式 \\(5:x=10:6\\) 中，求 \\(x\\)',ans:3,type:'number',pfx:'x'},
-      {q:'若 \\(2:x=x:8\\)（\\(x>0\\)），求 \\(x\\)（比例中項）',ans:4,type:'number',pfx:'x'},
-      {q:'若 \\(3:x=x:12\\)（\\(x>0\\)），求 \\(x\\)（比例中項）',ans:6,type:'number',pfx:'x'},
-      {q:'\\(\\triangle ABD\\) 與 \\(\\triangle ACD\\) 共頂點 \\(A\\)，\\(\\overline{BD}=4\\)，\\(\\overline{DC}=6\\)，\\(\\triangle ABD\\) 的面積為 \\(20\\)，則 \\(\\triangle ACD\\) 的面積為',ans:30,type:'number',pfx:'面積'},
-      {q:'\\(L_1//L_2//L_3\\)，截線 \\(M_1\\) 上 \\(\\overline{AB}=6\\)、\\(\\overline{BC}=9\\)，截線 \\(M_2\\) 上 \\(\\overline{DE}=4\\)，則 \\(\\overline{EF}=\\)',ans:6,type:'number',pfx:'\\(\\overline{EF}\\)'},
-    ];
-    const item=jrQPick(pool,_psBQ);
-    return {question:item.q,answer:item.ans,type:item.type,answerPrefix:item.pfx};
+    const t=randInt(0,6);
+    if(t===0){// 比例式求 x（x 出現在不同位置）
+      const a=randInt(1,9),b=randInt(1,9),k=randInt(2,6);if(a===b)return null;
+      const pos=randInt(0,3),v=[a,b,a*k,b*k],x=v[pos];v[pos]='x';
+      return{question:`在比例式 \\(${v[0]}:${v[1]}=${v[2]}:${v[3]}\\) 中，求 \\(x\\)`,...N(x,'\\(x\\)')};
+    }
+    if(t===1){// 比例中項
+      const m=randInt(1,6),a=randInt(1,4),b=randInt(a+1,9);
+      return{question:`若 \\(${m*a*a}:x=x:${m*b*b}\\)（\\(x>0\\)），求比例中項 \\(x\\)`,...N(m*a*b,'\\(x\\)')};
+    }
+    if(t===2){// DE//BC：三角形一邊平行線截比例線段
+      const[p,q]=coprime(),k=randInt(1,4),j=randInt(1,4),ask=randInt(0,2);
+      const AD=p*k,DB=q*k,AE=p*j,EC=q*j;
+      const pre=`\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別在 ${S('AB')}、${S('AC')} 上，且 ${S('DE')}\\(//\\)${S('BC')}，`;
+      if(ask===0)return{question:pre+`${S('AD')}\\(=${AD}\\)，${S('DB')}\\(=${DB}\\)，${S('AE')}\\(=${AE}\\)，求 ${S('EC')}`,...N(EC,S('EC'))};
+      if(ask===1)return{question:pre+`${S('AD')}\\(=${AD}\\)，${S('DB')}\\(=${DB}\\)，${S('AC')}\\(=${AE+EC}\\)，求 ${S('AE')}`,...N(AE,S('AE'))};
+      const BC=(p+q)*randInt(1,4);
+      return{question:pre+`${S('AD')}\\(=${AD}\\)，${S('DB')}\\(=${DB}\\)，${S('BC')}\\(=${BC}\\)，求 ${S('DE')}`,...F(frac(BC*p,p+q),S('DE'))};
+    }
+    if(t===3){// 平行線截比例線段
+      const[p,q]=coprime(),k=randInt(1,5),j=randInt(1,5);
+      return{question:`三條平行線 \\(L_1//L_2//L_3\\) 被兩條截線所截，截線 \\(M_1\\) 依序交三線於 \\(A\\)、\\(B\\)、\\(C\\)，截線 \\(M_2\\) 依序交三線於 \\(D\\)、\\(E\\)、\\(F\\)。若 ${S('AB')}\\(=${p*k}\\)，${S('BC')}\\(=${q*k}\\)，${S('DE')}\\(=${p*j}\\)，求 ${S('EF')}`,...N(q*j,S('EF'))};
+    }
+    if(t===4){// 等高三角形面積比
+      const[p,q]=coprime(),n=randInt(1,6),ask=randInt(0,1);
+      if(ask)return{question:`\\(D\\) 在 \\(\\triangle ABC\\) 的邊 ${S('BC')} 上，${S('BD')}\\(:\\)${S('DC')}\\(=${p}:${q}\\)，若 ${T('ABC')} 的面積為 \\(${n*(p+q)}\\)，求 ${T('ABD')} 的面積`,...N(n*p,T('ABD')+' 面積')};
+      return{question:`\\(D\\) 在 \\(\\triangle ABC\\) 的邊 ${S('BC')} 上，${S('BD')}\\(:\\)${S('DC')}\\(=${p}:${q}\\)，若 ${T('ABD')} 的面積為 \\(${n*p}\\)，求 ${T('ACD')} 的面積`,...N(n*q,T('ACD')+' 面積')};
+    }
+    if(t===5){// 中點連線性質
+      const ask=randInt(0,2);
+      if(ask===0){const BC=randInt(3,30)*2;return{question:`\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 ${S('AB')}、${S('AC')} 的中點，若 ${S('BC')}\\(=${BC}\\)，求 ${S('DE')}`,...N(BC/2,S('DE'))};}
+      if(ask===1){const DE=randInt(3,25);return{question:`\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 ${S('AB')}、${S('AC')} 的中點，若 ${S('DE')}\\(=${DE}\\)，求 ${S('BC')}`,...N(2*DE,S('BC'))};}
+      const a=randInt(3,15)*2,b=randInt(3,15)*2,c=randInt(3,15)*2;if(a+b<=c||a+c<=b||b+c<=a)return null;
+      return{question:`\\(\\triangle ABC\\) 的三邊長為 ${S('AB')}\\(=${a}\\)、${S('BC')}\\(=${b}\\)、${S('CA')}\\(=${c}\\)，\\(D\\)、\\(E\\)、\\(F\\) 分別為三邊的中點，求 ${T('DEF')} 的周長`,...N((a+b+c)/2,'周長')};
+    }
+    // 判斷平行：AF 為多少時 L//BC
+    const[p,q]=coprime(),k=randInt(1,4),j=randInt(1,4);
+    return{question:`\\(\\triangle ABC\\) 中，直線 \\(L\\) 分別交 ${S('AB')}、${S('AC')} 於 \\(E\\)、\\(F\\)，${S('AE')}\\(=${p*k}\\)，${S('EB')}\\(=${q*k}\\)，${S('AC')}\\(=${(p+q)*j}\\)，當 ${S('AF')} 為多少時，\\(L//\\)${S('BC')}？`,...N(p*j,S('AF'))};
   }
   if(level==='medium'){
-    const pool=[
-      {q:'如圖，\\(\\overline{AD}//\\overline{EG}//\\overline{FH}//\\overline{BC}\\)，左側截線上 \\(\\overline{AE}=50\\)、\\(\\overline{EF}=100\\)、\\(\\overline{FB}=75\\)，且 \\(\\overline{DC}=180\\)，則 \\(\\overline{DG}=\\)',ans:40,type:'number',pfx:'\\(\\overline{DG}\\)'},
-      {q:'如圖，\\(\\overline{AD}//\\overline{EG}//\\overline{FH}//\\overline{BC}\\)，左側截線上 \\(\\overline{AE}=50\\)、\\(\\overline{EF}=100\\)、\\(\\overline{FB}=75\\)，且 \\(\\overline{DC}=180\\)，則 \\(\\overline{GH}=\\)',ans:80,type:'number',pfx:'\\(\\overline{GH}\\)'},
-      {q:'如圖，\\(L_1//L_2//L_3//L_4\\)，若 \\(\\overline{AB}:\\overline{BC}:\\overline{CD}=2:3:5\\)，且 \\(\\overline{EF}+\\overline{FG}+\\overline{GH}=60\\)，則 \\(\\overline{FG}=\\)',ans:18,type:'number',pfx:'\\(\\overline{FG}\\)'},
-      {q:'如圖，\\(\\overline{AD}:\\overline{CD}=2:3\\)，\\(\\overline{BP}:\\overline{PD}=1:1\\)，若 \\(\\triangle ABC\\) 面積為 \\(20\\) 平方單位，則 \\(\\triangle BPC\\) 面積為',ans:6,type:'number',pfx:'面積'},
-      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{AB}\\)，\\(\\overline{EF}//\\overline{AC}\\)，已知 \\(\\overline{AF}=3\\)，\\(\\overline{FB}=2\\)，\\(\\overline{CD}=2x+5\\)，\\(\\overline{DA}=4x-2\\)，則 \\(x=\\)',ans:2,type:'number',pfx:'\\(x\\)'},
-      {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{AB}\\)，\\(\\overline{EF}//\\overline{AC}\\)，已知 \\(\\overline{AF}=3\\)，\\(\\overline{FB}=2\\)，\\(\\overline{AC}=15\\)，則 \\(\\overline{EF}=\\)',ans:6,type:'number',pfx:'\\(\\overline{EF}\\)'},
-      {q:'如圖，\\(\\overline{AD}=\\overline{EH}=6\\) cm，\\(\\triangle ABC\\) 面積 \\(=18\\) cm²，\\(\\triangle EFG\\) 面積 \\(=12\\) cm²，則 \\(\\overline{BC}:\\overline{FG}=\\)',ans:'3:2',type:'text',pfx:'比值'},
-      {q:'如圖，\\(ABCD\\) 為梯形，\\(\\overline{AD}//\\overline{BC}\\)，若 \\(\\overline{AD}=2\\) 公分，\\(\\overline{BC}=4\\) 公分，\\(\\triangle ABC\\) 面積為 \\(36\\) 平方公分，則 \\(\\triangle ACD\\) 面積為',ans:18,type:'number',pfx:'面積（平方公分）'},
-      {q:'如圖，\\(\\overline{AA\'}=3\\)，\\(\\overline{BB\'}=4\\)，\\(\\overline{AB}=2\\)，\\(\\overline{AC}=8\\)，則 \\(\\overline{CC\'}=\\)',ans:7,type:'number',pfx:'\\(\\overline{CC\'}\\)'},
-      {q:'如圖，\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 兩點分別在 \\(\\overline{AC}\\)、\\(\\overline{BC}\\) 上，\\(F\\)、\\(G\\) 兩點在 \\(\\overline{AB}\\) 上，\\(\\overline{DF}//\\overline{CG}\\)，\\(\\overline{CF}//\\overline{EG}\\)，若 \\(\\triangle ADF=16\\)、\\(\\triangle CDF=24\\)、\\(\\triangle BCG=65\\)，則 \\(\\overline{BE}:\\overline{EC}=\\)',ans:'13:12',type:'text',pfx:'比值'},
-      {q:'如圖，\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\)、\\(F\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{BC}\\)、\\(\\overline{AC}\\) 的中點，已知 \\(\\triangle DEF\\) 的面積為 \\(5\\)，則四邊形 \\(DBCF\\) 的面積為',ans:15,type:'number',pfx:'面積'},
-      {q:'\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 兩點分別在 \\(\\overline{AC}\\)、\\(\\overline{BD}\\) 上，\\(\\overline{AD}:\\overline{DC}=\\overline{BE}:\\overline{DE}=3:2\\)，則 \\(\\triangle BCE\\) 面積：\\(\\triangle ABC\\) 面積的比值為',ans:frac(6,25),type:'fraction',pfx:'比值'},
-      {q:'如圖，\\(\\overline{AD}//\\overline{BE}//\\overline{CF}\\)，若 \\(\\overline{AB}=4\\)，\\(\\overline{BC}=5\\)，\\(\\overline{DE}=4x-1\\)，\\(\\overline{EF}=3x+2\\)，則 \\(x=\\)',ans:frac(13,8),type:'fraction',pfx:'\\(x\\)'},
-      {q:'如圖，四邊形 \\(ABCD\\) 為矩形，\\(\\overline{AD}=3\\)，\\(\\overline{AB}=2\\)，\\(2\\overline{BE}=\\overline{EF}=\\overline{FD}\\)，則 \\(\\triangle CEF\\) 面積為',ans:frac(6,5),type:'fraction',pfx:'面積（平方單位）'},
-      {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{AD}\\) 平分 \\(\\angle A\\)，\\(\\overline{AB}=8\\)，\\(\\overline{AC}=6\\)，\\(\\overline{BC}=7\\)，則 \\(\\overline{BD}=\\)',ans:4,type:'number',pfx:'\\(\\overline{BD}\\)'},
-      {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{AD}\\) 平分 \\(\\angle A\\)，\\(\\overline{AB}=10\\)，\\(\\overline{AC}=6\\)，\\(\\overline{BC}=16\\)，則 \\(\\overline{BD}=\\)',ans:10,type:'number',pfx:'\\(\\overline{BD}\\)'},
-      {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{AD}\\) 平分 \\(\\angle A\\)，\\(\\overline{AB}=12\\)，\\(\\overline{AC}=8\\)，\\(\\overline{BD}=6\\)，則 \\(\\overline{DC}=\\)',ans:4,type:'number',pfx:'\\(\\overline{DC}\\)'},
-      {q:'若 \\(a:b=3:5\\)，且 \\(a+b=24\\)，則 \\(b=\\)',ans:15,type:'number',pfx:'b'},
-      {q:'若 \\(a:b=2:7\\)，且 \\(a+b=36\\)，則 \\(a=\\)',ans:8,type:'number',pfx:'a'},
-      {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，\\(\\overline{AE}:\\overline{EC}=2:3\\)，\\(\\triangle ABC\\) 的面積為 \\(50\\)，則 \\(\\triangle ADE\\) 的面積為',ans:8,type:'number',pfx:'\\(\\triangle ADE\\) 面積'},
-      {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{AD}\\) 平分 \\(\\angle A\\)，\\(\\overline{AB}=4\\)，\\(\\overline{AC}=6\\)，\\(\\triangle ABD\\) 的面積為 \\(12\\)，則 \\(\\triangle ACD\\) 的面積為',ans:18,type:'number',pfx:'\\(\\triangle ACD\\) 面積'},
-    ];
-    const item=jrQPick(pool,_psMQ);
-    return {question:item.q,answer:item.ans,type:item.type,answerPrefix:item.pfx};
+    const t=randInt(0,6);
+    if(t===0){// 比的和差
+      const[p,q]=coprime(),k=randInt(2,9),sum=randInt(0,1),askA=randInt(0,1);if(!sum&&p===q)return null;
+      const cond=sum?`\\(a+b=${(p+q)*k}\\)`:`\\(b-a=${(q-p)*k}\\)`;if(!sum&&q<p)return null;
+      return{question:`若 \\(a:b=${p}:${q}\\)，且 ${cond}，求 \\(${askA?'a':'b'}\\)`,...N((askA?p:q)*k,`\\(${askA?'a':'b'}\\)`)};
+    }
+    if(t===1){// 內角平分線
+      const[p,q]=coprime(),k=randInt(1,4),m=randInt(1,4),ask=randInt(0,1);
+      const AB=p*k,AC=q*k,BC=(p+q)*m;if(AB+AC<=BC||Math.abs(AB-AC)>=BC)return null;
+      const pre=`\\(\\triangle ABC\\) 中，${S('AD')} 平分 \\(\\angle A\\) 交 ${S('BC')} 於 \\(D\\)，${S('AB')}\\(=${AB}\\)，${S('AC')}\\(=${AC}\\)，`;
+      if(ask)return{question:pre+`${S('BC')}\\(=${BC}\\)，求 ${S('BD')}`,...N(p*m,S('BD'))};
+      return{question:pre+`${S('BD')}\\(=${p*m}\\)，求 ${S('DC')}`,...N(q*m,S('DC'))};
+    }
+    if(t===2){// DE//BC 代數：AD:DB=AE:EC
+      const[p,q]=coprime(),x=randInt(2,8),a1=randInt(1,3),a2=randInt(1,3),k=randInt(1,3),j=randInt(1,3);
+      const AD=p*k,DB=q*k,AE=p*j,EC=q*j,b1=AD-a1*x,b2=EC-a2*x;if(b1===0||b2===0||AD<1||EC<1)return null;
+      const L=(a,b)=>`${a===1?'':a}x${b>0?'+':'-'}${Math.abs(b)}`;
+      return{question:`\\(\\triangle ABC\\) 中，${S('DE')}\\(//\\)${S('BC')}（\\(D\\) 在 ${S('AB')} 上、\\(E\\) 在 ${S('AC')} 上），${S('AD')}\\(=${L(a1,b1)}\\)，${S('DB')}\\(=${DB}\\)，${S('AE')}\\(=${AE}\\)，${S('EC')}\\(=${L(a2,b2)}\\)，求 \\(x\\)`,...N(x,'\\(x\\)')};
+    }
+    if(t===3){// 四條平行線：連比分配
+      const p=randInt(1,5),q=randInt(1,5),r=randInt(1,5),k=randInt(2,6),ask=randInt(0,2);
+      const seg=['EF','FG','GH'][ask],v=[p,q,r][ask];
+      return{question:`\\(L_1//L_2//L_3//L_4\\)，截線 \\(M_1\\) 依序交四線於 \\(A\\)、\\(B\\)、\\(C\\)、\\(D\\)，截線 \\(M_2\\) 依序交於 \\(E\\)、\\(F\\)、\\(G\\)、\\(H\\)。若 ${S('AB')}\\(:\\)${S('BC')}\\(:\\)${S('CD')}\\(=${p}:${q}:${r}\\)，且 ${S('EH')}\\(=${(p+q+r)*k}\\)，求 ${S(seg)}`,...N(v*k,S(seg))};
+    }
+    if(t===4){// DE//BC：面積比為相似比平方
+      const[p,q]=coprime(),n=randInt(1,4),ask=randInt(0,1),S0=n*(p+q)**2;
+      const pre=`\\(\\triangle ABC\\) 中，${S('DE')}\\(//\\)${S('BC')}（\\(D\\) 在 ${S('AB')} 上、\\(E\\) 在 ${S('AC')} 上），${S('AD')}\\(:\\)${S('DB')}\\(=${p}:${q}\\)，${T('ABC')} 的面積為 \\(${S0}\\)，`;
+      if(ask)return{question:pre+`求梯形 \\(DBCE\\) 的面積`,...N(S0-n*p*p,'面積')};
+      return{question:pre+`求 ${T('ADE')} 的面積`,...N(n*p*p,'面積')};
+    }
+    if(t===5){// 梯形兩腰中點連線
+      const a=randInt(2,20),b=a+2*randInt(1,10),ask=randInt(0,1);
+      if(ask)return{question:`梯形 \\(ABCD\\) 中，${S('AD')}\\(//\\)${S('BC')}，\\(E\\)、\\(F\\) 分別為兩腰 ${S('AB')}、${S('CD')} 的中點，${S('EF')}\\(=${(a+b)/2}\\)，${S('AD')}\\(=${a}\\)，求 ${S('BC')}`,...N(b,S('BC'))};
+      return{question:`梯形 \\(ABCD\\) 中，${S('AD')}\\(//\\)${S('BC')}，\\(E\\)、\\(F\\) 分別為兩腰 ${S('AB')}、${S('CD')} 的中點，${S('AD')}\\(=${a}\\)，${S('BC')}\\(=${b}\\)，求 ${S('EF')}`,...N((a+b)/2,S('EF'))};
+    }
+    // 平行線截比例線段：代數
+    const[p,q]=coprime(),x=randInt(2,8),k=randInt(1,4),m1=randInt(1,4),m2=randInt(1,4),n1=p*k-m1*x,n2=q*k-m2*x;
+    if(n1===0||n2===0||p*k<1)return null;
+    const L=(a,b)=>`${a===1?'':a}x${b>0?'+':'-'}${Math.abs(b)}`;
+    return{question:`\\(L_1//L_2//L_3\\)，截線 \\(M_1\\) 依序交三線於 \\(A\\)、\\(B\\)、\\(C\\)，截線 \\(M_2\\) 依序交於 \\(D\\)、\\(E\\)、\\(F\\)。若 ${S('AB')}\\(=${p}\\)，${S('BC')}\\(=${q}\\)，${S('DE')}\\(=${L(m1,n1)}\\)，${S('EF')}\\(=${L(m2,n2)}\\)，求 \\(x\\)`,...N(x,'\\(x\\)')};
   }
   // hard
-  const pool=[
-    {q:'如圖，\\(\\overline{FG}//\\overline{DE}//\\overline{BC}\\)，\\(\\overline{AB}=8\\)，\\(\\overline{AF}:\\overline{FD}:\\overline{DC}=1:2:3\\)，則 \\(\\overline{AG}=\\)',ans:frac(4,3),type:'fraction',pfx:'\\(\\overline{AG}\\)'},
-    {q:'如圖，\\(\\overline{FG}//\\overline{DE}//\\overline{BC}\\)，\\(\\overline{AB}=8\\)，\\(\\overline{AF}:\\overline{FD}:\\overline{DC}=1:2:3\\)，則 \\(\\overline{GE}=\\)',ans:frac(8,3),type:'fraction',pfx:'\\(\\overline{GE}\\)'},
-    {q:'如圖，\\(\\overline{QT}//\\overline{RS}\\)，\\(\\overline{PW}//\\overline{MN}\\)，\\(\\overline{SR}=3x-19\\)，\\(\\overline{TQ}=15-x\\)，\\(\\overline{TS}=1\\)，\\(\\overline{PS}=4\\)，\\(2\\overline{WN}=3\\overline{NT}\\)，\\(\\overline{MT}=y\\)，則 \\(x=\\)',ans:9,type:'number',pfx:'\\(x\\)'},
-    {q:'如圖，在 \\(\\triangle ABC\\) 中，若 \\(\\triangle ABC\\) 的面積為 \\(60\\)，\\(\\triangle ADC\\) 的面積為 \\(24\\)，則 \\(\\overline{BD}:\\overline{DC}=\\)',ans:'3:2',type:'text',pfx:'比值'},
-    {q:'如圖，已知 \\(\\overline{AD}:\\overline{DC}=4:3\\)，則 \\(\\triangle ABD\\) 面積與 \\(\\triangle ABC\\) 面積的比值為',ans:frac(4,7),type:'fraction',pfx:'比值'},
-    {q:'如圖，\\(\\triangle ABC\\) 中，\\(M\\) 是 \\(\\overline{AB}\\) 中點，在 \\(\\overline{CM}\\) 上取一點 \\(N\\) 使 \\(\\overline{CN}:\\overline{NM}=5:3\\)，且 \\(\\overline{MP}//\\overline{AN}\\)，交 \\(\\overline{BC}\\) 於 \\(P\\)，則 \\(\\overline{BP}:\\overline{BC}=\\)',ans:'3:11',type:'text',pfx:'比值'},
-    {q:'如圖，直線 \\(L\\) 為一次函數 \\(y=-\\dfrac{1}{2}x+3\\) 之圖形，\\(A(-12,\\,0)\\)，\\(\\overline{AB}\\perp x\\) 軸，且 \\(\\overline{BD}:\\overline{CD}=2:1\\)，則 \\(D\\) 點坐標 \\((x,y)\\) 為',parts:[{prefix:'x',answer:-4,type:'number'},{prefix:'y',answer:5,type:'number'}]},
-    {q:'如圖，平行四邊形 \\(ABCD\\)，\\(E\\) 為 \\(\\overline{BD}\\) 中點，在 \\(\\overline{AD}\\) 上取一點 \\(F\\) 使 \\(\\overline{DF}=\\dfrac{1}{3}\\overline{AF}\\)，則 \\(\\triangle DEF\\) 面積：四邊形 \\(ABEF\\) 面積 \\(=\\)',ans:'1:7',type:'text',pfx:'面積比'},
-    {q:'在坐標平面上，直線 \\(L\\) 的方程式為 \\(3x-8y+24=0\\)，分別交 \\(x\\) 軸、\\(y\\) 軸於 \\(A\\)、\\(B\\)，原點 \\(O\\) 與 \\(A\\)、\\(B\\) 形成 \\(\\triangle OAB\\)，\\(C\\) 為 \\(\\overline{OA}\\) 上一點，若 \\(\\triangle ABC\\) 面積：\\(\\triangle OAB\\) 面積 \\(=1:4\\)，則直線 \\(BC\\) 的方程式為 \\(y=mx+b\\)，求 \\(m\\)、\\(b\\)',parts:[{prefix:'m',answer:frac(1,2),type:'fraction'},{prefix:'b',answer:3,type:'number'}]},
-    {q:'如圖，在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，\\(\\overline{FE}//\\overline{DC}\\)，若 \\(\\overline{AF}=9\\)，\\(\\overline{FD}=15\\)，則 \\(\\overline{BD}=\\)',ans:40,type:'number',pfx:'\\(\\overline{BD}\\)'},
-    {q:'如圖，\\(\\overline{AB}//\\overline{CD}//\\overline{EF}\\)，若 \\(\\overline{AG}:\\overline{AF}=2:7\\)，\\(\\overline{AC}=6\\)，\\(\\overline{GD}=10\\)，則 \\(\\overline{AB}+\\overline{CE}=\\)',ans:29,type:'number',pfx:'\\(\\overline{AB}+\\overline{CE}\\)'},
-    {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{BD}:\\overline{DC}=3:5\\)，若 \\(\\triangle ABC\\) 面積為 \\(32\\)，則 \\(\\triangle ABD\\) 面積為',ans:12,type:'number',pfx:'\\(\\triangle ABD\\) 面積'},
-    {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{BD}:\\overline{DC}=2:3\\)，若 \\(\\triangle ABD\\) 面積為 \\(16\\)，則 \\(\\triangle ACD\\) 面積為',ans:24,type:'number',pfx:'\\(\\triangle ACD\\) 面積'},
-    {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，\\(\\overline{AD}=4\\)，\\(\\overline{DB}=6\\)，\\(\\overline{AC}=15\\)，則 \\(\\overline{EC}=\\)',ans:9,type:'number',pfx:'\\(\\overline{EC}\\)'},
-    {q:'如圖，\\(L_1//L_2//L_3\\)，截線 \\(M_1\\) 上 \\(\\overline{AB}=3\\)，\\(\\overline{BC}=4\\)，截線 \\(M_2\\) 上 \\(\\overline{DE}=6\\)，則 \\(\\overline{EF}=\\)',ans:8,type:'number',pfx:'\\(\\overline{EF}\\)'},
-    {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，\\(\\overline{AD}:\\overline{DB}=3:2\\)，\\(\\overline{BC}=20\\)，則 \\(\\overline{DE}=\\)',ans:12,type:'number',pfx:'\\(\\overline{DE}\\)'},
-    {q:'在 \\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，\\(\\overline{AE}=8\\)，\\(\\overline{EC}=4\\)，\\(\\overline{DE}=10\\)，則 \\(\\overline{BC}=\\)',ans:15,type:'number',pfx:'\\(\\overline{BC}\\)'},
-    {q:'梯形 \\(ABCD\\) 中，\\(\\overline{AD}//\\overline{BC}\\)，\\(\\overline{AD}=6\\)，\\(\\overline{BC}=10\\)，\\(E\\) 為 \\(\\overline{AB}\\) 中點，\\(F\\) 為 \\(\\overline{CD}\\) 中點，則中線 \\(\\overline{EF}=\\)',ans:8,type:'number',pfx:'\\(\\overline{EF}\\)'},
-    {q:'在 \\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 的中點，若 \\(\\triangle ADE\\) 的面積為 \\(9\\)，則 \\(\\triangle ABC\\) 的面積為',ans:36,type:'number',pfx:'\\(\\triangle ABC\\) 面積'},
-    {q:'在 \\(\\triangle ABC\\) 中，\\(D\\) 在 \\(\\overline{AB}\\) 上且 \\(\\overline{AD}=2\\overline{DB}\\)，\\(E\\) 為 \\(\\overline{AC}\\) 中點，若 \\(\\triangle ADE\\) 的面積為 \\(6\\)，則 \\(\\triangle ABC\\) 的面積為',ans:18,type:'number',pfx:'\\(\\triangle ABC\\) 面積'},
-    {q:'在 \\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 兩點在 \\(\\overline{BC}\\) 上，\\(\\overline{BD}:\\overline{DE}:\\overline{EC}=1:2:3\\)，若 \\(\\triangle ABD\\) 的面積為 \\(4\\)，則 \\(\\triangle ABC\\) 的面積為',ans:24,type:'number',pfx:'\\(\\triangle ABC\\) 面積'},
-    {q:'若正數 \\(x\\)、\\(x+4\\)、\\(x+12\\) 成等比，即 \\((x+4)^2=x(x+12)\\)，求 \\(x\\)',ans:4,type:'number',pfx:'x'},
-    {q:'在梯形 \\(ABCD\\) 中，\\(\\overline{AD}//\\overline{BC}\\)，\\(\\overline{AD}=3\\)，\\(\\overline{BC}=5\\)，對角線交於點 \\(O\\)，則 \\(\\triangle AOD\\) 面積：\\(\\triangle BOC\\) 面積 \\(=\\)',ans:'9:25',type:'text',pfx:'面積比'},
-    {q:'\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\)、\\(F\\) 分別為三邊中點（中位三角形），若 \\(\\triangle DEF\\) 的面積為 \\(3\\)，則 \\(\\triangle ABC\\) 的面積為',ans:12,type:'number',pfx:'\\(\\triangle ABC\\) 面積'},
-  ];
-  const item=jrQPick(pool,_psHQ);
-  if(item.parts) return {question:item.q,answerParts:item.parts};
-  return {question:item.q,answer:item.ans,type:item.type,answerPrefix:item.pfx};
+  const t=randInt(0,6);
+  if(t===0){// 兩邊各取一點的三角形面積
+    const[p,q]=coprime(),[r,s]=coprime(),n=randInt(1,3),S0=n*(p+q)*(r+s);
+    return{question:`\\(\\triangle ABC\\) 中，\\(D\\) 在 ${S('AB')} 上、\\(E\\) 在 ${S('AC')} 上，${S('AD')}\\(:\\)${S('DB')}\\(=${p}:${q}\\)，${S('AE')}\\(:\\)${S('EC')}\\(=${r}:${s}\\)，若 ${T('ABC')} 的面積為 \\(${S0}\\)，求 ${T('ADE')} 的面積`,...N(n*p*r,T('ADE')+' 面積')};
+  }
+  if(t===1){// 梯形對角線交點：上下兩三角形面積比
+    const[p,q]=coprime(),k=randInt(1,4),n=randInt(1,3),ask=randInt(0,1);
+    const pre=`梯形 \\(ABCD\\) 中，${S('AD')}\\(//\\)${S('BC')}，${S('AD')}\\(=${p*k}\\)，${S('BC')}\\(=${q*k}\\)，對角線 ${S('AC')}、${S('BD')} 交於 \\(O\\)，`;
+    if(ask)return{question:pre+`若 ${T('AOD')} 的面積為 \\(${n*p*p}\\)，求 ${T('BOC')} 的面積`,...N(n*q*q,T('BOC')+' 面積')};
+    return{question:pre+`若 ${T('AOD')} 的面積為 \\(${n*p*p}\\)，求 ${T('AOB')} 的面積`,...N(n*p*q,T('AOB')+' 面積')};
+  }
+  if(t===2){// 平行四邊形 DBFE：DE//BC、EF//AB
+    const[p,q]=coprime(),BC=(p+q)*randInt(1,5);
+    return{question:`\\(\\triangle ABC\\) 中，\\(D\\) 在 ${S('AB')} 上，\\(E\\) 在 ${S('AC')} 上，\\(F\\) 在 ${S('BC')} 上，${S('DE')}\\(//\\)${S('BC')}，${S('EF')}\\(//\\)${S('AB')}。若 ${S('AD')}\\(:\\)${S('DB')}\\(=${p}:${q}\\)，${S('BC')}\\(=${BC}\\)，求 ${S('FC')}`,...N(BC*q/(p+q),S('FC'))};
+  }
+  if(t===3){// 角平分線與面積
+    const[p,q]=coprime(),n=randInt(1,6),ask=randInt(0,1);
+    const pre=`\\(\\triangle ABC\\) 中，${S('AD')} 平分 \\(\\angle A\\) 交 ${S('BC')} 於 \\(D\\)，${S('AB')}\\(=${2*p}\\)，${S('AC')}\\(=${2*q}\\)，`;
+    if(ask)return{question:pre+`${T('ABC')} 的面積為 \\(${n*(p+q)}\\)，求 ${T('ABD')} 的面積`,...N(n*p,T('ABD')+' 面積')};
+    return{question:pre+`${T('ABD')} 的面積為 \\(${n*p}\\)，求 ${T('ACD')} 的面積`,...N(n*q,T('ACD')+' 面積')};
+  }
+  if(t===4){// 中線上的點
+    const[p,q]=coprime(),n=randInt(1,4),S0=2*n*(p+q);
+    return{question:`\\(\\triangle ABC\\) 中，\\(D\\) 在 ${S('BC')} 上，${S('BD')}\\(:\\)${S('DC')}\\(=${p}:${q}\\)，\\(E\\) 為 ${S('AD')} 的中點，若 ${T('ABC')} 的面積為 \\(${S0}\\)，求 ${T('BDE')} 的面積`,...N(n*p,T('BDE')+' 面積')};
+  }
+  if(t===5){// 比例式求值
+    const[p,q]=coprime(),a=randInt(1,4),b=randInt(-3,4),c=randInt(1,4),d=randInt(-3,4);
+    const num=a*p+b*q,den=c*p+d*q;if(num<=0||den<=0||(b===0&&d===0))return null;
+    const L=(m,n)=>`${m===1?'':m}x${n===0?'':(n>0?'+':'-')+(Math.abs(n)===1?'':Math.abs(n))+'y'}`;
+    return{question:`若 \\(x:y=${p}:${q}\\)（\\(y\\neq0\\)），求 \\(\\dfrac{${L(a,b)}}{${L(c,d)}}\\) 的值`,...F(frac(num,den),'值')};
+  }
+  // 兩組平行線串連：DE//BC、FE//DC，求 BD
+  const[p,q]=coprime(),k=randInt(1,4);
+  // AF:FD = AE:EC = AD:DB = p:q → AF=p²k, FD=pqk, DB=q(p+q)k
+  return{question:`\\(\\triangle ABC\\) 中，\\(D\\) 在 ${S('AB')} 上，\\(E\\) 在 ${S('AC')} 上，\\(F\\) 在 ${S('AD')} 上，${S('DE')}\\(//\\)${S('BC')}，${S('FE')}\\(//\\)${S('DC')}。若 ${S('AF')}\\(=${p*p*k}\\)，${S('FD')}\\(=${p*q*k}\\)，求 ${S('DB')}`,...N(q*(p+q)*k,S('DB'))};
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -10440,7 +10480,28 @@ function gen9aSimilarApp(level){
 }
 function _9aSimilarApp(level){
   if(level==='basic'){
-    const t=randInt(0,4);
+    const t=randInt(0,7);
+
+    if(t===5){
+      // 路燈下的人影：影長 = 人高×距離 ÷（燈高−人高）
+      const H=pick([300,320,360,400,450,480]),h=pick([150,160,180]),d=randInt(1,12)*50,s=h*d/(H-h);
+      if(!Number.isInteger(s)||H<=h)return null;
+      return {question:`路燈高 \\(${H}\\) 公分，身高 \\(${h}\\) 公分的小華站在距離路燈底部 \\(${d}\\) 公分處，求小華在地上的影長（公分）。`, answer:s, type:'number', answerPrefix:'影長'};
+    }
+    if(t===6){
+      // 地圖比例尺：圖上公分 → 實際公里
+      const scale=pick([10000,20000,25000,50000,100000]),l=randInt(2,16),km=l*scale/100000;
+      if(!Number.isInteger(km*10))return null;
+      return {question:`一張地圖的比例尺為 \\(1:${scale}\\)，地圖上兩地相距 \\(${l}\\) 公分，求兩地的實際距離（公里）。`, answer:km, type:'number', answerPrefix:'實際距離'};
+    }
+    if(t===7){
+      // 照片等比例放大或縮小
+      const a=randInt(3,12),b=randInt(2,10),k=pick([2,3,4,frac(3,2),frac(5,2),frac(1,2)]);
+      if(a===b)return null;
+      const kn=typeof k==='number'?k:k.num/k.den,A=a*kn,B=b*kn;
+      if(!Number.isInteger(A)||!Number.isInteger(B))return null;
+      return {question:`將一張長 \\(${a}\\) 公分、寬 \\(${b}\\) 公分的照片等比例${kn>1?'放大':'縮小'}，${kn>1?'放大':'縮小'}後的長為 \\(${A}\\) 公分，求${kn>1?'放大':'縮小'}後的寬（公分）。`, answer:B, type:'number', answerPrefix:'寬'};
+    }
 
     if(t===0){
       // 影子測高：標竿與樹
@@ -10488,7 +10549,24 @@ function _9aSimilarApp(level){
   }
 
   if(level==='medium'){
-    const t=randInt(0,5);
+    const t=randInt(0,8);
+
+    if(t===6){
+      // 標竿瞄準測樹高：眼睛、竿頂、樹頂在同一直線上
+      const e=pick([150,160]),p=e+pick([50,60,80,100]),d1=randInt(2,5)*100,k=randInt(2,6),d2=d1*k;
+      return {question:`小明眼睛離地 \\(${e}\\) 公分，在他前方 \\(${d1}\\) 公分處立一根高 \\(${p}\\) 公分的竹竿，竹竿後方 \\(${d2}\\) 公分處有一棵樹。小明的眼睛、竹竿頂端、樹頂恰好在同一直線上，求樹高（公分）。`, answer:e+(p-e)*(k+1), type:'number', answerPrefix:'樹高'};
+    }
+    if(t===7){
+      // 針孔成像：像高 / 物高 = 像距 / 物距
+      const H=randInt(2,30)*10,D=randInt(2,20)*100,d=pick([5,10,15,20,25,30]),img=H*d/D;
+      if(!Number.isInteger(img*10)||img<=0)return null;
+      return {question:`用針孔相機拍攝一棵高 \\(${H}\\) 公分的樹，樹與針孔相距 \\(${D}\\) 公分，針孔到底片的距離為 \\(${d}\\) 公分，求底片上樹的像高（公分）。`, answer:img, type:'number', answerPrefix:'像高'};
+    }
+    if(t===8){
+      // 由人影反求路燈高
+      const h=pick([150,160,180]),s=randInt(2,10)*20,k=randInt(1,4),d=s*k;
+      return {question:`身高 \\(${h}\\) 公分的小美站在距離路燈底部 \\(${d}\\) 公分處，她在地上的影長為 \\(${s}\\) 公分，求路燈的高度（公分）。`, answer:h*(d+s)/s, type:'number', answerPrefix:'路燈高'};
+    }
 
     if(t===0){
       // 人影與建築物（公分）
@@ -10548,7 +10626,24 @@ function _9aSimilarApp(level){
   }
 
   // hard
-  const t=randInt(0,4);
+  const t=randInt(0,7);
+
+  if(t===5){
+    // 遠離路燈時影長的變化
+    const H=pick([300,360,400,450,480]),h=pick([150,160,180]),w=randInt(1,10)*30,dS=w*h/(H-h);
+    if(!Number.isInteger(dS)||H<=h)return null;
+    return {question:`路燈高 \\(${H}\\) 公分，身高 \\(${h}\\) 公分的人沿直線遠離路燈走了 \\(${w}\\) 公分，他的影子變長了多少公分？`, answer:dS, type:'number', answerPrefix:'變長'};
+  }
+  if(t===6){
+    // 兩個位置的影長求路燈高：x=s1(r−1)，走 w 後 x+w=s2(r−1)
+    const h=pick([150,160,180]),r=randInt(2,4),s1=randInt(2,8)*20,s2=s1+randInt(1,6)*20,w=(s2-s1)*(r-1);
+    return {question:`身高 \\(${h}\\) 公分的人站在路燈旁某處時，影長為 \\(${s1}\\) 公分；他沿直線遠離路燈再走 \\(${w}\\) 公分後，影長變為 \\(${s2}\\) 公分，求路燈的高度（公分）。`, answer:h*r, type:'number', answerPrefix:'路燈高'};
+  }
+  if(t===7){
+    // 測池塘寬：延長 AC、BC 到 D、E，使 CD、CE 為原長的 1/k，則 DE//AB
+    const k=randInt(2,5),DE=randInt(3,25),AC=k*randInt(4,20),BC=k*randInt(4,20);
+    return {question:`為測量池塘兩端 \\(A\\)、\\(B\\) 的距離，在池塘外取一點 \\(C\\)，量得 \\(AC=${AC}\\) 公尺、\\(BC=${BC}\\) 公尺。分別延長 \\(AC\\)、\\(BC\\) 到 \\(D\\)、\\(E\\)，使 \\(CD=${AC/k}\\) 公尺、\\(CE=${BC/k}\\) 公尺，再量得 \\(DE=${DE}\\) 公尺，求 \\(A\\)、\\(B\\) 的距離（公尺）。`, answer:k*DE, type:'number', answerPrefix:'\\(AB\\)'};
+  }
 
   if(t===0){
     // 已知兩物高度，求另一物影長
@@ -10695,20 +10790,30 @@ function _9aTrig(level){
 // ═══════════════════════════════════════════════════════════════════
 //  九上 ▸ 點、線、圓
 // ═══════════════════════════════════════════════════════════════════
+// 代數式係數為 1 時省略（1x → x）
+const _jr1x=q=>(q.question=q.question.replace(/(^|[^\d.])1x/g,'$1x'),q);
 function gen9aCircleLine(level){
-  for(let i=0;i<30;i++){const q=_9aCircleLine(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=_9aCircleLine(level);if(q)return _jr1x(q);}
   return _9aCircleLine('basic');
 }
 function _9aCircleLine(level){
-  const PY3C=[
-    [3,4,5],[4,3,5],[5,12,13],[12,5,13],
-    [6,8,10],[8,6,10],[9,12,15],[12,9,15],
-    [8,15,17],[15,8,17],[7,24,25],[24,7,25],
-    [10,24,26],[24,10,26],[20,21,29],[21,20,29],
-    [12,16,20],[16,12,20],[15,20,25],[20,15,25]
-  ];
+  const PY3C=[];
+  for(const [a,b,c] of [[3,4,5],[5,12,13],[8,15,17],[7,24,25],[20,21,29],[12,35,37],[9,40,41]])
+    for(let k=1;k*c<=65;k++)PY3C.push([a*k,b*k,c*k],[b*k,a*k,c*k]);
   if(level==='basic'){
-    const t=randInt(0,3);
+    const t=randInt(0,5);
+    if(t===4){
+      // 直線與圓的位置關係：比較圓心到直線的距離與半徑
+      const r=randInt(3,30),rel=randInt(0,2),d=rel===0?randInt(1,r-1):rel===1?r:r+randInt(1,10);
+      return {question:`圓 \\(O\\) 的半徑為 \\(${r}\\)，圓心 \\(O\\) 到直線 \\(L\\) 的距離為 \\(${d}\\)，判斷直線 \\(L\\) 與圓的位置關係（填「相交」、「相切」或「不相交」）`,
+        answer:['相交','相切','不相交'][rel],type:'text',answerPrefix:'位置關係'};
+    }
+    if(t===5){
+      // 圓外一點到圓上的最近、最遠距離
+      const r=randInt(2,20),PO=r+randInt(1,20);
+      return {question:`圓 \\(O\\) 的半徑為 \\(${r}\\)，點 \\(P\\) 在圓外且 \\(\\overline{PO}=${PO}\\)，求點 \\(P\\) 到圓上各點的最短距離與最長距離`,
+        answerParts:[{prefix:'最短',answer:PO-r,type:'number'},{prefix:'最長',answer:PO+r,type:'number'}]};
+    }
     if(t===0){
       // 弦長：d²+(l/2)²=r²，求弦長（知r和d）
       const [d,hl,r]=pick(PY3C);
@@ -10737,10 +10842,21 @@ function _9aCircleLine(level){
       {r:29,d:21,rel:'圓內'},{r:29,d:29,rel:'圓上'},{r:29,d:35,rel:'圓外'}
     ];
     const pp=pick(posPool);
-    return {question:`圓 \\(O\\) 的半徑為 \\(${pp.r}\\)，點 \\(P\\) 與圓心的距離為 \\(${pp.d}\\)，判斷點 \\(P\\) 與圓的位置關係`,answer:pp.rel,type:'text',answerPrefix:'位置關係'};
+    return {question:`圓 \\(O\\) 的半徑為 \\(${pp.r}\\)，點 \\(P\\) 與圓心的距離為 \\(${pp.d}\\)，判斷點 \\(P\\) 與圓的位置關係（填「圓內」、「圓上」或「圓外」）`,answer:pp.rel,type:'text',answerPrefix:'位置關係'};
   }
   if(level==='medium'){
-    const t=randInt(0,3);
+    const t=randInt(0,5);
+    if(t===4){
+      // 直線與圓相切：圓心到直線距離＝半徑（代數）
+      const r=randInt(5,30),x=randInt(2,9),a=randInt(1,3),b=r-a*x;
+      if(b===0)return null;
+      return {question:`圓 \\(O\\) 的半徑為 \\(${r}\\)，圓心 \\(O\\) 到直線 \\(L\\) 的距離為 \\(${a===1?'':a}x${b>0?'+':'-'}${Math.abs(b)}\\)，若直線 \\(L\\) 與圓 \\(O\\) 相切，求 \\(x\\)`,answer:x,type:'number',answerPrefix:'\\(x\\)'};
+    }
+    if(t===5){
+      // 圓上一點到弦的最遠距離＝弦心距＋半徑
+      const [d,hl,r]=pick(PY3C);
+      return {question:`圓 \\(O\\) 的半徑為 \\(${r}\\)，弦 \\(\\overline{AB}=${2*hl}\\)，\\(P\\) 為圓上一點，求點 \\(P\\) 到直線 \\(AB\\) 的最遠距離`,answer:r+d,type:'number',answerPrefix:'最遠距離'};
+    }
     if(t===0){
       // 代數：d=(ax+b)，hl=c，r已知，求x
       const [d0,hl,r]=pick(PY3C);
@@ -10772,7 +10888,19 @@ function _9aCircleLine(level){
     return {question:`圓 \\(O\\) 中，\\(M\\) 為弦 \\(AB\\) 的中點，\\(OM \\perp AB\\)，\\(OM=${d}\\)，\\(MA=${hl}\\)，求圓的半徑`,answer:r,type:'number',answerPrefix:'半徑'};
   }
   // hard
-  const t=randInt(0,3);
+  const t=randInt(0,5);
+  if(t===4){
+    // 拱形（弓形）：已知弦長與弓形高，求半徑；弓形高＝r−弦心距
+    const [d,hl,r]=pick(PY3C);
+    const ctx=pick([['一座圓弧形拱橋的跨度（弦長）為','拱高（弧的最高點到弦的距離）為','公尺'],['一個圓形水管的截面中，水面寬為','水最深處的深度為','公分']]);
+    // 水管：水深＝r−d（水面在圓心下方）；拱橋同理
+    return {question:`${ctx[0]} \\(${2*hl}\\) ${ctx[2]}，${ctx[1]} \\(${r-d}\\) ${ctx[2]}，求此圓弧所在圓的半徑（${ctx[2]}）`,answer:r,type:'number',answerPrefix:'半徑'};
+  }
+  if(t===5){
+    // 直角三角形的內切圓半徑：切線段等長 → r=(a+b−c)/2
+    const [a,b,c]=pick(PY3C),k=randInt(1,3);
+    return {question:`直角三角形 \\(ABC\\) 中，\\(\\angle C=90^\\circ\\)，兩股長為 \\(${a*k}\\)、\\(${b*k}\\)，求此三角形內切圓的半徑`,answer:(a+b-c)*k/2,type:'number',answerPrefix:'半徑'};
+  }
   if(t===0){
     // 求半徑（知d和弦長）
     const [d,hl,r]=pick(PY3C);
@@ -10823,21 +10951,34 @@ function _9aCircleLine(level){
 //  九上 ▸ 圓心角與圓周角
 // ═══════════════════════════════════════════════════════════════════
 function gen9aCircleAngle(level){
-  for(let i=0;i<30;i++){const q=_9aCircleAngle(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=_9aCircleAngle(level);if(q)return _jr1x(q);}
   return _9aCircleAngle('basic');
 }
 function _9aCircleAngle(level){
   if(level==='basic'){
-    const t=randInt(0,3);
+    const t=randInt(0,5);
+    if(t===4){
+      // 圓周角＝所對弧度數的一半
+      const arc=randInt(4,32)*10;
+      return {question:`圓 \\(O\\) 上有 \\(A\\)、\\(B\\)、\\(C\\) 三點，\\(C\\) 不在 \\(\\overset{\\frown}{AB}\\) 上，且 \\(\\overset{\\frown}{AB}\\) 的度數為 \\(${arc}^\\circ\\)，求 \\(\\angle ACB\\)`,
+        answer:arc/2,type:'number',answerPrefix:'\\(\\angle ACB\\)'};
+    }
+    if(t===5){
+      // 圓心角與等腰三角形 OAB
+      const c=randInt(2,16)*10;
+      if(randInt(0,1))return {question:`圓 \\(O\\) 中，\\(\\overline{AB}\\) 為弦，圓心角 \\(\\angle AOB=${c}^\\circ\\)，求 \\(\\angle OAB\\)`,answer:(180-c)/2,type:'number',answerPrefix:'\\(\\angle OAB\\)'};
+      const b=(180-c)/2;
+      return {question:`圓 \\(O\\) 中，\\(\\overline{AB}\\) 為弦，\\(\\angle OAB=${b}^\\circ\\)，求圓心角 \\(\\angle AOB\\)`,answer:c,type:'number',answerPrefix:'\\(\\angle AOB\\)'};
+    }
     if(t===0){
       // 圓心角=2×圓周角，給圓心角求圓周角
-      const central=randInt(2,17)*10;
+      const central=randInt(10,89)*2;
       return {question:`圓 \\(O\\) 中，圓心角 \\(\\angle AOB=${central}^\\circ\\)，同弧上的圓周角 \\(\\angle ACB\\) 為`,
         answer:central/2,type:'number',answerPrefix:'\\(\\angle ACB\\)'};
     }
     if(t===1){
       // 給圓周角求圓心角
-      const inscribed=randInt(1,17)*5;
+      const inscribed=randInt(10,89);
       return {question:`圓 \\(O\\) 中，圓周角 \\(\\angle ACB=${inscribed}^\\circ\\)，對應的圓心角 \\(\\angle AOB\\) 為`,
         answer:2*inscribed,type:'number',answerPrefix:'\\(\\angle AOB\\)'};
     }
@@ -10849,12 +10990,26 @@ function _9aCircleAngle(level){
     }
     // t===3: 等弦對等圓心角
     const angVals=[30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,130,140,150];
-    const angV=pick(angVals);
+    const angV=randInt(20,160);
     return {question:`同圓 \\(O\\) 中，弦 \\(AB=\\) 弦 \\(CD\\)，圓心角 \\(\\angle AOB=${angV}^\\circ\\)，求 \\(\\angle COD\\)（等弦對等圓心角）`,
       answer:angV,type:'number',answerPrefix:'\\(\\angle COD\\)'};
   }
   if(level==='medium'){
-    const t=randInt(0,3);
+    const t=randInt(0,5);
+    if(t===4){
+      // 三點把圓周分成三弧，弧比 → 三角形內角
+      const a=randInt(1,6),b=randInt(1,6),c=randInt(1,6),s=a+b+c,ask=randInt(0,1);
+      if(180%s||new Set([a,b,c]).size<2)return null;
+      const ang=[a,b,c].map(v=>180*v/s);
+      return {question:`\\(A\\)、\\(B\\)、\\(C\\) 三點把圓周分成三段弧，\\(\\overset{\\frown}{BC}:\\overset{\\frown}{CA}:\\overset{\\frown}{AB}=${a}:${b}:${c}\\)（三段弧都不含第三點），求 \\(\\triangle ABC\\) 的${ask?'最大':'最小'}內角`,
+        answer:ask?Math.max(...ang):Math.min(...ang),type:'number',answerPrefix:ask?'最大內角':'最小內角'};
+    }
+    if(t===5){
+      // 銳角三角形外接圓：∠BOC＝2∠A，∠OBC＝90°−∠A
+      const A=randInt(25,85),ask=randInt(0,1);
+      if(ask)return {question:`\\(\\triangle ABC\\) 內接於圓 \\(O\\)，\\(\\angle A=${A}^\\circ\\) 且圓心 \\(O\\) 在三角形內部，求 \\(\\angle OBC\\)`,answer:90-A,type:'number',answerPrefix:'\\(\\angle OBC\\)'};
+      return {question:`\\(\\triangle ABC\\) 內接於圓 \\(O\\)，\\(\\angle OBC=${90-A}^\\circ\\) 且圓心 \\(O\\) 在三角形內部，求 \\(\\angle A\\)`,answer:A,type:'number',answerPrefix:'\\(\\angle A\\)'};
+    }
     if(t===0){
       // 代數：圓心角=(ax+b)°，圓周角=(cx+d)°，求x
       const xv=randInt(2,10),av=randInt(2,4),bv=randInt(10,30),cv=randInt(1,2),dv=randInt(5,20);
@@ -10897,7 +11052,20 @@ function _9aCircleAngle(level){
       answer:2*angCAB,type:'number',answerPrefix:'\\(\\angle BOC\\)'};
   }
   // hard
-  const t=randInt(0,2);
+  const t=randInt(0,4);
+  if(t===3){
+    // 弦兩側的圓周角互補
+    const a=randInt(20,85);
+    return {question:`\\(A\\)、\\(B\\)、\\(C\\)、\\(D\\) 四點在圓 \\(O\\) 上，\\(C\\)、\\(D\\) 分別在弦 \\(\\overline{AB}\\) 的兩側，\\(\\angle ACB=${a}^\\circ\\)，求 \\(\\angle ADB\\)`,
+      answer:180-a,type:'number',answerPrefix:'\\(\\angle ADB\\)'};
+  }
+  if(t===4){
+    // 圓內接四邊形三角比
+    const p=randInt(1,6),r=randInt(1,6),q=randInt(1,6),u=180/(p+r);
+    if(!Number.isInteger(u)||q*u>=180||p===r&&q===p)return null;
+    return {question:`圓內接四邊形 \\(ABCD\\) 中，\\(\\angle A:\\angle B:\\angle C=${p}:${q}:${r}\\)，求 \\(\\angle D\\)`,
+      answer:180-q*u,type:'number',answerPrefix:'\\(\\angle D\\)'};
+  }
   if(t===0){
     // 圓內接四邊形：對角互補
     const A=randInt(45,135);
@@ -10920,21 +11088,34 @@ function _9aCircleAngle(level){
 //  九上 ▸ 弦切角
 // ═══════════════════════════════════════════════════════════════════
 function gen9aCircChorTan(level){
-  for(let i=0;i<30;i++){const q=_9aCircChorTan(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=_9aCircChorTan(level);if(q)return _jr1x(q);}
   return _9aCircChorTan('basic');
 }
 function _9aCircChorTan(level){
   if(level==='basic'){
-    const t=randInt(0,3);
+    const t=randInt(0,5);
+    if(t===4){
+      // 切線垂直過切點的半徑
+      const th=randInt(15,75);
+      if(randInt(0,1))return{question:`\\(\\overline{PA}\\) 切圓 \\(O\\) 於 \\(A\\)，\\(\\angle AOP=${th}^\\circ\\)，求 \\(\\angle APO\\)`,answer:90-th,type:'number',answerPrefix:'\\(\\angle APO\\)'};
+      return{question:`\\(\\overline{PA}\\) 切圓 \\(O\\) 於 \\(A\\)，\\(\\angle APO=${th}^\\circ\\)，求 \\(\\angle OAP\\) 與 \\(\\angle AOP\\)`,
+        answerParts:[{prefix:'\\(\\angle OAP\\)',answer:90,type:'number'},{prefix:'\\(\\angle AOP\\)',answer:90-th,type:'number'}]};
+    }
+    if(t===5){
+      // 弦切角＝所夾弧度數的一半
+      const arc=randInt(4,30)*10;
+      return{question:`\\(AT\\) 切圓 \\(O\\) 於 \\(A\\)，\\(\\overline{AB}\\) 為弦，弦切角 \\(\\angle TAB\\) 所夾的 \\(\\overset{\\frown}{AB}\\) 度數為 \\(${arc}^\\circ\\)，求 \\(\\angle TAB\\)`,
+        answer:arc/2,type:'number',answerPrefix:'\\(\\angle TAB\\)'};
+    }
     if(t===0){
       // 弦切角 = 同弧圓周角
-      const ang=randInt(2,17)*5;
+      const ang=randInt(10,85);
       return{question:`\\(AT\\) 為圓 \\(O\\) 的切線，\\(A\\) 為切點，\\(AB\\) 為弦，\\(\\angle TAB=${ang}^\\circ\\)，點 \\(C\\) 在弦 \\(AB\\) 另一側的弧上，求圓周角 \\(\\angle ACB\\)`,
         answer:ang,type:'number',answerPrefix:'\\(\\angle ACB\\)'};
     }
     if(t===1){
       // 弦切角 = ½ 圓心角
-      const central=randInt(2,16)*10;
+      const central=randInt(10,85)*2;
       return{question:`\\(AT\\) 為圓 \\(O\\) 的切線，\\(A\\) 為切點，\\(AB\\) 為弦，圓心角 \\(\\angle AOB=${central}^\\circ\\)，求弦切角 \\(\\angle TAB\\)`,
         answer:central/2,type:'number',answerPrefix:'\\(\\angle TAB\\)'};
     }
@@ -10945,19 +11126,31 @@ function _9aCircChorTan(level){
         answer:180-ang2,type:'number',answerPrefix:'\\(\\angle T\'AB\\)'};
     }
     // t===3: 兩切線性質：∠APB + ∠AOB = 180°
-    const angAOB=randInt(3,17)*10;
+    const angAOB=randInt(20,160);
     return{question:`點 \\(P\\) 在圓 \\(O\\) 外，\\(PA\\)、\\(PB\\) 均為圓的切線（切點為 \\(A\\)、\\(B\\)），\\(\\angle AOB=${angAOB}^\\circ\\)，求 \\(\\angle APB\\)（兩切線性質：\\(\\angle APB+\\angle AOB=180^\\circ\\)）`,
       answer:180-angAOB,type:'number',answerPrefix:'\\(\\angle APB\\)'};
   }
   if(level==='medium'){
-    const t=randInt(0,3);
+    const t=randInt(0,5);
+    if(t===4){
+      // 弦切角與等腰 △OAB：∠OAB＝90°−∠TAB
+      const a=randInt(15,85);
+      if(randInt(0,1))return{question:`\\(AT\\) 切圓 \\(O\\) 於 \\(A\\)，\\(\\overline{AB}\\) 為弦，弦切角 \\(\\angle TAB=${a}^\\circ\\)，求 \\(\\angle OAB\\)`,answer:90-a,type:'number',answerPrefix:'\\(\\angle OAB\\)'};
+      return{question:`\\(AT\\) 切圓 \\(O\\) 於 \\(A\\)，\\(\\overline{AB}\\) 為弦，\\(\\angle OBA=${90-a}^\\circ\\)，求弦切角 \\(\\angle TAB\\)`,answer:a,type:'number',answerPrefix:'\\(\\angle TAB\\)'};
+    }
+    if(t===5){
+      // 直徑一端的切線：AB 為直徑，BT 切圓於 B，AC 延長交切線於 T
+      const a=randInt(15,75);
+      return{question:`\\(\\overline{AB}\\) 為圓 \\(O\\) 的直徑，直線 \\(BT\\) 切圓於 \\(B\\)，弦 \\(\\overline{AC}\\) 的延長線交 \\(BT\\) 於 \\(T\\)，若 \\(\\angle BAC=${a}^\\circ\\)，求 \\(\\angle ATB\\) 與 \\(\\angle CBT\\)`,
+        answerParts:[{prefix:'\\(\\angle ATB\\)',answer:90-a,type:'number'},{prefix:'\\(\\angle CBT\\)',answer:a,type:'number'}]};
+    }
     if(t===0){
       // 代數：∠TAB = ∠ACB，解 x
       const xv=randInt(2,10),av=randInt(1,3),bv=randInt(10,40);
       const angV=av*xv+bv;
       if(angV>=89)return null;
       const cv=randInt(1,2),dv=angV-cv*xv;
-      if(dv<=5)return null;
+      if(dv<=5||cv===av)return null;
       return{question:`\\(AT\\) 為圓 \\(O\\) 切線，\\(A\\) 為切點，\\(AB\\) 為弦，弦切角 \\(\\angle TAB=(${av}x+${bv})^\\circ\\)，同弧圓周角 \\(\\angle ACB=(${cv}x+${dv})^\\circ\\)，求 \\(x\\)`,
         answer:xv,type:'number',answerPrefix:'\\(x\\)'};
     }
@@ -10970,29 +11163,36 @@ function _9aCircChorTan(level){
     }
     if(t===2){
       // 兩切線等長：PA=PB，代數求x
-      const twoTanPool=[
-        {a1:3,b1:4,a2:1,b2:12,xv:4},{a1:2,b1:6,a2:1,b2:14,xv:8},
-        {a1:4,b1:5,a2:2,b2:15,xv:5},{a1:3,b1:2,a2:1,b2:18,xv:8},
-        {a1:5,b1:3,a2:2,b2:18,xv:5},{a1:2,b1:10,a2:1,b2:17,xv:7},
-        {a1:4,b1:2,a2:1,b2:20,xv:6},{a1:3,b1:8,a2:2,b2:14,xv:6}
-      ];
-      const tt=pick(twoTanPool);
+      // 隨機：PA=a1x+b1、PB=a2x+b2 皆等於切線長 L
+      const xv=randInt(2,9),a1=randInt(2,5),a2=randInt(1,a1-1),L=a1*xv+randInt(1,12),tt={a1,b1:L-a1*xv,a2,b2:L-a2*xv,xv};
       return{question:`點 \\(P\\) 在圓 \\(O\\) 外，\\(PA\\)、\\(PB\\) 均為圓的切線（切點為 \\(A\\)、\\(B\\)），\\(PA=(${tt.a1}x+${tt.b1})\\)，\\(PB=(${tt.a2}x+${tt.b2})\\)，由兩切線等長求 \\(x\\)`,
         answer:tt.xv,type:'number',answerPrefix:'\\(x\\)'};
     }
     // t===3: 弦切角=½圓心角，代數逆用求x
-    const halvPool=[
-      {av:2,bv:10,cv:3,dv:25,xv:5},{av:3,bv:8,cv:5,dv:20,xv:4},
-      {av:2,bv:15,cv:5,dv:24,xv:6},{av:4,bv:15,cv:7,dv:35,xv:5},
-      {av:2,bv:25,cv:6,dv:40,xv:5},{av:3,bv:14,cv:7,dv:21,xv:7},
-      {av:5,bv:20,cv:8,dv:46,xv:3},{av:2,bv:30,cv:6,dv:52,xv:4}
-    ];
-    const hp=pick(halvPool);
+    // 隨機：∠TAB=T，∠AOB=2T，T 與 2T 分別寫成 av·x+bv、cv·x+dv（cv≠2av 才有唯一解）
+    const xv=randInt(2,9),T=randInt(20,85),av=randInt(1,4),cv=randInt(2,9);
+    if(cv===2*av)return null;
+    const hp={av,bv:T-av*xv,cv,dv:2*T-cv*xv,xv};
+    if(hp.bv<=0||hp.dv<=0)return null;
     return{question:`\\(AT\\) 為圓 \\(O\\) 切線，\\(A\\) 為切點，\\(AB\\) 為弦，弦切角 \\(\\angle TAB=(${hp.av}x+${hp.bv})^\\circ\\)，圓心角 \\(\\angle AOB=(${hp.cv}x+${hp.dv})^\\circ\\)，由弦切角＝½圓心角求 \\(x\\)`,
       answer:hp.xv,type:'number',answerPrefix:'\\(x\\)'};
   }
   // hard
-  const t=randInt(0,2);
+  const t=randInt(0,4);
+  if(t===3){
+    // 切割線：PA 切圓於 A，割線 PBC（B 在 P、C 之間），∠ACB＝∠PAB，∠ABC＝∠P＋∠PAB
+    const P=randInt(20,70),a=randInt(15,60);
+    if(P+2*a>=170)return null;
+    return{question:`\\(\\overline{PA}\\) 切圓 \\(O\\) 於 \\(A\\)，割線 \\(PBC\\) 依序交圓於 \\(B\\)、\\(C\\)，若 \\(\\angle P=${P}^\\circ\\)，\\(\\angle PAB=${a}^\\circ\\)，求 \\(\\angle ACB\\) 與 \\(\\angle ABC\\)`,
+      answerParts:[{prefix:'\\(\\angle ACB\\)',answer:a,type:'number'},{prefix:'\\(\\angle ABC\\)',answer:P+a,type:'number'}]};
+  }
+  if(t===4){
+    // 兩切線＋圓周角：∠APB＝180°−∠AOB，C 在優弧上 ∠ACB＝∠AOB/2
+    const c=randInt(4,16)*10,ask=randInt(0,1);
+    if(ask)return{question:`\\(\\overline{PA}\\)、\\(\\overline{PB}\\) 切圓 \\(O\\) 於 \\(A\\)、\\(B\\)，\\(C\\) 為優弧 \\(\\overset{\\frown}{AB}\\) 上一點，若 \\(\\angle APB=${180-c}^\\circ\\)，求 \\(\\angle ACB\\)`,answer:c/2,type:'number',answerPrefix:'\\(\\angle ACB\\)'};
+    return{question:`\\(\\overline{PA}\\)、\\(\\overline{PB}\\) 切圓 \\(O\\) 於 \\(A\\)、\\(B\\)，\\(C\\) 為優弧 \\(\\overset{\\frown}{AB}\\) 上一點，若 \\(\\angle ACB=${c/2}^\\circ\\)，求 \\(\\angle APB\\) 與 \\(\\angle PAB\\)`,
+      answerParts:[{prefix:'\\(\\angle APB\\)',answer:180-c,type:'number'},{prefix:'\\(\\angle PAB\\)',answer:c/2,type:'number'}]};
+  }
   if(t===0){
     // D 在弦切角所夾弧（同側），∠ADB = 180 - ∠TAB，代數求 x
     const alpha=randInt(25,70);
