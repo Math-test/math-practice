@@ -732,6 +732,7 @@ function renderQuiz(questions, params) {
   if (_anyQ(q => q.type === 'radical-mix' || q.type === 'radical2')) hintParts.push('根式填 <code>√</code> 或 <code>sqrt</code> 並化到最簡，例如 <code>4+3√2</code>、<code>-2√5</code>、<code>2√5-√2</code>');
   if (!hasDec && !hasNum && _anyQ(q => q.type === 'number' && !Number.isInteger(q.answer))) hintParts.push('小數：<code>0.75</code>');
   if (_anyQ(q => q.type === 'text' && /\\sqrt/.test(String(q.answer)) && /或/.test(String(q.answer)))) hintParts.push('兩根以「或」或逗號隔開，也可合寫，例如 <code>2±√3</code>、<code>(-1±√5)/2</code>');
+  if (_anyQ(q => q.type === 'sign')) hintParts.push('看圖判斷正負：每格填 <code>&gt;</code> 或 <code>&lt;</code>（也可填「正」「負」）');
   if (_anyQ(q => q.gcfMono)) hintParts.push('多個未知數也一樣寫成乘積，公因式要全部提出，例如 <code>3xy(2x+3y)</code>、<code>(a-2b)(3x+5y)</code>');
   if (_anyQ(q => q.mustFactor)) hintParts.push(_anyQ(q => q.mustFactor && /√/.test(String(q.answer))) ? '因式分解寫成乘積，例如 <code>(x+1/2)(x-1/2)</code>、<code>(x+√3)(x-√3)</code>、<code>(x-1+√2)(x-1-√2)</code>' : '因式分解寫成乘積，例如 <code>(x+1/2)(x-1/2)</code>、<code>(x+0.3)^2</code>、<code>0.2x(x+3)</code>');
   if (_anyQ(q => q.exprAns && !q.mustFactor && q.type === 'text' && /[a-z]/i.test(String(q.answer)) && !_radText(q.answer))) hintParts.push('以代數式作答，例如 <code>2m+1</code>、<code>m/2</code>、<code>(1+q)/p</code>');
@@ -784,7 +785,10 @@ function renderQuiz(questions, params) {
               ` autocomplete="off" autocorrect="off" spellcheck="false" placeholder="${p.type==='fraction'?'例：3/4':'?'}">` + suf;
           }).join('');
       } else {
-        partsHtml = q.answerParts.map((p, pi) =>
+        partsHtml = q.answerParts.map((p, pi) => p.type === 'sign'
+          ? `<span style="white-space:nowrap;margin-right:14px"><span class="q-eq">${p.prefix}</span>` +
+            `<input class="q-input" style="width:64px;min-width:0;text-align:center" type="text" id="ans-${idx}-${pi}" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="&gt;/&lt;">` +
+            `<span class="q-eq">0</span></span>` :
           `<span class="q-eq">${p.prefix} =</span>` +
           `<input class="${p.type==='poly'?'q-input q-input-rad':'q-input'}" type="text" id="ans-${idx}-${pi}"` +
           ` autocomplete="off" autocorrect="off" spellcheck="false"` +
@@ -893,7 +897,14 @@ window.addEventListener('beforeprint', ensureAnswerSheet);
 // ─── 解答頁 ───────────────────────────────────────────────────────
 
 // 多格答案中單一格的顯示（分數、多項式、根式、文字、數字）
+// 「prefix = 答案」；正負號題型（sign）顯示成「a > 0」
+function partEqStr(p) {
+  return p.type === 'sign' ? `${p.prefix} ${p.answer === '>' ? '&gt;' : '&lt;'} 0` : `${p.prefix} = ${partAnsStr(p)}`;
+}
+// 正負號題型的作答正規化：＞＜、正負、+− 皆可
+const signNorm = s => { const t = s.replace(/\s+/g, ''); return /^(>|＞|正|\+)$/.test(t) ? '>' : /^(<|＜|負|-|−)$/.test(t) ? '<' : t; };
 function partAnsStr(p) {
+  if (p.type === 'sign') return p.answer === '>' ? '&gt; 0' : '&lt; 0';
   if (p.type === 'fraction') return `\\(${fracToLatex(p.answer)}\\)`;
   if (p.type === 'poly') return `\\(${polyToLatex(p.answer.a2,p.answer.a1,p.answer.a0)}\\)`;
   if (p.type === 'text') return String(p.answer).includes('\\') ? textAnsToLatex(String(p.answer)) : String(p.answer);
@@ -955,7 +966,7 @@ function renderAnswerSheet(questions, topicLabel, levelLabel, dateStr) {
       } else if (q.coordAnswer) {
         val = `(${q.answerParts.map(partAnsStr).join(', ')})`;
       } else {
-        val = q.answerParts.map(p => `${p.prefix} = ${partAnsStr(p)}`).join('，');
+        val = q.answerParts.map(partEqStr).join('，');
       }
     } else {
       const _ip = q.sym ? `x ${q.sym} ` : (q.answerPrefix && /[<>≤≥]$/.test(q.answerPrefix) ? `${q.answerPrefix} ` : '');
@@ -1011,7 +1022,8 @@ function checkAnswers() {
         const v = vals[pi];
         let ok = false;
         if (v) {
-          if (p.type === 'fraction') { const uf = parseFrac(v); ok = uf !== null && feq(uf, p.answer); }
+          if (p.type === 'sign') ok = signNorm(v) === p.answer;
+          else if (p.type === 'fraction') { const uf = parseFrac(v); ok = uf !== null && feq(uf, p.answer); }
           else if (p.type === 'poly') {
             const up = parsePoly(v);
             const _feq2 = (a,b) => Math.abs(a-b) < 1e-9;
@@ -1049,7 +1061,7 @@ function checkAnswers() {
         } else if (q.coordAnswer) {
           ansStr = `(${q.answerParts.map(partAnsStr).join(', ')})`;
         } else {
-          ansStr = q.answerParts.map(p => `${p.prefix} = ${partAnsStr(p)}`).join('，');
+          ansStr = q.answerParts.map(partEqStr).join('，');
         }
         fb.innerHTML = `<span class="fb-wrong">✗</span> <span class="fb-ans">正確：${ansStr}</span>`;
       }
@@ -1402,6 +1414,7 @@ async function downloadWord() {
       if (q.coordAnswer)
         return `(${dStr(q.answerParts[0].answer)}, ${dStr(q.answerParts[1].answer)})`;
       return q.answerParts.map(p => {
+        if (p.type === 'sign') return `${q2wordHtml(p.prefix || '')} ${p.answer === '>' ? '&gt;' : '&lt;'} 0`;
         const v = p.type === 'fraction' && p.answer && 'num' in p.answer
           ? ml(fracToLatex(p.answer))
           : p.type === 'poly' ? ml(polyToLatex(p.answer.a2,p.answer.a1,p.answer.a0))
@@ -1563,7 +1576,7 @@ async function downloadPDF() {
       }
       if (q.coordAnswer)
         return `(${partAnsStr(q.answerParts[0])}, ${partAnsStr(q.answerParts[1])})`;
-      return q.answerParts.map(p => `${p.prefix} = ${partAnsStr(p)}`).join('，');
+      return q.answerParts.map(partEqStr).join('，');
     }
     const pfx = q.sym ? `x ${q.sym} `
       : q.answerPrefix && /[<>≤≥]$/.test(q.answerPrefix) ? `${q.answerPrefix} `

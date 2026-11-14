@@ -2366,7 +2366,7 @@ function _b1Vertex(level){
 }
 
 function genB1PolyLinQuad(level,_n){
-  for(let i=0;i<40;i++){const r=Math.random(),q=r<0.4?_b1Linear(level):r<0.65?_b1Vertex(level):_b1PolyLinQuad(level);if(q)return q;}
+  for(let i=0;i<40;i++){const r=Math.random(),q=r<0.35?_b1Linear(level):r<0.55?_b1Vertex(level):r<0.72?_b1QuadGraph(level):_b1PolyLinQuad(level);if(q)return q;}
   return{question:'根與係數',answer:0,type:'number',answerPrefix:''};
 }
 function _b1PolyLinQuad(level){
@@ -2495,8 +2495,68 @@ function _b1PolyLinQuad(level){
 // ── b1-poly-cubic：三次函數 ──────────────────────────────────────
 
 function genB1PolyCubic(level,_n){
-  for(let i=0;i<40;i++){const q=_b1PolyCubic(level);if(q)return q;}
+  for(let i=0;i<40;i++){const q=Math.random()<0.22?_b1CubicGraph(level):_b1PolyCubic(level);if(q)return q;}
   return{question:'三次函數',answer:0,type:'number',answerPrefix:''};
+}
+// 函數圖形 SVG（不標刻度）：F 為函數，xr/yr 為視窗範圍（須含 0），pts 為標記點，ticks 為 x 軸上要標數字的位置
+function _srFnSVG(F,xr,yr,{pts=[],ticks=[]}={}){
+  const W=180,H=180,P=14,[x0,x1]=xr,[y0,y1]=yr;
+  const px=x=>+(P+(x-x0)/(x1-x0)*(W-2*P)).toFixed(1),py=y=>+(H-P-(y-y0)/(y1-y0)*(H-2*P)).toFixed(1);
+  const X0=px(0),Y0=py(0),id='cg'+Math.random().toString(36).slice(2,8),o=[];
+  o.push(`<rect width="${W}" height="${H}" fill="#F9FAFB" rx="4" stroke="#CFD8DC" stroke-width="1"/>`);
+  o.push(`<defs><clipPath id="${id}"><rect x="${P}" y="${P}" width="${W-2*P}" height="${H-2*P}"/></clipPath></defs>`);
+  o.push(`<line x1="${P-6}" y1="${Y0}" x2="${W-P+4}" y2="${Y0}" stroke="#555" stroke-width="1.3"/>`);
+  o.push(`<line x1="${X0}" y1="${H-P+6}" x2="${X0}" y2="${P-4}" stroke="#555" stroke-width="1.3"/>`);
+  o.push(`<polygon points="${W-P+8},${Y0} ${W-P+1},${Y0-3} ${W-P+1},${Y0+3}" fill="#555"/>`);
+  o.push(`<polygon points="${X0},${P-8} ${X0-3},${P-1} ${X0+3},${P-1}" fill="#555"/>`);
+  o.push(`<text x="${W-P+2}" y="${Y0+13}" font-size="11" fill="#444" font-style="italic">x</text>`);
+  o.push(`<text x="${X0+5}" y="${P+2}" font-size="11" fill="#444" font-style="italic">y</text>`);
+  o.push(`<text x="${X0-3}" y="${Y0+12}" font-size="10" fill="#888" text-anchor="end">O</text>`);
+  ticks.forEach(t=>{o.push(`<line x1="${px(t)}" y1="${Y0-3}" x2="${px(t)}" y2="${Y0+3}" stroke="#555" stroke-width="1.2"/>`);
+    o.push(`<text x="${px(t)}" y="${Y0+(F(t)>0?13:-6)}" font-size="10" fill="#444" text-anchor="middle">${t}</text>`);
+    o.push(`<line x1="${px(t)}" y1="${Y0}" x2="${px(t)}" y2="${py(F(t))}" stroke="#90A4AE" stroke-width="1" stroke-dasharray="3,2"/>`);});
+  const N=240,pp=[];for(let i=0;i<=N;i++){const x=x0+(x1-x0)*i/N,y=Math.max(y0-(y1-y0),Math.min(y1+(y1-y0),F(x)));pp.push(`${px(x)},${py(y)}`);}
+  o.push(`<polyline points="${pp.join(' ')}" fill="none" stroke="#1565C0" stroke-width="2" clip-path="url(#${id})"/>`);
+  pts.forEach(({x,y,label})=>{o.push(`<circle cx="${px(x)}" cy="${py(y)}" r="3.2" fill="#C62828"/>`);
+    if(label)o.push(`<text x="${px(x)+5}" y="${py(y)-5}" font-size="11" fill="#C62828" font-weight="bold">${label}</text>`);});
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${o.join('')}</svg>`;
+}
+const _sgn=(prefix,v)=>({prefix,answer:v>0?'>':'<',type:'sign'});
+// 看圖判斷二次函數 y=ax²+bx+c 的係數正負
+function _b1QuadGraph(level){
+  const a=pick([1,-1])*pick([0.5,0.8,1.2]),h=pick([-2.5,-2,-1.5,-1,1,1.5,2,2.5]),k=pick([-3.5,-2.5,-1.5,1.5,2.5,3.5]);
+  const b=-2*a*h,c=a*h*h+k,F=x=>a*x*x+b*x+c;
+  if(Math.abs(c)<1)return null;
+  const tk=level==='hard'?pick([1,-1]):null;
+  if(tk!==null&&(Math.abs(F(tk))<0.7||Math.abs(tk-h)<0.3))return null;
+  const ys=[0,k,c,tk===null?0:F(tk)],lo=Math.min(...ys),hi=Math.max(...ys);
+  const yr=a>0?[lo-1.2,hi+2.5]:[lo-2.5,hi+1.2];
+  const g=_srFnSVG(F,[Math.min(-1.5,h-3),Math.max(1.5,h+3)],yr,{ticks:tk===null?[]:[tk]});
+  const parts=[_sgn('\\(a\\)',a)];
+  if(level!=='basic')parts.push(_sgn('\\(b\\)',b));
+  parts.push(_sgn('\\(c\\)',c));
+  if(level==='hard')parts.push(_sgn('\\(b^2-4ac\\)',b*b-4*a*c),_sgn(tk===1?'\\(a+b+c\\)':'\\(a-b+c\\)',F(tk)));
+  return{question:`右圖為二次函數 \\(y=ax^2+bx+c\\) 的圖形，判斷下列各數與 \\(0\\) 的大小關係（填 \\(>\\) 或 \\(<\\)）`,answerParts:parts,graph:g};
+}
+// 看圖判斷三次函數 y=a(x-h)^3+p(x-h)+k（或 ax³+bx²+cx+d）的係數正負，P 為對稱中心
+function _b1CubicGraph(level){
+  const sa=pick([1,-1]),bump=srRandInt(0,1);
+  let a,p,R=3;
+  if(bump){const u=pick([1,1.4,1.8]);a=sa*pick([1.6,2.2,2.8])/(2*u**3);p=-3*a*u*u;R=u+2.2;}
+  else{a=sa*pick([0.15,0.25,0.35]);p=a*pick([2,4,6]);}
+  const h=pick([-2,-1.5,-1,1,1.5,2]),k=pick([-2.5,-1.5,1.5,2.5]);
+  const F=x=>a*(x-h)**3+p*(x-h)+k,d=F(0);
+  if(level==='hard'&&Math.abs(d)<0.8)return null;
+  const yr=[Math.min(0,k,d)-2.8,Math.max(0,k,d)+2.8],xr=[Math.min(-1.2,h-R),Math.max(1.2,h+R)];
+  // 兩端要明顯超出視窗，才看得出 a 的正負（大域特徵）
+  if(!(sa*F(xr[1])>(sa>0?yr[1]:-yr[0])&&sa*F(xr[0])<(sa>0?yr[0]:-yr[1])))return null;
+  const g=_srFnSVG(F,xr,yr,{pts:[{x:h,y:k,label:'P'}]});
+  if(level==='hard')return{question:`右圖為三次函數 \\(y=ax^3+bx^2+cx+d\\) 的圖形，\\(P\\) 為圖形的對稱中心。將它寫成 \\(y=a(x-h)^3+p(x-h)+k\\)，判斷下列各數與 \\(0\\) 的大小關係（填 \\(>\\) 或 \\(<\\)）`,
+    answerParts:[_sgn('\\(a\\)',a),_sgn('\\(b\\)',-3*a*h),_sgn('\\(d\\)',d),_sgn('\\(p\\)',p)],graph:g};
+  const parts=[_sgn('\\(a\\)',a)];
+  if(level==='medium')parts.push(_sgn('\\(p\\)',p));
+  parts.push(_sgn('\\(h\\)',h),_sgn('\\(k\\)',k));
+  return{question:`右圖為三次函數 \\(y=a(x-h)^3+p(x-h)+k\\) 的圖形，\\(P\\) 為圖形的對稱中心，判斷下列各數與 \\(0\\) 的大小關係（填 \\(>\\) 或 \\(<\\)）`,answerParts:parts,graph:g};
 }
 // a(x-h)^3+b(x-h)^2+c(x-h)+d 的 LaTeX
 function _pcShift(a,b,c,d,h){
