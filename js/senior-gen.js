@@ -2513,11 +2513,11 @@ function _b1PolyCubic(level){
         answer:a,type:'number',answerPrefix:'a'};
     }
     if(t===3){
-      // 大域特徵：x 往右或往左很遠時，f(x) 趨向正或負無限大
-      const cs=[srRnz(-4,4),srRandInt(-9,9),srRandInt(-9,9),srRandInt(-9,9)],right=srRandInt(0,1);
-      const s=Math.sign(cs[0])*(right?1:-1);
-      return{question:`三次函數 \\(f(x)=${_sfPoly(cs)}\\)，當 \\(x\\) ${right?'往正向越來越大':'往負向越來越小'}時，\\(f(x)\\) 的值趨向正無限大還是負無限大？（正無限大填 \\(1\\)，負無限大填 \\(-1\\)）`,
-        answer:s,type:'number',answerPrefix:'填'};
+      // 平移：y=ax^3+px 平移 (h,k) 得 y=g(x)，求 g 在某點的值
+      const a=srRnz(-3,3),p=srRandInt(-5,5),h=srRnz(-4,4),k=srRnz(-9,9),x0=pick([0,0,h+1,h-1,h+2]);
+      const g=a*(x0-h)**3+p*(x0-h)+k;
+      return{question:`將 \\(y=${_sfPoly([a,0,p,0])}\\) 的圖形${h>0?'向右':'向左'}平移 \\(${Math.abs(h)}\\) 單位、再${k>0?'向上':'向下'}平移 \\(${Math.abs(k)}\\) 單位，得到 \\(y=g(x)\\) 的圖形，求 \\(g(${x0})\\)`,
+        answer:g,type:'number',answerPrefix:`\\(g(${x0})\\)`};
     }
     if(t===0){
       // y=a(x-h)^3+k 的圖形通過已知點，求 a
@@ -2537,7 +2537,17 @@ function _b1PolyCubic(level){
     }
   }
   if(level==='medium'){
-    const t=srRandInt(0,3);
+    const t=srRandInt(0,4);
+    if(t===4){
+      // 對稱中心的應用：f(h+t)+f(h-t)=2k
+      const h=srRandInt(-3,3),k=srRandInt(-9,9),x0=h+srRnz(-4,4),v=srRandInt(-20,20);
+      if(srRandInt(0,1))return{question:`三次函數 \\(y=f(x)\\) 的圖形對稱中心為 \\((${h},${k})\\)，已知 \\(f(${x0})=${v}\\)，求 \\(f(${2*h-x0})\\)`,
+        answer:2*k-v,type:'number',answerPrefix:`\\(f(${2*h-x0})\\)`};
+      // 給展開式與圖形上一點，求該點對稱於中心的點
+      const a=pick([-2,-1,1,2]),p=srRandInt(-5,5),cs=[a,-3*a*h,3*a*h*h+p,-a*h**3-p*h+k],y0=a*(x0-h)**3+p*(x0-h)+k;
+      return{question:`點 \\((${x0},${y0})\\) 在三次函數 \\(y=${_sfPoly(cs)}\\) 的圖形上，求此點對於圖形的對稱中心的對稱點 \\((s,t)\\)（此點也在圖形上）`,
+        answerParts:[{prefix:'s',answer:2*h-x0,type:'number'},{prefix:'t',answer:2*k-y0,type:'number'}]};
+    }
     if(t===0){
       // 展開式 y=a(x-h)^3+p(x-h)+k，求對稱中心
       const a=pick([-2,-1,1,1,2]),h=srRnz(-3,3),p=srRandInt(-6,6),k=srRandInt(-9,9);
@@ -2571,15 +2581,19 @@ function _b1PolyCubic(level){
   }
   {
     const ht=srRandInt(0,3);
-    if(ht===1||ht===2){
-      // 任一點 x=h（非對稱中心）的一次近似：由展開式求，或用來估計函數值
+    if(ht===1){
+      // 任一點 x=h（非對稱中心）的一次近似，由展開式求
       const a=pick([-2,-1,1,2]),h=srRnz(-3,3),b=srRnz(-4,4),c=srRandInt(-6,6),d=srRandInt(-9,9);
       const cs=[a,-3*a*h+b,3*a*h*h-2*b*h+c,-a*h**3+b*h*h-c*h+d];
-      if(ht===1)return{question:`設 \\(f(x)=${_sfPoly(cs)}\\)，在 \\(x=${h}\\) 附近，\\(y=f(x)\\) 的圖形近似於直線 \\(y=mx+n\\)（一次近似），求 \\(m\\)、\\(n\\)`,
+      return{question:`設 \\(f(x)=${_sfPoly(cs)}\\)，在 \\(x=${h}\\) 附近，\\(y=f(x)\\) 的圖形近似於直線 \\(y=mx+n\\)（一次近似），求 \\(m\\)、\\(n\\)`,
         answerParts:[{prefix:'m',answer:c,type:'number'},{prefix:'n',answer:d-c*h,type:'number'}]};
-      const del=pick([0.01,-0.01,0.02,-0.02,0.05,-0.05]),xv=(h+del).toFixed(2);
-      return{question:`設 \\(f(x)=${_sfPoly(cs)}\\)，利用 \\(f(x)\\) 在 \\(x=${h}\\) 附近的一次近似，估計 \\(f(${xv})\\) 的值`,
-        answer:Math.round((d+c*del)*1000)/1000,type:'number',answerPrefix:`\\(f(${xv})\\approx\\)`};
+    }
+    if(ht===2){
+      // 展開式的圖形可由 y=ax^3+px 平移而得，求 p 與平移量
+      const a=pick([-3,-2,-1,1,2,3]),h=srRnz(-3,3),p=srRnz(-6,6),k=srRnz(-9,9);
+      const cs=[a,-3*a*h,3*a*h*h+p,-a*h**3-p*h+k];
+      return{question:`三次函數 \\(y=${_sfPoly(cs)}\\) 的圖形可由 \\(y=${_sfTerms([[a,'x^3']])}+px\\) 的圖形先水平平移 \\(h\\) 單位、再鉛直平移 \\(k\\) 單位得到（向右、向上為正），求 \\(p\\)、\\(h\\)、\\(k\\)`,
+        answerParts:[{prefix:'p',answer:p,type:'number'},{prefix:'h',answer:h,type:'number'},{prefix:'k',answer:k,type:'number'}]};
     }
     if(ht===3){
       // 由對稱中心、大域特徵、中心附近的一次近似還原 f(x)
