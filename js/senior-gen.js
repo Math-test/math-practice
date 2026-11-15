@@ -9816,3 +9816,220 @@ Object.keys(_SR_FRAC_VARIANTS).forEach(key => {
     return base(level, n);
   };
 });
+
+// ═══════════════════════════════════════════════════════════════════
+//  108 課綱範圍篩選（依課程手冊「條目範圍」「評量」說明）與補充題型
+// ═══════════════════════════════════════════════════════════════════
+const _srN=(q,v,p)=>({question:q,answer:v,type:'number',answerPrefix:p||''});
+const _srF=(q,v,p)=>({question:q,answer:v,type:'fraction',answerPrefix:p||''});
+// 一個式子裡出現的對數底數（巢狀 log_a(log_b …) 視為合成，不算混用）
+function _srLogBases(s){
+  const t=s.replace(/\\log_\{?\\?(?:frac\{\d+\}\{\d+\}|\d+)\}?\s*\\left\(\s*\\log/g,'\\log(');
+  const B=new Set();
+  for(const m of t.matchAll(/\\log_\{?\\?(?:frac\{(\d+)\}\{(\d+)\}|(\d+))\}?/g))B.add(m[3]?m[3]:m[1]+'/'+m[2]);
+  if(/\\log(?![_a-z])/.test(t))B.add('10');
+  return B;
+}
+const _srMixed=s=>_srLogBases(s).size>1;
+const _srNested=s=>/\\left\(\s*\\log/.test(s);
+// 常用對數：相加減的兩項，任一引數不是 10 的整數次方即須用對數律
+const _srLogLaw=s=>{for(const m of s.matchAll(/\\log\s*([0-9.]+)\s*[+-]\s*\\log\s*([0-9.]+)/g)){const ok=v=>/^(10*|0\.0*1)$/.test(v);if(!ok(m[1])||!ok(m[2]))return true;}return false;};
+const _SR_SCOPE={
+  // N-10-2：不宜多個絕對值組成之函數求極值
+  'b1-abs-ineq':[/無解/],
+  // N-10-3：不宜 a^{1/2}+a^{-1/2} 型代數操作與指數函數性質題
+  'b1-exp':[/a\s*\+\s*a\^\{-1\}|a\^\{2x\}|f\(x\)|\(257\)|0\.257|xyz\\neq 0/],
+  // N-10-4：只談常用對數，不使用對數律
+  'b1-log':[/\\approx/,_srLogLaw,/\\log_/],
+  // A-10-2：綜合除法的除式僅 x−a；不評量複雜的餘式定理應用
+  'b1-poly-synth':[/除以 \d+x[+-]\d+ 得商式/],
+  'b1-poly-rem':[/Q_1\(x\).*Q_2\(x\).*除以 \([^)]+\)\([^)]+\)\([^)]+\)/],
+  // F-10-3：不含分式不等式；三次以上未分解且未告知因式者不宜
+  'b1-poly-ineq2':[/解不等式 \\\(\\dfrac/,/先因式分解，再解不等式/],
+  // 分點：僅內分點
+  'b1-div-pt':[/外分點/],
+  // G-11A-5：差角相關恆等式不宜為主；不含三倍角
+  'b3a-trig-add':[/\(1[+-]\\tan/],
+  'b3a-trig-dbl':[/3x/],
+  // F-11A-1：避免合成函數型態（sin、cos 的二次式）
+  'b3a-trig-graph':[/\\(sin|cos)\^2/],
+  // F-11A-2：不過度評量疊合後的極值
+  'b3a-trig-sup':[/\\(sin|cos)\^2|\\dfrac\{1\+\\sin|兩根|a\\sin\^2/],
+  // F-11A-4：不在同一條式子裡刻意混用不同底；A-11A-4：勿過度操作
+  'b3a-log-func':[s=>_srMixed(s)&&!/用 [mnpqt]/.test(s)],
+  'b3a-log-eq':[_srMixed,/x\^\{\\log/],
+  'b3a-log-ineq':[_srMixed,/x\^\{\\log/],
+  'b3a-exp-eq':[/\^\{-x\}\)/],
+  // G-11A-1：內分點
+  'b3a-vec-repr':[/不在 \\overline|\\overrightarrow\{PA\}-/],
+  // G-11A-6：行列式不宜技巧性運算；柯西不宜技巧性極值
+  'b3a-area-det':[/\d+b\+\d+e/],
+  'b3a-cauchy':[/\}\{x\}\+\\dfrac\{\d+\}\{y\}/],
+  // F-11B-2：不做換底公式評量，勿做複雜演算
+  'b3b-log-func':[_srMixed],
+  'b3b-log-eq':[_srMixed,_srNested,/x\^\{\\log/],
+  'b3b-log-ineq':[_srMixed,_srNested,/x\^\{\\log/],
+  'b3b-exp-eq':[/\^\{-x\}\)/],
+  // G-11B-1、G-11B-2：不含三點共線；不含面積與行列式
+  'b3b-vec-repr':[/三點共線|在直線 AB 上/],
+  'b3b-vec-dot':[/面積/],
+};
+
+// ── 補充題型 ──
+// N-10-1：循環小數
+function _b1DecExt(level){
+  const t=srRandInt(0,2);
+  if(level==='basic'){
+    if(t===0){const d=pick([3,9]),a=srRandInt(1,d-1);return _srF(`循環小數 \\(0.\\overline{${(a*9/d)}}\\) 化為最簡分數 ＝ ？（格式：p/q）`,frac(a,d));}
+    if(t===1){const n=pick([8,16,20,25,40,50,80,125]),k=srRandInt(1,n-1);const v=k/n;return _srN(`\\(\\dfrac{${k}}{${n}}\\) 化為小數後，小數點後共有幾位？`,String(v).split('.')[1]?String(v).split('.')[1].length:0,'位');}
+    const a=srRandInt(1,8),b=srRandInt(1,8);if(a+b>=9)return null;return _srF(`計算 \\(0.\\overline{${a}}+0.\\overline{${b}}\\)（格式：p/q）`,frac(a+b,9));
+  }
+  if(level==='medium'){
+    if(t===0){const a=srRandInt(1,9),b=srRandInt(0,9);if(a===b)return null;return _srF(`循環小數 \\(0.${a}\\overline{${b}}\\) 化為最簡分數 ＝ ？（格式：p/q）`,frac(10*a+b-a,90));}
+    if(t===1){const k=srRandInt(1,6);const d='142857'.split('').map(Number),n=srRandInt(20,99);const s=String(k/7).split('.')[1];return _srN(`\\(\\dfrac{${k}}{7}\\) 的小數點後第 \\(${n}\\) 位數字為何？`,+s[(n-1)%6],'數字');}
+    const a=srRandInt(1,9);return _srF(`計算 \\(0.\\overline{${a}}\\times 9\\)`,frac(a));
+  }
+  if(t===0){const ab=srRandInt(10,98);if(ab%11===0)return null;return _srF(`循環小數 \\(1.\\overline{${ab}}\\) 化為最簡分數 ＝ ？（格式：p/q）`,frac(99+ab,99));}
+  if(t===1){const p=srRandInt(1,8);return _srN(`若 \\(0.\\overline{${p}}=\\dfrac{a}{9}\\)，且 \\(0.\\overline{${p}${p}}=\\dfrac{b}{99}\\)，求 \\(b-a\\)`,11*p-p,'\\(b-a\\)');}
+  const k=srRandInt(1,12),n=pick([13,11,37,27]);if(srGcd(k,n)!==1)return null;const L={13:6,11:2,37:3,27:3}[n];return _srN(`\\(\\dfrac{${k}}{${n}}\\) 化為循環小數時，循環節有幾位？`,L,'位');
+}
+// N-10-4：常用對數（以科學記號連結，不使用對數律）
+function _b1LogExt(level){
+  const t=srRandInt(0,2);
+  if(level==='basic'){
+    if(t===0){const n=srRandInt(-4,6);return _srN(`求 \\(\\log 10^{${n}}\\) 的值`,n,'值');}
+    if(t===1){const m=srRandInt(11,99)/10,k=srRandInt(1,8);return _srN(`\\(\\log(${m}\\times 10^{${k}})\\) 介於哪兩個連續整數之間？（填較小者）`,k,'較小整數');}
+    const k=srRandInt(2,6);return _srN(`若 \\(\\log x=${k}\\)，則 \\(x\\) 是幾位數？`,k+1,'位');
+  }
+  if(level==='medium'){
+    if(t===0){const k=srRandInt(1,9),f=pick(['0.3010','0.4771','0.6990','0.8451']);return _srN(`若 \\(\\log x=${k}+${f}\\)，則 \\(x\\) 的整數部分是幾位數？`,k+1,'位');}
+    if(t===1){const k=srRandInt(2,6),f=pick(['0.3010','0.4771','0.6990']);return _srN(`若 \\(\\log x=-${k}+${f}\\)，則 \\(x\\) 在小數點後第幾位開始出現不為 0 的數字？`,k,'第幾位');}
+    const [v,f]=pick([[2,'0.3010'],[3,'0.4771'],[5,'0.6990'],[7,'0.8451']]),k=srRandInt(1,5);return {question:`已知 \\(10^{${f}}\\approx ${v}\\)，則 \\(\\log(${v}\\times 10^{${k}})\\approx\\)？（填小數）`,answer:+(k+ +f).toFixed(4),type:'number',answerPrefix:'≈'};
+  }
+  if(t===0){const a=srRandInt(1,8),b=srRandInt(1,8),k=srRandInt(1,4);return _srN(`若 \\(\\log a=${a+0.5}\\)、\\(\\log b=${b+0.5}\\)，則 \\(\\dfrac{a}{b}\\) 為 \\(10\\) 的幾次方？`,a-b,'次方');}
+  if(t===1){const M=srRandInt(4,8);return _srN(`地震規模 \\(M\\) 與釋放能量 \\(E\\) 滿足 \\(\\log E=4.8+1.5M\\)。規模 \\(${M+2}\\) 的地震釋放的能量是規模 \\(${M}\\) 的 \\(10\\) 的幾次方倍？`,3,'次方');}
+  const k=srRandInt(3,9),f=pick(['0.1','0.25','0.5','0.75']);return {question:`若 \\(x=10^{${k}.${f.slice(2)}}\\)，則 \\(\\log x\\) 的值為何？`,answer:+(k+ +f).toFixed(4),type:'number',answerPrefix:'值'};
+}
+// F-11A-4、F-11B-2：指數函數的圖形與按比例成長模型
+function _b3ExpExt(level){
+  const t=srRandInt(0,2);
+  if(level==='basic'){
+    if(t===0){const a=pick([2,3,5,'\\dfrac{1}{2}','\\dfrac{1}{3}']);return {question:`函數 \\(y=${a}^x\\) 的圖形必通過哪一點？（填 y 坐標，該點 x=0）`,answer:1,type:'number',answerPrefix:'y'};}
+    if(t===1){const h=srRandInt(-4,4),k=srRandInt(-6,6);if(!h)return null;return _srN(`函數 \\(y=2^{x${h>0?'-'+h:'+'+(-h)}}${k>0?'+'+k:k<0?k:''}\\) 的圖形有一條水平漸近線 \\(y=c\\)，求 \\(c\\)`,k,'\\(c\\)');}
+    const A=pick([100,200,500,1000]),r=pick([2,3]),n=srRandInt(2,5);return _srN(`某細菌數量每小時變為原來的 \\(${r}\\) 倍，一開始有 \\(${A}\\) 個，\\(${n}\\) 小時後有幾個？`,A*r**n,'個');
+  }
+  if(level==='medium'){
+    if(t===0){const T=pick([5,8,10,30]),A=pick([64,128,256,320]),n=srRandInt(1,4);return _srN(`某放射性物質的半衰期為 \\(${T}\\) 天，現有 \\(${A}\\) 公克，\\(${T*n}\\) 天後剩下幾公克？`,A/2**n,'公克');}
+    if(t===1){const B=pick([2,3]),E=[1,2,3].sort(()=>Math.random()-0.5),ex=[srRandInt(2,6),srRandInt(2,6),srRandInt(2,6)];
+      const v=E.map((e,i)=>e*ex[i]);if(new Set(v).size<3)return null;const nm=['甲','乙','丙'],idx=v.indexOf(Math.max(...v)),b=E.map(e=>B**e);
+      return {question:`比較 甲：\\(${b[0]}^{${ex[0]}}\\)、乙：\\(${b[1]}^{${ex[1]}}\\)、丙：\\(${b[2]}^{${ex[2]}}\\)，何者最大？（填甲、乙或丙）`,answer:nm[idx],type:'text',answerPrefix:'最大'};}
+    const P=pick([10000,20000,50000]),n=srRandInt(1,3),r=pick([2,5,10]);return _srN(`本金 \\(${P}\\) 元，年利率 \\(${r}\\%\\)，每年複利一次，\\(${n}\\) 年後的本利和為多少元？（四捨五入到整數）`,Math.round(P*(1+r/100)**n),'元');
+  }
+  if(t===0){const T=pick([2,3,4]),k=srRandInt(2,5);return _srN(`某細菌每 \\(${T}\\) 小時數量加倍，經過多少小時數量變為原來的 \\(${2**k}\\) 倍？`,T*k,'小時');}
+  if(t===1){const a=pick([2,3]),h=srRandInt(1,4),k=srRandInt(-5,5),x=h+srRandInt(0,3);const mv=k>=0?`向上平移 \\(${k}\\) 單位`:`向下平移 \\(${-k}\\) 單位`;return _srN(`將 \\(y=${a}^x\\) 的圖形向右平移 \\(${h}\\) 單位、再${mv}得 \\(y=f(x)\\)，求 \\(f(${x})\\)`,a**(x-h)+k,'值');}
+  const M1=srRandInt(4,6),d=pick([1,2]);return _srN(`地震規模每增加 \\(1\\)，釋放的能量約變為 \\(10^{1.5}\\) 倍。規模 \\(${M1+2*d}\\) 的地震釋放的能量約為規模 \\(${M1}\\) 的 \\(10\\) 的幾次方倍？`,3*d,'次方');
+}
+// N-11A-1：弧度量與扇形（補充困難題）
+function _b3ArcExt(level){
+  const t=srRandInt(0,2);
+  if(t===0){const P=srRandInt(2,12)*4;return _srN(`扇形的周長為 \\(${P}\\)，當扇形面積最大時，面積為多少？`,P*P/16,'面積');}
+  if(t===1){const r=srRandInt(2,9),th=pick([1,2,3]);return {question:`扇形的半徑為 \\(${r}\\)、圓心角為 \\(${th}\\) 弳，求扇形的周長`,answer:2*r+r*th,type:'number',answerPrefix:'周長'};}
+  const deg=pick([30,45,60,72,120,135,150,210,225,240,300,315]),g=srGcd(deg,180);return _srF(`將 \\(${deg}^\\circ\\) 化為弳度量，答案為 \\(\\square\\pi\\)，填入分數`,frac(deg/g,180/g));
+}
+
+// 補充題型接入
+(function(){
+  const mix=(key,ext,p,levels)=>{const base=SR_GENERATORS[key];if(!base)return;SR_GENERATORS[key]=(lv,n)=>{if((!levels||levels.includes(lv))&&Math.random()<p){for(let i=0;i<30;i++){const q=ext(lv);if(q)return q;}}return base(lv,n);};};
+  mix('b1-decimal-term',_b1DecExt,0.45);
+  mix('b1-log',_b1LogExt,0.35);
+  mix('b3a-exp-func',_b3ExpExt,0.5);
+  mix('b3b-exp-func',_b3ExpExt,0.5);
+  mix('b3a-arc',_b3ArcExt,0.4,['hard']);
+  mix('b3b-trig-arc',_b3ArcExt,0.4,['hard']);
+  // 範圍篩選：不合課綱的題目重新出題
+  Object.keys(_SR_SCOPE).forEach(key=>{
+    const base=SR_GENERATORS[key],rules=_SR_SCOPE[key];if(!base)return;
+    const bad=q=>!q||!q.question||rules.some(r=>typeof r==='function'?r(q.question):r.test(q.question));
+    SR_GENERATORS[key]=(lv,n)=>{let q;for(let i=0;i<80;i++){q=base(lv,n);if(!bad(q))return q;}
+      for(const l2 of ['medium','basic'])for(let i=0;i<80;i++){q=base(l2,n);if(!bad(q))return q;}return q;};
+  });
+})();
+
+// ── 補充題型（第二批）──
+// G-11A-5：正切差角的應用——兩直線夾角；有象限條件的和差角
+function _b3TrigAddExt(level){
+  const t=srRandInt(0,2);
+  if(t===0){// 兩直線夾角：tanθ=|(m1−m2)/(1+m1m2)|，取整齊角
+    const P=[[1,0,45],[2,-3,45],[3,-2,45],[2,1/3,45],[-1,0,45],[3,1/2,45]],[m1,m2,ang]=pick(P);
+    const tx=m=>Number.isInteger(m)?`${m}x`:`\\dfrac{1}{${Math.round(1/Math.abs(m))}}x`.replace(/^/,m<0?'-':'');
+    const s=(m,b)=>`y=${m===1?'x':m===-1?'-x':m===0?'':tx(m)}${m===0?b:b>0?'+'+b:b<0?b:''}`;
+    return _srN(`兩直線 \\(L_1:${s(m1,srRandInt(-5,5))}\\) 與 \\(L_2:${s(m2,srRandInt(1,6))}\\) 所夾的銳角為幾度？`,ang,'度');}
+  if(t===1){// 有象限條件：sin(α+β)
+    const T=[[3,4,5],[5,12,13],[8,15,17],[7,24,25]],[a,b,c]=pick(T),[d,e,f]=pick(T);
+    const qa=pick([1,2]),qb=pick([1,4]);// α 在第一或第二象限，β 在第一或第四象限
+    const sa=frac(a,c),ca=frac(qa===1?b:-b,c),cb=frac(e,f),sb=frac(qb===1?d:-d,f);
+    const v=fadd(fmul(sa,cb),fmul(ca,sb));
+    return _srF(`設 \\(${qa===1?'0^\\circ<\\alpha<90^\\circ':'90^\\circ<\\alpha<180^\\circ'}\\)，\\(${qb===1?'0^\\circ<\\beta<90^\\circ':'270^\\circ<\\beta<360^\\circ'}\\)，且 \\(\\sin\\alpha=\\dfrac{${a}}{${c}}\\)，\\(\\cos\\beta=\\dfrac{${e}}{${f}}\\)，求 \\(\\sin(\\alpha+\\beta)\\)`,v);}
+  // 正切和角：tan(α+β) 判斷 α+β 的大小
+  const P=[[1,2,3,135],[1,3,2,45],[2,3,1,135],[1,1/2,1/3,45]],[x,y]=pick([[1/2,1/3],[2,3],[1/3,1/2],[3,2]]);
+  const tv=(x+y)/(1-x*y),ang=tv>0?45:135;
+  const f=v=>Number.isInteger(v)?String(v):`\\dfrac{1}{${Math.round(1/v)}}`;
+  return _srN(`設 \\(\\alpha\\)、\\(\\beta\\) 均為銳角，且 \\(\\tan\\alpha=${f(x)}\\)，\\(\\tan\\beta=${f(y)}\\)，求 \\(\\alpha+\\beta\\) 的度數`,ang,'度');
+}
+// 半角：由 θ 的範圍決定 θ/2 所在象限
+function _b3TrigDblExt(level){
+  const [cn,cd,sn,sd,kn,kd]=pick([[7,25,3,5,4,5],[119,169,5,13,12,13],[-7,25,4,5,3,5],[-119,169,12,13,5,13]]);
+  const R=cn>0?pick([[0,90,1],[270,360,-1]]):pick([[90,180,1],[180,270,-1]]);// R[2]：cos(θ/2) 的正負
+  const rng=`${R[0]}^\\circ<\\theta<${R[1]}^\\circ`,askSin=srRandInt(0,1)===0;
+  const cs=`\\cos\\theta=${cn<0?'-':''}\\dfrac{${Math.abs(cn)}}{${cd}}`;
+  if(askSin)return _srF(`設 \\(${rng}\\)，且 \\(${cs}\\)，求 \\(\\sin\\dfrac{\\theta}{2}\\)`,frac(sn,sd));
+  return _srF(`設 \\(${rng}\\)，且 \\(${cs}\\)，求 \\(\\cos\\dfrac{\\theta}{2}\\)`,frac(R[2]*kn,kd));
+}
+// N-10-3：算幾不等式（兩變數）情境題
+function _b1AmGmExt(level){
+  const t=srRandInt(0,level==='hard'?1:2);
+  if(level==='basic'){
+    if(t===0){const P=srRandInt(3,20)*4;return _srN(`周長為 \\(${P}\\) 的長方形，面積最大為多少？`,P*P/16,'面積');}
+    if(t===1){const a=srRandInt(1,4),r=srRandInt(1,5),b=a*r*r;return _srN(`設 \\(x>0\\)，求 \\(${a===1?'':a}x+\\dfrac{${b}}{x}\\) 的最小值`,2*a*r,'最小值');}
+    if(false){const m=2*Math.sqrt(a*b*k);if(!Number.isInteger(m))return null;return _srN(`設 \\(x>0\\)，求 \\(${a===1?'':a}x+\\dfrac{${b*k}}{${b===1?'':b}x}\\) 的最小值`.replace('\\dfrac{'+b*k+'}{x}','\\dfrac{'+b*k+'}{x}'),2*Math.sqrt(a*b*k/b*b/b),'最小值');}
+    const S=srRandInt(2,9)**2;return _srN(`面積為 \\(${S}\\) 的長方形，周長最小為多少？`,4*Math.sqrt(S),'周長');
+  }
+  if(level==='medium'){
+    if(t===0){const L=srRandInt(5,30)*4;return _srN(`用長 \\(${L}\\) 公尺的籬笆靠牆圍一個長方形花圃（靠牆的一邊不用籬笆），花圃面積最大為多少平方公尺？`,L*L/8,'平方公尺');}
+    if(t===1){const a=srRandInt(1,5),b=srRandInt(1,5),P=srRandInt(1,6)**2*a*b;const m=2*Math.sqrt(a*b*P);if(!Number.isInteger(m))return null;return _srN(`設 \\(x>0\\)、\\(y>0\\)，且 \\(xy=${P}\\)，求 \\(${a===1?'':a}x+${b===1?'':b}y\\) 的最小值`,m,'最小值');}
+    const a=srRandInt(1,4),b=srRandInt(1,4),S=2*srRandInt(2,8)*a*b;return {question:`設 \\(x>0\\)、\\(y>0\\)，且 \\(${a===1?'':a}x+${b===1?'':b}y=${S}\\)，求 \\(xy\\) 的最大值`,answer:frac(S*S,4*a*b),type:'fraction',answerPrefix:'最大值'};
+  }
+  if(t===0){const a=srRandInt(2,9);return _srN(`設 \\(x>${a}\\)，求 \\(x+\\dfrac{${a*a}}{x-${a}}\\) 的最小值`,3*a,'最小值');}
+  if(t===1){const c=srRandInt(1,8),k=srRandInt(1,6);return _srN(`設 \\(x>0\\)，求 \\(\\dfrac{x^2+${c}x+${k*k}}{x}\\) 的最小值`,2*k+c,'最小值');}
+  const V=pick([32,108,256,500]),s=Math.cbrt(V*2)/1;// 無蓋水箱：底正方形邊 a、高 h，a²h=V，表面積 a²+4ah 最小 → a=∛(2V)
+  const a=Math.round(Math.cbrt(2*V));if(a**3!==2*V)return null;return null;
+}
+// 分點：數線分點、平面內分點、重心、由中點反求端點
+function _b1DivPtExt(level){
+  const t=srRandInt(0,2);
+  if(level==='basic'){
+    if(t===0){const a=srRandInt(-10,10),b=a+srRandInt(2,15),m=srRandInt(1,4),n=srRandInt(1,4);return _srF(`數線上 \\(A(${a})\\)、\\(B(${b})\\)，點 \\(P\\) 在 \\(\\overline{AB}\\) 上且 \\(\\overline{AP}:\\overline{PB}=${m}:${n}\\)，求 \\(P\\) 的坐標`,frac(n*a+m*b,m+n),'坐標');}
+    if(t===1){const ax=srRandInt(-8,8),ay=srRandInt(-8,8),mx=srRandInt(-8,8),my=srRandInt(-8,8);return {question:`\\(M(${mx},${my})\\) 是 \\(\\overline{AB}\\) 的中點，已知 \\(A(${ax},${ay})\\)，求 \\(B\\) 的坐標`,answerParts:[{prefix:'x',answer:2*mx-ax,type:'number'},{prefix:'y',answer:2*my-ay,type:'number'}]};}
+    const a=srRandInt(-9,9),b=srRandInt(-9,9);return _srF(`數線上 \\(A(${a})\\)、\\(B(${b})\\)，求 \\(\\overline{AB}\\) 中點的坐標`,frac(a+b,2),'坐標');
+  }
+  if(level==='medium'){
+    if(t===0){const G=[srRandInt(-5,5),srRandInt(-5,5)],A=[srRandInt(-8,8),srRandInt(-8,8)],B=[srRandInt(-8,8),srRandInt(-8,8)];return {question:`\\(\\triangle ABC\\) 的重心為 \\(G(${G[0]},${G[1]})\\)，已知 \\(A(${A[0]},${A[1]})\\)、\\(B(${B[0]},${B[1]})\\)，求 \\(C\\) 的坐標`,answerParts:[{prefix:'x',answer:3*G[0]-A[0]-B[0],type:'number'},{prefix:'y',answer:3*G[1]-A[1]-B[1],type:'number'}]};}
+    if(t===1){const a=srRandInt(-8,8),m=srRandInt(1,4),n=srRandInt(1,4),p=srRandInt(-8,8);// P = (n a + m b)/(m+n) → b
+      const b=((m+n)*p-n*a)/m;if(!Number.isInteger(b))return null;return _srN(`數線上 \\(A(${a})\\)、\\(B(b)\\)，點 \\(P(${p})\\) 在 \\(\\overline{AB}\\) 上且 \\(\\overline{AP}:\\overline{PB}=${m}:${n}\\)，求 \\(b\\)`,b,'\\(b\\)');}
+    const T=srRandInt(1,5)*10,lo=srRandInt(0,5)*10;return _srN(`以內插法估計：某量在 \\(x=${lo}\\) 時為 \\(${T}\\)，在 \\(x=${lo+10}\\) 時為 \\(${T+20}\\)，假設在兩者之間呈線性變化，則 \\(x=${lo+5}\\) 時約為多少？`,T+10,'值');
+  }
+  if(t===0){const A=[srRandInt(-9,9),srRandInt(-9,9)],B=[srRandInt(-9,9),srRandInt(-9,9)],C=[srRandInt(-9,9),srRandInt(-9,9)];
+    const m=srRandInt(1,3),n=srRandInt(1,3);const D=[(n*B[0]+m*C[0])/(m+n),(n*B[1]+m*C[1])/(m+n)];
+    return {question:`\\(\\triangle ABC\\) 中，\\(A(${A[0]},${A[1]})\\)、\\(B(${B[0]},${B[1]})\\)、\\(C(${C[0]},${C[1]})\\)，點 \\(D\\) 在 \\(\\overline{BC}\\) 上且 \\(\\overline{BD}:\\overline{DC}=${m}:${n}\\)，求 \\(\\overline{AD}\\) 的中點坐標`,answerParts:[{prefix:'x',answer:frac(A[0]*(m+n)+n*B[0]+m*C[0],2*(m+n)),type:'fraction'},{prefix:'y',answer:frac(A[1]*(m+n)+n*B[1]+m*C[1],2*(m+n)),type:'fraction'}]};}
+  if(t===1){const a=srRandInt(-9,9),d=srRandInt(1,6);const n=srRandInt(2,4);return _srN(`數線上 \\(A(${a})\\)、\\(B(${a+(n+1)*d})\\)，將 \\(\\overline{AB}\\) 分成 \\(${n+1}\\) 等分，最靠近 \\(B\\) 的分點坐標為何？`,a+n*d,'坐標');}
+  const ax=srRandInt(-6,6),ay=srRandInt(-6,6),bx=srRandInt(-6,6),by=srRandInt(-6,6),cx=srRandInt(-6,6),cy=srRandInt(-6,6);
+  return {question:`平行四邊形 \\(ABCD\\) 中，\\(A(${ax},${ay})\\)、\\(B(${bx},${by})\\)、\\(C(${cx},${cy})\\)，兩對角線交於 \\(M\\)，求 \\(M\\) 的坐標`,answerParts:[{prefix:'x',answer:frac(ax+cx,2),type:'fraction'},{prefix:'y',answer:frac(ay+cy,2),type:'fraction'}]};
+}
+(function(){
+  const mix=(key,ext,p,levels)=>{const base=SR_GENERATORS[key];if(!base)return;SR_GENERATORS[key]=(lv,n)=>{if((!levels||levels.includes(lv))&&Math.random()<p){for(let i=0;i<30;i++){const q=ext(lv);if(q)return q;}}return base(lv,n);};};
+  mix('b3a-trig-add',_b3TrigAddExt,0.6,['hard']);
+  mix('b3a-trig-add',_b3TrigAddExt,0.3,['medium']);
+  mix('b3a-trig-dbl',_b3TrigDblExt,0.5,['hard']);
+  mix('b1-amgm',_b1AmGmExt,0.5);
+  mix('b1-div-pt',_b1DivPtExt,0.5);
+})();
