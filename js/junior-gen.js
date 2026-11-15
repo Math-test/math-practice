@@ -8824,8 +8824,210 @@ function _8bStat(level){
 // ═══════════════════════════════════════════════════════════════════
 //  八下 ▸ 等差數列
 // ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+//  八下、九年級 擴充題型（108 課綱 N-8-3～N-8-6、F-8-1、S-8-1～S-8-11、S-9-1～S-9-13）
+// ═══════════════════════════════════════════════════════════════════
+// 題目通用修飾：1x → x、+0) → )
+const _jrTidy=q=>{if(q&&q.question)q.question=q.question.replace(/(^|[^\d.])1x/g,'$1x').replace(/([a-z])\+0\)/g,'$1)').replace(/\+-/g,'-');return q;};
+const _N=(q,v,p,g)=>{const o={question:q,answer:v,type:'number',answerPrefix:p||''};if(g)o.graph=g;return o;};
+const _Fr=(q,v,p)=>({question:q,answer:v,type:'fraction',answerPrefix:p||''});
+const _lx=(m,b)=>`${m===1?'':m===-1?'-':m}x${b>0?'+'+b:b<0?b:''}`;
+
+// ── 數列與級數 ──
+function _8bSeqExt(kind,level){
+  if(kind==='arith'){
+    const t=randInt(0,2);
+    if(level==='basic'){
+      if(t===0){const a=randInt(-10,30),d=rnzInt(-6,8);return _N(`若 \\(${a}\\)、\\(x\\)、\\(${a+2*d}\\) 成等差數列，求 \\(x\\)（等差中項）`,a+d,'\\(x\\)');}
+      if(t===1){const a=randInt(1,8),d=randInt(2,5),n=randInt(6,15);return _N(`用火柴棒排正方形：排 \\(1\\) 個需 \\(${a+d}\\) 根，排 \\(2\\) 個需 \\(${a+2*d}\\) 根，排 \\(3\\) 個需 \\(${a+3*d}\\) 根，依此規律，排 \\(${n}\\) 個需幾根？`,a+n*d,'根');}
+      const a=randInt(5,20),d=randInt(2,6),n=randInt(8,20);return _N(`某劇場第 \\(1\\) 排有 \\(${a}\\) 個座位，之後每排都比前一排多 \\(${d}\\) 個，則第 \\(${n}\\) 排有幾個座位？`,a+(n-1)*d,'個');
+    }
+    if(level==='medium'){
+      if(t===0){const a=randInt(60,150),d=-randInt(3,9);const n=Math.floor(a/(-d))+2;return _N(`等差數列首項為 \\(${a}\\)，公差為 \\(${d}\\)，則從第幾項開始出現負數？`,(()=>{let k=1;while(a+(k-1)*d>=0)k++;return k;})(),'第幾項');}
+      if(t===1){const lo=randInt(10,60),hi=lo+randInt(60,200),k=pick([3,4,6,7,9,11]);const c=Math.floor(hi/k)-Math.floor((lo-1)/k);return _N(`介於 \\(${lo}\\) 與 \\(${hi}\\) 之間（含兩端）的整數中，\\(${k}\\) 的倍數共有幾個？`,c,'個');}
+      const a=randInt(-5,10),d=rnzInt(-4,5),p=randInt(2,5),q=p+randInt(2,6);return _N(`等差數列的公差為 \\(${d}\\)，且 \\(a_{${p}}+a_{${q}}=${2*a+(p+q-2)*d}\\)，求首項 \\(a_1\\)`,a,'\\(a_1\\)');
+    }
+    if(t===0){const m=randInt(-5,10),d=rnzInt(-6,6),S=3*m,P=(m-d)*m*(m+d);if(P===0)return null;return {question:`三數成等差數列，三數的和為 \\(${S}\\)，積為 \\(${P}\\)，且公差為正數，求這三數中最大的數`,answer:m+Math.abs(d),type:'number',answerPrefix:'最大數'};}
+    if(t===1){const a=randInt(2,20),d=randInt(2,9),n=randInt(2,6),b=a+(n+1)*d;return _N(`在 \\(${a}\\) 與 \\(${b}\\) 之間插入 \\(${n}\\) 個數，使這 \\(${n+2}\\) 個數成等差數列，求公差`,d,'公差');}
+    const a=randInt(2,12),d=rnzInt(-4,6),k=randInt(3,8),n=randInt(k+3,k+12);return _N(`等差數列中，\\(a_{${k}}=${a+(k-1)*d}\\)，公差為 \\(${d}\\)，求 \\(a_{${n}}\\)`,a+(n-1)*d,`\\(a_{${n}}\\)`);
+  }
+  if(kind==='series'){
+    const t=randInt(0,2);
+    if(level==='basic'){
+      if(t===0){const n=randInt(10,50);return _N(`求 \\(1+3+5+\\cdots+${2*n-1}\\) 的和`,n*n,'和');}
+      if(t===1){const n=randInt(10,40);return _N(`求 \\(2+4+6+\\cdots+${2*n}\\) 的和`,n*(n+1),'和');}
+      const a=randInt(5,20),d=randInt(1,4),n=randInt(6,15);return _N(`禮堂第 \\(1\\) 排有 \\(${a}\\) 個座位，每排比前一排多 \\(${d}\\) 個，共 \\(${n}\\) 排，全部共有幾個座位？`,n*(2*a+(n-1)*d)/2,'個');
+    }
+    if(level==='medium'){
+      if(t===0){const k=pick([3,4,5,6,7]),N=randInt(60,200);const m=Math.floor(N/k);return _N(`求 \\(1\\) 到 \\(${N}\\) 之間所有 \\(${k}\\) 的倍數的和`,k*m*(m+1)/2,'和');}
+      if(t===1){const n=randInt(6,12),a=randInt(1,6),d=randInt(1,4),an=a+(n-1)*d;return _N(`等差級數共有 \\(${n}\\) 項，首項為 \\(${a}\\)，末項為 \\(${an}\\)，求此級數的和`,n*(a+an)/2,'和');}
+      const L=randInt(3,8),n=randInt(5,10);return _N(`將鉛筆堆成梯形：最上層 \\(${L}\\) 枝，往下每層多 \\(1\\) 枝，共 \\(${n}\\) 層，全部共有幾枝？`,n*(2*L+n-1)/2,'枝');
+    }
+    if(t===0){const a=randInt(20,60),d=-randInt(2,5);let s=0,best=0,k=0,bk=0;while(true){k++;const v=a+(k-1)*d;if(v<0)break;s+=v;if(s>best){best=s;bk=k;}}return _N(`等差數列首項為 \\(${a}\\)，公差為 \\(${d}\\)，則前幾項的和最大？最大和為多少？（填最大和）`,best,'最大和');}
+    if(t===1){const a=randInt(2,9),d=randInt(2,5),n=randInt(5,10),S=n*(2*a+(n-1)*d)/2;return _N(`等差級數首項為 \\(${a}\\)，公差為 \\(${d}\\)，前 \\(n\\) 項和為 \\(${S}\\)，求 \\(n\\)`,n,'\\(n\\)');}
+    const a=randInt(-20,-5),d=randInt(2,5),n=randInt(8,16),S=n*(2*a+(n-1)*d)/2;return _N(`等差數列首項為 \\(${a}\\)，公差為 \\(${d}\\)，求前 \\(${n}\\) 項的和`,S,`\\(S_{${n}}\\)`);
+  }
+  // geo（不含等比級數）
+  const t=randInt(0,2);
+  if(level==='basic'){
+    if(t===0){const a=randInt(1,6),r=randInt(2,4);return _N(`若 \\(${a}\\)、\\(x\\)、\\(${a*r*r}\\) 成等比數列，且 \\(x>0\\)，求 \\(x\\)（等比中項）`,a*r,'\\(x\\)');}
+    if(t===1){const a=randInt(2,9)*10,h=randInt(2,5);return _N(`某細菌每小時分裂一次，數量變為原來的 \\(2\\) 倍。一開始有 \\(${a}\\) 個，\\(${h}\\) 小時後有幾個？`,a*2**h,'個');}
+    const H=pick([64,128,256,243,81]),r=H%3===0?3:2,n=randInt(2,4);return _N(`一球從 \\(${H}\\) 公分高處落下，每次反彈的高度是前一次高度的 \\(\\dfrac{${r-1}}{${r}}\\)，則第 \\(${n}\\) 次反彈的高度為幾公分？`,H*((r-1)/r)**n,'公分');
+  }
+  if(level==='medium'){
+    if(t===0){const a=randInt(1,4),r=pick([2,3]),k=randInt(3,5);return _N(`等比數列中，\\(a_2=${a*r}\\)，\\(a_{${k}}=${a*r**(k-1)}\\)，且公比為正數，求公比`,r,'公比');}
+    if(t===1){const P=pick([1000,2000,5000,10000]),n=randInt(2,3);return _N(`某城市人口每年增加為前一年的 \\(1.1\\) 倍，今年人口為 \\(${P}\\) 人，則 \\(${n}\\) 年後的人口為多少人？`,Math.round(P*1.1**n),'人');}
+    const a=randInt(2,6),r=-randInt(2,3),n=randInt(3,5);return _N(`等比數列 \\(${a},\\,${a*r},\\,${a*r*r},\\,\\cdots\\) 的第 \\(${n+2}\\) 項為`,a*r**(n+1),`第 ${n+2} 項`);
+  }
+  if(t===0){const a=randInt(1,3),r=pick([2,3]),k=randInt(4,6);const v=a*r**(k-1);return _N(`等比數列首項為 \\(${a}\\)，公比為 \\(${r}\\)，則 \\(${v}\\) 是第幾項？`,k,'第幾項');}
+  if(t===1){const a=randInt(1,4),r=pick([2,3]),p=randInt(2,3),q=p+2;return _N(`等比數列中，\\(a_{${p}}\\times a_{${q}}=${a*r**(p-1)*a*r**(q-1)}\\)，且各項為正數，求 \\(a_{${p+1}}\\)`,a*r**p,`\\(a_{${p+1}}\\)`);}
+  const r=pick([2,3]),a=randInt(1,4),k=randInt(2,4);return _N(`等比數列中，\\(a_{${k}}=${a*r**(k-1)}\\)，\\(a_{${k+3}}=${a*r**(k+2)}\\)，求公比`,r,'公比');
+}
+
+// ── 線型函數（不含分段函數）──
+function _8bLinExt(level){
+  const t=randInt(0,3);
+  if(level==='basic'){
+    if(t===0){const m=rnzInt(-5,5),b=rnzInt(-9,9);const ask=randInt(0,1);
+      return ask?_N(`直線 \\(y=${_lx(m,b)}\\) 與 \\(y\\) 軸交點的縱坐標為`,b,'縱坐標'):_Fr(`直線 \\(y=${_lx(m,b)}\\) 與 \\(x\\) 軸交點的橫坐標為`,frac(-b,m),'橫坐標');}
+    if(t===1){const c=randInt(-9,9),x=randInt(-9,9);return _N(`常數函數 \\(y=${c}\\)，當 \\(x=${x}\\) 時，\\(y\\) 的值為`,c,'\\(y\\)');}
+    if(t===2){const base=pick([70,85,100]),per=pick([5,10,15]),km=randInt(2,12);return _N(`某計程車起跳價 \\(${base}\\) 元，之後每公里加收 \\(${per}\\) 元。設行駛 \\(x\\) 公里（\\(x\\geq 1\\)）的車資為 \\(y=${base}+${per}(x-1)\\) 元，則行駛 \\(${km}\\) 公里的車資為多少元？`,base+per*(km-1),'元');}
+    const opts=[['y=3x-2','一次函數'],['y=-5','常數函數'],['y=\\dfrac{x}{2}+1','一次函數'],['y=7','常數函數'],['y=-x','一次函數'],['y=0x+4','常數函數']],o=pick(opts);
+    return {question:`\\(${o[0]}\\) 是一次函數還是常數函數？（填「一次函數」或「常數函數」）`,answer:o[1],type:'text',answerPrefix:'答'};
+  }
+  if(level==='medium'){
+    if(t===0){const m=rnzInt(-4,4),b=rnzInt(-6,6);const q=[];const s=(m>0?1:0)+','+(b>0?1:0);const miss={'1,1':4,'1,0':2,'0,1':3,'0,0':1}[s];
+      return _N(`一次函數 \\(y=${_lx(m,b)}\\) 的圖形不會通過第幾象限？（填 1～4）`,miss,'第');}
+    if(t===1){const L=randInt(10,30),k=pick([2,3,4,5]),w=randInt(2,10);return _N(`一彈簧原長 \\(${L}\\) 公分，每掛 \\(1\\) 公斤的物體伸長 \\(${k}\\) 公分（在彈性限度內）。設掛 \\(x\\) 公斤時彈簧長 \\(y\\) 公分，則 \\(y\\) 與 \\(x\\) 的函數關係為 \\(y=${k}x+${L}\\)；掛 \\(${w}\\) 公斤時彈簧長幾公分？`,L+k*w,'公分');}
+    if(t===2){const a=rnzInt(-4,4),b=randInt(-8,8),x1=rnzInt(-5,5),y1=a*x1+b;return _N(`一次函數 \\(y=ax${b>0?'+':''}${b===0?'':b}\\) 的圖形通過點 \\((${x1},${y1})\\)，求 \\(a\\)`,a,'\\(a\\)');}
+    const C=pick([-10,0,5,10,20,25,30,35,40,100]);return _N(`攝氏溫度 \\(C\\) 與華氏溫度 \\(F\\) 的關係為 \\(F=\\dfrac{9}{5}C+32\\)，當 \\(C=${C}\\) 時，\\(F\\) 為多少？`,9*C/5+32,'\\(F\\)');
+  }
+  if(t===0){// 兩直線與 y 軸圍成三角形面積
+    const m1=rnzInt(-3,3),m2=rnzInt(-3,3);if(m1===m2)return null;const x0=pick([-4,-2,2,4]),y0=randInt(-5,5),b1=y0-m1*x0,b2=y0-m2*x0;if(b1===b2)return null;
+    return _N(`兩直線 \\(y=${_lx(m1,b1)}\\) 與 \\(y=${_lx(m2,b2)}\\) 交於點 \\(P\\)，兩直線與 \\(y\\) 軸圍成的三角形面積為`,Math.abs(b1-b2)*Math.abs(x0)/2,'面積');}
+  if(t===1){// y=(k−2)x+(k+3) 不通過第三象限的限制 → 改為：圖形通過某點求 k，再求另一點函數值
+    const k=rnzInt(-4,4),p=randInt(1,5),q=randInt(-5,5),x1=randInt(-3,3);const m=k-p,b=k+q;if(m===0)return null;
+    if(x1===-1)return null;return _N(`一次函數 \\(y=(k-${p})x+(k${q>=0?'+':''}${q})\\) 的圖形通過點 \\((${x1},${m*x1+b})\\)，求 \\(k\\)`,k,'\\(k\\)');}
+  if(t===2){// 手機月租方案比較
+    const a=pick([199,299,399]),pa=pick([1,2]),b=pick([0,99]),pb=pa+pick([2,3,4]);
+    return _N(`甲方案月租 \\(${a}\\) 元，每分鐘通話 \\(${pa}\\) 元；乙方案月租 \\(${b}\\) 元，每分鐘通話 \\(${pb}\\) 元。每月通話至少幾分鐘（整數）時，甲方案比乙方案便宜？`,Math.floor((a-b)/(pb-pa))+1,'分鐘');}
+  const xa=pick([-6,-4,-2,2,4,6]),yb=pick([-6,-3,3,6]);const m=frac(-yb,xa);
+  return _Fr(`直線通過 \\(A(${xa},0)\\) 與 \\(B(0,${yb})\\)，若寫成 \\(y=ax+b\\)，求 \\(a\\)`,m,'\\(a\\)');
+}
+
+// ── 三角形內角外角、多邊形 ──
+function _8bAngleExt(level){
+  const t=randInt(0,2);
+  if(level==='basic'){
+    if(t===0){const n=pick([5,6,8,9,10,12,15,18,20]);return _N(`正 \\(${n}\\) 邊形每一個外角是幾度？`,360/n,'度');}
+    if(t===1){const a=randInt(20,160);return _N(`兩直線相交，其中一個角為 \\(${a}^\\circ\\)，求它的對頂角`,a,'度');}
+    const n=randInt(5,12);return _N(`任意 \\(${n}\\) 邊形的外角和為幾度？`,360,'度');
+  }
+  if(level==='medium'){
+    if(t===0){const n=pick([5,6,8,9,10,12,15,18,20,24,36]);return _N(`正多邊形的每一個外角為 \\(${360/n}^\\circ\\)，則此正多邊形有幾個邊？`,n,'邊');}
+    if(t===1){const n=randInt(5,14);return _N(`一個凸多邊形的內角和為 \\(${(n-2)*180}^\\circ\\)，則它是幾邊形？`,n,'邊');}
+    const [a,b,c]=pick([[1,2,3],[2,3,4],[1,1,2],[3,4,5],[2,3,5],[1,3,5],[4,5,6]]);const s=a+b+c;if(180%s)return null;return _N(`三角形三內角的度數比為 \\(${a}:${b}:${c}\\)，求最大內角`,180*c/s,'度');
+  }
+  if(t===0){const n=pick([5,6,8,9,10,12]),k=(n-2)*180/n;return _N(`一個正多邊形的每一個內角比每一個外角多 \\(${k-360/n}^\\circ\\)，則此正多邊形有幾個邊？`,n,'邊');}
+  if(t===1){const n=randInt(5,10),a=randInt(100,150),rest=(n-2)*180-a;if(rest%(n-1)||rest/(n-1)>=180)return null;return _N(`一個凸 \\(${n}\\) 邊形中，有一個內角為 \\(${a}^\\circ\\)，其餘各內角都相等，求其餘每一個內角的度數`,rest/(n-1),'度');}
+  // 星形五角的和
+  const n=randInt(5,14);return _N(`一個凸多邊形的內角和比外角和多 \\(${(n-2)*180-360}^\\circ\\)，則它是幾邊形？`,n,'邊');
+}
+
+// ── 三角形邊角關係 ──
+function _8bSideExt(level){
+  const t=randInt(0,1);
+  if(level==='basic'){const a=randInt(2,9),b=2*a+randInt(0,6);return _N(`等腰三角形的兩邊長為 \\(${a}\\) 和 \\(${b}\\)，求周長`,a+2*b,'周長');}
+  if(level==='medium'){
+    if(t===0){const a=randInt(3,12),b=randInt(3,12);if(a===b)return null;const lo=Math.abs(a-b)+1,hi=a+b-1;let c=0;for(let x=lo;x<=hi;x++)if(x%2===0)c++;return _N(`三角形的兩邊長為 \\(${a}\\) 和 \\(${b}\\)，第三邊長為偶數，則第三邊長有幾種可能？`,c,'種');}
+    const a=randInt(4,12),p=randInt(10,40);if(p<=2*a||p>=4*a)return null;const b=(p-a)/2;return Number.isInteger(b)?_N(`等腰三角形的周長為 \\(${p}\\)，底邊長為 \\(${a}\\)，求腰長`,b,'腰長'):null;
+  }
+  if(t===0){const p=randInt(12,40);let c=0;for(let a=1;a<p;a++)for(let b=a;b<p;b++){const cc=p-a-b;if(cc<b)continue;if(a+b>cc)c++;}return _N(`三邊長都是正整數且周長為 \\(${p}\\) 的三角形共有幾種（不計邊的順序）？`,c,'種');}
+  const a=randInt(3,9),b=randInt(3,9);const lo=Math.abs(a-b),hi=a+b;// 2x+1 為第三邊
+  let c=0;for(let x=1;x<50;x++){const s=2*x+1;if(s>lo&&s<hi)c++;}if(!c)return null;return _N(`三角形三邊長為 \\(${a}\\)、\\(${b}\\)、\\(2x+1\\)，\\(x\\) 為正整數，則 \\(x\\) 有幾種可能？`,c,'種');
+}
+
+// ── 梯形補充（困難）──
+function _8bTrapExt(level){
+  const t=randInt(0,2);
+  if(t===0){const a=randInt(2,12),L=randInt(2,10)*2;return _N(`等腰梯形 \\(ABCD\\) 中，\\(\\overline{AD}//\\overline{BC}\\)，上底 \\(\\overline{AD}=${a}\\)，腰長為 \\(${L}\\)，底角為 \\(60^\\circ\\)，求下底 \\(\\overline{BC}\\)`,a+L,'\\(\\overline{BC}\\)');}
+  if(t===1){const a=randInt(2,10),b=a+2*randInt(1,8);return _N(`梯形 \\(ABCD\\) 中，上底 \\(\\overline{AD}=${a}\\)，下底 \\(\\overline{BC}=${b}\\)，中線 \\(\\overline{EF}\\) 分別交兩對角線於 \\(G\\)、\\(H\\)，求 \\(\\overline{GH}\\)`,(b-a)/2,'\\(\\overline{GH}\\)');}
+  const a=randInt(3,10),h=randInt(2,8),b=a+2*h;return _N(`等腰梯形的上底為 \\(${a}\\)，下底為 \\(${b}\\)，底角為 \\(45^\\circ\\)，求面積`,(a+b)*h/2,'面積');
+}
+
+// ── 九上：弧長與扇形面積（S-9-5），答案填 π 的係數 ──
+function gen9aArc(level){for(let i=0;i<40;i++){const q=_9aArc(level);if(q)return _jrTidy(q);}return _9aArc('basic');}
+function _9aArc(level){
+  const piT=f=>(f.num===1&&f.den===1?'':fracToLatex(f))+'\\pi';
+  const P=(q,v,p)=>({question:q+'（答案為 \\(k\\pi\\)，請填 \\(k\\)）',answer:v,type:'fraction',answerPrefix:p||'\\(k\\)'});
+  const t=randInt(0,3);
+  if(level==='basic'){
+    const r=randInt(2,12),th=pick([30,45,60,90,120,135,150,180,240,270]);
+    if(t===0)return P(`半徑 \\(${r}\\) 的圓，圓周長為多少？`,frac(2*r),'\\(k\\)');
+    if(t===1)return P(`半徑 \\(${r}\\)、圓心角 \\(${th}^\\circ\\) 的扇形，弧長為多少？`,frac(2*r*th,360));
+    if(t===2)return P(`半徑 \\(${r}\\)、圓心角 \\(${th}^\\circ\\) 的扇形，面積為多少？`,frac(r*r*th,360));
+    return P(`直徑 \\(${2*r}\\) 的半圓，弧長為多少？`,frac(r));
+  }
+  if(level==='medium'){
+    const r=randInt(2,12),th=pick([30,40,45,60,72,90,120,135,144,150,240]);
+    if(t===0)return _N(`扇形的半徑為 \\(${r}\\)，弧長為 \\(${piT(frac(2*r*th,360))}\\)，求圓心角的度數`,th,'度');
+    if(t===1)return _N(`扇形的弧長為 \\(${piT(frac(2*r*th,360))}\\)，圓心角為 \\(${th}^\\circ\\)，求半徑`,r,'半徑');
+    if(t===2){const L=frac(2*r*th,360);return P(`扇形的半徑為 \\(${r}\\)，弧長為 \\(${piT(L)}\\)，求扇形面積（面積 \\(=\\dfrac{1}{2}\\times\\) 弧長 \\(\\times\\) 半徑）`,fmul(L,frac(r,2)));}
+    return {question:`半徑 \\(${r}\\)、圓心角 \\(${th}^\\circ\\) 的扇形，周長為多少？（答案為 \\(a+b\\pi\\)，請依序填 \\(a\\)、\\(b\\)）`,answerParts:[{prefix:'\\(a\\)',answer:2*r,type:'number'},{prefix:'\\(b\\)',answer:frac(2*r*th,360),type:'fraction'}]};
+  }
+  const r=randInt(2,10),R=r+randInt(1,6),th=pick([60,90,120,180]);
+  if(t===0)return P(`兩個同心圓的半徑分別為 \\(${r}\\) 和 \\(${R}\\)，求兩圓之間的環形面積`,frac(R*R-r*r));
+  if(t===1)return P(`以半徑 \\(${r}\\) 和 \\(${R}\\) 的同心圓、圓心角 \\(${th}^\\circ\\) 截出的扇環面積為多少？`,frac((R*R-r*r)*th,360));
+  if(t===2){const s=randInt(2,10)*2;return {question:`邊長 \\(${s}\\) 的正方形內，以一頂點為圓心、邊長為半徑畫四分之一圓，求正方形內、四分之一圓外的面積（答案為 \\(a-b\\pi\\)，請依序填 \\(a\\)、\\(b\\)）`,answerParts:[{prefix:'\\(a\\)',answer:s*s,type:'number'},{prefix:'\\(b\\)',answer:frac(s*s,4),type:'fraction'}]};}
+  // 弓形：圓心角 90°
+  return {question:`半徑 \\(${r}\\) 的圓中，圓心角 \\(90^\\circ\\) 的弦與弧所圍成的弓形面積為多少？（答案為 \\(b\\pi-a\\)，請依序填 \\(b\\)、\\(a\\)）`,answerParts:[{prefix:'\\(b\\)',answer:frac(r*r,4),type:'fraction'},{prefix:'\\(a\\)',answer:frac(r*r,2),type:'fraction'}]};
+}
+
+// ── 九下：空間中的線與平面、表面積與體積（S-9-12、S-9-13）──
+function gen9bSolid(level){for(let i=0;i<40;i++){const q=_9bSolid(level);if(q)return _jrTidy(q);}return _9bSolid('basic');}
+function _9bSolid(level){
+  const t=randInt(0,3);
+  if(level==='basic'){
+    if(t===0){const n=randInt(3,10),ask=randInt(0,2);return _N(`${n} 角柱共有幾個${['頂點','稜','面'][ask]}？`,[2*n,3*n,n+2][ask],['頂點','稜','面'][ask]);}
+    if(t===1){const n=randInt(3,10),ask=randInt(0,2);return _N(`${n} 角錐共有幾個${['頂點','稜','面'][ask]}？`,[n+1,2*n,n+1][ask],['頂點','稜','面'][ask]);}
+    if(t===2){const a=randInt(2,12),b=randInt(2,12),c=randInt(2,12);return _N(`長、寬、高分別為 \\(${a}\\)、\\(${b}\\)、\\(${c}\\) 的長方體，體積為多少？`,a*b*c,'體積');}
+    const k=pick(['平行','垂直','歪斜']),ans={'平行':3,'垂直':4,'歪斜':4}[k];return _N(`長方體 \\(ABCD\\text{-}EFGH\\) 中，與稜 \\(\\overline{AB}\\) ${k}的稜共有幾條？`,ans,'條');
+  }
+  if(level==='medium'){
+    if(t===0){const a=randInt(2,10),b=randInt(2,10),c=randInt(2,10);return _N(`長、寬、高分別為 \\(${a}\\)、\\(${b}\\)、\\(${c}\\) 的長方體，表面積為多少？`,2*(a*b+b*c+c*a),'表面積');}
+    if(t===1){const [p,q,h]=pick([[3,4,5],[6,8,10],[5,12,13],[8,15,17]]),H=randInt(3,12);return _N(`直角柱的底面是兩股長為 \\(${p}\\)、\\(${q}\\) 的直角三角形，柱高為 \\(${H}\\)，求此直角柱的${randInt(0,1)?'體積':'體積'}`,p*q/2*H,'體積');}
+    if(t===2){const s=randInt(2,10),l=s+randInt(1,8);return _N(`正四角錐的底面邊長為 \\(${s}\\)，每個側面（等腰三角形）的高為 \\(${l}\\)，求此正四角錐的表面積`,s*s+2*s*l,'表面積');}
+    const r=randInt(2,8),H=randInt(2,10);return {question:`底面半徑 \\(${r}\\)、高 \\(${H}\\) 的圓柱，側面積為多少？（答案為 \\(k\\pi\\)，請填 \\(k\\)）`,answer:2*r*H,type:'number',answerPrefix:'\\(k\\)'};
+  }
+  if(t===0){const [r,h,l]=pick([[3,4,5],[6,8,10],[5,12,13],[8,15,17],[9,12,15]]);return {question:`直圓錐的底面半徑為 \\(${r}\\)，高為 \\(${h}\\)，求其表面積（側面展開為扇形，答案為 \\(k\\pi\\)，請填 \\(k\\)）`,answer:r*r+r*l,type:'number',answerPrefix:'\\(k\\)'};}
+  if(t===1){const r=randInt(2,8),l=r+randInt(1,10);if((360*r)%l)return null;return _N(`直圓錐的底面半徑為 \\(${r}\\)，母線長為 \\(${l}\\)，則側面展開圖（扇形）的圓心角為幾度？`,360*r/l,'度');}
+  if(t===2){const k=pick(['平行','垂直']);return _N(`長方體 \\(ABCD\\text{-}EFGH\\) 中，與平面 \\(ABCD\\) ${k}的稜共有幾條？`,4,'條');}
+  const a=randInt(2,8),b=randInt(2,8),c=randInt(2,8),s=randInt(1,Math.min(a,b,c)-0);if(s>=Math.min(a,b,c))return null;
+  return _N(`一個長、寬、高分別為 \\(${a}\\)、\\(${b}\\)、\\(${c}\\) 的長方體，從一個角挖去一個邊長 \\(${s}\\) 的正方體，剩下立體的體積為多少？`,a*b*c-s**3,'體積');
+}
+
+// ── 九上：相似多邊形補充 ──
+function _9aSimExt(level){
+  const t=randInt(0,2);
+  if(level==='basic'){
+    if(t===0){const [m,n]=pick([[1,2],[2,3],[3,4],[2,5],[3,5]]),h=m*randInt(2,6);return _N(`兩相似三角形的相似比為 \\(${m}:${n}\\)，較小三角形某邊上的高為 \\(${h}\\)，求較大三角形對應邊上的高`,h*n/m,'高');}
+    if(t===1){const A=randInt(30,80),B=randInt(30,180-A-20);return _N(`\\(\\triangle ABC\\sim\\triangle DEF\\)，\\(\\angle A=${A}^\\circ\\)，\\(\\angle B=${B}^\\circ\\)，求 \\(\\angle F\\)`,180-A-B,'\\(\\angle F\\)');}
+    const k=pick([2,3,4]),s=randInt(2,9);return _N(`兩個正方形的邊長比為 \\(1:${k}\\)，較小正方形的面積為 \\(${s*s}\\)，求較大正方形的面積`,s*s*k*k,'面積');
+  }
+  if(level==='medium'){
+    if(t===0){// 直角三角形斜邊上的高（母子相似）
+      const [P,Q]=pick([[1,4],[1,9],[4,9],[2,8],[3,12],[4,16],[2,18],[9,16],[1,16],[3,27],[5,20]]);
+      return _N(`直角 \\(\\triangle ABC\\) 中，\\(\\angle A=90^\\circ\\)，\\(\\overline{AD}\\perp\\overline{BC}\\) 於 \\(D\\)，\\(\\overline{BD}=${P}\\)，\\(\\overline{CD}=${Q}\\)，求 \\(\\overline{AD}\\)`,Math.sqrt(P*Q),'\\(\\overline{AD}\\)');}
+    if(t===1){const [m,n]=pick([[2,3],[3,4],[3,5],[4,5]]),P=m*randInt(3,9);return _N(`兩相似三角形的面積比為 \\(${m*m}:${n*n}\\)，較小三角形的周長為 \\(${P}\\)，求較大三角形的周長`,P*n/m,'周長');}
+    const a=randInt(2,8),k=randInt(2,4);return _N(`將一個長方形的長與寬都放大為原來的 \\(${k}\\) 倍，原面積為 \\(${a*a}\\)，則新面積為多少？`,a*a*k*k,'面積');
+  }
+  if(t===0){const p=randInt(2,9),q=randInt(2,9),c=p+q,ab=Math.sqrt(p*c);if(!Number.isInteger(ab))return null;return _N(`直角 \\(\\triangle ABC\\) 中，\\(\\angle A=90^\\circ\\)，\\(\\overline{AD}\\perp\\overline{BC}\\) 於 \\(D\\)，\\(\\overline{BD}=${p}\\)，\\(\\overline{BC}=${c}\\)，求 \\(\\overline{AB}\\)`,ab,'\\(\\overline{AB}\\)');}
+  if(t===1){const [m,n]=pick([[1,2],[2,3],[1,3],[3,4]]),S=(n*n-m*m)*randInt(1,5);return _N(`\\(\\triangle ABC\\) 中，\\(\\overline{DE}//\\overline{BC}\\)，\\(\\overline{AD}:\\overline{DB}=${m}:${n-m}\\)，梯形 \\(DBCE\\) 的面積為 \\(${S}\\)，求 \\(\\triangle ADE\\) 的面積`,S*m*m/(n*n-m*m),'面積');}
+  const [m,n]=pick([[2,3],[3,4],[2,5],[3,5]]),S=m*m*randInt(1,6);return _N(`兩相似三角形對應邊上的中線長分別為 \\(${m}\\) 和 \\(${n}\\)，較小三角形的面積為 \\(${S}\\)，求較大三角形的面積`,S*n*n/(m*m),'面積');
+}
+
 function gen8bArithSeq(level){
-  for(let i=0;i<30;i++){const q=_8bArithSeq(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=Math.random()<0.4?_8bSeqExt('arith',level):_8bArithSeq(level);if(q)return q;}
   return _8bArithSeq('basic');
 }
 function _8bArithSeq(level){
@@ -8924,7 +9126,7 @@ function _8bArithSeq(level){
 //  八下 ▸ 等差級數
 // ═══════════════════════════════════════════════════════════════════
 function gen8bArithSeries(level){
-  for(let i=0;i<30;i++){const q=_8bArithSeries(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=Math.random()<0.4?_8bSeqExt('series',level):_8bArithSeries(level);if(q)return q;}
   return _8bArithSeries('basic');
 }
 function _8bArithSeries(level){
@@ -8988,7 +9190,7 @@ function _8bArithSeries(level){
 //  八下 ▸ 等比數列
 // ═══════════════════════════════════════════════════════════════════
 function gen8bGeoSeq(level){
-  for(let i=0;i<30;i++){const q=_8bGeoSeq(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=Math.random()<0.4?_8bSeqExt('geo',level):_8bGeoSeq(level);if(q)return q;}
   return _8bGeoSeq('basic');
 }
 function _8bGeoSeq(level){
@@ -9085,7 +9287,7 @@ function _8bGeoSeq(level){
 //  八下 ▸ 線型函數與其圖形
 // ═══════════════════════════════════════════════════════════════════
 function gen8bLinearFunc(level){
-  for(let i=0;i<30;i++){const q=_8bLinearFunc(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=Math.random()<0.5?_8bLinExt(level):_8bLinearFunc(level);if(q)return q;}
   return _8bLinearFunc('basic');
 }
 function _8bLinearFunc(level){
@@ -9112,8 +9314,9 @@ function _8bLinearFunc(level){
   }
   if(level==='medium'){
     const t=randInt(0,2);
-    if(t===0){
-      // 分段函數（邊界 x=0）
+    if(t===0)return _8bLinExt('medium');
+    if(false){
+      // （分段函數非國中課綱，已停用）
       const m1=rnzInt(-3,3),b1=randInt(-5,5),m2=rnzInt(-3,3),b2=randInt(-5,5);
       const useTop=randInt(0,1)===1;
       const x=useTop?randInt(0,5):randInt(-5,-1);
@@ -9133,13 +9336,14 @@ function _8bLinearFunc(level){
     }
     // 常數函數判斷：y=(k-c)x+d，求 k
     const c=randInt(1,9),d=pick([-5,-4,-3,-2,-1,1,2,3,4,5]);
-    return{question:`函數 \\(y=(k-${c})x+${d}\\) 是常數函數`,
+    return{question:`函數 \\(y=(k-${c})x${d>0?'+':''}${d}\\) 是常數函數`,
       answer:c, type:'number', answerPrefix:'\\(k\\)'};
   }
   // hard
   const t=randInt(0,2);
-  if(t===0){
-    // 分段函數（非零邊界）
+  if(t===0)return _8bLinExt('hard');
+  if(false){
+    // （分段函數非國中課綱，已停用）
     const k=pick([-3,-2,-1,1,2,3]);
     const m1=rnzInt(-4,4),b1=randInt(-8,8),m2=rnzInt(-4,4),b2=randInt(-8,8);
     const useTop=randInt(0,1)===1;
@@ -9170,7 +9374,7 @@ function _8bLinearFunc(level){
 //  八下 ▸ 三角形內角與外角
 // ═══════════════════════════════════════════════════════════════════
 function gen8bTriAngle(level){
-  for(let i=0;i<30;i++){const q=_8bTriAngle(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=Math.random()<0.35?_8bAngleExt(level):_8bTriAngle(level);if(q)return q;}
   return _8bTriAngle('basic');
 }
 function _8bTriAngle(level){
@@ -9636,7 +9840,7 @@ function _8bTriBisector(level,t){
 //  八下 ▸ 三角形邊角關係
 // ═══════════════════════════════════════════════════════════════════
 function gen8bTriSideAngle(level){
-  for(let i=0;i<30;i++){const q=_8bTriSideAngle(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=Math.random()<0.4?_8bSideExt(level):_8bTriSideAngle(level);if(q)return q;}
   return _8bTriSideAngle('basic');
 }
 function _8bTriSideAngle(level){
@@ -10220,7 +10424,7 @@ function _8bSpecialQuad(level){
 //  八下 ▸ 梯形
 // ═══════════════════════════════════════════════════════════════════
 function gen8bTrapezoid(level){
-  for(let i=0;i<30;i++){const q=_8bTrapezoid(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=(level==='hard'&&Math.random()<0.5)?_8bTrapExt(level):_8bTrapezoid(level);if(q)return q;}
   return _8bTrapezoid('basic');
 }
 function _8bTrapezoid(level){
@@ -10638,7 +10842,7 @@ function _9aPropSeg(level){
 //  九上 ▸ 相似多邊形
 // ═══════════════════════════════════════════════════════════════════
 function gen9aSimilarPoly(level){
-  for(let i=0;i<30;i++){const q=_9aSimilarPoly(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=Math.random()<0.35?_9aSimExt(level):_9aSimilarPoly(level);if(q)return q;}
   return _9aSimilarPoly('basic');
 }
 function _9aSimilarPoly(level){
@@ -12428,35 +12632,37 @@ const JR_GENERATORS = {
   '8a-quad3':    gen8bQuad3,
   '8a-stat':     gen8bStat,
   // 八下（數列、線型函數、三角形）
-  '8b-arith-seq':      gen8bArithSeq,
-  '8b-arith-series':   gen8bArithSeries,
-  '8b-geo-seq':        gen8bGeoSeq,
-  '8b-linear-func':    gen8bLinearFunc,
-  '8b-tri-angle':      gen8bTriAngle,
-  '8b-tri-congruence': gen8bTriCongruence,
-  '8b-tri-bisector':   gen8bTriBisector,
-  '8b-tri-side-angle': gen8bTriSideAngle,
-  '8b-parallel':       gen8bParallel,
-  '8b-parallelogram':  gen8bParallelogram,
-  '8b-special-quad':   gen8bSpecialQuad,
+  '8b-arith-seq':      lv=>_jrTidy(gen8bArithSeq(lv)),
+  '8b-arith-series':   lv=>_jrTidy(gen8bArithSeries(lv)),
+  '8b-geo-seq':        lv=>_jrTidy(gen8bGeoSeq(lv)),
+  '8b-linear-func':    lv=>_jrTidy(gen8bLinearFunc(lv)),
+  '8b-tri-angle':      lv=>_jrTidy(gen8bTriAngle(lv)),
+  '8b-tri-congruence': lv=>_jrTidy(gen8bTriCongruence(lv)),
+  '8b-tri-bisector':   lv=>_jrTidy(gen8bTriBisector(lv)),
+  '8b-tri-side-angle': lv=>_jrTidy(gen8bTriSideAngle(lv)),
+  '8b-parallel':       lv=>_jrTidy(gen8bParallel(lv)),
+  '8b-parallelogram':  lv=>_jrTidy(gen8bParallelogram(lv)),
+  '8b-special-quad':   lv=>_jrTidy(gen8bSpecialQuad(lv)),
   // 九上
-  '9a-ratio-chain':    gen9aRatioChain,
-  '9a-prop-seg':       gen9aPropSeg,
-  '9a-similar-poly':   gen9aSimilarPoly,
-  '9a-similar-app':    gen9aSimilarApp,
-  '9a-trig':           gen9aTrig,
-  '9a-circle-line':    gen9aCircleLine,
-  '9a-circle-angle':   gen9aCircleAngle,
-  '9a-circle-chord-tan': gen9aCircChorTan,
-  '9a-circle-inout': gen9aCircInOut,
-  '9a-tri-center':     gen9aTriCenter,
+  '9a-ratio-chain':    lv=>_jrTidy(gen9aRatioChain(lv)),
+  '9a-prop-seg':       lv=>_jrTidy(gen9aPropSeg(lv)),
+  '9a-similar-poly':   lv=>_jrTidy(gen9aSimilarPoly(lv)),
+  '9a-similar-app':    lv=>_jrTidy(gen9aSimilarApp(lv)),
+  '9a-trig':           lv=>_jrTidy(gen9aTrig(lv)),
+  '9a-circle-line':    lv=>_jrTidy(gen9aCircleLine(lv)),
+  '9a-circle-angle':   lv=>_jrTidy(gen9aCircleAngle(lv)),
+  '9a-circle-chord-tan': lv=>_jrTidy(gen9aCircChorTan(lv)),
+  '9a-circle-inout': lv=>_jrTidy(gen9aCircInOut(lv)),
+  '9a-tri-center':     lv=>_jrTidy(gen9aTriCenter(lv)),
   // 八下（梯形・箏形單獨出題）
-  '8b-trap':           gen8bTrapezoid,
-  '8b-kite':           gen8bKite,
+  '8b-trap':           lv=>_jrTidy(gen8bTrapezoid(lv)),
+  '8b-kite':           lv=>_jrTidy(gen8bKite(lv)),
   // 七下應用
   '7b-eqn-app':        gen7bEqnApp,
   // 九下
-  '9b-quad-func':      gen9bQuadFunc,
-  '9b-stat':           gen9bStat,
-  '9b-prob':           gen9bProb,
+  '9b-quad-func':      lv=>_jrTidy(gen9bQuadFunc(lv)),
+  '9b-stat':           lv=>_jrTidy(gen9bStat(lv)),
+  '9b-prob':           lv=>_jrTidy(gen9bProb(lv)),
+  '9a-arc':            lv=>_jrTidy(gen9aArc(lv)),
+  '9b-solid':          lv=>_jrTidy(gen9bSolid(lv)),
 };

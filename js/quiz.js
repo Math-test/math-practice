@@ -114,7 +114,9 @@ const TOPIC_NAMES = {
   '9a-trig':           '九上·三角比',
   '9a-circle-line':    '九上·點線圓',
   '9a-circle-angle':   '九上·圓心角與圓周角',
-  '9a-circle-chord-tan': '九上·弦切角',
+  '9a-circle-chord-tan': '九上·切線段與弦切角',
+  '9a-arc':            '九上·弧長與扇形面積',
+  '9b-solid':          '九下·立體圖形',
   '9a-circle-inout': '九上·圓內角與圓外角（補充）',
   '9a-tri-center':     '九上·三角形的心',
   // 九下
