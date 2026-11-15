@@ -10760,12 +10760,12 @@ function _9aSimilarApp(level){
 //  九上 ▸ 三角比
 // ═══════════════════════════════════════════════════════════════════
 function gen9aTrig(level){
-  for(let i=0;i<30;i++){const q=_9aTrig(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=Math.random()<0.6?_9aTrigExt(level):_9aTrig(level);if(q)return _jr1x(q);}
   return _9aTrig('basic');
 }
 function _9aTrig(level){
   // 常用畢氏三元組：[對邊, 鄰邊, 斜邊]（直角在C，∠A對邊=a）
-  const PY=[{a:3,b:4,c:5},{a:4,b:3,c:5},{a:5,b:12,c:13},{a:12,b:5,c:13},{a:8,b:15,c:17},{a:15,b:8,c:17},{a:6,b:8,c:10},{a:8,b:6,c:10}];
+  const PY=[{a:3,b:4,c:5},{a:4,b:3,c:5},{a:5,b:12,c:13},{a:12,b:5,c:13},{a:8,b:15,c:17},{a:15,b:8,c:17},{a:7,b:24,c:25},{a:24,b:7,c:25}];
   // 特殊角：[角度, sin分子, sin分母, cos分子, cos分母, tan(×1000 rounded)]
   // 30°: sin=1/2, cos=√3/2(不用), tan=√3/3(不用)
   // 45°: sin=√2/2, cos=√2/2, tan=1
@@ -11734,7 +11734,7 @@ function _9bVertex(level){
 }
 
 function gen9bQuadFunc(level){
-  for(let i=0;i<30;i++){const q=Math.random()<0.25?_9bVertex(level):_9bQuadFunc(level);if(q)return q;}
+  for(let i=0;i<30;i++){const r=Math.random(),q=r<0.2?_9bVertex(level):r<0.6?_9bQuadFuncExt2(level):_9bQuadFunc(level);if(q)return q;}
   return _9bQuadFunc('basic');
 }
 function _9bQuadFunc(level){
@@ -11746,14 +11746,14 @@ function _9bQuadFunc(level){
     const t=randInt(0,2);
     if(t===0){
       const h=randInt(-6,6),k=randInt(-6,6);
-      return{question:`二次函數 \\(y=(x${ht(h)})^2${sk(k)}\\) 的頂點橫座標為`,answer:h,type:'number',answerPrefix:'頂點 \\(x\\)'};
+      return{question:`二次函數 \\(y=${h?`(x${ht(h)})^2`:"x^2"}${sk(k)}\\) 的頂點橫座標為`,answer:h,type:'number',answerPrefix:'頂點 \\(x\\)'};
     }
     if(t===1){
       const a=pick([-3,-2,-1,1,2,3]),k=randInt(-8,8);
       return{question:`二次函數 \\(y=${ac(a)}x^2${sk(k)}\\) 的頂點縱座標為`,answer:k,type:'number',answerPrefix:'頂點 \\(y\\)'};
     }
     const a=pick([-2,-1,1,2]),h=randInt(-5,5),k=randInt(-5,5);
-    return{question:`二次函數 \\(y=${ac(a)}(x${ht(h)})^2${sk(k)}\\) 的對稱軸為 \\(x=\\)`,answer:h,type:'number',answerPrefix:'x'};
+    return{question:`二次函數 \\(y=${ac(a)}${h?`(x${ht(h)})^2`:"x^2"}${sk(k)}\\) 的對稱軸為 \\(x=\\)`,answer:h,type:'number',answerPrefix:'x'};
   }
   if(level==='medium'){
     const t=randInt(0,1);
@@ -11761,12 +11761,12 @@ function _9bQuadFunc(level){
       const a=pick([-2,-1,1,2]),h=randInt(-5,5),k=randInt(-8,8);
       const B=-2*a*h,C=a*h*h+k;
       const bPart=B===0?'':(B>0?`+${B}x`:`${B}x`);
-      const cPart=C>=0?`+${C}`:`${C}`;
+      const cPart=C>0?`+${C}`:C<0?`${C}`:"";
       return{question:`二次函數 \\(y=${ac(a)}x^2${bPart}${cPart}\\) 的對稱軸（頂點橫座標）為 \\(x=\\)`,answer:h,type:'number',answerPrefix:'x'};
     }
     const a=pick([-2,-1,1,2]),h=randInt(-4,4),k=randInt(-8,8);
     const ext=a>0?'最小值':'最大值';
-    return{question:`二次函數 \\(y=${ac(a)}(x${ht(h)})^2${sk(k)}\\) 的${ext}為`,answer:k,type:'number',answerPrefix:ext};
+    return{question:`二次函數 \\(y=${ac(a)}${h?`(x${ht(h)})^2`:"x^2"}${sk(k)}\\) 的${ext}為`,answer:k,type:'number',answerPrefix:ext};
   }
   // hard: 給頂點和過一點，求 a
   const h=randInt(-3,3),k=randInt(-6,6);
@@ -11779,7 +11779,7 @@ function _9bQuadFunc(level){
 //  九下 ▸ 統計
 // ═══════════════════════════════════════════════════════════════════
 function gen9bStat(level){
-  for(let i=0;i<30;i++){const q=_9bStat(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=Math.random()<0.65?_9bStatExt(level):_9bStat(level);if(q)return q;}
   return _9bStat('basic');
 }
 function _9bStat(level){
@@ -11828,7 +11828,7 @@ function _9bStat(level){
 //  九下 ▸ 機率
 // ═══════════════════════════════════════════════════════════════════
 function gen9bProb(level){
-  for(let i=0;i<30;i++){const q=_9bProb(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=Math.random()<0.65?_9bProbExt(level):_9bProb(level);if(q)return q;}
   return _9bProb('basic');
 }
 function _9bProb(level){
@@ -11861,6 +11861,261 @@ function _9bProb(level){
   // hard: 互斥事件加法
   const r=randInt(2,4),b=randInt(2,4),g=randInt(2,4);
   return{question:`袋中有 \\(${r}\\) 個紅球、\\(${b}\\) 個藍球、\\(${g}\\) 個綠球，隨機取一球，取到紅球或藍球的機率為`,answer:frac(r+b,r+b+g),type:'fraction',answerPrefix:'機率'};
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  九年級 擴充題型（三角比、二次函數、統計、機率），皆在 108 課綱範圍內
+// ═══════════════════════════════════════════════════════════════════
+// ── 三角比：只用 30°、45°、60°（S-9-4、S-9-5）──
+// 值表示為 {m: 係數}，m=1 為有理部分，m=2/3/6 為 √m 的係數
+const _TRV={
+  'sin30':{1:frac(1,2)},'cos30':{3:frac(1,2)},'tan30':{3:frac(1,3)},
+  'sin45':{2:frac(1,2)},'cos45':{2:frac(1,2)},'tan45':{1:frac(1)},
+  'sin60':{3:frac(1,2)},'cos60':{1:frac(1,2)},'tan60':{3:frac(1)}
+};
+function _trMul(A,B){const R={};
+  for(const [m1,c1] of Object.entries(A))for(const [m2,c2] of Object.entries(B)){
+    let m=+m1*+m2,c=fmul(c1,c2);
+    if(+m1===+m2&&+m1!==1){m=1;c=fmul(c,frac(+m1));}
+    R[m]=R[m]?fadd(R[m],c):c;}
+  return R;}
+function _trAdd(A,B,s){const R={...A};for(const [m,c] of Object.entries(B)){const v=s<0?fmul(c,frac(-1)):c;R[m]=R[m]?fadd(R[m],v):v;}return R;}
+// 依值的形式產生答案（有理數／單一根式／整數＋整數根式）
+function _trAns(question,V,prefix){
+  const ks=Object.keys(V).filter(m=>V[m].num!==0);
+  if(ks.length===0)return {question,answer:frac(0),type:'fraction',answerPrefix:prefix};
+  if(ks.length===1&&ks[0]==='1')return {question,answer:V[1],type:'fraction',answerPrefix:prefix};
+  if(ks.length===1){const c=V[ks[0]];if(c.num<0)return null;return _jrRadAns(question,c.num,+ks[0],c.den,prefix);}
+  if(ks.length===2&&ks.includes('1')){const m=ks.find(k=>k!=='1'),r=V[1],c=V[m];
+    if(r.den!==1||c.den!==1)return null;
+    const o={question,type:'radical-mix',rational:r.num,radCoeff:c.num,radM:+m};if(prefix)o.answerPrefix=prefix;return o;}
+  return null;}
+const _trTex=(f,d,sq)=>`\\${f}${sq?'^2':''} ${d}^\\circ`;
+function _9aTrigExt(level){
+  const F=['sin','cos','tan'],D=[30,45,60];
+  const term=(kind)=>{const f=pick(F),d=pick(D);
+    if(kind==='sq')return {tex:_trTex(f,d,true),v:_trMul(_TRV[f+d],_TRV[f+d])};
+    if(kind==='pr'){const f2=pick(F),d2=pick(D);return {tex:`${_trTex(f,d)}${_trTex(f2,d2)}`.replace('^\\circ\\','^\\circ\\,\\'),v:_trMul(_TRV[f+d],_TRV[f2+d2])};}
+    return {tex:_trTex(f,d),v:_TRV[f+d]};};
+  const expr=(n,kinds)=>{let tex='',V={};
+    for(let i=0;i<n;i++){const t=term(pick(kinds)),c=randInt(1,3),s=i===0?1:pick([1,-1]);
+      tex+=(i===0?'':s>0?'+':'-')+(c===1?'':c)+t.tex;V=_trAdd(V,_trMul({1:frac(c)},t.v),s);}
+    return {tex,V};};
+  const tri=(A,side)=>`直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，\\(\\angle A=${A}^\\circ\\)，${side}`;
+  if(level==='basic'){
+    const t=randInt(0,4);
+    if(t===0){const f=pick(F),d=pick(D);return _trAns(`求 \\(${_trTex(f,d)}\\) 的值`,_TRV[f+d],'');}
+    if(t===1){const e=expr(2,['one']);return _trAns(`求 \\(${e.tex}\\) 的值`,e.V,'');}
+    if(t===2){// 30°-60°-90°：短股 a，斜邊 2a，長股 a√3
+      const a=randInt(2,15),ask=randInt(0,2);
+      if(ask===0)return {question:tri(30,`\\(\\overline{BC}=${a}\\)，求斜邊 \\(\\overline{AB}\\)`),answer:2*a,type:'number',answerPrefix:'\\(\\overline{AB}\\)'};
+      if(ask===1)return _jrRadAns(tri(30,`\\(\\overline{BC}=${a}\\)，求 \\(\\overline{AC}\\)`),a,3,1,'\\(\\overline{AC}\\)');
+      return {question:tri(60,`斜邊 \\(\\overline{AB}=${2*a}\\)，求 \\(\\overline{AC}\\)`),answer:a,type:'number',answerPrefix:'\\(\\overline{AC}\\)'};}
+    if(t===3){// 45°-45°-90°
+      const a=randInt(2,15);
+      return randInt(0,1)?_jrRadAns(tri(45,`\\(\\overline{BC}=${a}\\)，求斜邊 \\(\\overline{AB}\\)`),a,2,1,'\\(\\overline{AB}\\)')
+        :{question:`等腰直角三角形的斜邊長為 \\(${a}\\sqrt{2}\\)，求一股長`,answer:a,type:'number',answerPrefix:'股長'};}
+    // 斜坡：沿坡角 30° 的斜坡走 L 公尺，上升高度 L/2
+    const L=randInt(2,30)*2;
+    return {question:`一斜坡與水平地面的夾角為 \\(30^\\circ\\)，小明沿斜坡往上走了 \\(${L}\\) 公尺，則他上升了多少公尺？`,answer:L/2,type:'number',answerPrefix:'公尺'};
+  }
+  if(level==='medium'){
+    const t=randInt(0,4);
+    if(t===0){const e=expr(2,['one','sq','pr']);return _trAns(`求 \\(${e.tex}\\) 的值`,e.V,'');}
+    if(t===1){// 由三角比求角度
+      const f=pick(F),d=pick(D),v=_TRV[f+d],m=Object.keys(v)[0],c=v[m];
+      const tx=m==='1'?(c.den===1?`${c.num}`:`\\dfrac{${c.num}}{${c.den}}`):(c.den===1?`\\sqrt{${m}}`:`\\dfrac{\\sqrt{${m}}}{${c.den}}`);
+      return {question:`若 \\(A\\) 為銳角，且 \\(\\${f} A=${tx}\\)，求 \\(\\angle A\\) 的度數`,answer:d,type:'number',answerPrefix:'\\(\\angle A\\)'};}
+    if(t===2){// 30°-60°-90°：已知長股
+      const L=randInt(2,15),ask=randInt(0,1);
+      return _jrRadAns(tri(30,`\\(\\overline{AC}=${L}\\)，求${ask?'斜邊 \\(\\overline{AB}\\)':' \\(\\overline{BC}\\)'}`),ask?2*L:L,3,3,ask?'\\(\\overline{AB}\\)':'\\(\\overline{BC}\\)');}
+    if(t===3){// 梯子
+      const L=randInt(2,10)*2,d=pick([30,45,60]),askH=randInt(0,1);
+      const q=`長 \\(${L}\\) 公尺的梯子斜靠在牆上，梯子與地面的夾角為 \\(${d}^\\circ\\)，求梯子頂端離地面的${askH?'高度':'水平距離（梯腳到牆）'}`;
+      const V=_trMul({1:frac(L)},_TRV[(askH?'sin':'cos')+d]);
+      return _trAns(q,V,'公尺');}
+    // 等腰三角形頂角 120°
+    const a=randInt(1,8)*2;
+    return randInt(0,1)?_jrRadAns(`等腰 \\(\\triangle ABC\\) 中，\\(\\overline{AB}=\\overline{AC}=${a}\\)，頂角 \\(\\angle A=120^\\circ\\)，求底邊 \\(\\overline{BC}\\)`,a,3,1,'\\(\\overline{BC}\\)')
+      :_jrRadAns(`等腰 \\(\\triangle ABC\\) 中，\\(\\overline{AB}=\\overline{AC}=${a}\\)，頂角 \\(\\angle A=120^\\circ\\)，求 \\(\\triangle ABC\\) 的面積`,a*a,3,4,'面積');
+  }
+  const t=randInt(0,4);
+  if(t===0){const e=expr(3,['one','sq','pr']);return _trAns(`求 \\(${e.tex}\\) 的值`,e.V,'');}
+  if(t===1){// 仰角測樹高（眼高 h）
+    const h=pick([1,2]),d=pick([30,45,60]),D0=d===30?randInt(2,8)*3:randInt(3,20);
+    const V=_trAdd({1:frac(h)},_trMul({1:frac(D0)},_TRV['tan'+d]),1);
+    return _trAns(`小華的眼睛離地 \\(${h}\\) 公尺，他站在距離大樹 \\(${D0}\\) 公尺處，看樹頂的仰角為 \\(${d}^\\circ\\)，求樹高`,V,'樹高（公尺）');}
+  if(t===2){// 兩次仰角 30°、60°，前進 d，塔高 d√3/2
+    const d=randInt(2,20)*2;
+    return _jrRadAns(`在平地上測量塔高，先在 \\(A\\) 點測得塔頂仰角為 \\(30^\\circ\\)，向塔前進 \\(${d}\\) 公尺到 \\(B\\) 點，測得塔頂仰角為 \\(60^\\circ\\)，求塔高`,d,3,2,'塔高（公尺）');}
+  if(t===3){// ∠B=45°、∠C=60°，高 AD=h（h=3k），BC=h+k√3
+    const k=randInt(1,6),h=3*k;
+    return {question:`\\(\\triangle ABC\\) 中，\\(\\angle B=45^\\circ\\)，\\(\\angle C=60^\\circ\\)，\\(\\overline{AD}\\) 為 \\(\\overline{BC}\\) 上的高，\\(\\overline{AD}=${h}\\)，求 \\(\\overline{BC}\\)`,type:'radical-mix',rational:h,radCoeff:k,radM:3,answerPrefix:'\\(\\overline{BC}\\)'};}
+  // ∠B=30°、∠C=45°，AC=a√2 → AD=a、BC=a+a√3
+  const a=randInt(2,10);
+  return {question:`\\(\\triangle ABC\\) 中，\\(\\angle B=30^\\circ\\)，\\(\\angle C=45^\\circ\\)，\\(\\overline{AC}=${a}\\sqrt{2}\\)，求 \\(\\overline{BC}\\)`,type:'radical-mix',rational:a,radCoeff:a,radM:3,answerPrefix:'\\(\\overline{BC}\\)'};
+}
+
+// ── 二次函數 ──
+function _9bQuadFuncExt2(level){
+  const Q=(a,b,c)=>_jrFQuad(frac(a),frac(b),frac(c));
+  const nz=(lo,hi)=>{let v=0;while(v===0)v=randInt(lo,hi);return v;};
+  const N=(q,a,p)=>({question:q,answer:a,type:'number',answerPrefix:p});
+  const two=(q,p1,a1,p2,a2)=>({question:q,answerParts:[{prefix:p1,answer:a1,type:'number'},{prefix:p2,answer:a2,type:'number'}]});
+  const mv=(h,k)=>`${h>0?`向右平移 \\(${h}\\) 單位`:`向左平移 \\(${-h}\\) 單位`}、${k>0?`向上平移 \\(${k}\\) 單位`:`向下平移 \\(${-k}\\) 單位`}`;
+  if(level==='basic'){
+    const t=randInt(0,3);
+    if(t===0){const a=nz(-3,3),b=randInt(-6,6),c=randInt(-9,9),x=randInt(-4,4);
+      return N(`二次函數 \\(y=${Q(a,b,c)}\\)，當 \\(x=${x}\\) 時，\\(y\\) 的值為`,a*x*x+b*x+c,'\\(y\\)');}
+    if(t===1){const a=nz(-4,4),b=randInt(-6,6),c=randInt(-9,9);
+      return {question:`二次函數 \\(y=${Q(a,b,c)}\\) 的圖形開口方向為何？（填「向上」或「向下」）`,answer:a>0?'向上':'向下',type:'text',answerPrefix:'開口'};}
+    if(t===2){const a=nz(-3,3),b=randInt(-6,6),c=nz(-12,12);
+      return N(`二次函數 \\(y=${Q(a,b,c)}\\) 的圖形與 \\(y\\) 軸交點的縱坐標為`,c,'縱坐標');}
+    const a=nz(-3,3),h=nz(-6,6),k=nz(-9,9);
+    return two(`將 \\(y=${Q(a,0,0)}\\) 的圖形${mv(h,k)}，所得新圖形的頂點坐標為 \\((h,k)\\)`,'h',h,'k',k);
+  }
+  if(level==='medium'){
+    const t=randInt(0,4);
+    if(t===0){const p=randInt(-9,9),q=p+randInt(1,9),m=randInt(-9,9);
+      return {question:`二次函數的圖形通過 \\((${p},${m})\\)、\\((${q},${m})\\) 兩點，則其對稱軸為 \\(x=\\)`,answer:frac(p+q,2),type:'fraction',answerPrefix:'x'};}
+    if(t===1){const a=nz(-3,3),h=nz(-6,6),k=nz(-9,9),qd=h>0?(k>0?1:4):(k>0?2:3);
+      return N(`二次函數 \\(y=${Q(a,-2*a*h,a*h*h+k)}\\) 的頂點在第幾象限？（填 1～4）`,qd,'第');}
+    if(t===2){const a=nz(-3,3),h=randInt(-5,5),r=randInt(0,2),k=r===1?0:randInt(1,9)*(r===2?-Math.sign(a):Math.sign(a));
+      const cnt=k===0?1:(a*k<0?2:0);
+      return N(`二次函數 \\(y=${Q(a,-2*a*h,a*h*h+k)}\\) 的圖形與 \\(x\\) 軸有幾個交點？`,cnt,'交點個數');}
+    if(t===3){const P=[[1,2],[1,3],[2,1],[3,1],[1,1],[3,2],[2,3],[1,4],[4,1]];
+      const pk=[];while(pk.length<3){const v=pick(P),s=pick([1,-1]);if(!pk.some(u=>u[0]*u[2]===v[0]*u[1]*1&&false)&&!pk.some(u=>u[0]/u[1]===v[0]/v[1]))pk.push([v[0],v[1],s]);}
+      const big=randInt(0,1),ab=pk.map(u=>u[0]/u[1]);const tgt=big?Math.min(...ab):Math.max(...ab);const idx=ab.indexOf(tgt);
+      const nm=['甲','乙','丙'];
+      const fs=pk.map((u,i)=>`${nm[i]}：\\(y=${_jrFQuad(frac(u[2]*u[0],u[1]),frac(0),frac(0))}\\)`).join('，');
+      return {question:`${fs}，三個函數圖形中，開口${big?'最大':'最小'}的是哪一個？（填甲、乙或丙）`,answer:nm[idx],type:'text',answerPrefix:'答'};}
+    const a=nz(-3,3),h=nz(-5,5),k=nz(-9,9);
+    return two(`將 \\(y=${Q(a,0,0)}\\) 的圖形${mv(h,k)}後，得到 \\(y=${a===1?'':a===-1?'-':a}x^2+bx+c\\) 的圖形，求 \\(b\\)、\\(c\\)`,'b',-2*a*h,'c',a*h*h+k);
+  }
+  const t=randInt(0,4);
+  if(t===0){const n=randInt(3,25);
+    if(randInt(0,1))return N(`用長 \\(${4*n}\\) 公尺的籬笆圍成一個矩形花圃，則花圃面積最大為多少平方公尺？`,n*n,'平方公尺');
+    return N(`用長 \\(${4*n}\\) 公尺的籬笆，靠著一面夠長的牆圍成矩形花圃（靠牆的一邊不用籬笆），則花圃面積最大為多少平方公尺？`,2*n*n,'平方公尺');}
+  if(t===1){const m=randInt(1,4),h0=randInt(0,3)*5,ask=randInt(0,1);
+    const q=`將球向上拋出，\\(t\\) 秒後球離地的高度為 \\(h=-5t^2+${10*m}t${h0?'+'+h0:''}\\) 公尺，`;
+    return ask?N(q+'求球的最大高度',h0+5*m*m,'公尺'):N(q+'求球拋出後幾秒達到最高點',m,'秒');}
+  if(t===2){// 漲價銷售：售價 p 每天賣 n 件，每漲 1 元少賣 m 件，成本 c
+    const m=pick([2,4,5,10]),c=randInt(2,8)*10,p=c+randInt(2,10)*2,x0=randInt(2,15),n=m*(2*x0+(p-c));
+    if(n>800)return null;
+    const ask=randInt(0,1);
+    const q=`某商品成本每件 \\(${c}\\) 元，售價 \\(${p}\\) 元時每天可賣出 \\(${n}\\) 件；售價每提高 \\(1\\) 元，每天就少賣 \\(${m}\\) 件。`;
+    return ask?N(q+'售價定為多少元時，每天的利潤最大？',p+x0,'售價（元）'):N(q+'每天的最大利潤為多少元？',(p+x0-c)*(n-m*x0),'元');}
+  if(t===3){// 與 x 軸交於 (p,0)(q,0)、與 y 軸交於 (0,r)，求頂點縱坐標
+    const a=nz(-2,2),p=randInt(-6,6),q=randInt(-6,6);if(p===q||p*q===0||(p+q)%2)return null;
+    const h=(p+q)/2;
+    return N(`二次函數的圖形與 \\(x\\) 軸交於 \\((${p},0)\\)、\\((${q},0)\\)，與 \\(y\\) 軸交於 \\((0,${a*p*q})\\)，求此函數的${a>0?'最小值':'最大值'}`,a*(h-p)*(h-q),a>0?'最小值':'最大值');}
+  // 頂點與一點 → 另一點函數值
+  const a=nz(-3,3),h=nz(-4,4),k=randInt(-9,9),x0=h+nz(-3,3),x1=h+nz(-4,4);
+  return N(`二次函數的頂點為 \\((${h},${k})\\)，且圖形通過 \\((${x0},${a*(x0-h)**2+k})\\)，則當 \\(x=${x1}\\) 時，\\(y\\) 的值為`,a*(x1-h)**2+k,'\\(y\\)');
+}
+
+// ── 統計：全距、四分位數、盒狀圖（D-9-1）──
+// 四分位數：資料筆數為奇數時，前後半部不含中位數
+const _stMed=a=>a.length%2?a[(a.length-1)/2]:(a[a.length/2-1]+a[a.length/2])/2;
+function _stQ(a){const n=a.length,h=Math.floor(n/2);return [_stMed(a.slice(0,h)),_stMed(a),_stMed(a.slice(n-h))];}
+function _stBox(mn,q1,q2,q3,mx){
+  const W=300,L=20,R=280,sc=v=>L+(v-mn)/(mx-mn)*(R-L),y=40;
+  const tk=[mn,q1,q2,q3,mx].map(v=>`<line x1="${sc(v)}" y1="${y+22}" x2="${sc(v)}" y2="${y+27}" stroke="#333"/><text x="${sc(v)}" y="${y+40}" font-size="11" text-anchor="middle" fill="#333">${v}</text>`).join('');
+  return `<svg width="${W}" height="90" viewBox="0 0 ${W} 90" xmlns="http://www.w3.org/2000/svg"><rect width="${W}" height="90" fill="#fff"/>`+
+   `<line x1="${sc(mn)}" y1="${y}" x2="${sc(q1)}" y2="${y}" stroke="#1565C0" stroke-width="1.5"/><line x1="${sc(q3)}" y1="${y}" x2="${sc(mx)}" y2="${y}" stroke="#1565C0" stroke-width="1.5"/>`+
+   `<line x1="${sc(mn)}" y1="${y-8}" x2="${sc(mn)}" y2="${y+8}" stroke="#1565C0" stroke-width="1.5"/><line x1="${sc(mx)}" y1="${y-8}" x2="${sc(mx)}" y2="${y+8}" stroke="#1565C0" stroke-width="1.5"/>`+
+   `<rect x="${sc(q1)}" y="${y-14}" width="${sc(q3)-sc(q1)}" height="28" fill="#E3F2FD" stroke="#1565C0" stroke-width="1.5"/><line x1="${sc(q2)}" y1="${y-14}" x2="${sc(q2)}" y2="${y+14}" stroke="#1565C0" stroke-width="2"/>`+
+   `<line x1="${L-5}" y1="${y+24}" x2="${R+5}" y2="${y+24}" stroke="#333"/>${tk}</svg>`;}
+function _stFive(){// 隨機五數（遞增且相異）
+  for(;;){const mn=randInt(20,50),q1=mn+randInt(3,15),q2=q1+randInt(2,12),q3=q2+randInt(2,12),mx=q3+randInt(3,20),f=[mn,q1,q2,q3,mx];
+    // 刻度標籤間距至少約 22px，避免數字重疊
+    if(f.slice(1).every((v,i)=>(v-f[i])*260/(mx-mn)>=22))return f;}}
+function _9bStatExt(level){
+  const N=(q,a,p,g)=>{const o={question:q,answer:a,type:'number',answerPrefix:p};if(g)o.graph=g;return o;};
+  const data=(n,lo,hi)=>Array.from({length:n},()=>randInt(lo,hi));
+  const srt=a=>[...a].sort((x,y)=>x-y),J=a=>a.join(',\\ ');
+  const nm=['最小值','第一四分位數 \\(Q_1\\)','中位數','第三四分位數 \\(Q_3\\)','最大值'];
+  if(level==='basic'){
+    const t=randInt(0,3);
+    if(t===0){const a=data(randInt(6,10),10,99);return N(`資料 \\(${J(a)}\\) 的全距為`,Math.max(...a)-Math.min(...a),'全距');}
+    if(t===1){const n=pick([7,9,11]),a=srt(data(n,10,90)),[q1,,q3]=_stQ(a),ask=randInt(0,1);
+      if(!Number.isInteger(ask?q3:q1))return null;
+      return N(`資料（由小到大）\\(${J(a)}\\) 的${ask?'第三四分位數 \\(Q_3\\)':'第一四分位數 \\(Q_1\\)'}為`,ask?q3:q1,ask?'\\(Q_3\\)':'\\(Q_1\\)');}
+    if(t===2){const f=_stFive(),i=randInt(0,4);return N(`右圖為某班數學成績的盒狀圖，求${nm[i]}`,f[i],nm[i].replace(/ \\\(.*\\\)/,''),_stBox(...f));}
+    const f=_stFive(),w=pick([['介於 \\(Q_1\\) 與 \\(Q_3\\) 之間',50],['低於中位數',50],['高於 \\(Q_3\\)',25],['低於 \\(Q_1\\)',25],['高於 \\(Q_1\\)',75]]);
+    return N(`右圖為某班數學成績的盒狀圖，則全班約有百分之幾的人成績${w[0]}？`,w[1],'%',_stBox(...f));
+  }
+  if(level==='medium'){
+    const t=randInt(0,3);
+    if(t===0){const n=randInt(9,12),a=data(n,10,95),[q1,,q3]=_stQ(srt(a));if(!Number.isInteger(q3-q1))return null;
+      return N(`資料 \\(${J(a)}\\) 的四分位距為`,q3-q1,'四分位距');}
+    if(t===1){const f=_stFive(),ask=randInt(0,1);
+      return N(`右圖為某次測驗成績的盒狀圖，求成績的${ask?'四分位距':'全距'}`,ask?f[3]-f[1]:f[4]-f[0],ask?'四分位距':'全距',_stBox(...f));}
+    if(t===2){// 次數分配
+      const sc=[60,70,80,90,100],cnt=sc.map(()=>randInt(1,8)),a=[];sc.forEach((s,i)=>{for(let k=0;k<cnt[i];k++)a.push(s);});
+      const [q1,q2,q3]=_stQ(a),ask=randInt(0,2),v=[q1,q2,q3][ask];if(!Number.isInteger(v))return null;
+      return N(`某班小考成績：${sc.map((s,i)=>`\\(${s}\\) 分有 \\(${cnt[i]}\\) 人`).join('、')}，求成績的${['第一四分位數 \\(Q_1\\)','中位數','第三四分位數 \\(Q_3\\)'][ask]}`,v,['\\(Q_1\\)','中位數','\\(Q_3\\)'][ask]);}
+    const f=_stFive(),n=randInt(4,10)*4,w=pick([['高於 \\(Q_3\\)',1/4],['介於 \\(Q_1\\) 與 \\(Q_3\\) 之間',1/2],['低於中位數',1/2],['低於 \\(Q_1\\)',1/4]]);
+    return N(`某班有 \\(${n}\\) 人，右圖為該班數學成績的盒狀圖，則成績${w[0]}的約有幾人？`,n*w[1],'人',_stBox(...f));
+  }
+  const t=randInt(0,3);
+  if(t===0){// 偶數筆，中間兩筆含 x，已知中位數
+    const d=randInt(1,4)*2,x=randInt(30,60),M=x+d/2,lo=srt(data(3,10,x-1)),hi=srt(data(3,x+d+1,99));
+    return N(`八筆資料由小到大排列為 \\(${J([...lo,'x','x+'+d,...hi])}\\)，若中位數為 \\(${M}\\)，求 \\(x\\)`,x,'\\(x\\)');}
+  if(t===1){const A=_stFive(),B=_stFive();if(A[3]-A[1]===B[3]-B[1])return null;
+    const ask=randInt(0,1),r=ask?(A[3]-A[1]>B[3]-B[1]?'甲':'乙'):((A[4]-A[0])>(B[4]-B[0])?'甲':'乙');if(!ask&&A[4]-A[0]===B[4]-B[0])return null;
+    return {question:`甲、乙兩班成績的五數（最小值、\\(Q_1\\)、中位數、\\(Q_3\\)、最大值）分別為：甲班 \\(${A.join(',\\ ')}\\)；乙班 \\(${B.join(',\\ ')}\\)。哪一班成績的${ask?'四分位距':'全距'}較大？（填甲或乙）`,answer:r,type:'text',answerPrefix:'答'};}
+  if(t===2){// 每筆加 c 或乘 k
+    const f=_stFive(),iq=f[3]-f[1],add=randInt(0,1),c=add?randInt(2,10):randInt(2,3);
+    return N(`某次考試成績的 \\(Q_1=${f[1]}\\)、\\(Q_3=${f[3]}\\)，老師將每位學生的成績${add?`都加 \\(${c}\\) 分`:`都乘以 \\(${c}\\)`}，則新成績的四分位距為`,add?iq:iq*c,'四分位距');}
+  const n=pick([10,11,12,13]),a=data(n,30,99),[q1,,q3]=_stQ(srt(a));if(!Number.isInteger(q3-q1))return null;
+  const ask=randInt(0,1);
+  return N(`資料 \\(${J(a)}\\) 的${ask?'四分位距':'全距與四分位距的差'}為`,ask?q3-q1:(Math.max(...a)-Math.min(...a))-(q3-q1),ask?'四分位距':'差');
+}
+
+// ── 機率：古典機率（D-9-3），以樹狀圖或列表可數 ──
+function _9bProbExt(level){
+  const P=(q,n,d)=>({question:q,answer:frac(n,d),type:'fraction',answerPrefix:'機率'});
+  const D2=f=>{let c=0;for(let i=1;i<=6;i++)for(let j=1;j<=6;j++)if(f(i,j))c++;return c;};
+  const isP=n=>n>1&&[...Array(n).keys()].slice(2).every(k=>n%k);
+  if(level==='basic'){
+    const t=randInt(0,3);
+    if(t===0){const e=pick([['兩枚都是正面',1],['兩枚都是反面',1],['一正一反',2],['至少一枚正面',3],['至少一枚反面',3]]);
+      return P(`同時投擲兩枚公正的硬幣，出現「${e[0]}」的機率為`,e[1],4);}
+    if(t===1){const e=pick([['點數為 A',4],['紅色的牌',26],['人頭牌（J、Q、K）',12],['紅心的人頭牌',3],['點數為 10 的黑色牌',2],['黑桃 A',1],['點數不超過 5 的牌（A 視為 1）',20]]);
+      return P(`從一副 \\(52\\) 張的撲克牌（不含鬼牌）中任意抽出一張，抽到${e[0]}的機率為`,e[1],52);}
+    if(t===2){const n=pick([10,12,15,20,24,25,30,40,50]),k=pick([2,3,4,5,6,7]),ty=randInt(0,1);
+      if(ty)return P(`箱中有號碼 \\(1\\) 到 \\(${n}\\) 的球各一顆，任取一顆，號碼是 \\(${k}\\) 的倍數的機率為`,Math.floor(n/k),n);
+      let c=0;for(let i=1;i<=n;i++)if(isP(i))c++;return P(`箱中有號碼 \\(1\\) 到 \\(${n}\\) 的球各一顆，任取一顆，號碼是質數的機率為`,c,n);}
+    const e=pick([['點數小於 \\(7\\)',6],['點數等於 \\(7\\)',0],['點數為正整數',6],['點數大於 \\(6\\)',0]]);
+    return P(`擲一顆公正的骰子，出現${e[0]}的機率為`,e[1],6);
+  }
+  if(level==='medium'){
+    const t=randInt(0,4);
+    if(t===0){const s=randInt(2,12),e=pick([[`點數和為 \\(${s}\\)`,(i,j)=>i+j===s],['兩顆點數相同',(i,j)=>i===j],['點數和為偶數',(i,j)=>(i+j)%2===0],['點數乘積為偶數',(i,j)=>i*j%2===0],[`點數和大於 \\(${Math.min(s,10)}\\)`,(i,j)=>i+j>Math.min(s,10)],['點數和為 3 的倍數',(i,j)=>(i+j)%3===0]]);
+      return P(`同時擲兩顆公正的骰子，${e[0]}的機率為`,D2(e[1]),36);}
+    if(t===1){const k=randInt(0,3),ty=randInt(0,1);
+      return ty?P(`同時投擲三枚公正的硬幣，恰好出現 \\(${k}\\) 枚正面的機率為`,[1,3,3,1][k],8):P(`同時投擲三枚公正的硬幣，至少出現一枚${pick(['正面','反面'])}的機率為`,7,8);}
+    if(t===2){const r=randInt(1,5),b=randInt(1,5),n=r+b,e=randInt(0,2);
+      const q=`袋中有 \\(${r}\\) 個紅球、\\(${b}\\) 個白球，從中取一球，記下顏色後放回，再取一球，`;
+      return [P(q+'兩次都是紅球的機率為',r*r,n*n),P(q+'兩次顏色不同的機率為',2*r*b,n*n),P(q+'兩次都是白球的機率為',b*b,n*n)][e];}
+    if(t===3){const r=randInt(2,5),b=randInt(1,5),n=r+b,e=randInt(0,1);
+      const q=`袋中有 \\(${r}\\) 個紅球、\\(${b}\\) 個白球，從中取一球，不放回，再取一球，`;
+      return e?P(q+'兩次都是紅球的機率為',r*(r-1),n*(n-1)):P(q+'第一次紅球、第二次白球的機率為',r*b,n*(n-1));}
+    const e=pick([['甲獲勝',1],['平手',1],['甲沒有輸',2]]);
+    return P(`甲、乙兩人玩剪刀、石頭、布，兩人都任意出拳，則${e[0]}的機率為`,e[1],3);
+  }
+  const t=randInt(0,4);
+  if(t===0){// 再放入 x 個紅球
+    const r=randInt(1,6),b=randInt(2,8),x=randInt(1,8),f=frac(r+x,r+b+x);if(f.den===r+b+x&&randInt(0,1))return null;
+    return {question:`袋中有 \\(${r}\\) 個紅球、\\(${b}\\) 個白球，再放入若干個紅球後，從袋中任取一球是紅球的機率為 \\(\\dfrac{${f.num}}{${f.den}}\\)，則放入了幾個紅球？`,answer:x,type:'number',answerPrefix:'紅球（個）'};}
+  if(t===1){const d=randInt(0,5);return P(`同時擲兩顆公正的骰子，兩顆點數差的絕對值為 \\(${d}\\) 的機率為`,D2((i,j)=>Math.abs(i-j)===d),36);}
+  if(t===2){const p=randInt(1,4),q=randInt(p+1,6);if(gcd(p,q)!==1)return null;const r=p*randInt(1,4),tot=r*q/p;
+    return {question:`袋中只有紅球與白球，已知有 \\(${r}\\) 個紅球，若任取一球是紅球的機率為 \\(\\dfrac{${p}}{${q}}\\)，則白球有幾個？`,answer:tot-r,type:'number',answerPrefix:'白球（個）'};}
+  if(t===3){const n=pick([20,30,40,50,60]),[a,b]=pick([[2,3],[2,5],[3,5],[3,4],[4,6],[2,7]]),l=a*b/gcd(a,b);
+    return P(`從 \\(1\\) 到 \\(${n}\\) 的整數中任取一數，此數是 \\(${a}\\) 的倍數或 \\(${b}\\) 的倍數的機率為`,Math.floor(n/a)+Math.floor(n/b)-Math.floor(n/l),n);}
+  const e=pick([['點數和為質數',(i,j)=>isP(i+j)],['至少有一顆出現 \\(6\\) 點',(i,j)=>i===6||j===6],['點數乘積是 \\(6\\) 的倍數',(i,j)=>i*j%6===0],['一顆點數是另一顆的兩倍',(i,j)=>i===2*j||j===2*i]]);
+  return P(`同時擲兩顆公正的骰子，${e[0]}的機率為`,D2(e[1]),36);
 }
 
 // ─── 對外介面 ──────────────────────────────────────────────────────
