@@ -2013,9 +2013,7 @@ function gen7aExpArith(level) {
     const q = _7aExpArith(level);
     if (q) { q.inlineAnswer = true; return q; }
   }
-  const q = _7aExpArith('basic');
-  if (q) q.inlineAnswer = true;
-  return q;
+  for (;;) { const q = _7aExpArith('basic'); if (q) { q.inlineAnswer = true; return q; } }
 }
 
 function _7aExpArith(level) {
@@ -2534,7 +2532,7 @@ function _ec(a) {
 function gen7aPoly(level) {
   for (let i = 0; i < 20; i++) {
     const q = _7aPoly(level);
-    if (q) return q;
+    if (q) return _jr1x(_7redFracQ(q));
   }
   return _7aPoly('basic');
 }
@@ -2646,7 +2644,7 @@ function _7aPoly(level) {
 
 function gen7aEqn(level) {
   for (let i = 0; i < 30; i++) {
-    const q = _7aEqn(level);
+    const q = Math.random()<0.35 ? _7aEqnExt(level) : _7aEqn(level);
     if (q) return q;
   }
   return _7aEqn('basic');
@@ -2897,8 +2895,8 @@ function _sys3(e1, e2, e3) {
 //  七下 ▸ 代入消去法
 // ═══════════════════════════════════════════════════════════════════
 function gen7bSubst(level) {
-  for (let i = 0; i < 30; i++) { const q = _7bSubst(level); if (q) return q; }
-  return _7bSubst('basic');
+  for (let i = 0; i < 30; i++) { const q = Math.random()<0.25 ? _7bSysExt(level) : _7bSubst(level); if (q) return q; }
+  for (;;) { const q = _7bSubst('basic'); if (q) return q; }
 }
 
 function _ap(x0, y0) {
@@ -2969,7 +2967,7 @@ function _7bSubst(level) {
 //  七下 ▸ 加減消去法
 // ═══════════════════════════════════════════════════════════════════
 function gen7bElim(level) {
-  for (let i = 0; i < 30; i++) { const q = _7bElim(level); if (q) return q; }
+  for (let i = 0; i < 30; i++) { const q = Math.random()<0.25 ? _7bSysExt(level) : _7bElim(level); if (q) return q; }
   return _7bElim('basic');
 }
 
@@ -3188,6 +3186,189 @@ function _7bEqnApp(level){
 // ═══════════════════════════════════════════════════════════════════
 //  七下 ▸ 二元一次多項式（化簡求係數）
 // ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+//  七年級 擴充題型（108 課綱 A-7-3、A-7-5、A-7-2、D-7-1、S-7-2、S-7-4）
+// ═══════════════════════════════════════════════════════════════════
+const _7L=(a,b,c)=>_polyStr([{c:a,v:'x'},{c:b,v:'y'},{c:c||0,v:''}]);
+const _7lin=(a,b,c)=>({type:'linear2',linA:a,linB:b,linC:c||0});
+// 分子：ax+b 的 LaTeX（a=0 時只有常數）
+const _7num=(a,b)=>_polyStr([{c:a,v:'x'},{c:b,v:''}]);
+const _7ax=(a,b,c)=>{const s=_polyStr([{c:a,v:'x'},{c:b,v:''}]);return c===undefined?s:s;};
+
+// ── 一元一次方程式：已知解求係數、小數係數、分數方程式、同解、解互為相反數 ──
+function _7aEqnExt(level){
+  const F=(q,v)=>({question:q,answer:v,type:'fraction',answerPrefix:'x'});
+  const N=(q,v,p)=>({question:q,answer:v,type:'number',answerPrefix:p});
+  if(level==='basic'){
+    const t=randInt(0,2);
+    if(t===0){const r=rnzInt(-6,6),a=rnzInt(-5,5),b=randInt(-9,9),c=rnzInt(-5,5);if(a===c)return null;
+      return N(`已知 \\(x=${r}\\) 是方程式 \\(${_7num(a,b)}=${_7num(c,0)}+k\\) 的解，求 \\(k\\)`,a*r+b-c*r,'\\(k\\)');}
+    if(t===1){// 小數係數：0.a x + 0.b = 0.c x + 0.d
+      const x=rnzInt(-9,9),a=randInt(1,9),c=randInt(1,9);if(a===c)return null;const b=randInt(-30,30),d=(a-c)*x+b;
+      const f=v=>String(+(v/10).toFixed(1));
+      const side=(k,m)=>`${f(k)}x${m>0?' + '+f(m):m<0?' - '+f(-m):''}`;
+      if(Math.abs(d)>90)return null;
+      return F(`解方程式 \\(${side(a,b)} = ${side(c,d)}\\)`,frac(x));}
+    const a=pick([2,3,4,5]),x=a*randInt(-6,6),b=rnzInt(-9,9);
+    return F(`解方程式 \\(\\dfrac{x}{${a}}${b>0?'+':''}${b}=${x/a+b}\\)`,frac(x));
+  }
+  if(level==='medium'){
+    const t=randInt(0,2);
+    if(t===0){// (x+p)/a − (x+q)/b = r
+      const a=pick([2,3,4,5,6]),b=pick([2,3,4,5,6].filter(v=>v!==a)),x=randInt(-9,9),r=randInt(-3,3),p=randInt(-9,9);
+      const q=(b*(x+p)-a*x-a*b*r)/a;if(!Number.isInteger(q)||Math.abs(q)>15)return null;
+      return F(`解方程式 \\(\\dfrac{${_7num(1,p)}}{${a}}-\\dfrac{${_7num(1,q)}}{${b}}=${r}\\)`,frac(x));}
+    if(t===1){// 兩方程式同解
+      const x=rnzInt(-6,6),p=rnzInt(-5,5),m=randInt(-9,9),a=rnzInt(-5,5),c=randInt(-9,9);
+      return N(`方程式 \\(${_7num(p,m)}=${p*x+m}\\) 與 \\(ax${c>0?'+':''}${c===0?'':c}=${a*x+c}\\) 的解相同，求 \\(a\\)`,a,'\\(a\\)');}
+    // 已知解，求含 k 的係數：k(x−p) = q x + k
+    const r=rnzInt(-6,6),p=randInt(-6,6),q=rnzInt(-5,5),D=r-p-1;if(D===0)return null;
+    const k=q*r/D;if(!Number.isInteger(k))return null;
+    return N(`已知 \\(x=${r}\\) 是方程式 \\(k(${_7num(1,-p)})=${_7num(q,0)}+k\\) 的解，求 \\(k\\)`,k,'\\(k\\)');
+  }
+  const t=randInt(0,2);
+  if(t===0){// 三個分母
+    const ds=[pick([2,3]),pick([4,6]),pick([3,4,6,12])],A=ds.map(()=>rnzInt(-3,3)),B=ds.map(()=>randInt(-7,7)),s=[1,pick([1,-1]),pick([1,-1])],c=randInt(-3,3);
+    let ca=frac(0),cb=frac(0);ds.forEach((d,i)=>{ca=fadd(ca,frac(s[i]*A[i],d));cb=fadd(cb,frac(s[i]*B[i],d));});
+    if(ca.num===0)return null;const x=fdiv(fsub(frac(c),cb),ca);if(x.den>6||Math.abs(x.num)>40)return null;
+    const tex=ds.map((d,i)=>`${i===0?'':s[i]>0?'+':'-'}\\dfrac{${_7num(A[i],B[i])}}{${d}}`).join('');
+    return F(`解方程式 \\(${tex}=${c}\\)`,x);}
+  if(t===1){// 解互為相反數：px − a = m 與 qx + a = n
+    const p=rnzInt(-5,5),q=rnzInt(-5,5);if(p===q)return null;const m=randInt(-12,12),n=randInt(-12,12);
+    const a=(-p*n-q*m)/(q-p);if(!Number.isInteger(a)||a===0||Math.abs(a)>20)return null;
+    const x1=frac(m+a,p);if(x1.num===0)return null;
+    return {question:`若方程式 \\(${_7num(p,0)}-a=${m}\\) 與 \\(${_7num(q,0)}+a=${n}\\) 的解互為相反數，求 \\(a\\)`,answer:a,type:'number',answerPrefix:'\\(a\\)'};}
+  // 已知解求 k：(x+k)/a − (kx+c)/b = d
+  const a=pick([2,3,4]),b=pick([3,5,6]),r=rnzInt(-5,5),c=randInt(-5,5),d=randInt(-2,2);
+  const co=fsub(frac(1,a),frac(r,b));if(co.num===0)return null;
+  const k=fdiv(fsub(fsub(frac(d),frac(r,a)),frac(-c,b)),co);if(k.den!==1||k.num===0||Math.abs(k.num)>15)return null;
+  return {question:`已知 \\(x=${r}\\) 是方程式 \\(\\dfrac{x+k}{${a}}-\\dfrac{kx${c>0?'+':''}${c===0?'':c}}{${b}}=${d}\\) 的解，求 \\(k\\)`,answer:k.num,type:'number',answerPrefix:'\\(k\\)'};
+}
+
+// ── 二元一次聯立：已知解求係數、x=y、同解、看錯係數 ──
+function _7bSysExt(level){
+  const two=(q,p1,a1,p2,a2)=>({question:q,answerParts:[{prefix:p1,answer:a1,type:'number'},{prefix:p2,answer:a2,type:'number'}]});
+  const sol=(x,y)=>`\\(\\begin{cases} x=${x} \\\\ y=${y} \\end{cases}\\)`;
+  if(level==='basic'){
+    const x=rnzInt(-6,6),y=rnzInt(-6,6),a=rnzInt(-6,6),b=rnzInt(-6,6);
+    if(randInt(0,1))return {question:`已知 ${sol(x,y)} 是方程式 \\(ax${b>0?'+':'-'}${Math.abs(b)===1?'':Math.abs(b)}y=${a*x+b*y}\\) 的一組解，求 \\(a\\)`,answer:a,type:'number',answerPrefix:'\\(a\\)'};
+    const c=a*x+b*y;
+    return {question:`已知 \\(x=${x}\\)、\\(y=k\\) 是方程式 \\(${_eqLine(a,b,c)}\\) 的一組解，求 \\(k\\)`,answer:y,type:'number',answerPrefix:'\\(k\\)'};
+  }
+  if(level==='medium'){
+    if(randInt(0,1)){// {ax+by=c1, bx+ay=c2} 的解為 (x,y)，求 a、b
+      const x=rnzInt(-5,5),y=rnzInt(-5,5);if(Math.abs(x)===Math.abs(y))return null;const a=rnzInt(-6,6),b=rnzInt(-6,6);
+      return two(`已知 ${sol(x,y)} 是聯立方程式 \\(\\begin{cases} ax+by=${a*x+b*y} \\\\ bx+ay=${b*x+a*y} \\end{cases}\\) 的解，求 \\(a\\)、\\(b\\)`,'\\(a\\)',a,'\\(b\\)',b);}
+    // x、y 的值相等
+    const t=rnzInt(-6,6),p=rnzInt(-6,6),q=rnzInt(-6,6),a=rnzInt(-6,6),b=rnzInt(-6,6);if(p+q===0||a+b===0)return null;
+    return {question:`若聯立方程式 \\(\\begin{cases} ${_eqLine(p,q,(p+q)*t)} \\\\ ${_polyStr([{c:a,v:'x'},{c:b,v:'y'}])}=k \\end{cases}\\) 的解中，\\(x\\) 與 \\(y\\) 的值相等，求 \\(k\\)`,answer:(a+b)*t,type:'number',answerPrefix:'\\(k\\)'};
+  }
+  if(randInt(0,1)){// 甲看錯 a、乙看錯 b
+    const a=rnzInt(-6,6),b=rnzInt(-6,6),q=rnzInt(-6,6),p=rnzInt(-6,6);
+    const x1=rnzInt(-6,6),y1=rnzInt(-6,6),x2=rnzInt(-6,6),y2=rnzInt(-6,6);if(x1===x2&&y1===y2)return null;
+    const m=p*x1-b*y1,n=a*x2+q*y2;if(a*x1+q*y1===n||p*x2-b*y2===m)return null;
+    return two(`解聯立方程式 \\(\\begin{cases} ax${q>0?'+':'-'}${Math.abs(q)===1?'':Math.abs(q)}y=${n} \\\\ ${_7num(p,0)}-by=${m} \\end{cases}\\) 時，甲看錯了 \\(a\\)，解得 \\((x,y)=(${x1},${y1})\\)；乙看錯了 \\(b\\)，解得 \\((x,y)=(${x2},${y2})\\)。求正確的 \\(a\\)、\\(b\\)`,'\\(a\\)',a,'\\(b\\)',b);}
+  // 兩組同解
+  const x=rnzInt(-5,5),y=rnzInt(-5,5),a=rnzInt(-5,5),b=rnzInt(-5,5),p=rnzInt(-4,4),q=rnzInt(-4,4),r=rnzInt(-4,4),s=rnzInt(-4,4);
+  if(p*s-q*r===0)return null;
+  return two(`聯立方程式 \\(\\begin{cases} ${_eqLine(p,q,p*x+q*y)} \\\\ ax+by=${a*x+b*y} \\end{cases}\\) 與 \\(\\begin{cases} ${_eqLine(r,s,r*x+s*y)} \\\\ bx-ay=${b*x-a*y} \\end{cases}\\) 的解相同，求 \\(a\\)、\\(b\\)`,'\\(a\\)',a,'\\(b\\)',b);
+}
+
+// ── 二元一次式（A-7-2，取代原本含 x²、x³ 的題目）──
+function _7bPolyLin(level){
+  const N=(q,v,p)=>({question:q,answer:v,type:'number',answerPrefix:p||''});
+  if(level==='basic'){
+    const t=randInt(0,1);
+    if(t===0){const x=rnzInt(-5,5),y=rnzInt(-5,5),a=rnzInt(-6,6),b=rnzInt(-6,6),c=randInt(-9,9);
+      return N(`當 \\(x=${x}\\)、\\(y=${y}\\) 時，求 \\(${_7L(a,b,c)}\\) 的值`,a*x+b*y+c,'值');}
+    const a=rnzInt(-5,5),b=rnzInt(-5,5),c=rnzInt(-5,5),d=rnzInt(-5,5),[m,n]=pick([[1,-1],[2,1],[1,2],[2,-1],[3,-1],[1,-3]]);
+    const e=`${m===1?'':m}A${n>0?'+':'-'}${Math.abs(n)===1?'':Math.abs(n)}B`;
+    return {question:`若 \\(A=${_7L(a,b)}\\)，\\(B=${_7L(c,d)}\\)，求 \\(${e}\\)`,..._7lin(m*a+n*c,m*b+n*d,0)};
+  }
+  if(level==='medium'){
+    const t=randInt(0,2);
+    if(t===0){const a=rnzInt(-6,6),b=rnzInt(-6,6),c=rnzInt(-6,6),d=rnzInt(-6,6),e=randInt(-8,8),f=randInt(-8,8);if(a===c&&b===d)return null;
+      return {question:`若 \\((${_7L(a,b,e)})-A=${_7L(c,d,f)}\\)，求 \\(A\\)`,..._7lin(a-c,b-d,e-f)};}
+    if(t===1){const p=rnzInt(-4,4),q=rnzInt(-4,4),k=randInt(-9,9),s=pick([2,3,-2,-3]),m=randInt(-9,9);
+      return N(`若 \\(${_7L(p,q)}=${k}\\)，求 \\(${_7L(s*p,s*q,m)}\\) 的值`,s*k+m,'值');}
+    const p=rnzInt(-5,5),q=rnzInt(-5,5),m=rnzInt(-5,5),n=rnzInt(-5,5),k=rnzInt(-6,6),ax=pick([1,0]);
+    const v=ax?k*p+m:k*q+n;
+    return N(`化簡 \\(k(${_7L(p,q)})+(${_7L(m,n)})\\) 後，${ax?'\\(x\\)':'\\(y\\)'} 的係數為 \\(${v}\\)，求 \\(k\\)`,k,'\\(k\\)');
+  }
+  const t=randInt(0,2);
+  if(t===0){const a=rnzInt(-5,5),b=rnzInt(-5,5),c=randInt(-6,6),d=rnzInt(-5,5),e=rnzInt(-5,5),f=randInt(-6,6),[m,n]=pick([[2,3],[3,2],[4,1],[1,4]]);
+    // mA − n(B − A) = (m+n)A − nB
+    return {question:`若 \\(A=${_7L(a,b,c)}\\)，\\(B=${_7L(d,e,f)}\\)，求 \\(${m}A-${n===1?'':n}(B-A)\\)`,..._7lin((m+n)*a-n*d,(m+n)*b-n*e,(m+n)*c-n*f)};}
+  if(t===1){// (kx + p y) − m(x − k y) 化簡後 x、y 係數相等
+    const m=pick([2,3,4,-2,-3]),p=randInt(-9,9);const k=(p+m)/(1-m);if(!Number.isInteger(k)||k===0)return null;
+    return N(`化簡 \\((kx${p>0?'+':''}${p===0?'':p+'y'})${m>0?'-':'+'}${Math.abs(m)}(x-ky)\\) 後，\\(x\\) 項與 \\(y\\) 項的係數相等，求 \\(k\\)`,k,'\\(k\\)');}
+  const x=rnzInt(-5,5),y=rnzInt(-5,5),p=rnzInt(-3,3),q=rnzInt(-3,3),r=rnzInt(-3,3),s=rnzInt(-3,3),u=rnzInt(-6,6),w=rnzInt(-6,6);
+  if(p*s-q*r===0)return null;
+  return N(`若 \\(${_eqLine(p,q,p*x+q*y)}\\)，\\(${_eqLine(r,s,r*x+s*y)}\\)，求 \\(${_7L(u,w)}\\) 的值`,u*x+w*y,'值');
+}
+
+// ── 七下統計：圓形圖的圓心角與百分率（D-7-1）──
+function _7bStatPie(){
+  const lbs=pick([['音樂','體育','美術','科學'],['游泳','籃球','跑步','桌球'],['早餐店','便利商店','自備','其他']]),tot=pick([20,24,30,36,40,45,60,72,90,120]);
+  const f=[1,1,1,1];for(let i=4;i<tot;i++)f[randInt(0,3)]++;const i=randInt(0,3),desc=lbs.map((n,k)=>`${n} \\(${f[k]}\\) 人`).join('，');
+  const t=randInt(0,2);
+  if(t===0)return {question:`某班調查：${desc}。若畫成圓形圖，「${lbs[i]}」所占扇形的圓心角為幾度？`,answer:360*f[i]/tot,type:'number',answerPrefix:'度'};
+  if(t===1&&(100*f[i])%tot===0)return {question:`某班調查：${desc}。「${lbs[i]}」占全部人數的百分之幾？`,answer:100*f[i]/tot,type:'number',answerPrefix:'%'};
+  return {question:`某班 \\(${tot}\\) 人的調查結果畫成圓形圖，「${lbs[i]}」所占扇形的圓心角為 \\(${360*f[i]/tot}^\\circ\\)，則喜歡「${lbs[i]}」的有幾人？`,answer:f[i],type:'number',answerPrefix:'人'};
+}
+
+// ── 七下：線對稱與三視圖（S-7-2、S-7-4）──
+function _7bTopSVG(H){
+  const R=H.length,C=H[0].length,s=34,ox=20,oy=10,W=ox*2+C*s,Hh=oy+R*s+34;
+  let p=`<svg width="${W}" height="${Hh}" viewBox="0 0 ${W} ${Hh}" xmlns="http://www.w3.org/2000/svg"><rect width="${W}" height="${Hh}" fill="#fff"/>`;
+  H.forEach((row,r)=>row.forEach((h,c)=>{if(!h)return;const x=ox+c*s,y=oy+r*s;
+    p+=`<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="#E3F2FD" stroke="#1565C0" stroke-width="1.5"/><text x="${x+s/2}" y="${y+s/2+6}" font-size="16" text-anchor="middle" fill="#0D47A1" font-weight="bold">${h}</text>`;}));
+  p+=`<text x="${W/2}" y="${oy+R*s+26}" font-size="13" text-anchor="middle" fill="#333">↑ 前</text></svg>`;return p;
+}
+function gen7bSym(level){for(let i=0;i<40;i++){const q=_7bSym(level);if(q)return q;}return _7bSym('basic');}
+function _7bSym(level){
+  const N=(q,v,p,g)=>{const o={question:q,answer:v,type:'number',answerPrefix:p};if(g)o.graph=g;return o;};
+  const SH=[['正三角形',3],['正方形',4],['長方形（長、寬不相等）',2],['等腰三角形（非正三角形）',1],['菱形（非正方形）',2],['平行四邊形（非長方形、非菱形）',0],['正五邊形',5],['正六邊形',6],['正八邊形',8],['等腰梯形',1],['箏形（非菱形）',1],['線段',2],['角',1],['圓','無限多']];
+  const grid=(R,C,mx)=>Array.from({length:R},()=>Array.from({length:C},()=>randInt(0,mx)));
+  const okGrid=H=>H.every(r=>r.some(v=>v))&&H[0].map((_,c)=>H.some(r=>r[c])).every(Boolean);
+  const front=H=>H[0].map((_,c)=>Math.max(...H.map(r=>r[c]))),left=H=>H.map(r=>Math.max(...r));
+  const sum=a=>a.reduce((x,y)=>x+y,0);
+  if(level==='basic'){
+    const t=randInt(0,3);
+    if(t===0){const [n,v]=pick(SH);return {question:`${n}有幾條對稱軸？（無限多條請填「無限多」）`,answer:v,type:typeof v==='number'?'number':'text',answerPrefix:'條'};}
+    if(t===1){const d=randInt(2,20)*2;return N(`\\(A\\)、\\(A'\\) 兩點對稱於直線 \\(L\\)，且 \\(\\overline{AA'}=${d}\\)，求 \\(A\\) 點到直線 \\(L\\) 的距離`,d/2,'距離');}
+    if(t===2){const a=randInt(25,140),k=pick(['A','B','C']);return N(`\\(\\triangle ABC\\) 與 \\(\\triangle A'B'C'\\) 對稱於直線 \\(L\\)，\\(\\angle ${k}=${a}^\\circ\\)，求 \\(\\angle ${k}'\\)`,a,`\\(\\angle ${k}'\\)`);}
+    const H=grid(2,3,3);if(!okGrid(H))return null;
+    return N('右圖為由相同正方體堆成的立體圖形之俯視圖，格子中的數字代表該位置疊放的正方體個數，則共有幾個正方體？',sum(H.flat()),'個',_7bTopSVG(H));
+  }
+  if(level==='medium'){
+    const t=randInt(0,3);
+    if(t===0){// 對稱軸上的點到兩對稱點等距：PA=ax+b、PA'=cx+d
+      const x=randInt(2,9),a=randInt(2,5),c=randInt(1,a-1),b=randInt(1,9),d=(a-c)*x+b;
+      return N(`點 \\(P\\) 在 \\(\\overline{AA'}\\) 的對稱軸 \\(L\\) 上，\\(\\overline{PA}=${a}x+${b}\\)，\\(\\overline{PA'}=${c===1?'':c}x+${d}\\)，求 \\(\\overline{PA}\\) 的長`,a*x+b,`\\(\\overline{PA}\\)`);}
+    if(t===1){// 箏形：以 AC 為對稱軸，∠B=∠D
+      const A=randInt(30,120),B=randInt(40,130),C=360-A-2*B;if(C<20||C>170)return null;
+      return N(`四邊形 \\(ABCD\\) 是以對角線 \\(\\overline{AC}\\) 為對稱軸的線對稱圖形，\\(\\angle BAD=${A}^\\circ\\)，\\(\\angle ABC=${B}^\\circ\\)，求 \\(\\angle BCD\\)`,C,'\\(\\angle BCD\\)');}
+    if(t===2){// 等腰三角形頂角平分線為對稱軸
+      const top=randInt(20,140);if(top%2)return null;return N(`等腰 \\(\\triangle ABC\\) 中，\\(\\overline{AB}=\\overline{AC}\\)，\\(\\overline{AD}\\) 為對稱軸且交 \\(\\overline{BC}\\) 於 \\(D\\)，\\(\\angle BAC=${top}^\\circ\\)，求 \\(\\angle BAD\\)`,top/2,'\\(\\angle BAD\\)');}
+    const H=grid(3,3,3);if(!okGrid(H))return null;const ask=randInt(0,1);
+    return N(`右圖為由相同正方體堆成的立體圖形之俯視圖，格子中的數字代表該位置疊放的正方體個數，則此立體圖形的${ask?'前視圖':'左視圖'}由幾個正方形組成？`,sum(ask?front(H):left(H)),'個',_7bTopSVG(H));
+  }
+  const t=randInt(0,2);
+  if(t===0){const H=grid(3,4,4);if(!okGrid(H))return null;
+    return N('右圖為由相同正方體堆成的立體圖形之俯視圖，格子中的數字代表該位置疊放的正方體個數。若將整個立體圖形的外表面（含底面）塗上顏色，則塗色的正方形面共有幾個？',(()=>{let s=0;const R=H.length,C=H[0].length,g=(r,c)=>r<0||c<0||r>=R||c>=C?0:H[r][c];
+      for(let r=0;r<R;r++)for(let c=0;c<C;c++){const h=H[r][c];if(!h)continue;s+=2;[[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{s+=Math.max(0,h-g(r+dr,c+dc));});}return s;})(),'個',_7bTopSVG(H));}
+  if(t===1){// 前視、左視給定，俯視圖每格都有方塊，最多幾個
+    const f=Array.from({length:3},()=>randInt(1,4)),l=Array.from({length:3},()=>randInt(1,4));if(Math.max(...f)!==Math.max(...l))return null;
+    let mx=0;for(const a of l)for(const b of f)mx+=Math.min(a,b);
+    return N(`用相同的正方體堆成一個立體圖形，其俯視圖為 \\(3\\times 3\\) 的正方形（每一格都有正方體）。已知前視圖由左到右各行的高度為 \\(${f.join('、')}\\)，左視圖由後到前各行的高度為 \\(${l.join('、')}\\)，則此立體圖形最多有幾個正方體？`,mx,'個');}
+  const a=rnzInt(-9,9),b=rnzInt(-9,9),ax=randInt(0,2);
+  const [nm,x,y]=ax===0?['\\(x\\) 軸',a,-b]:ax===1?['\\(y\\) 軸',-a,b]:['直線 \\(x=1\\)',2-a,b];
+  return {question:`坐標平面上，點 \\(A(${a},${b})\\) 對稱於${nm} 的對稱點 \\(A'\\) 的坐標為`,answerParts:[{prefix:'x',answer:x,type:'number'},{prefix:'y',answer:y,type:'number'}]};
+}
+// 約分題目中的 \frac{a}{b}（給比例題用；整除時直接寫整數）
+function _7redFracQ(q){if(q&&q.question)q.question=q.question.replace(/\\frac\{(\d+)\}\{(\d+)\}/g,(m,a,b)=>{const g=_gcd(+a,+b),n=+a/g,d=+b/g;return d===1?String(n):`\\frac{${n}}{${d}}`;});return q;}
+
 function gen7bPoly(level) {
   for (let i = 0; i < 30; i++) { const q = _7bPoly(level); if (q) return q; }
   return _7bPoly('basic');
@@ -3229,6 +3410,7 @@ function _7bPoly(level) {
 
   if (level === 'basic') {
     const tB = randInt(0,3);
+    if (tB === 1 || tB === 2) return _7bPolyLin('basic');
     if (tB === 0) {
       // (ax+by) ± (dx+ey)
       const a=randInt(-5,5), b=randInt(-5,5), d=randInt(-5,5), e=randInt(-5,5);
@@ -3272,6 +3454,7 @@ function _7bPoly(level) {
 
   } else if (level === 'medium') {
     const tM = randInt(0,5);
+    if (tM >= 2) return _7bPolyLin('medium');
     if (tM === 0) {
       // k(ax+by) ± m(dx+ey)（中等係數）
       const k=rnzInt(-8,8), a=randInt(-8,8), b=randInt(-8,8);
@@ -3353,6 +3536,7 @@ function _7bPoly(level) {
 
   } else {
     const t = randInt(0,5);
+    if (t >= 3) return _7bPolyLin('hard');
     if (t === 0) {
       // k(ax+by+c) ± m(dx+ey+f)（大係數），含常數項
       const k=rnzInt(-10,10), a=randInt(-10,10), b=randInt(-10,10), c=randInt(-10,10);
@@ -4155,7 +4339,7 @@ function _7bRatio(level) {
 //  七下 ▸ 正比（y = kx）
 // ═══════════════════════════════════════════════════════════════════
 function gen7bDirProp(level) {
-  for (let i=0;i<30;i++) { const q=_7bDirProp(level); if(q) return q; }
+  for (let i=0;i<30;i++) { const q=_7bDirProp(level); if(q) return _jr1x(_7redFracQ(q)); }
   return _7bDirProp('basic');
 }
 function _7bDirProp(level) {
@@ -4315,7 +4499,7 @@ function _7bDirProp(level) {
 //  七下 ▸ 反比（xy = k）
 // ═══════════════════════════════════════════════════════════════════
 function gen7bInvProp(level) {
-  for (let i=0;i<30;i++) { const q=_7bInvProp(level); if(q) return q; }
+  for (let i=0;i<30;i++) { const q=_7bInvProp(level); if(q) return _jr1x(_7redFracQ(q)); }
   return _7bInvProp('basic');
 }
 function _7bInvProp(level) {
@@ -4460,7 +4644,7 @@ function _7bInvProp(level) {
 function gen7bProp(level) {
   for (let i=0;i<30;i++) {
     const q = randInt(0,1)===0 ? _7bDirProp(level) : _7bInvProp(level);
-    if (q) return q;
+    if (q) return _jr1x(_7redFracQ(q));
   }
   return _7bDirProp('basic');
 }
@@ -4930,7 +5114,8 @@ function _7bStat(level) {
       const data=[...others]; data.splice(pos,0,'x');
       return { question:`資料：\\(${data.join(',\\;')}\\)，算術平均數為 \\(${mean}\\)，求 \\(x\\)`, answer:x, type:'number', answerPrefix:'x' };
     } else if (t===3) {
-      // 相對次數（某組次數 / 總次數），化最簡分數
+      return _7bStatPie();
+      // （原相對次數題屬八年級 D-8-1，已停用）
       const lbs=pick([['音樂','體育','美術'],['游泳','籃球','跑步'],['甲組','乙組','丙組']]);
       const fs=lbs.map(()=>randInt(3,10));
       const tot=fs.reduce((a,b)=>a+b,0);
@@ -12221,6 +12406,7 @@ const JR_GENERATORS = {
   // 七下 不等式/統計
   '7b-ineq':      gen7bIneq,
   '7b-stat':      gen7bStat,
+  '7b-sym':       gen7bSym,
   // 八上
   '8a-mulform':     gen8aMulForm,
   '8a-sq-sum':      gen8aSqSum,

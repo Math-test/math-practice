@@ -72,6 +72,7 @@ const TOPIC_NAMES = {
   '7b-invprop':   '七下·反比',
   '7b-ineq':      '七下·一元一次不等式',
   '7b-stat':      '七下·統計',
+  '7b-sym':       '七下·線對稱與三視圖',
   // 八上
   '8a-mulform':     '八上·乘法公式',
   '8a-sq-sum':      '八上·和的平方公式',
