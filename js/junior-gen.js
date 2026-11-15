@@ -11442,6 +11442,53 @@ function _9aTriCenterExt(level){
   return {question:`直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，兩股長為 \\(${a}\\) 和 \\(${b}\\)，求內切圓半徑 \\(r\\)`,answer:D===1?num:`\\dfrac{${num}}{${D}}`,type:'text',answerPrefix:'\\(r\\)'};
 }
 
+// 平行四邊形與重心：E 為 BC 中點、F 為 CD 中點，AE、AF 交 BD 於 G、H
+// G 為 △ABC 重心、H 為 △ACD 重心 → BG=GH=HD=BD/3
+function _9aParaG(level){
+  const P0='平行四邊形 \\(ABCD\\) 的對角線交於 \\(O\\)，';
+  const PE=P0+'\\(E\\) 為 \\(\\overline{BC}\\) 中點，\\(\\overline{AE}\\) 交 \\(\\overline{BD}\\) 於 \\(G\\)，';
+  const PEF='平行四邊形 \\(ABCD\\) 中，\\(E\\)、\\(F\\) 分別為 \\(\\overline{BC}\\)、\\(\\overline{CD}\\) 中點，\\(\\overline{AE}\\)、\\(\\overline{AF}\\) 分別交 \\(\\overline{BD}\\) 於 \\(G\\)、\\(H\\)，';
+  const N=(q,a,p)=>({question:q,answer:a,type:'number',answerPrefix:p});
+  if(level==='basic'){
+    const t=randInt(0,3);
+    if(t===0){const BD=randInt(2,12)*6,k=pick(['BG','GD','GO']);
+      return N(PE+`\\(BD=${BD}\\)，求 \\(${k}\\)`,{BG:BD/3,GD:2*BD/3,GO:BD/6}[k],`\\(${k}\\)`);}
+    if(t===1){const AE=randInt(2,15)*3,k=pick(['AG','GE']);
+      return N(PE+`\\(AE=${AE}\\)，求 \\(${k}\\)`,k==='AG'?2*AE/3:AE/3,`\\(${k}\\)`);}
+    if(t===2){const BG=randInt(2,15);
+      return N(PE+`\\(BG=${BG}\\)，求 \\(BD\\)`,3*BG,'\\(BD\\)');}
+    const GE=randInt(2,12);
+    return N(PE+`\\(GE=${GE}\\)，求 \\(AE\\)`,3*GE,'\\(AE\\)');
+  }
+  if(level==='medium'){
+    const t=randInt(0,3);
+    if(t===0){const BD=randInt(3,15)*3;
+      return N(PEF+`\\(BD=${BD}\\)，求 \\(GH\\)`,BD/3,'\\(GH\\)');}
+    if(t===1){const GO=randInt(2,9);
+      return N(PE+`\\(GO=${GO}\\)，求 \\(BD\\)`,6*GO,'\\(BD\\)');}
+    const S=randInt(2,10)*12,k=pick([['\\triangle ABG',6],['\\triangle BGE',12],['\\triangle AGO',12],['\\triangle ABE',4]]);
+    return N(PE+`平行四邊形面積為 \\(${S}\\)，求 \\(${k[0]}\\) 的面積`,S/k[1],`\\(${k[0]}\\) 面積`);
+  }
+  const t=randInt(0,3);
+  if(t===0){
+    // BG=(ax+b)、GD=(cx+d)，GD=2BG
+    for(let i=0;i<50;i++){const x=randInt(2,9),a=randInt(1,4),b=randInt(1,9),c=randInt(1,6),d=2*(a*x+b)-c*x;
+      if(d>0&&c!==2*a)return N(PE+`\\(BG=${a===1?'':a}x+${b}\\)，\\(GD=${c===1?'':c}x+${d}\\)，求 \\(x\\)`,x,'\\(x\\)');}
+  }
+  if(t===1){
+    const S=randInt(2,10)*24,k=pick([['四邊形 \\(GECO\\)',S/6,PE],['四邊形 \\(AGCH\\)',S/3,PEF],['\\(\\triangle AGH\\)',S/6,PEF],['\\(\\triangle AEF\\)',3*S/8,PEF]]);
+    return N(k[2]+`平行四邊形 \\(ABCD\\) 的面積為 \\(${S}\\)，求${k[0]}的面積`,k[1],'面積');
+  }
+  if(t===2){
+    const s=randInt(2,12),k=pick([['\\triangle BGE',12],['\\triangle ABG',6],['\\triangle AGO',12]]);
+    return N(PE+`\\(${k[0]}\\) 的面積為 \\(${s}\\)，求平行四邊形 \\(ABCD\\) 的面積`,s*k[1],'面積');
+  }
+  // 矩形：對角線交點為 △ABC 的外心
+  const [a,b,c]=pick([[3,4,5],[6,8,10],[5,12,13],[8,15,17],[9,12,15],[12,16,20],[7,24,25]]),ask=randInt(0,1);
+  return ask?N(`矩形 \\(ABCD\\) 中，\\(AB=${a}\\)，\\(BC=${b}\\)，求 \\(\\triangle ABC\\) 外接圓的直徑`,c,'直徑')
+            :N(`矩形 \\(ABCD\\) 中，\\(AB=${2*a}\\)，\\(BC=${2*b}\\)，求 \\(\\triangle BCD\\) 的外接圓半徑`,c,'半徑');
+}
+
 function gen9aTriCenter(level){
   for(let i=0;i<30;i++){const q=_9aTriCenter(level);if(q)return q;}
   return _9aTriCenter('basic');
@@ -11480,18 +11527,8 @@ function _9aTriCenter(level){
       const A=randInt(25,80);
       return {question:`\\(\\triangle ABC\\) 的外心為 \\(O\\)，\\(\\angle A=${A}^\\circ\\)，求 \\(\\angle BOC\\)`,answer:2*A,type:'number',answerPrefix:'\\(\\angle BOC\\)'};
     }
-    // t===6: 重心坐標公式 G = ((x1+x2+x3)/3, (y1+y2+y3)/3)
-    const gCases=[
-      {ax:0,ay:0,bx:6,by:0,cx:0,cy:6,gx:2,gy:2},
-      {ax:0,ay:0,bx:9,by:0,cx:0,cy:9,gx:3,gy:3},
-      {ax:1,ay:2,bx:7,by:2,cx:4,cy:8,gx:4,gy:4},
-      {ax:0,ay:0,bx:6,by:0,cx:3,cy:9,gx:3,gy:3},
-      {ax:2,ay:1,bx:8,by:1,cx:5,cy:7,gx:5,gy:3},
-      {ax:0,ay:3,bx:6,by:3,cx:3,cy:9,gx:3,gy:5},
-    ];
-    const gc=pick(gCases);
-    const askX=randInt(0,1)===0;
-    return {question:`\\(\\triangle ABC\\) 的頂點為 \\(A(${gc.ax},${gc.ay})\\)、\\(B(${gc.bx},${gc.by})\\)、\\(C(${gc.cx},${gc.cy})\\)，求重心 \\(G\\) 的${askX?'橫':'縱'}坐標`,answer:askX?gc.gx:gc.gy,type:'number',answerPrefix:askX?'橫坐標':'縱坐標'};
+    // t===6: 平行四邊形與重心
+    return _9aParaG('basic');
   }
   if(level==='medium'){
     const t=randInt(0,8);
@@ -11517,11 +11554,7 @@ function _9aTriCenter(level){
       if(bv<=0)return null;
       return {question:`\\(\\triangle ABC\\) 的內心為 \\(I\\)，\\(\\angle A=${A}^\\circ\\)，\\(\\angle BIC=(${av}x+${bv})^\\circ\\)，求 \\(x\\)`,answer:xv,type:'number',answerPrefix:'\\(x\\)'};
     }
-    if(t===3){
-      // 垂心：∠BHC = 180°-∠A
-      const A2=randInt(30,80);
-      return {question:`\\(\\triangle ABC\\) 的垂心為 \\(H\\)，\\(\\angle A=${A2}^\\circ\\)，求 \\(\\angle BHC\\)`,answer:180-A2,type:'number',answerPrefix:'\\(\\angle BHC\\)'};
-    }
+    if(t===3)return _9aParaG('medium');
     if(t===4){
       // 重心將△分成三個等面積三角形
       const sArea=randInt(4,15)*2;
@@ -11548,12 +11581,12 @@ function _9aTriCenter(level){
       const rc=pick(rCases);
       return {question:`直角 \\(\\triangle ABC\\) 兩股長分別為 \\(${rc.a}\\) 和 \\(${rc.b}\\)，斜邊為 \\(${rc.c}\\)，求內切圓半徑 \\(r\\)`,answer:rc.r,type:'number',answerPrefix:'\\(r\\)'};
     }
-    // t===8: 垂心 ∠BHC = ∠B + ∠C（等價於 180° - ∠A）
-    const B3=randInt(30,70),C3=randInt(20,90-B3);
-    return {question:`\\(\\triangle ABC\\) 的垂心為 \\(H\\)，\\(\\angle B=${B3}^\\circ\\)，\\(\\angle C=${C3}^\\circ\\)，求 \\(\\angle BHC\\)`,answer:B3+C3,type:'number',answerPrefix:'\\(\\angle BHC\\)'};
+    // t===8: 平行四邊形與重心
+    return _9aParaG('medium');
   }
   // hard
-  const t=randInt(0,4);
+  const t=randInt(0,5);
+  if(t===5)return _9aParaG('hard');
   if(t===0){
     // 內心角代數：∠A=(ax+b)°，∠BIC=(cx+d)°，利用關係求x
     const xv=randInt(2,8),av=randInt(1,3),bv=randInt(20,50),cv=randInt(1,2);
@@ -11575,16 +11608,7 @@ function _9aTriCenter(level){
     const R=pick([4,6,8,10]);
     return {question:`\\(\\triangle ABC\\) 的外心為 \\(O\\)，外接圓半徑 \\(R=${R}\\)，\\(\\angle BOC=90^\\circ\\)，求 \\(\\triangle BOC\\) 的面積`,answer:R*R/2,type:'number',answerPrefix:'面積'};
   }
-  if(t===3){
-    // 垂心代數：∠A=(ax+b)°，∠BHC=(cx+d)°，∠BHC=180-∠A，求x
-    const xv=randInt(2,8),av=randInt(1,3),bv=randInt(30,80),cv=randInt(1,2);
-    const A_val=av*xv+bv;
-    if(A_val>=160)return null;
-    const BHC_val=180-A_val;
-    const dv=BHC_val-cv*xv;
-    if(dv<=0)return null;
-    return {question:`\\(\\triangle ABC\\) 的垂心為 \\(H\\)，\\(\\angle A=(${av}x+${bv})^\\circ\\)，\\(\\angle BHC=(${cv}x+${dv})^\\circ\\)，求 \\(x\\)`,answer:xv,type:'number',answerPrefix:'\\(x\\)'};
-  }
+  if(t===3)return _9aParaG('hard');
   // t===4: 外心O，△OBC等腰（OB=OC=R），給∠BOC求底角∠OBC
   const BOC4=pick([40,60,80,100,120,140]);
   return {question:`\\(\\triangle ABC\\) 的外心為 \\(O\\)，\\(\\angle BOC=${BOC4}^\\circ\\)，則 \\(\\angle OBC=\\)`,answer:(180-BOC4)/2,type:'number',answerPrefix:'\\(\\angle OBC\\)'};
