@@ -5105,8 +5105,94 @@ function _7bStat(level) {
 // ═══════════════════════════════════════════════════════════════════
 //  八上 ▸ 乘法公式（平方差・完全平方）
 // ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+//  八上 擴充題型（108 課綱 N-8-1、N-8-2、A-8-1、S-8-6）
+// ═══════════════════════════════════════════════════════════════════
+const _8aSqFree=n=>{for(let k=2;k*k<=n;k++)if(n%(k*k)===0)return false;return n>1;};
+const _8aTrip=()=>{const [a,b,c]=pick([[3,4,5],[5,12,13],[8,15,17],[7,24,25],[20,21,29],[9,40,41]]),k=pick([1,1,2,3]);return randInt(0,1)?[a*k,b*k,c*k]:[b*k,a*k,c*k];};
+function _8aSqrtExt(level){
+  const N=(q,a,p)=>({question:q,answer:a,type:'number',answerPrefix:p});
+  const approx=(n,dig)=>{const s=10**dig;let d=Math.floor(Math.sqrt(n)*s);while((d+1)*(d+1)<=n*s*s)d++;while(d*d>n*s*s)d--;return d/s;};
+  if(level==='basic'){
+    const t=randInt(0,2);
+    if(t===0){const n=randInt(2,99);if(Number.isInteger(Math.sqrt(n)))return null;
+      return N(`以十分逼近法求 \\(\\sqrt{${n}}\\) 的近似值（取到小數第一位，第二位以後無條件捨去）`,approx(n,1),'近似值');}
+    if(t===1){const n=randInt(8,200);if(Number.isInteger(Math.sqrt(n))||_8aSqFree(n))return null;
+      return _jrSqrtAns(`正方形的面積為 \\(${n}\\)，求其邊長（化為最簡根式）`,n,1,'邊長');}
+    const a=randInt(2,15);
+    return N(`滿足 \\(${a}<\\sqrt{n}<${a+1}\\) 的正整數 \\(n\\) 共有幾個？`,2*a,'個數');
+  }
+  if(level==='medium'){
+    const t=randInt(0,2);
+    if(t===0){const n=randInt(2,60);if(Number.isInteger(Math.sqrt(n)))return null;
+      return N(`以十分逼近法求 \\(\\sqrt{${n}}\\) 的近似值（取到小數第二位，第三位以後無條件捨去）`,approx(n,2),'近似值');}
+    if(t===1){const a=randInt(2,9),m=pick([2,3,5,6,7]),b=randInt(2,9),n=pick([2,3,5,6,7]);
+      if(a*a*m===b*b*n||m===n)return null;
+      return {question:`比較 甲：\\(${a}\\sqrt{${m}}\\)、乙：\\(${b}\\sqrt{${n}}\\) 的大小，哪一個較大？（填甲或乙）`,answer:a*a*m>b*b*n?'甲':'乙',type:'text',answerPrefix:'較大者'};}
+    const m=randInt(2,60),n=m+randInt(10,80);let c=0;for(let k=1;k*k<n;k++)if(k*k>m)c++;
+    return N(`介於 \\(\\sqrt{${m}}\\) 與 \\(\\sqrt{${n}}\\) 之間的整數共有幾個？`,c,'個數');
+  }
+  const t=randInt(0,1);
+  if(t===0){const n=randInt(2,99);if(!_8aSqFree(n))return null;const a=Math.floor(Math.sqrt(n));
+    return {question:`\\(\\sqrt{${n}}\\) 的整數部分為 \\(a\\)，小數部分為 \\(b\\)，求 \\(b\\)（以根式表示）`,type:'radical-mix',rational:-a,radCoeff:1,radM:n,answerPrefix:'\\(b\\)'};}
+  const n=randInt(2,99);if(!_8aSqFree(n))return null;const a=Math.floor(Math.sqrt(n)),k=randInt(1,4);
+  // b=√n−a，求 b+2a 或 (b+a)² 之類
+  return pick([
+    N(`\\(\\sqrt{${n}}\\) 的整數部分為 \\(a\\)，小數部分為 \\(b\\)，求 \\((b+a)^2\\)`,n,'值'),
+    {question:`\\(\\sqrt{${n}}\\) 的整數部分為 \\(a\\)，小數部分為 \\(b\\)，求 \\(b+${k}a\\)（以根式表示）`,type:'radical-mix',rational:(k-1)*a,radCoeff:1,radM:n,answerPrefix:'值'}
+  ]);
+}
+function _8aPythExt(level){
+  const N=(q,a,p)=>({question:q,answer:a,type:'number',answerPrefix:p});
+  const [a,b,c]=_8aTrip();
+  if(level==='basic'){
+    const t=randInt(0,2);
+    if(t===0)return N(`小明從家裡向東走 \\(${a}\\) 公尺，再向北走 \\(${b}\\) 公尺，此時他與家的直線距離為多少公尺？`,c,'公尺');
+    if(t===1)return N(`直角三角形的斜邊長為 \\(${c}\\)，一股長為 \\(${a}\\)，求此三角形的面積`,a*b/2,'面積');
+    const P=[randInt(-6,6),randInt(-6,6)];
+    return N(`坐標平面上，\\(A(${P[0]},${P[1]})\\)、\\(B(${P[0]+a},${P[1]+b})\\)，求 \\(\\overline{AB}\\)`,c,'\\(\\overline{AB}\\)');
+  }
+  if(level==='medium'){
+    const t=randInt(0,2);
+    if(t===0){const [x,d,h]=pick([[3,4,5],[4,3,5],[5,12,13],[6,8,10],[8,6,10],[9,12,15],[8,15,17]]);
+      return N(`一棵高 \\(${x+h}\\) 公尺的樹被風吹斷（未完全斷開），樹頂著地處與樹根相距 \\(${d}\\) 公尺，則折斷處離地面多少公尺？`,x,'公尺');}
+    if(t===1){const h=pick([2,3]);return N(`甲、乙兩船同時從港口出發，甲船向東每小時航行 \\(${a}\\) 公里，乙船向北每小時航行 \\(${b}\\) 公里，\\(${h}\\) 小時後兩船相距多少公里？`,c*h,'公里');}
+    return N(`等腰三角形的兩腰長都是 \\(${c}\\)，底邊長為 \\(${2*a}\\)，求此三角形的面積`,a*b,'面積');
+  }
+  const t=randInt(0,2);
+  if(t===0){// 水深 x、水平距離 d、蘆葦長 x+e（e 為高出水面）
+    const [x,d,L]=pick([[4,3,5],[12,5,13],[15,8,17],[24,7,25],[40,9,41],[8,6,10],[12,9,15],[24,10,26],[60,11,61]]),u=pick([10,10,1]),U=u===10?'公分':'公尺';
+    if(u===1&&x>15)return null;
+    return N(`一根蘆葦直立在水池中，高出水面 \\(${(L-x)*u}\\) ${U}；風吹後蘆葦傾斜，頂端恰好碰到水面，此時頂端離原來位置的水平距離為 \\(${d*u}\\) ${U}，求水深多少${U}？`,x*u,U);}
+  if(t===1)return N(`直角三角形的兩股長之和為 \\(${a+b}\\)，斜邊長為 \\(${c}\\)，求此三角形的面積`,a*b/2,'面積');
+  // 梯子下滑
+  // 梯子下滑：原頂高 p、梯腳 q；下滑後梯腳 p、頂高 q
+  const [p,q,r]=_8aTrip();if(p<=q)return null;
+  return N(`長 \\(${r}\\) 公尺的梯子斜靠在牆上，梯腳距牆 \\(${q}\\) 公尺。若梯子頂端沿牆下滑後，梯腳距牆變為 \\(${p}\\) 公尺，則梯子頂端下滑了多少公尺？`,p-q,'公尺');
+}
+function _8aMulExt(level){
+  const N=(q,a,p)=>({question:q,answer:a,type:'number',answerPrefix:p});
+  if(level==='basic'){
+    const a=randInt(3,20),b=randInt(1,a-1);
+    if(randInt(0,1))return N(`若 \\(x+y=${a}\\)，\\(x-y=${b}\\)，求 \\(x^2-y^2\\) 的值`,a*b,'值');
+    const s=randInt(5,30),d=randInt(1,6);
+    return N(`正方形的邊長為 \\(${s}\\) 公分，若邊長增加 \\(${d}\\) 公分，則面積增加多少平方公分？`,2*s*d+d*d,'平方公分');
+  }
+  if(level==='medium'){
+    const t=randInt(0,1);
+    if(t===0){const S=randInt(3,15),D=randInt(1,9);return N(`若 \\(x^2-y^2=${S*D}\\)，\\(x+y=${S}\\)，求 \\(x-y\\) 的值`,D,'\\(x-y\\)');}
+    const d=randInt(1,9),k=randInt(0,1);
+    return {question:`正方形的邊長為 \\(x\\)，若邊長${k?'增加':'減少'} \\(${d}\\)，則新正方形的面積比原來${k?'多':'少'}多少？（以 \\(x\\) 的多項式表示）`,type:'poly',polyA2:0,polyA1:2*d,polyA0:k?d*d:-d*d,answerPrefix:''};
+  }
+  const t=randInt(0,1);
+  if(t===0){const a=randInt(-9,9),b=randInt(-9,9);if(a===b||a===-b)return null;
+    return N(`若 \\((a+b)^2=${(a+b)**2}\\)，\\((a-b)^2=${(a-b)**2}\\)，求 \\(ab\\) 的值`,a*b,'\\(ab\\)');}
+  const a=randInt(2,9),b=randInt(1,a-1);
+  return N(`兩正方形的邊長分別為 \\(a\\)、\\(b\\)（\\(a>b\\)），周長相差 \\(${4*(a-b)}\\)，面積相差 \\(${a*a-b*b}\\)，求 \\(a+b\\)`,a+b,'\\(a+b\\)');
+}
+
 function gen8aMulForm(level) {
-  for (let i=0;i<30;i++) { const q=_8aMulForm(level); if(q) return q; }
+  for (let i=0;i<30;i++) { const q=Math.random()<0.3?_8aMulExt(level):_8aMulForm(level); if(q) return q; }
   return _8aMulForm('basic');
 }
 function _8aMulForm(level) {
@@ -5730,8 +5816,6 @@ function _8aPolyAdd(level) {
   const pool=[
     {q:'如圖，三角形三邊長分別為 \\((12x+3)\\)、\\((7x^2-x)\\)、\\((14x-2)\\)，則此三角形的周長為（以 \\(x\\) 的多項式表示）', type:'poly', a2:7, a1:25, a0:1},
     {q:'利用直式計算 \\((-3x^3-7x^2+3x-5)-(2x^3-5x^2-x+1)\\) 後，各項係數總和（代入 \\(x=1\\) 驗算）為', type:'number', ans:-9, pfx:'係數總和'},
-    {q:'如果 \\(5a^{3x+y}b^{6-y}\\) 與 \\(\\dfrac{1}{4}a^{x-1}b^{3x-y}\\) 是同類項，則 \\(x+y=\\)', type:'number', ans:-3, pfx:'x+y'},
-    {q:'若 \\(ab=a-b\\)，且 \\(a\\)、\\(b\\) 皆不為零，則 \\(\\dfrac{a}{b}+\\dfrac{b}{a}-ab=\\)', type:'number', ans:2, pfx:''},
     {q:'下列哪些式子與 \\(-5x\\) 為同類項？（A）\\(11x\\)（B）\\(-5y\\)（C）\\(x^2\\)（D）\\(\\dfrac{x}{5}\\)，答案為', type:'text', ans:'(A)(D)', pfx:''},
     {q:'若 \\((2x^3+2x^2+8x-4)-A=-x^3+2x^2-7x+3\\)，則 \\(A\\) 的三次項係數為', type:'number', ans:3, pfx:'三次項係數'},
     {q:'利用直式計算 \\((-3x^3-7x^2+3x-5)-(2x^3-5x^2-x+1)\\) 後，\\(x^2\\) 項係數為', type:'number', ans:-2, pfx:'x²項係數'},
@@ -5750,7 +5834,7 @@ let _pmBQ=[],_pmMQ=[],_pmHQ=[];
 //  八上 ▸ 多項式乘法與除法
 // ═══════════════════════════════════════════════════════════════════
 function gen8aPolyMul(level) {
-  for (let i=0;i<30;i++) { const q=_8aPolyMul(level); if(q) return q; }
+  for (let i=0;i<30;i++) { const q=_8aPolyMul(level); if(q) return _jr1x(q); }
   return _8aPolyMul('basic');
 }
 function _8aPolyMul(level) {
@@ -5824,8 +5908,6 @@ function _8aPolyMul(level) {
   }
   if(level==='medium'){
     const mpool=[
-      {q:'若 \\(x(x-2)=4\\)，則 \\((x+1)^2(x-3)^2-4(x+3)(x-5)+5=\\)', type:'number',ans:50,pfx:''},
-      {q:'\\((198x^2+198x+4)(x^2+4x+198)\\) 展開式中，\\(x^2\\) 項的係數＝', type:'number',ans:40000,pfx:'\\(x^2\\)項係數'},
       {q:'若已知 \\((3x+a)(bx+3)=-6x^2+11x+c\\)，則 \\(a+b+c=\\)', type:'number',ans:-6,pfx:'\\(a+b+c\\)'},
       {q:'展開 \\((x+\\dfrac{1}{2})(2x-6)\\)', type:'poly',a2:2,a1:-5,a0:-3,pfx:''},
       {q:'展開 \\((x-\\dfrac{2}{3})(3x+6)\\)', type:'poly',a2:3,a1:4,a0:-4,pfx:''},
@@ -5893,13 +5975,9 @@ function _8aPolyMul(level) {
     return {question:`展開 \\((${ps(0,t5a,t5b)})(${ps(t5c,t5d,t5e)})\\) 後，\\(x^2\\) 的係數為`,type:'number',answer:t5x2,answerPrefix:'\\(x^2\\) 的係數'};
   }
   const hpool=[
-    {q:'已知 \\((x^2+mx+n)(x^2-3x+6)\\) 展開後，\\(x^2\\) 項的係數和常數項都是 \\(0\\)，則 \\(m+n=\\)', type:'number',ans:2,pfx:'\\(m+n\\)'},
-    {q:'求多項式 \\((3x^2+9-5x)(4x^2-6x+7)-(-x+9x^2-4)\\) 的係數總和為', type:'number',ans:31,pfx:'係數總和'},
-    {q:'若 \\(x\\) 是實數，且 \\(x^2+2x-5=0\\)，則 \\((x+7)(x+3)(x-1)(x-5)=\\)', type:'number',ans:-60,pfx:''},
     {q:'若 \\(x^2+x-1=0\\)，則 \\(x^3+2x^2+2=\\)', type:'number',ans:3,pfx:''},
     {q:'展開 \\((2x+1)(3x-2)(x-4)\\) 後，\\(x^2\\) 項的係數為', type:'number',ans:-25,pfx:'\\(x^2\\) 項係數'},
     {q:'若 \\((x^2+ax+b)(x+4)=x^3+5x^2-2x-24\\)，求 \\(a+b\\)', type:'number',ans:-5,pfx:'\\(a+b\\)'},
-    {q:'展開 \\((x-2)(x^3+x^2-x+4)\\) 後，\\(x^2\\) 的係數為', type:'number',ans:-3,pfx:'\\(x^2\\) 的係數'},
     {q:'展開 \\((2x+1)(x^3-x^2+3x-2)\\) 後，\\(x^2\\) 的係數為', type:'number',ans:5,pfx:'\\(x^2\\) 的係數'},
     {q:'展開 \\((x^2-2x+1)(x^3+x^2-x+3)\\) 後，\\(x^3\\) 的係數為', type:'number',ans:-2,pfx:'\\(x^3\\) 的係數'},
   ];
@@ -6023,94 +6101,65 @@ function _8aPolyDiv(level) {
       {q:'若多項式 \\(P\\) 除以 \\((2x-1)\\) 的商式為 \\((x+4)\\)，餘式為 \\(3\\)，求多項式 \\(P\\)', type:'poly',a2:2,a1:7,a0:-1,pfx:''},
     ];
     const mi=jrQPickOnce(mpool,_pdMQ); if(mi!==null) return ret(mi);
-    // 動態：t=0 三次式÷一次式；t=1 三次式÷二次式
-    const mt=randInt(0,1);
+    // 動態（108 課綱：被除式為二次）：t=0 ÷(x+k)；t=1 ÷(dx+e)；t=2 整除求 k；t=3 二次÷二次
+    const mt=randInt(0,3);
     if(mt===0){
-      // 三次式÷一次式：Q=ma·x²+mb·x+mc, R=mr, 除式=(x+mk)
-      const ma=pick([1,1,2]), mb=randInt(-4,4), mc=randInt(-4,4), mk=randInt(-5,5), mr=randInt(-5,5);
-      const mB=mb+ma*mk, mC=mc+mb*mk, mD=mc*mk+mr;
-      if(Math.abs(mB)>12||Math.abs(mC)>16||Math.abs(mD)>20) return null;
-      return {
-        question:`計算 \\((${cb(ma,mB,mC,mD)}) \\div (${ps(0,1,mk)})\\) 的商式與餘式`,
-        answerParts:[
-          {prefix:'商', type:'poly', answer:{a2:ma, a1:mb, a0:mc}},
-          {prefix:'餘式', type:'number', answer:mr}
-        ]
-      };
+      const p=pick([1,2,3]),q=randInt(-6,6),k=rnzInt(-6,6),r=randInt(-8,8);
+      return {question:`計算 \\((${ps(p,p*k+q,q*k+r)}) \\div (${ps(0,1,k)})\\) 的商式與餘式`,
+        answerParts:[{prefix:'商',type:'poly',answer:{a2:0,a1:p,a0:q}},{prefix:'餘式',type:'number',answer:r}]};
     }
-    // mt===1：三次式÷二次式：Q=x+qq, R=re·x+rf, 除式=x²+da·x+dc
-    const mda=randInt(-3,3), mdc=randInt(-3,3);
-    if(mda===0&&mdc===0) return null;
-    const mqq=randInt(-4,4), mre=randInt(-3,3), mrf=randInt(-3,3);
-    const mB2=mqq+mda, mC2=mda*mqq+mdc+mre, mD2=mdc*mqq+mrf;
-    if(Math.abs(mB2)>7||Math.abs(mC2)>10||Math.abs(mD2)>12) return null;
-    return {
-      question:`計算 \\((${cb(1,mB2,mC2,mD2)}) \\div (${ps(1,mda,mdc)})\\) 的商式與餘式`,
-      answerParts:[
-        {prefix:'商', type:'poly', answer:{a2:0, a1:1, a0:mqq}},
-        {prefix:'餘式', type:'poly', answer:{a2:0, a1:mre, a0:mrf}}
-      ]
-    };
+    if(mt===1){
+      const d=pick([2,3]),e=rnzInt(-7,7),p=rnzInt(-4,4),q=randInt(-6,6),r=randInt(-8,8);
+      if(gcd(Math.abs(e),d)!==1) return null;
+      return {question:`計算 \\((${ps(d*p,e*p+d*q,e*q+r)}) \\div (${ps(0,d,e)})\\) 的商式與餘式`,
+        answerParts:[{prefix:'商',type:'poly',answer:{a2:0,a1:p,a0:q}},{prefix:'餘式',type:'number',answer:r}]};
+    }
+    if(mt===2){
+      // x²+kx+mn 可被 (x+m) 整除 → k=m+n
+      const m=rnzInt(-7,7),n=rnzInt(-7,7);
+      if(m+n===0) return null;
+      return {question:`若多項式 \\(x^2+kx${m*n>0?'+':''}${m*n}\\) 可以被 \\(${ps(0,1,m)}\\) 整除，求 \\(k\\)`,answer:m+n,type:'number',answerPrefix:'\\(k\\)'};
+    }
+    // 二次÷二次：商為常數，餘式為一次式
+    const c=pick([2,3,4,-2,-3]),da=randInt(-5,5),db=rnzInt(-6,6),re=rnzInt(-6,6),rf=randInt(-9,9);
+    return {question:`計算 \\((${ps(c,c*da+re,c*db+rf)}) \\div (${ps(1,da,db)})\\) 的商式與餘式`,
+      answerParts:[{prefix:'商',type:'number',answer:c},{prefix:'餘式',type:'poly',answer:{a2:0,a1:re,a0:rf}}]};
   }
   const hpool=[
-    {q:'已知 \\(A\\) 為一多項式，且 \\(A\\cdot(x+5)=x^3+3x^2-13x-15\\)，求 \\(A\\div(x+1)\\) 得商式為【\\(\\quad\\quad\\)】，餘式為【\\(\\quad\\quad\\)】', type:'text',ans:'x-3;0',pfx:''},
     {q:'計算 \\([(x^2+5x-2)-(-2x^2-3x+4)]\\div(x-2)\\) 的餘式為', type:'number',ans:22,pfx:'餘式'},
     {q:'設 \\(A\\)、\\(B\\) 是整數，若 \\(\\dfrac{x^2+x+A}{x-2}=x+B\\)，則 \\(A=\\)【\\(\\quad\\quad\\)】，\\(B=\\)【\\(\\quad\\quad\\)】', type:'text',ans:'-6;3',pfx:''},
-    {q:'某多項式除 \\(x^3+x^2-7x+3\\) 得商式為 \\(x^2+3x-1\\)，餘式為 \\(1\\)，則此多項式為', type:'poly',a2:0,a1:1,a0:-2,pfx:''},
-    {q:'若多項式 \\(A\\) 除以 \\(2x-5\\) 的商式是 \\(B\\)，餘式是 \\(8\\)，又 \\(B\\) 除以 \\(4x+3\\) 的商式是 \\(x-2\\)，餘式是 \\(-7\\)，則多項式 \\(A\\) 除以 \\((2x-5)(4x+3)\\) 的商式為', type:'poly',a2:0,a1:1,a0:-2,pfx:''},
     {q:'設 \\(A\\) 為多項式，且 \\(\\dfrac{x^2+4x-17}{A}=x-3+\\dfrac{4}{A}\\)，則多項式 \\(A=\\)', type:'poly',a2:0,a1:1,a0:7,pfx:''},
     {q:'利用多項式的除法，\\([(ax^2+bx+c)-(-x^2+3x-2)]\\div(3x-2)\\) 後，得商式為 \\(2x-4\\)，餘式為 \\(-1\\)，則 \\(a+2b+c=\\)', type:'number',ans:-16,pfx:'\\(a+2b+c\\)'},
-    {q:'若 \\(6x^4-11x^3+Px^2+2x+Q\\) 可以被 \\(2x^2-x-1\\) 整除，則 \\(P=\\)【\\(\\quad\\quad\\)】，\\(Q=\\)【\\(\\quad\\quad\\)】', type:'text',ans:'5;-2',pfx:''},
-    {q:'若 \\((2x^3+8x^2-ax+3)\\div(2x^2-1)\\) 得餘式 \\(2x+b\\)，則 \\(a=\\)【\\(\\quad\\quad\\)】，\\(b=\\)【\\(\\quad\\quad\\)】', type:'text',ans:'-1;7',pfx:''},
-    {q:'若多項式 \\(f(x)\\) 除以 \\((x-2)\\) 的餘式為 \\(7\\)，除以 \\((x+3)\\) 的餘式為 \\(2\\)，設 \\(f(x)=(x-2)(x+3)q(x)+px+r\\)，求 \\(p\\)', type:'number',ans:1,pfx:'\\(p\\)'},
     {q:'已知 \\((x^2+ax+b)\\cdot(x-2)=x^3-x^2-4x+4\\)，求 \\(a+b\\)', type:'number',ans:-1,pfx:'\\(a+b\\)'},
 
   ];
   const hi=jrQPickOnce(hpool,_pdHQ); if(hi!==null) return ret(hi);
-  // 長除法（困難）：三種類型
-  const ht2=randInt(0,2);
+  // 動態（108 課綱：被除式為二次）
+  const ht2=randInt(0,3);
   if(ht2===0){
-    // 三次式÷二次式：Q=x+h0qq, R=h0re·x+h0rf, 除式=x²+h0da·x+h0dc
-    const h0da=randInt(-3,3),h0dc=randInt(-4,4);
-    if(h0da===0&&h0dc===0) return null;
-    const h0qq=randInt(-4,4),h0re=randInt(-3,3),h0rf=randInt(-4,4);
-    const h0B=h0qq+h0da,h0C=h0da*h0qq+h0dc+h0re,h0D=h0dc*h0qq+h0rf;
-    if(Math.abs(h0B)>8||Math.abs(h0C)>14||Math.abs(h0D)>20) return null;
-    return {
-      question:`計算 \\((${cb(1,h0B,h0C,h0D)}) \\div (${ps(1,h0da,h0dc)})\\) 的商式與餘式`,
-      answerParts:[
-        {prefix:'商', type:'poly', answer:{a2:0, a1:1, a0:h0qq}},
-        {prefix:'餘式', type:'poly', answer:{a2:0, a1:h0re, a0:h0rf}}
-      ]
-    };
+    // 已知被除式、商式、餘式，求除式
+    const d=pick([1,2,3]),e=rnzInt(-7,7),p=pick([1,2,3,-1,-2]),q=randInt(-6,6),r=randInt(-6,6);
+    if(gcd(Math.abs(e),d)!==1) return null;
+    return poly(`多項式 \\(${ps(d*p,e*p+d*q,e*q+r)}\\) 除以多項式 \\(B\\)，得商式為 \\(${ps(0,p,q)}\\)，餘式為 \\(${r}\\)，求 \\(B\\)`,0,d,e);
   }
   if(ht2===1){
-    // 四次式÷三次式：Q=x+qq, R=ra·x²+rb·x+rc, 除式=x³+da·x²+db·x+dc
-    const h1da=randInt(-2,2),h1db=randInt(-3,3),h1dc=randInt(-3,3);
-    const h1q=randInt(-3,3),h1ra=randInt(-2,2),h1rb=randInt(-3,3),h1rc=randInt(-4,4);
-    const h1B=h1q+h1da,h1C=h1da*h1q+h1db+h1ra,h1D=h1db*h1q+h1dc+h1rb,h1E=h1dc*h1q+h1rc;
-    if(Math.abs(h1B)>7||Math.abs(h1C)>12||Math.abs(h1D)>14||Math.abs(h1E)>18) return null;
-    return {
-      question:`計算 \\((${cq(1,h1B,h1C,h1D,h1E)}) \\div (${cb(1,h1da,h1db,h1dc)})\\) 的商式與餘式`,
-      answerParts:[
-        {prefix:'商', type:'poly', answer:{a2:0, a1:1, a0:h1q}},
-        {prefix:'餘式', type:'poly', answer:{a2:h1ra, a1:h1rb, a0:h1rc}}
-      ]
-    };
+    // (x²+ax+b)÷(x-m) 商 x+q 餘 r，求 a、b
+    const m=rnzInt(-6,6),q=randInt(-6,6),r=randInt(-8,8);
+    return {question:`若 \\((x^2+ax+b)\\div(${ps(0,1,-m)})\\) 的商式為 \\(${ps(0,1,q)}\\)，餘式為 \\(${r}\\)，求 \\(a\\)、\\(b\\)`,
+      answerParts:[{prefix:'\\(a\\)',type:'number',answer:q-m},{prefix:'\\(b\\)',type:'number',answer:r-m*q}]};
   }
-  // ht2===2: 四次式÷二次式：Q=x²+qa·x+qb, R=rc·x+rd, 除式=x²+da·x+db
-  const h2da=randInt(-3,3),h2db=randInt(-4,4);
-  if(h2da===0&&h2db===0) return null;
-  const h2qa=randInt(-3,3),h2qb=randInt(-3,3),h2rc=randInt(-3,3),h2rd=randInt(-4,4);
-  const h2B=h2qa+h2da,h2C=h2qb+h2da*h2qa+h2db,h2D=h2da*h2qb+h2db*h2qa+h2rc,h2E=h2db*h2qb+h2rd;
-  if(Math.abs(h2B)>8||Math.abs(h2C)>14||Math.abs(h2D)>16||Math.abs(h2E)>24) return null;
-  return {
-    question:`計算 \\((${cq(1,h2B,h2C,h2D,h2E)}) \\div (${ps(1,h2da,h2db)})\\) 的商式與餘式`,
-    answerParts:[
-      {prefix:'商', type:'poly', answer:{a2:1, a1:h2qa, a0:h2qb}},
-      {prefix:'餘式', type:'poly', answer:{a2:0, a1:h2rc, a0:h2rd}}
-    ]
-  };
+  if(ht2===2){
+    // 長方形面積與一邊長，求周長
+    const a=pick([1,2,3]),b=randInt(1,9),c=pick([1,2,3,4]),d=randInt(1,9);
+    if(a===c&&b===d) return null;
+    return poly(`長方形的面積為 \\((${ps(a*c,a*d+b*c,b*d)})\\)，一邊長為 \\((${ps(0,a,b)})\\)，求此長方形的周長`,0,2*(a+c),2*(b+d));
+  }
+  // 兩多項式先相減再相除，求餘式
+  const k=rnzInt(-5,5),p=pick([1,2,3]),q=randInt(-6,6),r=rnzInt(-9,9),B2=randInt(-3,3),B1=randInt(-6,6),B0=rnzInt(-9,9);
+  const A2=p+B2,A1=q-p*k+B1,A0=r-q*k+B0;
+  if(A2===0) return null;
+  return {question:`計算 \\([(${ps(A2,A1,A0)})-(${ps(B2,B1,B0)})]\\div(${ps(0,1,-k)})\\) 的餘式為`,answer:r,type:'number',answerPrefix:'餘式'};
+
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -6199,7 +6248,7 @@ function _8aPolyMix(level) {
 // ═══════════════════════════════════════════════════════════════════
 let _sqBasicQ=[],_sqHSysQ=[],_sqHSumQ=[];
 function gen8aSqrtBasic(level) {
-  for (let i=0;i<30;i++) { const q=_8aSqrtBasic(level); if(q) return q; }
+  for (let i=0;i<30;i++) { const q=Math.random()<0.4?_8aSqrtExt(level):_8aSqrtBasic(level); if(q) return q; }
   return _8aSqrtBasic('basic');
 }
 function _8aSqrtBasic(level) {
@@ -7277,7 +7326,7 @@ function _8aScale(vals){
 }
 
 function gen8aPyth(level) {
-  for (let i=0;i<30;i++) { const q=_8aPyth(level); if(q) return q; }
+  for (let i=0;i<30;i++) { const q=Math.random()<0.35?_8aPythExt(level):_8aPyth(level); if(q) return q; }
   return _8aPyth('basic');
 }
 function _8aPyth(level) {
@@ -7806,7 +7855,7 @@ function _8bFactor2Ext(level){
 }
 
 function gen8bFactor2(level){
-  for(let i=0;i<30;i++){const q=_8bFactor2(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=_8bFactor2(level);if(q)return _jr1x(q);}
   return _8bFactor2('basic');
 }
 function _8bFactor2(level){
@@ -8153,7 +8202,7 @@ function _8bQuad1(level){
 //  八下 ▸ 一元二次方程式（配方法與公式解）
 // ═══════════════════════════════════════════════════════════════════
 function gen8bQuad2(level){
-  for(let i=0;i<30;i++){const q=_8bQuad2(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=_8bQuad2(level);if(q)return _jr1x(q);}
   return _8bQuad2('basic');
 }
 // 配方法專屬題型：大常數項（如 x²+2x-899=0）與分數配方
@@ -8243,15 +8292,14 @@ function _8bQuad2(level){
   if(level==='medium'){
     const t=randInt(0,7);
     if(t===5||t===6){
-      // 韋達定理（首項係數≠1，答案為分數）：(ax-p)(x-q)=0
-      const a=pick([2,3,4,5]),p=randInt(-9,9),q=randInt(-6,6);
-      if(p===0||q===0||gcd(p,a)!==1)return null;
-      const B=-(a*q+p),C=p*q;
-      const eq=_jrFQuad(frac(a),frac(B),frac(C));
-      if(t===5)return{question:`方程式 \\(${eq}=0\\) 的兩根之和為`,answer:frac(-B,a),type:'fraction',answerPrefix:'兩根之和'};
-      const P=frac(C,a);
-      if(P.den===1)return null;
-      return{question:`方程式 \\(${eq}=0\\) 的兩根之積為`,answer:P,type:'fraction',answerPrefix:'兩根之積'};
+      // 判別式判斷根的情形
+      const a=pick([1,2,3,4,-1,-2]),b=randInt(-9,9),r=randInt(0,2);
+      let c;
+      if(r===1){ if((b*b)%(4*a)!==0) return null; c=b*b/(4*a); }
+      else { c=randInt(-9,9); const D0=b*b-4*a*c; if(D0===0||(r===0)!==(D0>0)) return null; }
+      const D=b*b-4*a*c;
+      return {question:`不解方程式，判斷 \\(${_jrFQuad(frac(a),frac(b),frac(c))}=0\\) 的根的情形（填「兩相異根」、「重根」或「無解」）`,
+        answer:D>0?'兩相異根':D===0?'重根':'無解',type:'text',answerPrefix:'根的情形'};
     }
     if(t===7){
       // 分數係數（整數根）：先去分母再用公式解
@@ -8274,24 +8322,22 @@ function _8bQuad2(level){
       return qrq(`解方程式 \\(2x^2+${2*q+p}x+${p*q}=0\\)（公式解），求兩根`,frac(-p,2),frac(-q,1));
     }
     if(t===2){
-      // 韋達定理：兩根之和 = -b/a
-      const r1=randInt(-6,6),r2=randInt(-6,6);
-      if(r1===r2)return null;
-      const S=r1+r2,P=r1*r2;
-      return{question:`方程式 \\(${eqnStr(-S,P)}=0\\) 的兩根之和為`,answer:S,type:'number',answerPrefix:'兩根之和'};
+      // 已知一根，代入求 k 再解出另一根
+      const r=rnzInt(-6,6),s=rnzInt(-6,6);
+      if(r===s) return null;
+      return {question:`方程式 \\(x^2+kx${r*s>0?'+':''}${r*s}=0\\) 有一根為 \\(${r}\\)，求另一根`,answer:s,type:'number',answerPrefix:'另一根'};
     }
     if(t===3){
-      // 韋達定理：兩根之積 = c/a
-      const r1=randInt(-6,6),r2=randInt(-6,6);
-      if(r1===r2||r1===0||r2===0)return null;
-      const S=r1+r2,P=r1*r2;
-      return{question:`方程式 \\(${eqnStr(-S,P)}=0\\) 的兩根之積為`,answer:P,type:'number',answerPrefix:'兩根之積'};
+      // 重根求 k（首項係數不一定為 1）
+      const a=pick([1,4,9,16,25]),c=pick([1,4,9,16,25,36]);
+      if(a===1&&c===1) return null;
+      return {question:`方程式 \\(${a===1?'':a}x^2+kx+${c}=0\\) 有重根，求正數 \\(k\\)`,answer:2*Math.sqrt(a*c),type:'number',answerPrefix:'k'};
     }
     // t===4: 已知一根求k：x²-kx+c=0有一根r，k = r + c/r（r整除c）
     const r=randInt(2,6),m=randInt(2,6);
     return{question:`方程式 \\(x^2-kx+${r*m}=0\\) 有一根為 \\(${r}\\)，求 \\(k\\)`,answer:r+m,type:'number',answerPrefix:'k'};
   }
-  // hard：六種類型（ht=0,1,2 原有，ht=3,4,5 韋達定理應用）
+  // hard：公式解、配方、重根、已知一根、根為 0
   const ht=randInt(0,7);
   if(ht===6){
     // 分數係數、兩分數根：(2x-p)(3x-q)=0 同除以 6
@@ -8326,24 +8372,23 @@ function _8bQuad2(level){
       answerParts:[{prefix:'p',answer:frac(b,2),type:'fraction'},{prefix:'q',answer:frac(diff*diff,4),type:'fraction'}]};
   }
   if(ht===3){
-    // 韋達定理：設兩根為α、β，求 α²+β² = (α+β)²-2αβ
-    const r1=randInt(-6,6),r2=randInt(-6,6);
-    if(r1===r2)return null;
-    const S=r1+r2,P=r1*r2;
-    return{question:`設方程式 \\(${eqnStr(-S,P)}=0\\) 的兩根為 \\(\\alpha\\)、\\(\\beta\\)，求 \\(\\alpha^2+\\beta^2\\)`,answer:S*S-2*P,type:'number',answerPrefix:'\\(\\alpha^2+\\beta^2\\)'};
+    // 係數含 k，已知一根，代入求 k 再求另一根
+    const r=rnzInt(-5,5),s=rnzInt(-6,6),k=rnzInt(-6,6),m=pick([1,2,3,-1,-2]);
+    if(r===s||r+m===0) return null;
+    const p=-(r+s)-k,n=r*s-m*k;
+    if(p===0) return null;
+    const bx=`(k${p>0?'+':''}${p})`,c0=`${m===1?'':m===-1?'-':m}k${n>0?'+':''}${n===0?'':n}`;
+    return {question:`方程式 \\(x^2+${bx}x${c0[0]==='-'?'':'+'}${c0}=0\\) 有一根為 \\(${r}\\)，求另一根`,answer:s,type:'number',answerPrefix:'另一根'};
   }
   if(ht===4){
-    // 韋達定理：求 (α-β)² = (α+β)²-4αβ
-    const r1=randInt(-6,6),r2=randInt(-6,6);
-    if(r1===r2)return null;
-    const S=r1+r2,P=r1*r2;
-    return{question:`設方程式 \\(${eqnStr(-S,P)}=0\\) 的兩根為 \\(\\alpha\\)、\\(\\beta\\)，求 \\((\\alpha-\\beta)^2\\)`,answer:S*S-4*P,type:'number',answerPrefix:'\\((\\alpha-\\beta)^2\\)'};
+    // kx²+bx+c=0 有重根，求 k
+    const c=randInt(1,6),w=randInt(1,4),b=2*c*w*pick([1,-1]);
+    return {question:`方程式 \\(kx^2${b>0?'+':''}${b}x+${c}=0\\) 有重根，求 \\(k\\)`,answer:c*w*w,type:'number',answerPrefix:'k'};
   }
-  // ht===5: 韋達定理：求 1/α+1/β = (α+β)/(αβ)（正整數根）
-  const r1=randInt(1,6),r2=randInt(1,6);
-  if(r1===r2)return null;
-  const S5=r1+r2,P5=r1*r2;
-  return{question:`設方程式 \\(${eqnStr(-S5,P5)}=0\\) 的兩根為 \\(\\alpha\\)、\\(\\beta\\)，求 \\(\\dfrac{1}{\\alpha}+\\dfrac{1}{\\beta}\\)`,answer:frac(S5,P5),type:'fraction',answerPrefix:'\\(\\tfrac{1}{\\alpha}+\\tfrac{1}{\\beta}\\)'};
+  // 是一元二次方程式且有一根為 0
+  const a=randInt(2,6),b=rnzInt(-7,7);
+  return {question:`若 \\((k-${a})x^2${b>0?'+':''}${b}x+k^2-${a*a}=0\\) 是一元二次方程式，且有一根為 \\(0\\)，求 \\(k\\)`,answer:-a,type:'number',answerPrefix:'k'};
+
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -8432,8 +8477,31 @@ function _8bQuad3(level){
 // ═══════════════════════════════════════════════════════════════════
 //  八下 ▸ 統計資料處理
 // ═══════════════════════════════════════════════════════════════════
+// 統計資料處理（D-8-1）：累積次數、相對次數、累積相對次數
+function _8aStatCum(level){
+  const W=pick([10,5]),st=pick([40,50,60]),G=W===10?5:6,N=pick([20,25,50]);
+  const f=Array(G).fill(1);for(let i=G;i<N;i++)f[randInt(0,G-1)]++;
+  const lab=i=>`\\(${st+i*W}\\)～\\(${st+(i+1)*W}\\) 分`;
+  const pre=`某班 \\(${N}\\) 人的成績次數分配（各組含下限、不含上限）：${f.map((v,i)=>`${lab(i)} \\(${v}\\) 人`).join('、')}。`;
+  const cum=i=>f.slice(0,i+1).reduce((a,b)=>a+b,0),pct=v=>v*100/N,k=randInt(1,G-2),P='百分比（%）';
+  if(level==='basic'){
+    if(randInt(0,1))return {question:pre+`成績未滿 \\(${st+(k+1)*W}\\) 分的有幾人？`,answer:cum(k),type:'number',answerPrefix:'累積次數'};
+    return {question:pre+`${lab(k)}這一組的相對次數為百分之幾？`,answer:pct(f[k]),type:'number',answerPrefix:P};
+  }
+  if(level==='medium'){
+    const t=randInt(0,2);
+    if(t===0)return {question:pre+`成績未滿 \\(${st+(k+1)*W}\\) 分的累積相對次數為百分之幾？`,answer:pct(cum(k)),type:'number',answerPrefix:P};
+    if(t===1)return {question:pre+`成績在 \\(${st+(k+1)*W}\\) 分以上（含）的有幾人？`,answer:N-cum(k),type:'number',answerPrefix:'人數'};
+    return {question:`某班成績的累積次數為：${f.map((v,i)=>`未滿 \\(${st+(i+1)*W}\\) 分有 \\(${cum(i)}\\) 人`).join('、')}。求${lab(k)}這一組有幾人？`,answer:f[k],type:'number',answerPrefix:'人數'};
+  }
+  const t=randInt(0,2);
+  if(t===0)return {question:`某班有 \\(${N}\\) 人，成績的累積相對次數為：${f.map((v,i)=>`未滿 \\(${st+(i+1)*W}\\) 分 \\(${pct(cum(i))}\\%\\)`).join('、')}。求${lab(k)}這一組有幾人？`,answer:f[k],type:'number',answerPrefix:'人數'};
+  if(t===1)return {question:`某次測驗中，${lab(k)}這一組有 \\(${f[k]}\\) 人，其相對次數為 \\(${pct(f[k])}\\%\\)，求參加測驗的總人數`,answer:N,type:'number',answerPrefix:'人數'};
+  return {question:pre+`若 \\(${st+(k+1)*W}\\) 分以上（含）為及格，則及格人數占全班的百分之幾？`,answer:pct(N-cum(k)),type:'number',answerPrefix:P};
+}
+
 function gen8bStat(level){
-  for(let i=0;i<30;i++){const q=_8bStat(level);if(q)return q;}
+  for(let i=0;i<30;i++){const q=Math.random()<0.45?_8aStatCum(level):_8bStat(level);if(q)return q;}
   return _8bStat('basic');
 }
 function _8bStat(level){
@@ -8535,12 +8603,7 @@ function _8bStat(level){
   }
   // hard：兩位數至三位數
   const t=randInt(0,4);
-  if(t===0){
-    // 四分位距（9個資料，兩至三位數）
-    const d=Array.from({length:9},()=>randInt(10,200)).sort((a,b)=>a-b);
-    return {question:`資料（由小到大）：\\(${dj(d)}\\)，求四分位距 \\(Q_3-Q_1\\)`,
-      answer:d[6]-d[2],type:'number'};
-  }
+  if(t===0)return _8aStatCum('hard');
   if(t===1){
     // 平均數為分數，5個兩位數
     const d=Array.from({length:5},()=>randInt(10,80));
@@ -8561,16 +8624,11 @@ function _8bStat(level){
     return {question:`五個資料 \\(${dj(d)}\\) 加上某數 \\(x\\) 共六個數的平均數為 \\(${mean}\\)，求 \\(x\\)`,
       answer:missing,type:'number'};
   }
-  if(t===3){
-    // 四分位距（11個資料，兩至三位數，Q1=d[2]，Q3=d[8]）
-    const d=Array.from({length:11},()=>randInt(10,200)).sort((a,b)=>a-b);
-    return {question:`資料（由小到大）：\\(${dj(d)}\\)，求四分位距 \\(Q_3-Q_1\\)`,
-      answer:d[8]-d[2],type:'number'};
-  }
+  if(t===3)return _8aStatCum('hard');
   // t===4: 累積相對次數（化最簡分數）
   const fs6=Array.from({length:4},()=>randInt(3,10));
   const tot6=fs6.reduce((a,b)=>a+b,0);
-  const cidx6=randInt(1,3);
+  const cidx6=randInt(1,2);
   const cum6=fs6.slice(0,cidx6+1).reduce((a,b)=>a+b,0);
   const g6=_gcd(cum6,tot6);
   const desc6=fs6.map((v,i)=>`第${cumLbs[i]}組 \\(${v}\\) 人`).join('，');
