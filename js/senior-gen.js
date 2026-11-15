@@ -10033,3 +10033,154 @@ function _b1DivPtExt(level){
   mix('b1-amgm',_b1AmGmExt,0.5);
   mix('b1-div-pt',_b1DivPtExt,0.5);
 })();
+
+// ═══════════════════════════════════════════════════════════════════
+//  三冊B 補齊：F-11B-1 週期性數學模型、F-11B-2 按比例成長模型
+//  （B 類：只談正弦函數；伸縮平移僅認識現象，不求平移量；不做換底公式）
+// ═══════════════════════════════════════════════════════════════════
+function _b3bKx(n,d,v){v=v||'x';if(d===1)return n===1?v:`${n}${v}`;return n===1?`\\dfrac{${v}}{${d}}`:`\\dfrac{${n}${v}}{${d}}`;}
+function _b3bSinStr(A,kx,B){
+  const a=A===1?'':A===-1?'-':String(A),b=B>0?`+${B}`:B<0?String(B):'';
+  return `${a}\\sin${kx==='x'||kx==='t'?' '+kx:`\\left(${kx}\\right)`}${b}`;
+}
+// 2πx/T 的寫法
+function _b3bTwoPi(T,v){v=v||'x';const g=srGcd(2,T),n=2/g,d=T/g;const top=`${n===1?'':n}\\pi ${v}`;return d===1?top:`\\dfrac{${top}}{${d}}`;}
+// y=A sin(2πx/T)+B 的圖形（標出最大、最小值與 T/4 刻度）
+function _b3bSinSVG(A,T,B){
+  const W=250,H=170,P=16,x0=-T*0.28,x1=T*1.62,lo=Math.min(0,B-A),hi=Math.max(0,B+A),pad=(hi-lo)*0.14+0.4,y0=lo-pad,y1=hi+pad;
+  const px=x=>+(P+(x-x0)/(x1-x0)*(W-2*P)).toFixed(1),py=y=>+(H-P-(y-y0)/(y1-y0)*(H-2*P)).toFixed(1);
+  const X0=px(0),Y0=py(0),o=[];
+  o.push(`<rect width="${W}" height="${H}" fill="#F9FAFB" rx="4" stroke="#CFD8DC" stroke-width="1"/>`);
+  [B+A,B-A].forEach(v=>{if(v===0)return;o.push(`<line x1="${X0}" y1="${py(v)}" x2="${px(x1)}" y2="${py(v)}" stroke="#90A4AE" stroke-width="1" stroke-dasharray="3,2"/>`);
+    o.push(`<text x="${X0-4}" y="${py(v)+4}" font-size="10" fill="#444" text-anchor="end">${v}</text>`);});
+  o.push(`<line x1="${P-4}" y1="${Y0}" x2="${W-P+4}" y2="${Y0}" stroke="#555" stroke-width="1.3"/>`);
+  o.push(`<line x1="${X0}" y1="${H-P+4}" x2="${X0}" y2="${P-4}" stroke="#555" stroke-width="1.3"/>`);
+  o.push(`<polygon points="${W-P+8},${Y0} ${W-P+1},${Y0-3} ${W-P+1},${Y0+3}" fill="#555"/>`);
+  o.push(`<polygon points="${X0},${P-8} ${X0-3},${P-1} ${X0+3},${P-1}" fill="#555"/>`);
+  o.push(`<text x="${W-P+2}" y="${Y0+13}" font-size="11" fill="#444" font-style="italic">x</text>`);
+  o.push(`<text x="${X0+5}" y="${P+2}" font-size="11" fill="#444" font-style="italic">y</text>`);
+  if(![B+A,B-A].some(v=>v!==0&&Math.abs(py(v)-Y0)<16))o.push(`<text x="${X0-3}" y="${Y0+12}" font-size="10" fill="#888" text-anchor="end">O</text>`);
+  for(let i=1;i*T/4<=x1-T*0.05;i++){const x=i*T/4,up=B-A<0&&B+A>0?false:(B-A>=0);
+    o.push(`<line x1="${px(x)}" y1="${Y0-3}" x2="${px(x)}" y2="${Y0+3}" stroke="#555" stroke-width="1.2"/>`);
+    o.push(`<text x="${px(x)}" y="${Y0+(up?13:-6)}" font-size="10" fill="#444" text-anchor="middle">${x}</text>`);}
+  const N=300,pp=[];for(let i=0;i<=N;i++){const x=x0+(x1-x0)*i/N;pp.push(`${px(x)},${py(A*Math.sin(2*Math.PI*x/T)+B)}`);}
+  o.push(`<polyline points="${pp.join(' ')}" fill="none" stroke="#1565C0" stroke-width="2"/>`);
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${o.join('')}</svg>`;
+}
+function _b3bTrigPeriod(level){
+  const K=[[1,1],[2,1],[3,1],[4,1],[1,2],[1,3],[2,3],[3,2],[1,4]];
+  const A0=()=>pick([1,2,3,4,5,-2,-3]),B0=()=>srRandInt(-5,5);
+  if(level==='basic'){
+    const t=srRandInt(0,5);
+    if(t===0){const A=A0(),[n,d]=pick(K),B=B0();return _srN(`函數 \\(y=${_b3bSinStr(A,_b3bKx(n,d),B)}\\) 的振幅為何？`,Math.abs(A),'振幅');}
+    if(t===1){const A=A0(),[n,d]=pick(K),B=B0(),p=frac(2*d,n);
+      return {question:`函數 \\(y=${_b3bSinStr(A,_b3bKx(n,d),B)}\\) 的週期為 \\(\\square\\,\\pi\\)，求 \\(\\square\\)`,answer:p.den===1?p.num:p,type:p.den===1?'number':'fraction',answerPrefix:'\\(\\square\\)'};}
+    if(t===2){const A=A0(),[n,d]=pick(K),B=B0(),mx=Math.random()<0.5;
+      return _srN(`函數 \\(y=${_b3bSinStr(A,_b3bKx(n,d),B)}\\) 的${mx?'最大':'最小'}值為何？`,mx?B+Math.abs(A):B-Math.abs(A),mx?'最大值':'最小值');}
+    if(t===3){const P=[['\\dfrac{\\pi}{6}',1,2],['\\dfrac{5\\pi}{6}',1,2],['\\dfrac{7\\pi}{6}',-1,2],['\\dfrac{11\\pi}{6}',-1,2],['\\dfrac{\\pi}{2}',1,1],['\\dfrac{3\\pi}{2}',-1,1],['\\pi',0,1],['2\\pi',0,1],['-\\dfrac{\\pi}{6}',-1,2],['\\dfrac{13\\pi}{6}',1,2],['-\\dfrac{\\pi}{2}',-1,1]];
+      const [s,n,d]=pick(P),A=pick([2,4,6]),B=srRandInt(-3,3);
+      return _srN(`設 \\(f(x)=${_b3bSinStr(A,'x',B)}\\)，求 \\(f\\!\\left(${s}\\right)\\)`,A*n/d+B,'值');}
+    if(t===4){const f=pick([50,60,100,200,220,250,440,500]),A=pick(['','2','3','0.5']);
+      if(Math.random()<0.5)return _srN(`某純音的聲波可表示為 \\(y=${A}\\sin(${2*f}\\pi t)\\)（\\(t\\) 以秒為單位），此聲音的頻率為多少赫茲（Hz）？`,f,'頻率');
+      return _srF(`某純音的聲波可表示為 \\(y=${A}\\sin(${2*f}\\pi t)\\)（\\(t\\) 以秒為單位），此聲波的週期為幾秒？（格式：p/q）`,frac(1,f),'週期');}
+    const m=pick([1,1,2]),[ks,kv]=pick([['0',0],['1',1],['-1',-1],['\\dfrac{1}{2}',0.5],['-\\dfrac{1}{2}',-0.5],['2',2],['\\dfrac{3}{4}',0.75],['-\\dfrac{2}{3}',-2/3]]);
+    const cnt=kv===0?2*m+1:Math.abs(kv)===1?m:Math.abs(kv)>1?0:2*m;
+    return _srN(`在 \\(0\\le x\\le ${2*m}\\pi\\) 的範圍內，方程式 \\(\\sin x=${ks}\\) 有幾個解？`,cnt,'個');
+  }
+  if(level==='medium'){
+    const t=srRandInt(0,4);
+    if(t===0){const T=pick([12,16,18,20,24,30]),B=srRandInt(8,16)*5,A=srRandInt(4,(B-5)/5)*5;
+      return {question:`摩天輪上某車廂離地高度 \\(h\\)（公尺）與時間 \\(t\\)（分鐘）的關係為 \\(h(t)=${B}+${A}\\sin\\left(${_b3bTwoPi(T,'t')}\\right)\\)。求車廂離地的最大高度、最小高度，以及摩天輪轉一圈所需的時間`,
+        answerParts:[{prefix:'最大高度',answer:B+A,type:'number'},{prefix:'最小高度',answer:B-A,type:'number'},{prefix:'一圈（分鐘）',answer:T,type:'number'}]};}
+    if(t===1){const A=srRandInt(1,4),T=pick([4,8,12]),B=srRandInt(-2,3);
+      return {question:`右圖為函數 \\(y=a\\sin(bx)+c\\)（\\(a>0\\)、\\(b>0\\)）的部分圖形，求此函數的振幅、週期與 \\(c\\)`,
+        answerParts:[{prefix:'振幅',answer:A,type:'number'},{prefix:'週期',answer:T,type:'number'},{prefix:'\\(c\\)',answer:B,type:'number'}],graph:_b3bSinSVG(A,T,B)};}
+    if(t===2){const s=srRandInt(0,2);
+      if(s===0){const f=pick([50,100,200,250,500]),T=1/f;return _srN(`某聲波的週期為 \\(${T}\\) 秒，其頻率為多少赫茲（Hz）？`,f,'頻率');}
+      if(s===1){const f=pick([220,262,330,392,440,523]);return _srN(`頻率為 \\(${f}\\) Hz 的純音可寫成 \\(y=\\sin(k\\pi t)\\)（\\(t\\) 以秒為單位，\\(k>0\\)），求 \\(k\\)`,2*f,'\\(k\\)');}
+      const f=pick([50,60,100,200]),s2=pick([2,3,5,10]);return _srN(`某振動的方程式為 \\(y=\\sin(${2*f}\\pi t)\\)（\\(t\\) 以秒為單位），在 \\(${s2}\\) 秒內共振動幾次（完整週期數）？`,f*s2,'次');}
+    if(t===3){const A=pick([2,4,6]),B=srRandInt(5,12),t0=pick([0,1,3,5,6,7,9,11,13,15,17,18,19,21,23]),sv=[0,0.5,null,1,null,0.5,0,-0.5,null,-1,null,-0.5][t0%12];
+      return _srN(`某港口的水深 \\(h\\)（公尺）與午夜後經過的時間 \\(t\\)（小時）的關係為 \\(h(t)=${B}+${A}\\sin\\left(\\dfrac{\\pi t}{6}\\right)\\)，求 \\(t=${t0}\\) 時的水深`,B+A*sv,'公尺');}
+    const a=pick([2,3,4]),b=srRandInt(-a-1,a+1),k=-b/a;
+    const cnt=k===0?3:Math.abs(k)===1?1:Math.abs(k)>1?0:2;
+    return _srN(`在 \\(0\\le x\\le 2\\pi\\) 的範圍內，方程式 \\(${a}\\sin x${b>0?'+'+b:b<0?b:''}=0\\) 有幾個解？`,cnt,'個');
+  }
+  const t=srRandInt(0,3);
+  if(t===0){const T=pick([10,12,15,16,18,20,24,30]),L=srRandInt(1,4)*5,H=L+srRandInt(3,8)*10;const p=frac(2,T);
+    return {question:`某摩天輪最高點離地 \\(${H}\\) 公尺、最低點離地 \\(${L}\\) 公尺，每 \\(${T}\\) 分鐘轉一圈。\\(t=0\\) 時某車廂位於與摩天輪中心等高處且正在上升，其高度可表示為 \\(h(t)=a\\sin(bt)+c\\)（\\(a>0\\)、\\(b>0\\) 且 \\(b\\) 取最小值）。求 \\(a\\)、\\(c\\)，以及 \\(b=\\square\\,\\pi\\) 中的 \\(\\square\\)`,
+      answerParts:[{prefix:'\\(a\\)',answer:(H-L)/2,type:'number'},{prefix:'\\(c\\)',answer:(H+L)/2,type:'number'},{prefix:'\\(\\square\\)',answer:p,type:'fraction'}]};}
+  if(t===1){const P=[2,3,4,6,8,12],p1=pick(P),p2=pick(P);if(p1===p2||p1%p2===0||p2%p1===0)return null;
+    return _srN(`函數 \\(y=\\sin\\left(${_b3bTwoPi(p1)}\\right)+\\sin\\left(${_b3bTwoPi(p2)}\\right)\\) 的週期為何？`,p1*p2/srGcd(p1,p2),'週期');}
+  if(t===2){const [ps,k]=pick([['\\pi',2],['2\\pi',1],['\\dfrac{\\pi}{2}',4],['\\dfrac{2\\pi}{3}',3]]),A=srRandInt(1,6),B=srRandInt(-4,6);
+    return _srN(`函數 \\(y=a\\sin(bx)+c\\)（\\(a>0\\)、\\(b>0\\)）的最大值為 \\(${B+A}\\)、最小值為 \\(${B-A}\\)，週期為 \\(${ps}\\)，求 \\(a+b+c\\)`,A+k+B,'\\(a+b+c\\)');}
+  const T=pick([12,24,36]),B=srRandInt(8,14)*5,As=2*srRandInt(5,Math.floor((B-5)/2));
+  const [tg,tt]=pick([[B+As/2,T/12],[B+As,T/4],[B-As/2,7*T/12],[B-As,3*T/4]]);
+  return _srN(`摩天輪上某車廂離地高度 \\(h(t)=${B}+${As}\\sin\\left(${_b3bTwoPi(T,'t')}\\right)\\)（公尺），\\(t\\) 以分鐘計。\\(t>0\\) 之後，車廂第一次到達離地 \\(${tg}\\) 公尺是在第幾分鐘？`,tt,'分鐘');
+}
+function genB3bTrigPeriod(level){for(let i=0;i<40;i++){const q=_b3bTrigPeriod(level);if(q)return q;}return _b3bTrigPeriod('basic');}
+
+// F-11B-2：按比例成長模型（地震、金融理財、平均成長率、連續複利與 e、自然對數、pH、分貝、音律、光圈）
+const _b3bRound=(num,den)=>Math.round(num/den);
+function _b3bGrowth(level){
+  if(level==='basic'){
+    const t=srRandInt(0,4);
+    if(t===0){const P=pick([10000,20000,50000,100000]),r=srRandInt(1,5),n=pick([2,3]);
+      if(Math.random()<0.5)return _srN(`本金 \\(${P}\\) 元，年利率 \\(${r}\\%\\)，以單利計算，\\(${n}\\) 年後的本利和為多少元？`,P+P*r*n/100,'元');
+      return _srN(`本金 \\(${P}\\) 元，年利率 \\(${r}\\%\\)，每年複利一次，\\(${n}\\) 年後的本利和為多少元？（四捨五入到整數）`,_b3bRound(P*(100+r)**n,100**n),'元');}
+    if(t===1){const s=srRandInt(0,2);
+      if(s===0){const k=srRandInt(2,12);return _srN(`溶液的 \\(\\text{pH}=-\\log[\\text{H}^+]\\)。某溶液的氫離子濃度 \\([\\text{H}^+]=10^{-${k}}\\)，其 pH 值為何？`,k,'pH');}
+      if(s===1){const a=srRandInt(2,5),d=srRandInt(1,3);return _srN(`溶液的 \\(\\text{pH}=-\\log[\\text{H}^+]\\)。pH 值為 \\(${a}\\) 的溶液，其氫離子濃度是 pH 值為 \\(${a+d}\\) 的溶液的幾倍？`,10**d,'倍');}
+      const k=srRandInt(1,13);return _srN(`溶液的 \\(\\text{pH}=-\\log[\\text{H}^+]\\)。若某溶液的 pH 值為 \\(${k}\\)，則 \\([\\text{H}^+]=10^{n}\\)，求 \\(n\\)`,-k,'\\(n\\)');}
+    if(t===2){const s=srRandInt(0,1),m=srRandInt(1,6);
+      if(s===0)return _srN(`聲音強度的分貝數 \\(L=10\\log\\dfrac{I}{I_0}\\)。若聲音強度 \\(I\\) 變為原來的 \\(10^{${m}}\\) 倍，分貝數增加多少？`,10*m,'分貝');
+      return _srN(`聲音強度的分貝數 \\(L=10\\log\\dfrac{I}{I_0}\\)。若某聲音的分貝數增加了 \\(${10*m}\\) 分貝，則其強度變為原來的 \\(10\\) 的幾次方倍？`,m,'次方');}
+    if(t===3){const s=srRandInt(0,3),k=srRandInt(2,9);
+      if(s===0)return _srN(`求 \\(\\ln e^{${k}}\\) 的值`,k,'值');
+      if(s===1)return _srN(`求 \\(e^{\\ln ${k}}\\) 的值`,k,'值');
+      if(s===2)return _srN(`求 \\(\\ln\\dfrac{1}{e^{${k}}}\\) 的值`,-k,'值');
+      return _srN(`若 \\(e^{x}=e^{${k}}\\)，求 \\(x\\)`,k,'\\(x\\)');}
+    const M=srRandInt(3,8);
+    if(Math.random()<0.5)return {question:`地震規模 \\(M\\) 與釋放能量 \\(E\\)（爾格）滿足 \\(\\log E=11.8+1.5M\\)。規模 \\(${M}\\) 的地震，\\(\\log E\\) 的值為何？`,answer:+(11.8+1.5*M).toFixed(1),type:'number',answerPrefix:'\\(\\log E\\)'};
+    return {question:`地震規模 \\(M\\) 與釋放能量 \\(E\\)（爾格）滿足 \\(\\log E=11.8+1.5M\\)。若某地震 \\(\\log E=${(11.8+1.5*M).toFixed(1)}\\)，其規模為何？`,answer:M,type:'number',answerPrefix:'\\(M\\)'};
+  }
+  if(level==='medium'){
+    const t=srRandInt(0,5);
+    if(t===0){const [a,b,r]=pick([[60,-10,20],[80,-20,20],[50,-4,20],[25,-20,0],[100,-50,0],[180,-30,40],[160,-35,30],[21,0,10],[44,0,20],[69,0,30],[96,0,40]]);
+      const fmt=v=>v>=0?`成長 \\(${v}\\%\\)`:`衰退 \\(${-v}\\%\\)`;
+      if(b===0)return _srN(`某公司營收兩年內共成長了 \\(${a}\\%\\)，若每年的成長率相同，平均年成長率為多少 %？`,r,'%');
+      return _srN(`某公司營收第一年${fmt(a)}、第二年${fmt(b)}，這兩年的平均年成長率為多少 %？`,r,'%');}
+    if(t===1){const [x,ex]=pick([[0.1,'1.1052'],[0.05,'1.0513'],[0.2,'1.2214'],[0.15,'1.1618'],[0.3,'1.3499']]);
+      const pairs={0.05:[[5,1],[1,5]],0.1:[[5,2],[2,5],[10,1],[1,10]],0.15:[[5,3],[3,5]],0.2:[[5,4],[4,5],[10,2],[2,10]],0.3:[[5,6],[6,5],[10,3],[3,10]]}[x];
+      const [r,y]=pick(pairs),P=pick([10000,20000,100000]);
+      return _srN(`本金 \\(${P}\\) 元，年利率 \\(${r}\\%\\)，以連續複利計算，\\(${y}\\) 年後本利和為 \\(${P}e^{${x}}\\) 元。已知 \\(e^{${x}}\\approx ${ex}\\)，本利和約為多少元？`,Math.round(P*+ex),'元');}
+    if(t===2){const [r,m]=pick([[4,2],[4,4],[8,2],[8,4],[12,2],[12,4],[6,2]]),P=pick([10000,20000,100000]),nm={2:'每半年',4:'每季'}[m];
+      return _srN(`本金 \\(${P}\\) 元，年利率 \\(${r}\\%\\)，${nm}複利一次，\\(1\\) 年後的本利和為多少元？（四捨五入到整數）`,_b3bRound(P*(100+r/m)**m,100**m),'元');}
+    if(t===3){const d=pick([2,4]),M=srRandInt(3,6);
+      if(Math.random()<0.5)return _srN(`地震規模每增加 \\(1\\)，釋放的能量變為 \\(10^{1.5}\\) 倍。規模 \\(${M+d}\\) 的地震釋放的能量是規模 \\(${M}\\) 的幾倍？`,10**(1.5*d),'倍');
+      return _srN(`地震規模每增加 \\(1\\)，釋放的能量變為 \\(10^{1.5}\\) 倍。甲地震釋放的能量是乙地震的 \\(${10**(1.5*d)}\\) 倍，甲的規模比乙大多少？`,d,'規模差');}
+    if(t===4){const s=srRandInt(0,1);
+      if(s===0){const k=pick([12,24,-12,-24,36]);return _srN(`十二平均律中，每高一個半音，頻率變為原來的 \\(2^{\\frac{1}{12}}\\) 倍。中央 A 的頻率為 \\(440\\) Hz，比它${k>0?'高':'低'} \\(${Math.abs(k)}\\) 個半音的音，頻率為多少 Hz？`,440*2**(k/12),'Hz');}
+      const j=pick([1,2,3]);return _srN(`十二平均律中，每高一個半音，頻率變為原來的 \\(2^{\\frac{1}{12}}\\) 倍。若某音的頻率是另一音的 \\(${2**j}\\) 倍，則它高了幾個半音？`,12*j,'個半音');}
+    const fs=['1.4','2','2.8','4','5.6','8','11','16'],i=srRandInt(0,5),j=srRandInt(i+1,Math.min(7,i+4));
+    return _srF(`相機的光圈 f 值依序為 1.4、2、2.8、4、5.6、8、11、16，每調大一格，進光量變為原來的 \\(\\dfrac{1}{2}\\)。f 值由 \\(${fs[i]}\\) 調到 \\(${fs[j]}\\)，進光量變為原來的幾倍？（格式：p/q）`,frac(1,2**(j-i)),'倍');
+  }
+  const t=srRandInt(0,4);
+  if(t===0){const R=pick([[5,'1.05','0.0212'],[8,'1.08','0.0334'],[10,'1.1','0.0414'],[20,'1.2','0.0792'],[25,'1.25','0.0969']]),G=pick([[2,'0.3010'],[3,'0.4771'],[5,'0.6990']]);
+    const q=+G[1]/+R[2],n=Math.ceil(q),nt=Math.ceil(Math.log10(G[0])/Math.log10(+R[1]));
+    if(n!==nt||Math.abs(q-Math.round(q))<0.03)return null;
+    return _srN(`某城市人口每年成長 \\(${R[0]}\\%\\)，至少經過幾年，人口會超過現在的 \\(${G[0]}\\) 倍？（已知 \\(\\log ${R[1]}\\approx ${R[2]}\\)、\\(\\log ${G[0]}\\approx ${G[1]}\\)）`,n,'年');}
+  if(t===1){const [p,n]=pick([[10,4],[5,5],[1,7]]),[T,u,nm]=pick([[5730,'年','碳 14'],[30,'年','銫 137'],[8,'天','碘 131']]);
+    return _srN(`${nm} 的半衰期約為 \\(${T}\\) ${u}。一份樣本至少要經過幾${u}，剩下的量才會少於原來的 \\(${p}\\%\\)？（已知 \\(\\log 2\\approx 0.3010\\)，答案為半衰期的整數倍）`,n*T,u);}
+  if(t===2){const s=srRandInt(0,2),p=srRandInt(1,5),q=srRandInt(1,5);
+    if(s===0)return _srN(`若 \\(\\ln a=${p}\\)、\\(\\ln b=${q}\\)，求 \\(\\ln(a^2b)\\)`,2*p+q,'值');
+    if(s===1)return _srN(`若 \\(\\ln a=${p}\\)、\\(\\ln b=${q}\\)，求 \\(\\ln\\dfrac{a^3}{b}\\)`,3*p-q,'值');
+    const k=srRandInt(1,6),c=2*k-p;if(!c)return null;return _srN(`解方程式 \\(e^{2x${c>0?'-'+c:'+'+(-c)}}=e^{${p}}\\)`,k,'\\(x\\)');}
+  if(t===3){const [r,v]=pick([[10,1331],[20,1728],[30,2197],[50,3375]]);
+    return _srN(`某商品的年銷售量三年間由 \\(1000\\) 件成長為 \\(${v}\\) 件，這三年的平均年成長率為多少 %？`,r,'%');}
+  const s=srRandInt(0,1);
+  if(s===0){const a=srRandInt(5,9)*10,d=pick([2,3,4]);return _srN(`聲音強度的分貝數 \\(L=10\\log\\dfrac{I}{I_0}\\)。\\(${a}\\) 分貝的聲音強度是 \\(${a-10*d}\\) 分貝的幾倍？`,10**d,'倍');}
+  return {question:`聲音強度的分貝數 \\(L=10\\log\\dfrac{I}{I_0}\\)。兩台相同的機器同時運轉，聲音強度變為一台的 \\(2\\) 倍，分貝數約增加多少？（已知 \\(\\log 2\\approx 0.3010\\)）`,answer:3.01,type:'number',answerPrefix:'分貝'};
+}
+function genB3bGrowth(level){for(let i=0;i<40;i++){const q=_b3bGrowth(level);if(q)return q;}return _b3bGrowth('basic');}
+SR_GENERATORS['b3b-trig-period']=genB3bTrigPeriod;
+SR_GENERATORS['b3b-growth']=genB3bGrowth;

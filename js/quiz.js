@@ -186,6 +186,7 @@ const TOPIC_NAMES = {
   'b3b-trig-period': '三冊B·週期性數學模型',
   'b3b-exp-func':    '三冊B·指數函數及其圖形',
   'b3b-log':         '三冊B·對數',
+  'b3b-growth':      '三冊B·按比例成長模型',
   'b3b-log-func':    '三冊B·對數函數及其圖形',
   'b3b-exp-eq':      '三冊B·指數方程式',
   'b3b-log-eq':      '三冊B·對數方程式',
