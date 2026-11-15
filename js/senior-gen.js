@@ -9866,7 +9866,7 @@ const _SR_SCOPE={
   'b3a-area-det':[/\d+b\+\d+e/],
   'b3a-cauchy':[/\}\{x\}\+\\dfrac\{\d+\}\{y\}/],
   // F-11B-2：不做換底公式評量，勿做複雜演算
-  'b3b-log-func':[_srMixed],
+  'b3b-log-func':[_srMixed,s=>/^計算/.test(s)&&(s.match(/\\log/g)||[]).length>=3],
   'b3b-log-eq':[_srMixed,_srNested,/x\^\{\\log/],
   'b3b-log-ineq':[_srMixed,_srNested,/x\^\{\\log/],
   'b3b-exp-eq':[/\^\{-x\}\)/],
@@ -10184,3 +10184,82 @@ function _b3bGrowth(level){
 function genB3bGrowth(level){for(let i=0;i<40;i++){const q=_b3bGrowth(level);if(q)return q;}return _b3bGrowth('basic');}
 SR_GENERATORS['b3b-trig-period']=genB3bTrigPeriod;
 SR_GENERATORS['b3b-growth']=genB3bGrowth;
+
+// ── 三冊B 補充（第二批）──
+// N-11B-1：弧度量（B 類重點在單位換算、度分秒、弧長應用與生活單位）
+function _b3bArcExt(level){
+  const t=srRandInt(0,4);
+  if(level==='basic'){
+    if(t===0){const d=pick([10,15,20,40,50,70,80,100,110,140,160,200,280,320,330,350]),g=srGcd(d,180);
+      return _srF(`將 \\(${d}^\\circ\\) 化為弳度量，答案為 \\(\\square\\,\\pi\\) 弳，填入分數（格式：p/q）`,frac(d/g,180/g),'\\(\\square\\)');}
+    if(t===1){const q=pick([5,9,10,12,18,20,36]),p=srRandInt(1,2*q-1);if(srGcd(p,q)!==1)return null;
+      return _srN(`將 \\(\\dfrac{${p===1?'':p}\\pi}{${q}}\\) 弳化為度度量，為幾度？`,180*p/q,'度');}
+    if(t===2){const r=srRandInt(2,12),d=pick([30,45,60,90,120,150,180,240,270,300]),f=frac(r*d,180);
+      return {question:`半徑 \\(${r}\\) 公分的圓上，圓心角 \\(${d}^\\circ\\) 所對的弧長為 \\(\\square\\,\\pi\\) 公分，求 \\(\\square\\)`,answer:f.den===1?f.num:f,type:f.den===1?'number':'fraction',answerPrefix:'\\(\\square\\)'};}
+    if(t===3){const k=pick([1,2,3,0.5,1.5,2.5]);return {question:`以 \\(\\pi\\approx 3.14\\) 計算，\\(${k}\\) 弳約為幾度？（四捨五入到小數第一位）`,answer:Math.round(k*1800/3.14)/10,type:'number',answerPrefix:'度'};}
+    const r=srRandInt(2,9),th=pick([1,2,3,0.5,1.5]);return {question:`半徑 \\(${r}\\) 公尺的圓，圓心角 \\(${th}\\) 弳所對的弧長為多少公尺？`,answer:r*th,type:'number',answerPrefix:'公尺'};
+  }
+  if(level==='medium'){
+    if(t===0){const D=srRandInt(10,80),m=pick([0.25,0.5,0.75,0.1,0.2,0.4,0.6,0.8,0.05]);
+      return {question:`將 \\(${D+m}^\\circ\\) 以六十進制表示為 \\(a^\\circ b'\\)，求 \\(a\\)、\\(b\\)`,answerParts:[{prefix:'\\(a\\)',answer:D,type:'number'},{prefix:'\\(b\\)',answer:Math.round(m*60),type:'number'}]};}
+    if(t===1){const R=6400,d=pick([1,5,9,10,15,18,20,30,45]),f=frac(R*d,180);
+      return {question:`地球半徑約 \\(6400\\) 公里。同一條經線上兩地的緯度相差 \\(${d}^\\circ\\)，沿經線的距離約為 \\(\\square\\,\\pi\\) 公里，求 \\(\\square\\)`,answer:f.den===1?f.num:f,type:f.den===1?'number':'fraction',answerPrefix:'\\(\\square\\)'};}
+    if(t===2){const L=srRandInt(3,12),m=pick([5,10,15,20,25,30,40,45]),f=frac(L*m,30);
+      return {question:`時鐘的分針長 \\(${L}\\) 公分，經過 \\(${m}\\) 分鐘，分針尖端走過的弧長為 \\(\\square\\,\\pi\\) 公分，求 \\(\\square\\)`,answer:f.den===1?f.num:f,type:f.den===1?'number':'fraction',answerPrefix:'\\(\\square\\)'};}
+    if(t===3){const s=srRandInt(0,2);
+      if(s===0){const k=pick([10,20,25,30,40]);return {question:`\\(1\\) 坪約為 \\(3.3\\) 平方公尺。一間 \\(${k}\\) 坪的房子約為多少平方公尺？`,answer:+(k*3.3).toFixed(1),type:'number',answerPrefix:'平方公尺'};}
+      if(s===1){const C=pick([-10,0,5,10,20,25,30,35,40,100]);return _srN(`攝氏溫度 \\(C\\) 與華氏溫度 \\(F\\) 的關係為 \\(F=\\dfrac{9}{5}C+32\\)。攝氏 \\(${C}\\) 度等於華氏幾度？`,9*C/5+32,'華氏');}
+      const k=pick([5,10,25,50,100]);return {question:`\\(1\\) 英哩約為 \\(1.6\\) 公里。\\(${k}\\) 英哩約為多少公里？`,answer:+(k*1.6).toFixed(1),type:'number',answerPrefix:'公里'};}
+    const r=srRandInt(20,40),n=pick([1,2,3,5,10]);
+    return {question:`半徑 \\(${r}\\) 公分的腳踏車輪子轉了 \\(${n}\\) 圈，輪子轉過的角度為 \\(\\square\\,\\pi\\) 弳，車子前進了 \\(\\triangle\\,\\pi\\) 公分，求 \\(\\square\\)、\\(\\triangle\\)`,answerParts:[{prefix:'\\(\\square\\)',answer:2*n,type:'number'},{prefix:'\\(\\triangle\\)',answer:2*n*r,type:'number'}]};
+  }
+  if(t===0){const a=srRandInt(5,60),b=srRandInt(5,60),f=frac(6400*(a+b),180);
+    return {question:`地球半徑約 \\(6400\\) 公里。甲地位於北緯 \\(${a}^\\circ\\)，乙地在同一條經線上、位於南緯 \\(${b}^\\circ\\)，兩地沿經線的距離約為 \\(\\square\\,\\pi\\) 公里，求 \\(\\square\\)`,answer:f.den===1?f.num:f,type:f.den===1?'number':'fraction',answerPrefix:'\\(\\square\\)'};}
+  if(t===1){const R=pick([12,15,18,20,24,30]),r=pick([6,8,10,12]),d=pick([60,90,120,150]);if(r>=R)return null;const f=frac((R*R-r*r)*d,360);
+    return {question:`一把摺扇展開後，扇面為圓心角 \\(${d}^\\circ\\) 的扇環，外半徑 \\(${R}\\) 公分、內半徑 \\(${r}\\) 公分。扇面面積為 \\(\\square\\,\\pi\\) 平方公分，求 \\(\\square\\)`,answer:f.den===1?f.num:f,type:f.den===1?'number':'fraction',answerPrefix:'\\(\\square\\)'};}
+  if(t===2){const r=pick([2,3,4,5]),R=r*pick([2,3,4]),th=pick([1,2,3,0.5,1.5]);
+    return {question:`兩個齒輪互相咬合，大齒輪半徑 \\(${R}\\) 公分、小齒輪半徑 \\(${r}\\) 公分。大齒輪轉了 \\(${th}\\) 弳時，小齒輪轉了多少弳？`,answer:R*th/r,type:'number',answerPrefix:'弳'};}
+  if(t===3){const D=srRandInt(10,80),m=srRandInt(1,11)*5,mf=frac(m,60);
+    return {question:`將 \\(${D}^\\circ ${m}'\\) 化為以度為單位的數，為 \\(${D}+\\square\\) 度，求 \\(\\square\\)（格式：p/q）`,answer:mf,type:'fraction',answerPrefix:'\\(\\square\\)'};}
+  const r=srRandInt(2,10),d=pick([36,40,72,80,100,135,144,160]),f=frac(r*r*d,360);
+  return {question:`半徑 \\(${r}\\) 的扇形，圓心角為 \\(${d}^\\circ\\)，其面積為 \\(\\square\\,\\pi\\)，求 \\(\\square\\)`,answer:f.den===1?f.num:f,type:f.den===1?'number':'fraction',answerPrefix:'\\(\\square\\)'};
+}
+// F-11B-2：對數函數的圖形與性質（直觀認識：定點、增減、定義域、漸近線、與指數函數對稱於 y=x）
+function _b3bLogFuncExt(level){
+  const t=srRandInt(0,4);
+  const B=()=>pick([['2',2],['3',3],['5',5],['\\frac{1}{2}',0.5],['\\frac{1}{3}',1/3]]);
+  if(level==='basic'){
+    if(t===0){const [bs]=B();return _srN(`函數 \\(y=\\log_{${bs}} x\\) 的圖形必通過點 \\((k,0)\\)，求 \\(k\\)`,1,'\\(k\\)');}
+    if(t===1){const [bs,bv]=B();return {question:`函數 \\(y=\\log_{${bs}} x\\) 為遞增函數還是遞減函數？（填「遞增」或「遞減」）`,answer:bv>1?'遞增':'遞減',type:'text',answerPrefix:''};}
+    if(t===2){const b=pick([2,3]),m=srRandInt(1,4);return _srN(`點 \\((${m},${b**m})\\) 在 \\(y=${b}^x\\) 的圖形上，而 \\(y=${b}^x\\) 與 \\(y=\\log_{${b}} x\\) 的圖形對稱於直線 \\(y=x\\)。若點 \\((${b**m},k)\\) 在 \\(y=\\log_{${b}} x\\) 的圖形上，求 \\(k\\)`,m,'\\(k\\)');}
+    if(t===3){const h=srRandInt(-6,6);if(!h)return null;return _srN(`函數 \\(y=\\log_{2}(x${h>0?'-'+h:'+'+(-h)})\\) 的定義域為 \\(x>a\\)，求 \\(a\\)`,h,'\\(a\\)');}
+    const b=pick([2,3,5]),m=srRandInt(-2,4);return {question:`點 \\((${m<0?`\\frac{1}{${b**-m}}`:b**m},k)\\) 在 \\(y=\\log_{${b}} x\\) 的圖形上，求 \\(k\\)`,answer:m,type:'number',answerPrefix:'\\(k\\)'};
+  }
+  if(level==='medium'){
+    if(t===0){const h=srRandInt(-5,5),k=srRandInt(-4,4);if(!h)return null;
+      return _srN(`函數 \\(y=\\log_{3}(x${h>0?'-'+h:'+'+(-h)})${k>0?'+'+k:k<0?k:''}\\) 的圖形有一條鉛直漸近線 \\(x=c\\)，求 \\(c\\)`,h,'\\(c\\)');}
+    if(t===1){const b=pick([2,3]),h=srRandInt(1,4),k=srRandInt(-3,3),m=srRandInt(0,3);const mv=k>0?`、再向上平移 \\(${k}\\) 單位`:k<0?`、再向下平移 \\(${-k}\\) 單位`:'';
+      return _srN(`將 \\(y=\\log_{${b}} x\\) 的圖形向右平移 \\(${h}\\) 單位${mv}得 \\(y=f(x)\\)，求 \\(f(${h+b**m})\\)`,m+k,'值');}
+    if(t===2){const [bs,bv]=pick([['2',2],['\\frac{1}{2}',0.5],['3',3],['\\frac{1}{3}',1/3]]);const xs=[srRandInt(2,9),srRandInt(2,9),srRandInt(2,9)];if(new Set(xs).size<3)return null;
+      const nm=['甲','乙','丙'],ys=xs.map(x=>Math.log(x)/Math.log(bv)),idx=ys.indexOf(Math.max(...ys));
+      return {question:`比較 甲：\\(\\log_{${bs}} ${xs[0]}\\)、乙：\\(\\log_{${bs}} ${xs[1]}\\)、丙：\\(\\log_{${bs}} ${xs[2]}\\)，何者最大？（填甲、乙或丙）`,answer:nm[idx],type:'text',answerPrefix:'最大'};}
+    if(t===3){const b=pick([2,3]),c=srRandInt(-2,4);return {question:`直線 \\(y=${c}\\) 與 \\(y=\\log_{${b}} x\\) 的圖形交於點 \\(P\\)，求 \\(P\\) 的 \\(x\\) 坐標${c<0?'（格式：p/q）':''}`,answer:c<0?frac(1,b**-c):b**c,type:c<0?'fraction':'number',answerPrefix:'\\(x\\)'};}
+    const h=srRandInt(-6,6);if(!h)return null;return _srN(`函數 \\(y=\\log(${h}-x)\\) 的定義域為 \\(x<a\\)，求 \\(a\\)`,h,'\\(a\\)');
+  }
+  if(t===0){const a=pick([2,3,4,5]),m=pick([2,3]);return _srN(`函數 \\(y=\\log_{a} x\\) 的圖形通過點 \\((${a**m},${m})\\)，求底數 \\(a\\)`,a,'\\(a\\)');}
+  if(t===1){const b=pick([2,3]),m=srRandInt(1,3),p=b**m-srRandInt(1,b**m+3);if(!p)return null;
+    return _srN(`函數 \\(y=\\log_{${b}}(x+c)\\) 的圖形通過點 \\((${p},${m})\\)，求 \\(c\\)`,b**m-p,'\\(c\\)');}
+  if(t===2){const r1=srRandInt(-5,2),r2=r1+srRandInt(2,6);const b=-(r1+r2),c=r1*r2;
+    const poly=`-x^2${-b>0?'+'+(-b)+'x':-b<0?'-'+b+'x':''}${-c>0?'+'+(-c):-c<0?String(-c):''}`.replace(/([+-])1x/,'$1x');
+    return {question:`函數 \\(y=\\log(${poly})\\) 的定義域為 \\(a<x<b\\)，求 \\(a\\)、\\(b\\)`,answerParts:[{prefix:'\\(a\\)',answer:r1,type:'number'},{prefix:'\\(b\\)',answer:r2,type:'number'}]};}
+  if(t===3){const b=pick([2,3]),m1=srRandInt(1,2),m2=m1+srRandInt(1,2);
+    return _srN(`\\(A(${b**m1},y_1)\\)、\\(B(${b**m2},y_2)\\) 兩點都在 \\(y=\\log_{${b}} x\\) 的圖形上，求直線 \\(AB\\) 與 \\(x\\) 軸、兩鉛直線 \\(x=${b**m1}\\)、\\(x=${b**m2}\\) 所圍梯形的面積`,(b**m2-b**m1)*(m1+m2)/2,'面積');}
+  const b=pick([2,3]),k=srRandInt(1,3);
+  const k2=k+srRandInt(1,2);
+  return _srN(`\\(A(a,${k})\\)、\\(B(b,${k2})\\) 兩點都在 \\(y=\\log_{${b}} x\\) 的圖形上，求 \\(b-a\\)`,b**k2-b**k,'\\(b-a\\)');
+}
+(function(){
+  const mix=(key,ext,p,levels)=>{const base=SR_GENERATORS[key];if(!base)return;SR_GENERATORS[key]=(lv,n)=>{if((!levels||levels.includes(lv))&&Math.random()<p){for(let i=0;i<30;i++){const q=ext(lv);if(q)return q;}}return base(lv,n);};};
+  mix('b3b-trig-arc',_b3bArcExt,0.55);
+  mix('b3b-log-func',_b3bLogFuncExt,0.5);
+})();
