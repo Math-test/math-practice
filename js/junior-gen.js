@@ -8024,12 +8024,68 @@ function _8bFactor2Ext(level){
   return _jrFacQ(`因式分解 \\(${_jrDQuad(1,P+q,P*q)}\\)`,`(x${_jrDt(P)})(x${q>0?'+':''}${q})`);
 }
 
+// 十字交乘法補充題型（整係數）
+function _f2Q(a,b,c){
+  const t=(k,v,first)=>{if(!k)return '';const ab=Math.abs(k);return (k<0?'-':first?'':'+')+(ab===1&&v?'':ab)+v;};
+  return t(a,'x^2',true)+t(b,'x',false)+t(c,'',false);
+}
+const _f2L=(a,p)=>`(${a===1?'':a}x${p>0?'+':''}${p})`;
+function _8bFactor2More(level){
+  const nz=(lo,hi)=>{let v=0;while(v===0)v=randInt(lo,hi);return v;};
+  const fqq=(q,A,B,C,D)=>({question:q,type:'factored-quad',factA:A,factB:B,factC:C,factD:D});
+  if(level==='basic'){
+    const t=randInt(0,4);
+    if(t===0){// 先提公因數：g(x+p)(x+q)
+      const g=randInt(2,5),p=nz(-8,8),q=nz(-8,8);
+      return _jrFacQ(`因式分解 \\(${_f2Q(g,g*(p+q),g*p*q)}\\)`,`${g}${_f2L(1,p)}${p===q?'^2':_f2L(1,q)}`);
+    }
+    if(t===1){// 首項為負：−(x+p)(x+q)
+      const p=nz(-9,9),q=nz(-9,9);if(p===q)return null;
+      return _jrFacQ(`因式分解 \\(${_f2Q(-1,-(p+q),-p*q)}\\)`,`-${_f2L(1,p)}${_f2L(1,q)}`);
+    }
+    if(t===2){// 數字較大：(x+p)(x+q)，|p|、|q| 到 20
+      const p=randInt(11,16)*pick([1,-1]),q=nz(-15,15);if(Math.abs(q)<5||p===q)return null;
+      return fqq(`因式分解 \\(${_f2Q(1,p+q,p*q)}\\)`,1,p,1,q);
+    }
+    if(t===3){// 已知一個因式求另一個與係數
+      const p=nz(-9,9),q=nz(-9,9);if(p+q===0)return null;
+      return {question:`若 \\(x^2+bx${p*q>0?'+':''}${p*q}=(x+a)${_f2L(1,q)}\\)，求 \\(a\\)、\\(b\\)`,answerParts:[{prefix:'\\(a\\)',answer:p,type:'number'},{prefix:'\\(b\\)',answer:p+q,type:'number'}]};
+    }
+    // 已知因式求 k
+    const p=nz(-9,9),q=nz(-9,9);if(p+q===0)return null;
+    return {question:`若 \\(${_f2L(1,p).slice(1,-1)}\\) 是 \\(x^2+kx${p*q>0?'+':''}${p*q}\\) 的因式，求 \\(k\\)`,answer:p+q,type:'number',answerPrefix:'\\(k\\)'};
+  }
+  const t=randInt(0,4);
+  if(t===0){// (ax+p)(x+q)，a=4~7
+    const a=randInt(4,7),p=nz(-9,9),q=nz(-9,9);if(gcd(a,Math.abs(p))!==1||a*q+p===0)return null;
+    return fqq(`因式分解 \\(${_f2Q(a,a*q+p,p*q)}\\)`,a,p,1,q);
+  }
+  if(t===1){// (2x+p)(3x+q)
+    const p=nz(-9,9),q=nz(-9,9);if(p%2===0||q%3===0||2*q+3*p===0)return null;
+    return fqq(`因式分解 \\(${_f2Q(6,2*q+3*p,p*q)}\\)`,2,p,3,q);
+  }
+  if(t===2){// 先提公因數：g(2x+p)(x+q)
+    const g=randInt(2,3),p=2*randInt(0,4)+1,s=pick([1,-1]),q=nz(-7,7);
+    const P=s*p;
+    return _jrFacQ(`因式分解 \\(${_f2Q(2*g,g*(2*q+P),g*P*q)}\\)`,`${g}${_f2L(2,P)}${_f2L(1,q)}`);
+  }
+  if(t===3){// 首項為負：−(2x+p)(x+q)
+    const p=(2*randInt(0,4)+1)*pick([1,-1]),q=nz(-7,7);if(2*q+p===0)return null;
+    return _jrFacQ(`因式分解 \\(${_f2Q(-2,-(2*q+p),-p*q)}\\)`,`-${_f2L(2,p)}${_f2L(1,q)}`);
+  }
+  // x²+kx+c 能分解為兩個整係數一次式，k 為正整數的個數
+  const c=pick([6,8,10,12,15,18,20,24,28,30,36,40,42,48]);
+  const ks=new Set();for(let d=1;d*d<=c;d++)if(c%d===0)ks.add(d+c/d);
+  return {question:`若 \\(x^2+kx+${c}\\) 可以分解成兩個整係數一次式的乘積，且 \\(k\\) 為正整數，則 \\(k\\) 有幾種可能的值？`,answer:ks.size,type:'number',answerPrefix:'種'};
+}
+
 function gen8bFactor2(level){
   for(let i=0;i<30;i++){const q=_8bFactor2(level);if(q)return _jr1x(q);}
   return _8bFactor2('basic');
 }
 function _8bFactor2(level){
   if(level!=='basic'&&Math.random()<0.3)return _8bFactor2Ext(level);
+  if(level!=='hard'&&Math.random()<(level==='basic'?0.45:0.4)){const q=_8bFactor2More(level);if(q)return q;}
   function eqStr(a,b,c){
     let s=a===1?'x^2':`${a}x^2`;
     if(b>0) s+=`+${b}x`; else if(b<0) s+=`${b}x`;
