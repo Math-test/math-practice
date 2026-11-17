@@ -7728,7 +7728,7 @@ function _8bFactor1Ext(level){
     const t=randInt(0,3);
     if(t===0){
       // a²x²-p²/q²
-      const a=randInt(2,6),p=randInt(1,9),q=randInt(2,7);if(gcd(p,q)!==1)return null;
+      const a=randInt(2,6),p=randInt(1,9),q=randInt(2,7);if(gcd(p,q)!==1||gcd(a,p)!==1)return null;
       return _jrFacQ(`因式分解 \\(${a*a}x^2-${fracToLatex(frac(p*p,q*q))}\\)`,`(${a}x${_jrFt(frac(p,q))})(${a}x${_jrFt(frac(-p,q))})`);
     }
     if(t===1){
@@ -7753,7 +7753,7 @@ function _8bFactor1Ext(level){
   }
   if(t===1){
     // (p/q x+r)² 展開
-    const p=randInt(1,5),q=randInt(2,5),r=randInt(1,6)*pick([1,-1]);if(gcd(p,q)!==1)return null;
+    const p=randInt(1,5),q=randInt(2,5),r=randInt(1,6)*pick([1,-1]);if(gcd(p,q)!==1||gcd(p,Math.abs(r))!==1)return null;
     return _jrFacQ(`因式分解 \\(${_jrFQuad(frac(p*p,q*q),frac(2*p*r,q),frac(r*r))}\\)`,`((${p}/${q})x${r>0?'+':''}${r})^2`);
   }
   if(t===2){
@@ -7824,8 +7824,8 @@ function _8bFactorMV(level){
   const cp=()=>{for(;;){const a=randInt(1,9),b=randInt(1,9)*pick([1,-1]);if(gcd(a,Math.abs(b))===1&&!(a===1&&Math.abs(b)===1&&randInt(0,1)))return[a,b];}};
   if(level==='basic'){
     const t=randInt(0,3);
-    if(t===0)return _mvGCF(V,2,6,2,2,false);
-    if(t===1)return _mvGCF(V,3,5,1,2,false);
+    if(t===0)return _mvGCF(V,2,6,1,1,false);
+    if(t===1)return _mvGCF(V,3,5,1,1,false);
     if(t===2){// p·u(B)+q·v(B) 或 p·u(B)+q(B) → (B)(pu+qv)
       const B=bin(),[a,b]=cp(),w2=randInt(0,1)?v:'';
       const sg=b<0?'-':'+',ab=Math.abs(b);
@@ -7839,7 +7839,7 @@ function _8bFactorMV(level){
     return _jrMvQ(`因式分解 \\(${_mvK(a,u)}(${B})${_mvKs(b,v)}(${Br})\\)`,`(${B})(${_mvK(a,u)}${_mvKs(-b,v)})`,'1',2);
   }
   // 公因式 g·x^i·y^j（至少含一個字母）
-  const gPart=()=>{for(;;){const g=randInt(2,6),e=[randInt(0,2),randInt(0,2)];if(e.some(x=>x))return{g,e};}};
+  const gPart=()=>{for(;;){const g=randInt(2,6),e=[randInt(0,1),randInt(0,1)];if(e.some(x=>x))return{g,e};}};
   // 二元一次式 cu·u + cv·v（cv≠0）
   const lin=(cu,cv)=>`${_mvK(cu,u)}${_mvKs(cv,v)}`;
   if(level==='medium'){
@@ -7855,8 +7855,8 @@ function _8bFactorMV(level){
       return _jrMvQ(`因式分解 \\(${g*a}${L1}(${B})${b2>0?'+':'-'}${Math.abs(g*b2)}${L2}(${B2})\\)`,
         `${G}(${B})(${lin(a,b)})`,G,2);
     }
-    if(t===0)return _mvGCF(V,3,8,3,3,randInt(0,2)===0);
-    if(t===1)return _mvGCF(pick([['a','b','c'],['x','y','z']]),3,6,1,2,false);
+    if(t===0)return _mvGCF(V,3,6,1,2,randInt(0,2)===0);
+    if(t===1)return _mvGCF(pick([['a','b','c'],['x','y','z']]),3,6,1,1,false);
     if(t===2){// 提公因式後平方差：G(p²u²−q²v²)=G(pu+qv)(pu−qv)
       const{g,e}=gPart();const[a,b0]=cp(),b=Math.abs(b0);if(a>6||b>6)return null;
       const T=[{c:g*a*a,e:[e[0]+2,e[1]]},{c:-g*b*b,e:[e[0],e[1]+2]}];
@@ -7886,9 +7886,9 @@ function _8bFactorMV(level){
   }
   if(t===0){// 二項式的次方為公因式：g·a(B)³ − g·b(B)² = g(B)²(a(B) − b)
     const g=randInt(2,6),a=randInt(2,7),b=randInt(1,9)*pick([1,-1]);if(gcd(a,Math.abs(b))!==1)return null;
-    const B=bin(),n=randInt(2,3);
-    return _jrMvQ(`因式分解 \\(${g*a}(${B})^{${n+1}}${b*g>0?'+':'-'}${Math.abs(b*g)}(${B})^{${n}}\\)`,
-      `${g}(${B})^${n}(${a}(${B})${b>0?'+':'-'}${Math.abs(b)})`,String(g),n+1);
+    const B=bin(),n=randInt(1,2);
+    return _jrMvQ(`因式分解 \\(${g*a}(${B})^{${n+1}}${b*g>0?'+':'-'}${Math.abs(b*g)}(${B})${n>1?`^{${n}}`:''}\\)`,
+      `${g}(${B})${n>1?'^'+n:''}(${a}(${B})${b>0?'+':'-'}${Math.abs(b)})`,String(g),n+1);
   }
   if(t===1){// 分組提公因式：(pu+qv)(x+ky) 展開成四項
     const[a,b]=cp(),k=randInt(1,6)*pick([1,-1]);
@@ -7901,7 +7901,7 @@ function _8bFactorMV(level){
     return _jrMvQ(`因式分解 \\(${a*a===1?'':a*a}${u}^{2}(${B})-${b*b===1?'':b*b}${v}^{2}(${B})\\)`,`(${B})(${A}+${Bv})(${A}-${Bv})`,'1',3);
   }
   // 三個變數、四項以內的單項式公因式
-  return _mvGCF(pick([['a','b','c'],['x','y','z']]),randInt(3,4),9,2,2,randInt(0,2)===0);
+  return _mvGCF(pick([['a','b','c'],['x','y','z']]),3,9,1,2,randInt(0,2)===0);
 }
 
 function gen8bFactor1(level){
@@ -7910,8 +7910,8 @@ function gen8bFactor1(level){
 }
 function _8bFactor1(level){
   const r0=Math.random();
-  if(r0<0.35)return _8bFactorMV(level);
-  if(r0<0.6)return _8bFactor1Ext(level);
+  if(r0<0.4)return _8bFactorMV(level);
+  if(level!=='basic'&&r0<0.6)return _8bFactor1Ext(level==='medium'?'basic':pick(['medium','hard']));
   function ff(question,coefA,coefB,coefC,answerLatex){
     return{question,type:'factored-form',coefA,coefB,coefC,answerLatex};
   }
@@ -7953,7 +7953,7 @@ function _8bFactor1(level){
     }
     if(t===2){
       // (ax+b)(ax-b)：a²x²-b²，b 較大
-      const a=randInt(2,8),b=randInt(6,15);
+      const a=randInt(2,8),b=randInt(6,15);if(gcd(a,b)!==1)return null;
       return ff(`因式分解 \\(${a*a}x^2-${b*b}\\)`,a*a,0,-b*b,`(${a}x+${b})(${a}x-${b})`);
     }
     // t===3：a(x+b)²，b 較大
@@ -7964,7 +7964,7 @@ function _8bFactor1(level){
   const t=randInt(0,2);
   if(t===0){
     // (ax+b)² 或 (ax-b)²，b≥10 使常數項 b²≥100
-    const a=randInt(2,7),b=randInt(10,20);
+    const a=randInt(2,7),b=randInt(10,20);if(gcd(a,b)!==1)return null;
     const A=a*a,B=2*a*b,C=b*b;
     if(randInt(0,1)===0)
       return ff(`因式分解 \\(${A}x^2+${B}x+${C}\\)`,A,B,C,`(${a}x+${b})^{2}`);
