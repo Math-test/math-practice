@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>會考模擬題本</title>
+  <link rel="stylesheet" href="css/style.css?v=14">
+  <link rel="stylesheet" href="css/katex.min.css">
+  <style>
+    .sem-pick { display:flex; flex-wrap:wrap; gap:10px; margin:6px 0 10px; }
+    .sem-pick label { display:flex; align-items:center; gap:6px; padding:8px 16px; border:1.5px solid var(--border); border-radius:8px; cursor:pointer; font-weight:600; background:#fff; }
+    .sem-pick label:has(input:checked) { border-color:var(--primary); background:var(--primary-l); color:var(--primary); }
+    .exam-note { font-size:.88rem; color:var(--text-s); line-height:1.7; }
+    .exam-actions { display:flex; flex-wrap:wrap; gap:10px; margin:14px 0; }
+    .exam-actions .btn { padding:9px 18px; }
+
+    /* 題本紙張 */
+    .paper { background:#fff; color:#000; max-width:820px; margin:0 auto 24px; padding:36px 44px; box-shadow:0 1px 6px rgba(0,0,0,.12);
+             font-family:"Times New Roman","PMingLiU","新細明體","Noto Serif TC",serif; font-size:16.5px; line-height:1.85; }
+    .paper h2 { text-align:center; font-size:1.45rem; margin:0 0 4px; letter-spacing:.12em; }
+    .paper .sub { text-align:center; font-size:.95rem; margin-bottom:10px; }
+    .paper .who { display:flex; justify-content:flex-end; gap:28px; font-size:.95rem; margin:6px 0 10px; }
+    .paper .who span { border-bottom:1px solid #000; min-width:110px; display:inline-block; }
+    .paper .rule { border:1.2px solid #000; padding:8px 14px; font-size:.92rem; line-height:1.7; margin-bottom:16px; }
+    .paper .part { font-weight:700; font-size:1.05rem; margin:18px 0 8px; border-bottom:1.5px solid #000; padding-bottom:2px; }
+    .q { display:flex; gap:6px; margin:0 0 16px; break-inside:avoid; page-break-inside:avoid; }
+    .q .qn { min-width:28px; font-weight:700; }
+    .q .qb { flex:1; }
+    .q .row { display:flex; gap:12px; align-items:flex-start; }
+    .q .row .stem { flex:1; }
+    .q .fig { flex:none; }
+    .opts { display:grid; gap:2px 14px; margin-top:4px; }
+    .opts.c4 { grid-template-columns:repeat(4, 1fr); }
+    .opts.c2 { grid-template-columns:repeat(2, 1fr); }
+    .opts.c1 { grid-template-columns:1fr; }
+    .nc-part { margin:4px 0 0 4px; }
+    .work { border:1px solid #000; height:300px; margin:8px 0 4px; position:relative; }
+    .work::before { content:"作答區"; position:absolute; top:2px; left:8px; font-size:.8rem; }
+    .ans-table { border-collapse:collapse; margin:6px 0 14px; width:100%; table-layout:fixed; }
+    .ans-table td { border:1px solid #000; text-align:center; padding:3px 0; font-size:.95rem; }
+    .ans-table tr:first-child td { background:#f2f2f2; }
+    .sol { margin:0 0 10px; break-inside:avoid; page-break-inside:avoid; }
+    .sol b { margin-right:4px; }
+    .empty { text-align:center; color:var(--text-s); padding:30px 0; }
+
+    @media (max-width:640px) {
+      .paper { padding:20px 16px; font-size:15.5px; }
+      .opts.c4 { grid-template-columns:repeat(2, 1fr); }
+      .q .row { flex-direction:column; }
+    }
+    @page { size:A4; margin:16mm 15mm; }
+    @media print {
+      body { background:#fff; }
+      .site-header, .no-print { display:none !important; }
+      .container { max-width:none; padding:0; margin:0; }
+      .paper { box-shadow:none; padding:0; margin:0; max-width:none; font-size:12.5pt; }
+      body.print-booklet #answers { display:none; }
+      body.print-answers #booklet { display:none; }
+      #answers { break-before:page; page-break-before:always; }
+      body.print-answers #answers { break-before:auto; page-break-before:auto; }
+      .nc-block { break-before:page; page-break-before:always; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header no-print">
+  <h1>國中會考模擬題本</h1>
+  <p>選擇題 25 題＋非選擇題 2 題 ｜ 108 課綱範圍 ｜ 可列印題本與詳解</p>
+</header>
+
+<div class="container">
+  <div class="no-print" style="display:flex;justify-content:space-between;margin-bottom:10px;">
+    <a href="junior.html" style="font-size:.9rem;color:var(--primary);font-weight:600;text-decoration:none;">◀ 返回國中數學練習系統</a>
+  </div>
+
+  <div class="card no-print">
+    <div class="card-title">選擇出題範圍（可多選）</div>
+    <div class="sem-pick" id="sem-pick">
+      <label><input type="checkbox" value="7a" checked> 七上</label>
+      <label><input type="checkbox" value="7b" checked> 七下</label>
+      <label><input type="checkbox" value="8a" checked> 八上</label>
+      <label><input type="checkbox" value="8b" checked> 八下</label>
+      <label><input type="checkbox" value="9a" checked> 九上</label>
+      <label><input type="checkbox" value="9b" checked> 九下</label>
+    </div>
+    <div class="exam-note">
+      ※ 題目平均分配到勾選的各冊，選擇題依難易由淺到深排列；非選擇題盡量取自不同冊。<br>
+      ※ 每按一次「產生題本」就會重新出一份不同的題目。<br>
+      ※ 只勾一、兩冊時，同類型的題目會重複出現（數字不同）。
+    </div>
+    <div class="exam-actions">
+      <button class="btn-primary" id="btn-gen" style="width:auto;padding:10px 28px;">▶ 產生題本</button>
+    </div>
+    <div class="error-msg" id="err">請至少勾選一冊！</div>
+  </div>
+
+  <div class="exam-actions no-print" id="tools" style="display:none;">
+    <button class="btn btn-reset" id="btn-regen">重新出題</button>
+    <button class="btn btn-print" id="btn-print-q">列印題本</button>
+    <button class="btn btn-print-ans" id="btn-print-a">列印答案與詳解</button>
+    <button class="btn btn-word" id="btn-print-all">列印全部</button>
+  </div>
+
+  <div id="booklet"></div>
+  <div id="answers"></div>
+</div>
+
+<script src="js/katex.min.js"></script>
+<script src="js/auto-render.min.js"></script>
+<script src="js/exam-gen.js?v=1"></script>
+<script>
+(function () {
+  const KX = { delimiters: [{ left: '\\(', right: '\\)', display: false }], throwOnError: false };
+  const L = 'ABCD';
+  const semNames = { '7a': '七上', '7b': '七下', '8a': '八上', '8b': '八下', '9a': '九上', '9b': '九下' };
+  const today = () => { const d = new Date(); return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`; };
+  // 選項排版：依最長選項的可見長度決定一列放幾個
+  const vis = s => s.replace(/\\(dfrac|frac)\{([^{}]*)\}\{([^{}]*)\}/g, '$2$3').replace(/\\[a-zA-Z]+/g, 'x').replace(/[{}^_\\() ]/g, '').length;
+  const cols = opts => { const m = Math.max(...opts.map(vis)); return m <= 9 ? 'c4' : m <= 24 ? 'c2' : 'c1'; };
+  let sems = [];
+
+  function render() {
+    const ex = buildExam(sems);
+    const range = sems.map(s => semNames[s]).join('、');
+    let h = `<div class="paper"><h2>數學科 會考模擬題本</h2><div class="sub">範圍：${range}　｜　${today()}</div>
+      <div class="who">班級 <span></span>座號 <span style="min-width:60px"></span>姓名 <span></span></div>
+      <div class="rule">本題本分兩部分：第一部分為選擇題，第 1～${ex.mc.length} 題，每題都有 (A)、(B)、(C)、(D) 四個選項，請選出一個最適當的答案；第二部分為非選擇題，共 ${ex.nc.length} 題，請將解題過程與最後答案寫在作答區內。</div>
+      <div class="part">第一部分：選擇題（1～${ex.mc.length} 題）</div>`;
+    ex.mc.forEach((q, i) => {
+      const opts = q.opts.map((o, j) => `<div>(${L[j]}) ${o}</div>`).join('');
+      h += `<div class="q"><div class="qn">${i + 1}.</div><div class="qb"><div class="row"><div class="stem">${q.stem}</div>${q.fig ? `<div class="fig">${q.fig}</div>` : ''}</div><div class="opts ${cols(q.opts)}">${opts}</div></div></div>`;
+    });
+    h += `<div class="nc-block"><div class="part">第二部分：非選擇題（1～${ex.nc.length} 題）</div>`;
+    ex.nc.forEach((q, i) => {
+      h += `<div class="q"><div class="qn">${i + 1}.</div><div class="qb"><div class="row"><div class="stem">${q.stem}</div>${q.fig ? `<div class="fig">${q.fig}</div>` : ''}</div>` +
+        q.parts.map((p, j) => `<div class="nc-part">(${j + 1}) ${p}</div>`).join('') + `<div class="work"></div></div></div>`;
+    });
+    h += `</div></div>`;
+    document.getElementById('booklet').innerHTML = h;
+
+    // 答案與詳解
+    let a = `<div class="paper"><h2>答案與詳解</h2><div class="sub">範圍：${range}　｜　${today()}</div><div class="part">選擇題答案</div>`;
+    for (let r = 0; r < ex.mc.length; r += 10) {
+      const seg = ex.mc.slice(r, r + 10);
+      a += `<table class="ans-table"><tr>${seg.map((_, k) => `<td>${r + k + 1}</td>`).join('')}${'<td></td>'.repeat(10 - seg.length)}</tr><tr>${seg.map(q => `<td><b>${L[q.ans]}</b></td>`).join('')}${'<td></td>'.repeat(10 - seg.length)}</tr></table>`;
+    }
+    a += `<div class="part">選擇題詳解</div>`;
+    ex.mc.forEach((q, i) => { a += `<div class="sol"><b>${i + 1}.（${L[q.ans]}）</b>〔${semNames[q.sem]}〕${q.sol}</div>`; });
+    a += `<div class="part">非選擇題參考解答</div>`;
+    ex.nc.forEach((q, i) => { a += `<div class="sol"><b>${i + 1}.</b>〔${semNames[q.sem]}〕` + q.sols.map((s, j) => `<div class="nc-part">(${j + 1}) ${s}</div>`).join('') + `</div>`; });
+    a += `</div>`;
+    document.getElementById('answers').innerHTML = a;
+
+    renderMathInElement(document.getElementById('booklet'), KX);
+    renderMathInElement(document.getElementById('answers'), KX);
+    document.getElementById('tools').style.display = 'flex';
+  }
+
+  function gen() {
+    sems = [...document.querySelectorAll('#sem-pick input:checked')].map(i => i.value);
+    document.getElementById('err').style.display = sems.length ? 'none' : 'block';
+    if (!sems.length) return;
+    render();
+    document.getElementById('tools').scrollIntoView({ behavior: 'smooth' });
+  }
+  const printAs = cls => { document.body.classList.add(cls); window.print(); };
+  window.addEventListener('afterprint', () => document.body.classList.remove('print-booklet', 'print-answers'));
+  document.getElementById('btn-gen').onclick = gen;
+  document.getElementById('btn-regen').onclick = () => { render(); };
+  document.getElementById('btn-print-q').onclick = () => printAs('print-booklet');
+  document.getElementById('btn-print-a').onclick = () => printAs('print-answers');
+  document.getElementById('btn-print-all').onclick = () => window.print();
+  window._examRender = s => { sems = s; render(); };
+})();
+</script>
+</body>
+</html>
