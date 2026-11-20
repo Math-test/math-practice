@@ -506,6 +506,484 @@ const n9b = [
   },
 ];
 
+// ── 第二批題型 ──────────────────────────────────────────────────────
+// 每題附 _v（參數），供驗算程式以另一套算法重算
+const V_ = (q, v) => { if (q) q._v = v; return q; };
+// 坐標平面上的函數圖形（線型或二次）
+function fnSVG(f, xr, yr, opt) {
+  opt = opt || {}; const W = 190, H = 180, P = 14, [x0, x1] = xr, [y0, y1] = yr;
+  const px = x => +(P + (x - x0) / (x1 - x0) * (W - 2 * P)).toFixed(1), py = y => +(H - P - (y - y0) / (y1 - y0) * (H - 2 * P)).toFixed(1);
+  const X0 = px(0), Y0 = py(0); let o = '';
+  o += `<line x1="${P - 6}" y1="${Y0}" x2="${W - P + 4}" y2="${Y0}" stroke="#000" stroke-width="1.1"/><line x1="${X0}" y1="${H - P + 6}" x2="${X0}" y2="${P - 4}" stroke="#000" stroke-width="1.1"/>`;
+  o += `<polygon points="${W - P + 8},${Y0} ${W - P + 1},${Y0 - 3} ${W - P + 1},${Y0 + 3}"/><polygon points="${X0},${P - 8} ${X0 - 3},${P - 1} ${X0 + 3},${P - 1}"/>`;
+  o += lbl(W - P + 2, Y0 + 15, 'x') + lbl(X0 + 9, P + 2, 'y') + lbl(X0 - 8, Y0 + 14, 'O');
+  const pts = []; for (let i = 0; i <= 200; i++) { const x = x0 + (x1 - x0) * i / 200, y = f(x); if (y >= y0 - 1 && y <= y1 + 1) pts.push(`${px(x)},${py(y)}`); }
+  o += `<polyline points="${pts.join(' ')}" fill="none" stroke="#000" stroke-width="1.8" clip-path="inset(0)"/>`;
+  return SVG(W, H, o);
+}
+// 長條圖
+function barSVG(labels, vals, unit) {
+  const W = 260, H = 170, P = 30, mx = Math.max(...vals), top = Math.ceil(mx / 5) * 5, bw = (W - P - 14) / labels.length;
+  let o = `<line x1="${P}" y1="10" x2="${P}" y2="${H - 24}" stroke="#000"/><line x1="${P}" y1="${H - 24}" x2="${W - 6}" y2="${H - 24}" stroke="#000"/>`;
+  for (let v = 0; v <= top; v += 5) { const y = H - 24 - (H - 34) * v / top; o += `<line x1="${P - 3}" y1="${y}" x2="${W - 6}" y2="${y}" stroke="#bbb" stroke-dasharray="2,2"/><text x="${P - 5}" y="${y + 4}" font-size="11" text-anchor="end" font-style="normal">${v}</text>`; }
+  labels.forEach((l, i) => { const h = (H - 34) * vals[i] / top, x = P + 8 + i * bw; o += `<rect x="${x}" y="${H - 24 - h}" width="${bw - 14}" height="${h}" fill="#ddd" stroke="#000"/><text x="${x + (bw - 14) / 2}" y="${H - 8}" font-size="12" text-anchor="middle" font-style="normal">${l}</text>`; });
+  o += `<text x="4" y="10" font-size="11" font-style="normal">（${unit}）</text>`;
+  return SVG(W, H, o);
+}
+
+// ════ 七上 ════
+g7a.push(
+  function () { // 溫度差
+    const a = ri(-12, -1), b = ri(8, 30), d = b - a;
+    return V_(MC(`某地某日的最高氣溫為 \\(${b}^\\circ\\text{C}\\)，最低氣溫為 \\(${a}^\\circ\\text{C}\\)，則當日的溫差為幾度？`, d, [b + a, -d, d - 2], `溫差 \\(=${b}-(${a})=${d}\\)（度）。`, { lv: 1, pos: 1 }), { a, b });
+  },
+  function () { // 完全平方數
+    const p = pk([2, 3, 5, 7]), q = pk([2, 3, 5, 7].filter(x => x !== p)), e1 = pk([1, 3]), e2 = pk([2, 4]), n = p ** e1 * q ** e2; if (n > 3000) return null;
+    return V_(MC(`若 \\(${n}\\times k\\) 是一個完全平方數，則最小的正整數 \\(k\\) 為何？`, p, [q, p * q, p * p], `\\(${n}=${p}${e1 > 1 ? '^{' + e1 + '}' : ''}\\times ${q}^{${e2}}\\)，要讓每個質因數的次方都是偶數，\\(k\\) 最小為 \\(${p}\\)。`, { lv: 2, pos: 1 }), { n });
+  },
+  function () { // 指數律
+    const b = pk([2, 3, 5]), m = ri(2, 6), n = ri(2, 6), k = ri(2, 4); const e = m + n - k; if (e < 2) return null;
+    return V_(MC(`\\(${b}^{${m}}\\times ${b}^{${n}}\\div ${b}^{${k}}\\) 的值與下列何者相等？`, M(`${b}^{${e}}`), [M(`${b}^{${m * n - k}}`), M(`${b}^{${m + n + k}}`), M(`${b}^{${m * n / k}}`), M(`${b * b}^{${e}}`), M(`${b}^{${e + 1}}`)].filter(s => !/\.|\^\{[01]\}|\^\{-/.test(s)), `同底數相乘指數相加、相除指數相減：\\(${b}^{${m}+${n}-${k}}=${b}^{${e}}\\)。`, { lv: 1, ord: s => +s.match(/\{(\d+)\}/)[1] + (s.includes(`${b * b}^`) ? 0.5 : 0) }), { b, m, n, k });
+  },
+  function () { // 年齡問題
+    const s = ri(6, 14), k = pk([3, 4, 5]), t = ri(2, 10), f = k * s; const after = f + t, sa = s + t; if (after % sa === 0) return null;
+    const yrs = (f - 2 * s); const want = 2; // 幾年後父親年齡是兒子的 2 倍
+    return V_(MC(`今年父親的年齡是兒子的 \\(${k}\\) 倍，兒子今年 \\(${s}\\) 歲。幾年後父親的年齡恰好是兒子的 \\(2\\) 倍？`, yrs, [yrs + s, f - s, yrs - 2], `設 \\(x\\) 年後，\\(${f}+x=2(${s}+x)\\)，\\(x=${yrs}\\)。`, { lv: 2, pos: 1 }), { k, s });
+  },
+  function () { // 列式
+    const a = ri(2, 9), b = ri(2, 9), n = ri(2, 5);
+    const ans = `\\(${a}(x+${b})\\)`, w = [`\\(${a}x+${b}\\)`, `\\(${a}+x+${b}\\)`, `\\(x+${a * b}\\)`, `\\(${a}x-${b}\\)`];
+    return MC(`「某數 \\(x\\) 加上 \\(${b}\\) 後再乘以 \\(${a}\\)」可以用下列哪一個式子表示？`, ans, w.slice(0, 3), `先加 \\(${b}\\) 要加括號，再乘以 \\(${a}\\)：\\(${a}(x+${b})\\)。`, { lv: 1 });
+  },
+  function () { // 分數運算
+    const a = ri(1, 5), b = pk([2, 3, 4, 5, 6]), c = ri(1, 5), d = pk([2, 3, 4, 6]), e = pk([2, 3]); if (a >= b || c >= d) return null;
+    const N = a * d * e - c * b, D = b * d; // a/b × e − c/d
+    const wN = (a * d - c * b) * e;
+    return V_(MC(`計算 \\(${fr(a, b)}\\times ${e}-${fr(c, d)}\\) 的值為何？`, M(fr(N, D)), [M(fr(wN, D)), M(fr(a * e - c, b + d)), M(fr(N, D * e))], `\\(${fr(a * e, b)}-${fr(c, d)}=${fr(N, D)}\\)。`, { lv: 1, ord: s => { const m = /(-)?\\dfrac\{(\d+)\}\{(\d+)\}|(-?\d+)/.exec(s); return m[4] !== undefined ? +m[4] : (m[1] ? -1 : 1) * m[2] / m[3]; } }), { N, D });
+  },
+);
+n7a.push(function () { // 數線上的運動
+  const a = ri(-8, -2), v = ri(2, 5), w = ri(1, 3), t = ri(2, 6), b = a + (v + w) * t;
+  return NC(`數線上 \\(A\\) 點坐標為 \\(${a}\\)、\\(B\\) 點坐標為 \\(${b}\\)。甲從 \\(A\\) 點每秒向右移動 \\(${v}\\) 單位，乙同時從 \\(B\\) 點每秒向左移動 \\(${w}\\) 單位。`,
+    [`\\(\\overline{AB}\\) 的長度為何？`, `幾秒後甲、乙相遇？相遇點的坐標為何？`],
+    [`\\(${b}-(${a})=${b - a}\\)`, `每秒接近 \\(${v + w}\\) 單位，\\(${b - a}\\div ${v + w}=${t}\\) 秒後相遇，坐標為 \\(${a}+${v}\\times ${t}=${a + v * t}\\)。`]);
+});
+
+// ════ 七下 ════
+g7b.push(
+  function () { // 直線過點求係數
+    const a = ri(-5, 5), x = ri(-4, 4), y = ri(-4, 4), c = ri(1, 4); if (!a || !x || !y) return null; const k = a * x + c * y;
+    return V_(MC(`若點 \\((${x},${y})\\) 在二元一次方程式 \\(ax+${c === 1 ? '' : c}y=${k}\\) 的圖形上，則 \\(a\\) 的值為何？`, a, [-a, (k + c * y) / x, a + 1], `代入得 \\(${co(x)}a${sg(c * y)}=${k}\\)，\\(a=${a}\\)。`, { lv: 1, int: 1 }), { x, y, c, k });
+  },
+  function () { // 比例尺
+    const s = pk([1000, 2000, 5000, 10000, 25000, 50000]), cm = ri(2, 15), real = s * cm / 100000;
+    return V_(MC(`某地圖的比例尺為 \\(1:${s}\\)。地圖上兩地相距 \\(${cm}\\) 公分，則兩地的實際距離為幾公里？`, real, [real * 10, real / 10, real * 100], `實際距離 \\(=${cm}\\times ${s}=${cm * s}\\) 公分 \\(=${num(real)}\\) 公里。`, { lv: 1, pos: 1 }), { s, cm });
+  },
+  function () { // 聯立方程式求 a+b
+    const x = ri(-4, 5), y = ri(-4, 5), a = ri(1, 5), b = ri(1, 5); if (!x || !y) return null;
+    return V_(MC(`若 \\(x=${x}\\)、\\(y=${y}\\) 是二元一次聯立方程式 \\(\\begin{cases}ax+y=${a * x + y}\\\\x+by=${x + b * y}\\end{cases}\\) 的解，則 \\(a+b\\) 的值為何？`, a + b, [a - b, a * b, a + b + 1].filter(v => v !== a + b), `代入得 \\(${co(x)}a${sg(y)}=${a * x + y}\\)，\\(a=${a}\\)；\\(${x}${y < 0 ? '-' : '+'}${co(Math.abs(y))}b=${x + b * y}\\)，\\(b=${b}\\)，\\(a+b=${a + b}\\)。`, { lv: 2, int: 1 }), { x, y, a, b });
+  },
+  function () { // 平均數
+    const n = ri(5, 8), vals = Array.from({ length: n }, () => ri(55, 98)), S = vals.reduce((p, q) => p + q, 0); if (S % n) return null; const av = S / n;
+    const sorted = vals.slice().sort((p, q) => p - q);
+    return V_(MC(`某組同學的數學成績如下：${vals.join('、')}（分），這組資料的平均數為何？`, av, [sorted[Math.floor(n / 2)], (sorted[0] + sorted[n - 1]) / 2, av + 2], `平均數 \\(=\\dfrac{${S}}{${n}}=${av}\\)（分）。`, { lv: 1, pos: 1 }), { vals });
+  },
+  function () { // 線對稱圖形的對稱軸
+    const F = [['正方形', 4], ['長方形', 2], ['菱形', 2], ['正三角形', 3], ['等腰梯形', 1], ['正六邊形', 6], ['圓', '無限多'], ['平行四邊形（非長方形、菱形）', 0], ['正五邊形', 5], ['等腰三角形（非正三角形）', 1]];
+    const [nm, k] = pk(F); const opts = typeof k === 'number' ? null : 1;
+    if (opts) return MC(`下列有關「${nm}」對稱軸的敘述，何者正確？`, '有無限多條對稱軸', ['只有 1 條對稱軸', '只有 2 條對稱軸', '沒有對稱軸'], `圓的每一條直徑所在的直線都是對稱軸，有無限多條。`, { lv: 1 });
+    return V_(MC(`${nm}共有幾條對稱軸？`, k, [0, 1, 2, 3, 4, 5, 6, 8].filter(v => v !== k), `${nm}有 \\(${k}\\) 條對稱軸。`, { lv: 1, min: 0, u: '條' }), { nm });
+  },
+  function () { // 正比
+    const k = ri(2, 9), x1 = ri(2, 6), x2 = ri(7, 15);
+    return V_(MC(`已知 \\(y\\) 與 \\(x\\) 成正比，當 \\(x=${x1}\\) 時 \\(y=${k * x1}\\)，則當 \\(x=${x2}\\) 時，\\(y\\) 的值為何？`, k * x2, [k * x1 * x1 / x2, k * x1 + x2 - x1, k * x2 + k].filter(Number.isInteger), `\\(y=kx\\)，\\(k=${k}\\)，所以 \\(y=${k}\\times ${x2}=${k * x2}\\)。`, { lv: 1, pos: 1 }), { k, x1, x2 });
+  },
+  function () { // 兩點連線平行 x 軸
+    const a = ri(-6, 6), b = ri(-6, 6), c = ri(-6, 6); if (a === c) return null; const y = ri(-6, 6);
+    return V_(MC(`坐標平面上 \\(A(${a},${y})\\)、\\(B(${c},2k${sg(-2 * b + y)})\\)。若直線 \\(AB\\) 與 \\(x\\) 軸平行，則 \\(k\\) 的值為何？`, b, [-b, (y + 2 * b - y) / 1 + 1, b - 1, y], `與 \\(x\\) 軸平行表示 \\(y\\) 坐標相同：\\(2k${sg(-2 * b + y)}=${y}\\)，\\(k=${b}\\)。`.replace('2k)', '2k)'), { lv: 2, int: 1 }), { b, y });
+  },
+);
+n7b.push(function () { // 統計：長條圖
+  const L = ['甲', '乙', '丙', '丁'], v = L.map(() => ri(3, 18)), T = v.reduce((p, q) => p + q, 0); const mx = Math.max(...v); if (v.filter(x => x === mx).length > 1) return null;
+  const th = 360 * mx / T; if (!Number.isInteger(th)) return null;
+  return NC(`右圖為某班同學最喜歡的四家飲料店的人數長條圖。`, [`全班共有幾人？`, `若把資料畫成圓形圖，最多人喜歡的那家店，所對應扇形的圓心角為幾度？`],
+    [`\\(${v.join('+')}=${T}\\)（人）`, `最多人喜歡的是${L[v.indexOf(mx)]}，\\(360^\\circ\\times\\dfrac{${mx}}{${T}}=${th}^\\circ\\)。`], { fig: barSVG(L, v, '人') });
+});
+
+// ════ 八上 ════
+g8a.push(
+  function () { // 乘法公式速算
+    const t = ri(0, 2), a = pk([20, 30, 40, 50, 60, 70, 80, 90, 100]), d = ri(1, 3);
+    if (t === 0) return V_(MC(`利用乘法公式計算 \\(${a + d}\\times ${a - d}\\) 的值為何？`, a * a - d * d, [a * a, a * a + d * d, a * a - 2 * d], `\\((${a}+${d})(${a}-${d})=${a}^{2}-${d}^{2}=${a * a - d * d}\\)。`, { lv: 1, pos: 1 }), { p: a + d, q: a - d });
+    const x = t === 1 ? a + d : a - d;
+    return V_(MC(`利用乘法公式計算 \\(${x}^{2}\\) 的值為何？`, x * x, [a * a + d * d, a * a - d * d, x * x + 2 * a * d * (t === 1 ? -1 : 1) * 1], `\\((${a}${t === 1 ? '+' : '-'}${d})^{2}=${a * a}${t === 1 ? '+' : '-'}${2 * a * d}+${d * d}=${x * x}\\)。`, { lv: 1, pos: 1 }), { p: x, q: x });
+  },
+  function () { // 直角三角形斜邊上的高
+    const [a, b, c] = pk([[3, 4, 5], [6, 8, 10], [5, 12, 13], [9, 12, 15], [8, 15, 17], [12, 16, 20]]), h = a * b / c;
+    return V_(MC(`直角三角形的兩股長分別為 \\(${a}\\)、\\(${b}\\)，則斜邊上的高為何？`, h, [c / 2, (a + b) / 2, a * b / 2], `斜邊長 \\(${c}\\)，面積 \\(=\\dfrac{${a}\\times ${b}}{2}=\\dfrac{${c}\\times h}{2}\\)，\\(h=${fr(a * b, c)}\\)。`, { lv: 2, pos: 1, fmt: v => Number.isInteger(v) ? String(v) : fr(Math.round(v * c), c) }), { a, b });
+  },
+  function () { // 因式分解
+    const a = ri(2, 6), b = ri(1, 9); if (gcd(a, b) !== 1) return null; const t = ri(0, 1);
+    if (t === 0) return MC(`多項式 \\(${a * a}x^{2}-${b * b}\\) 因式分解後為何？`, M(`(${a}x+${b})(${a}x-${b})`), [M(`(${a}x-${b})^{2}`), M(`(${a * a}x+${b})(x-${b})`), M(`(${a}x+${b})^{2}`)], `\\(${a * a}x^{2}-${b * b}=(${a}x)^{2}-${b}^{2}=(${a}x+${b})(${a}x-${b})\\)。`, { lv: 1 });
+    return MC(`多項式 \\(${a * a}x^{2}-${2 * a * b}x+${b * b}\\) 因式分解後為何？`, M(`(${a}x-${b})^{2}`), [M(`(${a}x+${b})^{2}`), M(`(${a}x+${b})(${a}x-${b})`), M(`(${a * a}x-${b})(x-${b})`)], `\\((${a}x)^{2}-2\\times ${a}x\\times ${b}+${b}^{2}=(${a}x-${b})^{2}\\)。`, { lv: 1 });
+  },
+  function () { // 累積相對次數
+    const f = [ri(2, 6), ri(4, 10), ri(6, 12), ri(3, 8), ri(1, 5)], T = f.reduce((p, q) => p + q, 0), k = ri(1, 3), cum = f.slice(0, k + 1).reduce((p, q) => p + q, 0); const pc = cum * 100 / T; if (!Number.isInteger(pc)) return null;
+    const G = ['50～60', '60～70', '70～80', '80～90', '90～100'];
+    return V_(MC(`某班數學成績的次數分配如下：${G.map((g, i) => `${g} 分有 \\(${f[i]}\\) 人`).join('、')}。成績未滿 ${60 + 10 * k} 分的累積相對次數為多少 %？`, pc, [f[k] * 100 / T, (cum - f[k]) * 100 / T, pc + 10].filter(Number.isInteger), `未滿 ${60 + 10 * k} 分的人數為 \\(${f.slice(0, k + 1).join('+')}=${cum}\\)，\\(\\dfrac{${cum}}{${T}}=${pc}\\%\\)。`, { lv: 2, pos: 1, step: 5, fmt: v => num(v) + '\\%' }), { f, k });
+  },
+  function () { // 判別式求 k 範圍內整數
+    const c = ri(1, 9), b = ri(2, 8); // x²+bx+k=0 有兩相異實根 → k < b²/4
+    const lim = b * b / 4, ans = Number.isInteger(lim) ? lim - 1 : Math.floor(lim);
+    return V_(MC(`若 \\(x\\) 的一元二次方程式 \\(x^{2}+${b}x+k=0\\) 有兩個相異的實數根，則 \\(k\\) 的最大整數值為何？`, ans, [ans + 1, Math.ceil(lim), b * b, -ans].filter(v => v !== ans), `判別式 \\(${b}^{2}-4k>0\\)，\\(k<${fr(b * b, 4)}\\)，最大整數 \\(k=${ans}\\)。`, { lv: 3, int: 1 }), { b });
+  },
+  function () { // 坐標平面上的三角形面積（畢氏+座標）
+    const x1 = ri(-6, -1), x2 = ri(1, 7), h = ri(2, 8) * pk([1, -1]), xm = ri(-5, 6), A = (x2 - x1) * Math.abs(h) / 2; if (!Number.isInteger(A)) return null;
+    return V_(MC(`坐標平面上有 \\(A(${x1},0)\\)、\\(B(${x2},0)\\)、\\(C(${xm},${h})\\) 三點，則 \\(\\triangle ABC\\) 的面積為何？`, A, [(x2 - x1) * Math.abs(h), A + Math.abs(h), (x2 + x1) * Math.abs(h) / 2].filter(v => v > 0), `底 \\(\\overline{AB}=${x2 - x1}\\)，高 \\(=${Math.abs(h)}\\)，面積 \\(=\\dfrac{${x2 - x1}\\times ${Math.abs(h)}}{2}=${A}\\)。`, { lv: 1, pos: 1 }), { x1, x2, h });
+  },
+);
+n8a.push(function () { // 乘法公式：正方形面積
+  const a = ri(5, 15), d = ri(1, 4);
+  return NC(`一個正方形的邊長為 \\(a\\) 公分。將它的一組對邊各增加 \\(${d}\\) 公分、另一組對邊各減少 \\(${d}\\) 公分，得到一個長方形。`,
+    [`以 \\(a\\) 表示長方形的面積（展開成多項式）。`, `長方形的面積比原正方形大還是小？相差多少平方公分？若 \\(a=${a}\\)，長方形面積是多少？`],
+    [`\\((a+${d})(a-${d})=a^{2}-${d * d}\\)`, `比正方形小 \\(${d * d}\\) 平方公分；\\(a=${a}\\) 時面積為 \\(${a * a}-${d * d}=${a * a - d * d}\\) 平方公分。`]);
+});
+
+// ════ 八下 ════
+g8b.push(
+  function () { // 等比數列
+    const a = pk([1, 2, 3, 4, 5, -2, -3]), r = pk([2, 3, -2]), n = ri(4, 7), ans = a * r ** (n - 1);
+    return V_(MC(`一個等比數列的首項為 \\(${a}\\)、公比為 \\(${r}\\)，則第 \\(${n}\\) 項為何？`, ans, [a * r ** n, a * r ** (n - 2), -ans, a * (n - 1) * r].filter(v => v !== ans), `第 \\(${n}\\) 項 \\(=${a}\\times(${r})^{${n - 1}}=${ans}\\)。`.replace('(2)', '2').replace('(3)', '3'), { lv: 1, int: 1 }), { a, r, n });
+  },
+  function () { // 線型函數不經過的象限（附圖）
+    const m = pk([-3, -2, -1, 1, 2, 3]) / pk([1, 2]), c = pk([-4, -3, -2, 2, 3, 4]);
+    const miss = m > 0 ? (c > 0 ? 4 : 2) : (c > 0 ? 3 : 1), N = '一二三四', L = k => `第${N[k - 1]}象限`;
+    const ms = Number.isInteger(m) ? (m === 1 ? '' : m === -1 ? '-' : m) : (m < 0 ? '-' : '') + `\\dfrac{${Math.abs(m * 2)}}{2}`;
+    const mm = Number.isInteger(m) ? ms : (m < 0 ? '-' : '') + `\\dfrac{1}{2}`.replace('1', Math.abs(m * 2) === 1 ? '1' : String(Math.abs(m * 2) / 1));
+    const mt = Number.isInteger(m) ? ms : (m < 0 ? '-' : '') + fr(Math.abs(m * 2), 2);
+    return V_(MC(`線型函數 \\(y=${mt}x${sg(c)}\\) 的圖形不會通過哪一個象限？`, L(miss), [1, 2, 3, 4].filter(k => k !== miss).map(L), `斜率 ${m > 0 ? '為正' : '為負'}、\\(y\\) 截距 \\(${c}\\) ${c > 0 ? '在原點上方' : '在原點下方'}，圖形不會通過${L(miss)}。`, { lv: 2, ord: v => N.indexOf(v[1]) }), { m, c });
+  },
+  function () { // 全等性質
+    const C = [['兩邊及其夾角對應相等', 'SAS'], ['三邊對應相等', 'SSS'], ['兩角及其夾邊對應相等', 'ASA'], ['兩角及其中一角的對邊對應相等', 'AAS'], ['斜邊與一股對應相等的直角三角形', 'RHS']];
+    const [d, k] = pk(C); const all = ['SAS', 'SSS', 'ASA', 'AAS', 'RHS', 'SSA', 'AAA'];
+    return MC(`兩個三角形中，若「${d}」，可以由下列哪一個全等性質判斷兩三角形全等？`, `${k} 全等性質`, shuf(all.filter(x => x !== k)).slice(0, 3).map(x => `${x} 全等性質`), `「${d}」對應 ${k} 全等性質。`, { lv: 1 });
+  },
+  function () { // 梯形中線
+    const a = ri(3, 12), b = ri(a + 2, 24); if ((a + b) % 2) return null; const m = (a + b) / 2;
+    if (Math.random() < 0.5) return V_(MC(`梯形的上底為 \\(${a}\\)、下底為 \\(${b}\\)，則兩腰中點連線段的長度為何？`, m, [b - a, (b - a) / 2, a + b], `梯形中線長 \\(=\\dfrac{${a}+${b}}{2}=${m}\\)。`, { lv: 1, pos: 1 }), { a, b });
+    return V_(MC(`梯形的中線長為 \\(${m}\\)、上底為 \\(${a}\\)，則下底為何？`, b, [2 * m + a, m - a, m + a], `\\(\\dfrac{${a}+\\text{下底}}{2}=${m}\\)，下底 \\(=${2 * m}-${a}=${b}\\)。`, { lv: 1, pos: 1 }), { a, b });
+  },
+  function () { // 菱形面積
+    const p = ri(3, 12), q = ri(3, 12); if ((p * q) % 2 || p === q) return null; const [A, B] = [2 * p, 2 * q], s = Math.hypot(p, q);
+    if (!Number.isInteger(s)) return V_(MC(`菱形的兩條對角線長分別為 \\(${A}\\)、\\(${B}\\)，則菱形的面積為何？`, A * B / 2, [A * B, A + B, A * B / 4], `菱形面積 \\(=\\dfrac{${A}\\times ${B}}{2}=${A * B / 2}\\)。`, { lv: 1, pos: 1 }), { A, B });
+    return V_(MC(`菱形的兩條對角線長分別為 \\(${A}\\)、\\(${B}\\)，則菱形的周長為何？`, 4 * s, [2 * (A + B), A + B, 2 * s], `對角線互相垂直平分，邊長 \\(=\\sqrt{${p}^{2}+${q}^{2}}=${s}\\)，周長 \\(=${4 * s}\\)。`, { lv: 2, pos: 1 }), { A, B, per: 1 });
+  },
+  function () { // 外角和
+    const n = ri(5, 9), ang = Array.from({ length: n - 1 }, () => ri(30, 70)), S = ang.reduce((p, q) => p + q, 0), last = 360 - S; if (last <= 10 || last >= 170) return null;
+    return V_(MC(`一個 \\(${n}\\) 邊形有 \\(${n - 1}\\) 個外角分別為 ${ang.map(a => `\\(${a}^\\circ\\)`).join('、')}，則第 \\(${n}\\) 個外角為幾度？`, last, [180 * (n - 2) - S, 180 - last, last + 10].filter(v => v > 0), `多邊形外角和為 \\(360^\\circ\\)，第 \\(${n}\\) 個外角 \\(=360^\\circ-${S}^\\circ=${last}^\\circ\\)。`, { lv: 2, pos: 1, step: 5, fmt: v => num(v) + '^\\circ' }), { S });
+  },
+  function () { // 等比應用：反彈
+    const H = pk([128, 243, 256, 512, 625, 162]), r = H % 3 === 0 ? [2, 3] : H % 5 === 0 ? [4, 5] : [1, 2], n = ri(2, 4), h = H * (r[0] / r[1]) ** n; if (!Number.isInteger(h)) return null;
+    return V_(MC(`一顆球從 \\(${H}\\) 公分高處落下，每次反彈的高度都是前一次落下高度的 \\(${fr(r[0], r[1])}\\)。第 \\(${n}\\) 次反彈的高度為幾公分？`, h, [H * (r[0] / r[1]) ** (n - 1), H * (r[0] / r[1]) ** (n + 1), H - n * (H - H * r[0] / r[1])].filter(v => Number.isInteger(v) && v > 0), `\\(${H}\\times\\left(${fr(r[0], r[1])}\\right)^{${n}}=${h}\\)（公分）。`, { lv: 2, pos: 1 }), { H, r, n });
+  },
+);
+n8b.push(function () { // 平行四邊形與全等
+  const a = ri(5, 15), b = ri(4, a - 1), ang = pk([50, 60, 70, 110, 120]);
+  return NC(`平行四邊形 \\(ABCD\\) 中，\\(\\overline{AB}=${a}\\)、\\(\\overline{BC}=${b}\\)、\\(\\angle B=${ang}^\\circ\\)，對角線 \\(\\overline{AC}\\) 與 \\(\\overline{BD}\\) 交於 \\(O\\) 點。`,
+    [`求平行四邊形 \\(ABCD\\) 的周長與 \\(\\angle D\\)、\\(\\angle C\\) 的度數。`, `說明 \\(\\triangle AOB\\cong\\triangle COD\\) 的理由。`],
+    [`周長 \\(=2(${a}+${b})=${2 * (a + b)}\\)；\\(\\angle D=\\angle B=${ang}^\\circ\\)，\\(\\angle C=180^\\circ-${ang}^\\circ=${180 - ang}^\\circ\\)。`, `平行四邊形對角線互相平分，\\(\\overline{OA}=\\overline{OC}\\)、\\(\\overline{OB}=\\overline{OD}\\)，又對頂角 \\(\\angle AOB=\\angle COD\\)，由 SAS 全等性質得 \\(\\triangle AOB\\cong\\triangle COD\\)。`]);
+});
+
+// ════ 九上 ════
+g9a.push(
+  function () { // 內心角
+    const A = ri(20, 80) * 2, ans = 90 + A / 2;
+    return V_(MC(`\\(I\\) 為 \\(\\triangle ABC\\) 的內心。若 \\(\\angle A=${A}^\\circ\\)，則 \\(\\angle BIC\\) 為幾度？`, ans, [180 - A, 90 - A / 2, 2 * A, 180 - A / 2].filter(v => v > 0 && v < 180), `\\(\\angle IBC+\\angle ICB=\\dfrac{180^\\circ-${A}^\\circ}{2}=${90 - A / 2}^\\circ\\)，\\(\\angle BIC=180^\\circ-${90 - A / 2}^\\circ=${ans}^\\circ\\)。`, { lv: 2, pos: 1, step: 5, fmt: v => num(v) + '^\\circ' }), { A });
+  },
+  function () { // 圓外切四邊形
+    const a = ri(4, 12), b = ri(4, 12), c = ri(4, 12), d = a + c - b; if (d < 2) return null;
+    return V_(MC(`四邊形 \\(ABCD\\) 的四個邊都與一圓相切。若 \\(\\overline{AB}=${a}\\)、\\(\\overline{BC}=${b}\\)、\\(\\overline{CD}=${c}\\)，則 \\(\\overline{DA}\\) 的長度為何？`, d, [a + b - c, b + c - a, (a + b + c) / 3].filter(v => v > 0), `圓外切四邊形兩組對邊和相等：\\(\\overline{AB}+\\overline{CD}=\\overline{BC}+\\overline{DA}\\)，\\(\\overline{DA}=${a}+${c}-${b}=${d}\\)。`, { lv: 2, pos: 1 }), { a, b, c });
+  },
+  function () { // 兩圓位置關係
+    const r1 = ri(2, 9), r2 = ri(2, 9), t = ri(0, 3); let d, ans;
+    const K = ['外離', '外切', '交於兩點', '內切'];
+    if (t === 0) { d = r1 + r2 + ri(1, 5); ans = '外離'; } else if (t === 1) { d = r1 + r2; ans = '外切'; } else if (t === 2) { d = Math.abs(r1 - r2) + ri(1, r1 + r2 - Math.abs(r1 - r2) - 1); if (!(d < r1 + r2 && d > Math.abs(r1 - r2))) return null; ans = '交於兩點'; } else { if (r1 === r2) return null; d = Math.abs(r1 - r2); ans = '內切'; }
+    return V_(MC(`兩圓的半徑分別為 \\(${r1}\\)、\\(${r2}\\)，連心線長為 \\(${d}\\)，則兩圓的位置關係為何？`, ans, K.filter(k => k !== ans), `兩半徑和 \\(=${r1 + r2}\\)、差 \\(=${Math.abs(r1 - r2)}\\)，連心線長 \\(${d}\\)，所以兩圓${ans}。`, { lv: 2, ord: v => K.indexOf(v) }), { r1, r2, d });
+  },
+  function () { // 重心面積
+    const S = ri(3, 20) * 6, t = ri(0, 1);
+    if (t === 0) return V_(MC(`\\(G\\) 為 \\(\\triangle ABC\\) 的重心。若 \\(\\triangle ABC\\) 的面積為 \\(${S}\\)，則 \\(\\triangle GBC\\) 的面積為何？`, S / 3, [S / 2, S / 6, S / 4], `重心與三頂點連線把三角形分成面積相等的三塊，\\(\\triangle GBC=\\dfrac{${S}}{3}=${S / 3}\\)。`, { lv: 2, pos: 1 }), { S, k: 3 });
+    return V_(MC(`\\(G\\) 為 \\(\\triangle ABC\\) 的重心，\\(D\\) 為 \\(\\overline{BC}\\) 的中點。若 \\(\\triangle ABC\\) 的面積為 \\(${S}\\)，則 \\(\\triangle GBD\\) 的面積為何？`, S / 6, [S / 3, S / 4, S / 9].filter(Number.isInteger), `三條中線把三角形分成面積相等的六塊，\\(\\triangle GBD=\\dfrac{${S}}{6}=${S / 6}\\)。`, { lv: 2, pos: 1 }), { S, k: 6 });
+  },
+  function () { // 圓內接四邊形
+    const A = ri(50, 130); const ans = 180 - A;
+    return V_(MC(`四邊形 \\(ABCD\\) 內接於圓 \\(O\\)，若 \\(\\angle A=${A}^\\circ\\)，則 \\(\\angle C\\) 為幾度？`, ans, [A, 360 - 2 * A, 90 - A / 2, A / 2].filter(v => v > 0 && Number.isInteger(v)), `圓內接四邊形對角互補，\\(\\angle C=180^\\circ-${A}^\\circ=${ans}^\\circ\\)。`, { lv: 1, pos: 1, step: 5, fmt: v => num(v) + '^\\circ' }), { A });
+  },
+  function () { // 正三角形外接圓、內切圓
+    const k = ri(1, 6), side = 6 * k, t = ri(0, 1);
+    if (t === 0) return MC(`邊長為 \\(${side}\\) 的正三角形，其外接圓半徑為何？`, M(`${2 * k}\\sqrt{3}`), [M(`${k}\\sqrt{3}`), M(`${3 * k}\\sqrt{3}`), M(`${4 * k}\\sqrt{3}`)], `正三角形的高 \\(=${3 * k}\\sqrt{3}\\)，外心即重心，外接圓半徑 \\(=\\dfrac{2}{3}\\times ${3 * k}\\sqrt{3}=${2 * k}\\sqrt{3}\\)。`.replace(/\b1\\sqrt/g, '\\sqrt'), { lv: 3, ord: s => +(s.match(/(\d+)\\sqrt/) || [0, 1])[1] });
+    return MC(`邊長為 \\(${side}\\) 的正三角形，其內切圓半徑為何？`, M(`${k}\\sqrt{3}`), [M(`${2 * k}\\sqrt{3}`), M(`${3 * k}\\sqrt{3}`), M(`${4 * k}\\sqrt{3}`)], `正三角形的高 \\(=${3 * k}\\sqrt{3}\\)，內心即重心，內切圓半徑 \\(=\\dfrac{1}{3}\\times ${3 * k}\\sqrt{3}=${k}\\sqrt{3}\\)。`, { lv: 3, ord: s => +(s.match(/(\d+)\\sqrt/) || [0, 1])[1] });
+  },
+  function () { // 相似：母子相似（直角三角形斜邊上的高）
+    const p = ri(1, 6), q = ri(p + 1, 9), x = p * q, h = Math.sqrt(x); if (!Number.isInteger(h)) return null;
+    return V_(MC(`直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，\\(\\overline{CD}\\) 為斜邊 \\(\\overline{AB}\\) 上的高。若 \\(\\overline{AD}=${p}\\)、\\(\\overline{DB}=${q}\\)，則 \\(\\overline{CD}\\) 的長度為何？`, h, [(p + q) / 2, q - p, h + 1].filter(v => v > 0), `\\(\\triangle ACD\\sim\\triangle CBD\\)，\\(\\overline{CD}^{2}=\\overline{AD}\\times\\overline{DB}=${x}\\)，\\(\\overline{CD}=${h}\\)。`, { lv: 3, pos: 1 }), { p, q });
+  },
+);
+n9a.push(function () { // 圓周角與圓心角
+  const th = ri(20, 70) * 2;
+  return NC(`如右圖，\\(A\\)、\\(B\\)、\\(C\\) 三點在圓 \\(O\\) 上，\\(C\\) 在優弧 \\(AB\\) 上，\\(\\angle AOB=${th}^\\circ\\)。`,
+    [`求 \\(\\angle ACB\\) 的度數。`, `若 \\(D\\) 為劣弧 \\(AB\\) 上的一點，求 \\(\\angle ADB\\) 的度數，並說明理由。`],
+    [`\\(\\angle ACB=\\dfrac{1}{2}\\angle AOB=${th / 2}^\\circ\\)`, `\\(A\\)、\\(C\\)、\\(B\\)、\\(D\\) 四點共圓，\\(ACBD\\) 為圓內接四邊形，對角互補，\\(\\angle ADB=180^\\circ-${th / 2}^\\circ=${180 - th / 2}^\\circ\\)。`], { fig: circABC(th) });
+});
+
+// ════ 九下 ════
+g9b.push(
+  function () { // 看圖判斷係數正負
+    const a = pk([1, -1]) * pk([0.5, 1]), h = pk([-2, -1.5, -1, 1, 1.5, 2]), k = pk([-3, -2, 2, 3]), b = -2 * a * h, c = a * h * h + k;
+    if (Math.abs(c) < 0.6) return null;
+    const S = v => v > 0 ? '\\gt ' : '\\lt ', ans = `\\(a${S(a)}0\\)，\\(b${S(b)}0\\)，\\(c${S(c)}0\\)`;
+    const all = [];[1, -1].forEach(x => [1, -1].forEach(y => [1, -1].forEach(z => all.push(`\\(a${S(x)}0\\)，\\(b${S(y)}0\\)，\\(c${S(z)}0\\)`))));
+    const f = x => a * x * x + b * x + c, ys = [k, c, 0], lo = Math.min(...ys) - 1.5, hi = Math.max(...ys) + 1.5;
+    return V_(MC(`右圖為二次函數 \\(y=ax^{2}+bx+c\\) 的圖形，下列關於 \\(a\\)、\\(b\\)、\\(c\\) 正負的敘述，何者正確？`, ans, shuf(all.filter(s => s !== ans)).slice(0, 3), `開口${a > 0 ? '向上' : '向下'}，\\(a${S(a)}0\\)；對稱軸 \\(x=-\\dfrac{b}{2a}\\) 在 \\(y\\) 軸${h > 0 ? '右' : '左'}側，\\(a\\)、\\(b\\) ${h > 0 ? '異號' : '同號'}，\\(b${S(b)}0\\)；與 \\(y\\) 軸交於原點${c > 0 ? '上' : '下'}方，\\(c${S(c)}0\\)。`, { lv: 3, fig: fnSVG(f, [Math.min(-3.5, h - 3), Math.max(3.5, h + 3)], [lo, hi]) }), { a, b, c });
+  },
+  function () { // 兩點同高求對稱軸
+    const h = ri(-5, 5), d = ri(1, 6), y = ri(-9, 9);
+    return V_(MC(`二次函數 \\(y=ax^{2}+bx+c\\) 的圖形通過 \\((${h - d},${y})\\)、\\((${h + d},${y})\\) 兩點，則圖形的對稱軸為何？`, M(`x=${h}`), [M(`x=${-h}`), M(`x=${h + d}`), M(`x=${h - d}`), M(`y=${y}`)].filter(s => s !== M(`x=${h}`)), `兩點的 \\(y\\) 坐標相同，對稱軸為兩點 \\(x\\) 坐標的中點：\\(x=\\dfrac{(${h - d})+(${h + d})}{2}=${h}\\)。`, { lv: 2, ord: s => s.includes('y=') ? 99 : +s.match(/-?\d+/)[0] }), { h });
+  },
+  function () { // 區間最值
+    const a = pk([1, -1]), h = ri(-3, 3), k = ri(-6, 6), L = h + ri(1, 3), R = L + ri(2, 4); const f = x => a * (x - h) ** 2 + k;
+    const mx = a > 0; const val = mx ? Math.max(f(L), f(R)) : Math.min(f(L), f(R));
+    return V_(MC(`當 \\(${L}\\le x\\le ${R}\\) 時，二次函數 \\(y=${a < 0 ? '-' : ''}(x${sg(-h)})^{2}${sg(k)}\\) 的${mx ? '最大' : '最小'}值為何？`.replace('(x)', 'x'), val, [k, f(L) === val ? f(R) : f(L), -val], `頂點 \\(x=${h}\\) 不在範圍內，函數在此範圍${(a > 0) ? '遞增' : '遞減'}，在 \\(x=${R}\\) 時有${mx ? '最大' : '最小'}值 \\(${val}\\)。`, { lv: 3 }), { a, h, k, L, R, mx });
+  },
+  function () { // 中位數與眾數
+    const vals = Array.from({ length: ri(7, 10) }, () => ri(1, 9)), s = vals.slice().sort((p, q) => p - q), n = s.length;
+    const med = n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2;
+    const cnt = {}; s.forEach(v => cnt[v] = (cnt[v] || 0) + 1); const mc = Math.max(...Object.values(cnt)), modes = Object.keys(cnt).filter(k => cnt[k] === mc); if (modes.length > 1 || mc < 2) return null;
+    const mode = +modes[0]; if (mode === med) return null;
+    if (Math.random() < 0.5) return V_(MC(`某班 \\(${n}\\) 位同學上個月看的課外書本數如下：${vals.join('、')}（本），這組資料的中位數為何？`, med, [mode, s.reduce((p, q) => p + q, 0) / n, s[Math.floor(n / 2)] === med ? med + 1 : s[Math.floor(n / 2)]], `由小到大排列：${s.join('、')}，中位數為 \\(${num(med)}\\)。`, { lv: 1, pos: 1, step: 0.5 }), { s, t: 'med' });
+    return V_(MC(`某班 \\(${n}\\) 位同學上個月看的課外書本數如下：${vals.join('、')}（本），這組資料的眾數為何？`, mode, [med, Math.max(...s), mc], `出現次數最多的是 \\(${mode}\\)（${mc} 次），眾數為 \\(${mode}\\)。`, { lv: 1, pos: 1 }), { s, t: 'mode' });
+  },
+  function () { // 角柱體積
+    const t = ri(0, 1);
+    if (t === 0) { const [a, b, c] = pk([[3, 4, 5], [6, 8, 10], [5, 12, 13]]), h = ri(3, 12), V = a * b / 2 * h;
+      return V_(MC(`一個直角柱的底面是兩股長為 \\(${a}\\)、\\(${b}\\) 的直角三角形，高為 \\(${h}\\)，則此角柱的體積為何？`, V, [a * b * h, (a + b + c) * h, V + a * b], `體積 \\(=\\dfrac{${a}\\times ${b}}{2}\\times ${h}=${V}\\)。`, { lv: 1, pos: 1 }), { V }); }
+    const r = ri(2, 8), h = ri(3, 12);
+    return MC(`一個圓柱的底面半徑為 \\(${r}\\)、高為 \\(${h}\\)，則它的體積為何？`, M(piL(r * r * h, 1)), [M(piL(2 * r * h, 1)), M(piL(r * h, 1)), M(piL(r * r * h * 2, 1))], `體積 \\(=\\pi\\times ${r}^{2}\\times ${h}=${r * r * h}\\pi\\)。`, { lv: 1, ord: s => +(s.match(/(\d+)\\pi/) || [0, 1])[1] });
+  },
+  function () { // 機率：抽號碼
+    const N = ri(10, 30), k = pk([3, 4, 5, 6]), c = Math.floor(N / k);
+    return V_(MC(`箱中有 \\(${N}\\) 張分別寫著 \\(1\\)～\\(${N}\\) 的號碼牌。從中隨機抽出一張，抽到的號碼是 \\(${k}\\) 的倍數的機率為何？`, M(fr(c, N)), [M(fr(c + 1, N)), M(fr(1, k)), M(fr(c, N - c))], `\\(1\\)～\\(${N}\\) 中 \\(${k}\\) 的倍數有 \\(${c}\\) 個，機率為 \\(${fr(c, N)}\\)。`, { lv: 1, ord: s => { const m = /\\dfrac\{(\d+)\}\{(\d+)\}/.exec(s); return m ? m[1] / m[2] : 1; } }), { N, k });
+  },
+  function () { // 二次函數平移
+    const h = ri(-4, 4), k = ri(-5, 5), dx = ri(-4, 4), dy = ri(-5, 5); if (!dx || !dy || !h) return null; const a = pk([1, 2, -1, -2]);
+    const nh = h + dx, nk = k + dy, P = (x, y) => M(`(${x},${y})`);
+    return V_(MC(`將二次函數 \\(y=${a === 1 ? '' : a === -1 ? '-' : a}(x${sg(-h)})^{2}${sg(k)}\\) 的圖形向${dx > 0 ? '右' : '左'}平移 \\(${Math.abs(dx)}\\) 單位、再向${dy > 0 ? '上' : '下'}平移 \\(${Math.abs(dy)}\\) 單位，新圖形的頂點坐標為何？`, P(nh, nk), [P(h - dx, nk), P(nh, k - dy), P(h - dx, k - dy), P(nk, nh)].filter(s => s !== P(nh, nk)), `原頂點 \\((${h},${k})\\)，平移後為 \\((${h}${sg(dx)},${k}${sg(dy)})=(${nh},${nk})\\)。`, { lv: 2 }), { h, k, dx, dy });
+  },
+);
+n9b.push(function () { // 統計：四分位數
+  const v = new Set(); while (v.size < 9) v.add(ri(30, 99)); const s = [...v].sort((p, q) => p - q);
+  const Q1 = (s[1] + s[2]) / 2, Q3 = (s[6] + s[7]) / 2;
+  return NC(`某次測驗 \\(9\\) 位同學的成績如下：${shuf(s).join('、')}（分）。`, [`求這組資料的中位數、第一四分位數 \\(Q_1\\) 與第三四分位數 \\(Q_3\\)。`, `求四分位距。若再加入一位 \\(100\\) 分的同學，中位數變為多少？`],
+    [`由小到大：${s.join('、')}。中位數 \\(${s[4]}\\)；\\(Q_1=\\dfrac{${s[1]}+${s[2]}}{2}=${num(Q1)}\\)，\\(Q_3=\\dfrac{${s[6]}+${s[7]}}{2}=${num(Q3)}\\)。`, `四分位距 \\(=${num(Q3)}-${num(Q1)}=${num(Q3 - Q1)}\\)；加入 \\(100\\) 後共 \\(10\\) 筆，中位數 \\(=\\dfrac{${s[4]}+${s[5]}}{2}=${num((s[4] + s[5]) / 2)}\\)。`]);
+});
+
+
+// ── 第三批：函數圖形判讀、統計圖表、尺規作圖、幾何證明 ──────────────
+const T_ = (x, y, t, o) => `<text x="${x}" y="${y}" font-size="${(o && o.fs) || 12}" text-anchor="${(o && o.a) || 'middle'}" font-style="${(o && o.it) ? 'italic' : 'normal'}">${t}</text>`;
+const LN = (x1, y1, x2, y2, o) => `<line x1="${(+x1).toFixed(1)}" y1="${(+y1).toFixed(1)}" x2="${(+x2).toFixed(1)}" y2="${(+y2).toFixed(1)}" stroke="${(o && o.c) || '#000'}" stroke-width="${(o && o.w) || 1.3}"${o && o.d ? ` stroke-dasharray="${o.d}"` : ''}/>`;
+const DOT = (x, y) => `<circle cx="${(+x).toFixed(1)}" cy="${(+y).toFixed(1)}" r="2.6"/>`;
+// 方格坐標圖：fs 為函數陣列，pts 為要標示的點 [x,y,label]
+function gridGraph(fs, xr, yr, pts) {
+  const s = 18, [x0, x1] = xr, [y0, y1] = yr, W = (x1 - x0) * s + 30, H = (y1 - y0) * s + 30, ox = 15 - x0 * s, oy = 15 + y1 * s;
+  const px = x => ox + x * s, py = y => oy - y * s; let o = '';
+  for (let x = x0; x <= x1; x++) o += LN(px(x), py(y1), px(x), py(y0), { c: '#ccc', w: 0.7 });
+  for (let y = y0; y <= y1; y++) o += LN(px(x0), py(y), px(x1), py(y), { c: '#ccc', w: 0.7 });
+  o += LN(px(x0) - 4, py(0), px(x1) + 8, py(0), { w: 1.2 }) + LN(px(0), py(y0) + 4, px(0), py(y1) - 8, { w: 1.2 });
+  o += `<polygon points="${px(x1) + 12},${py(0)} ${px(x1) + 5},${py(0) - 3} ${px(x1) + 5},${py(0) + 3}"/><polygon points="${px(0)},${py(y1) - 12} ${px(0) - 3},${py(y1) - 5} ${px(0) + 3},${py(y1) - 5}"/>`;
+  o += T_(px(x1) + 10, py(0) + 14, 'x', { it: 1, fs: 13 }) + T_(px(0) + 10, py(y1) - 4, 'y', { it: 1, fs: 13 }) + T_(px(0) - 7, py(0) + 13, 'O', { it: 1 });
+  for (let x = x0; x <= x1; x++) if (x && x % 2 === 0) o += T_(px(x), py(0) + 13, x, { fs: 10 });
+  for (let y = y0; y <= y1; y++) if (y && y % 2 === 0) o += T_(px(0) - 5, py(y) + 4, y, { fs: 10, a: 'end' });
+  fs.forEach(f => {
+    const segs = [[]];
+    for (let i = 0; i <= 240; i++) { const x = x0 + (x1 - x0) * i / 240, y = f(x); if (y >= y0 - 0.2 && y <= y1 + 0.2) segs[segs.length - 1].push(`${px(x).toFixed(1)},${py(y).toFixed(1)}`); else if (segs[segs.length - 1].length) segs.push([]); }
+    const d = segs.filter(s => s.length > 1).map(s => 'M' + s.join(' L')).join(' ');
+    o += `<path d="${d}" fill="none" stroke="#000" stroke-width="1.8"/>`;
+  });
+  (pts || []).forEach(([x, y, l]) => { o += DOT(px(x), py(y)); if (l) o += T_(px(x) + 8, py(y) - 6, l, { it: 1, fs: 13, a: 'start' }); });
+  return SVG(W, H, o);
+}
+// 折線圖
+function lineChart(labels, vals, unit, lo, hi, step) {
+  const W = 300, H = 180, L = 34, B = 26, cw = (W - L - 12) / (labels.length - 1 || 1); const py = v => H - B - (H - B - 12) * (v - lo) / (hi - lo); let o = '';
+  for (let v = lo; v <= hi; v += step) o += LN(L, py(v), W - 6, py(v), { c: '#bbb', w: 0.7, d: '2,2' }) + T_(L - 5, py(v) + 4, v, { fs: 10, a: 'end' });
+  o += LN(L, 8, L, H - B) + LN(L, H - B, W - 6, H - B);
+  const P = vals.map((v, i) => [L + 6 + i * (cw - 12 / (labels.length - 1 || 1)), py(v)]);
+  o += `<polyline points="${P.map(p => p.map(z => z.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="#000" stroke-width="1.6"/>`;
+  P.forEach((p, i) => { o += DOT(p[0], p[1]) + T_(p[0], H - 9, labels[i], { fs: 11 }); });
+  o += T_(4, 9, `（${unit}）`, { fs: 10, a: 'start' });
+  return SVG(W, H, o);
+}
+// 圓形圖
+function pieChart(labels, pcts, shown) {
+  shown = shown || pcts;
+  const cx = 85, cy = 85, r = 70; let a = -90, o = '';
+  pcts.forEach((p, i) => { const b = a + p * 3.6, R = d => [cx + r * Math.cos(d * Math.PI / 180), cy + r * Math.sin(d * Math.PI / 180)], [x1, y1] = R(a), [x2, y2] = R(b), m = R((a + b) / 2);
+    o += `<path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${p > 50 ? 1 : 0} 1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="${['#fff', '#e6e6e6', '#cfcfcf', '#f3f3f3', '#dadada'][i]}" stroke="#000" stroke-width="1.1"/>`;
+    const tx = cx + (m[0] - cx) * 0.6, ty = cy + (m[1] - cy) * 0.6; o += T_(tx, ty - 2, labels[i], { fs: 11 }) + T_(tx, ty + 11, shown[i] === '?' ? '?%' : shown[i] + '%', { fs: 11 }); a = b; });
+  return SVG(170, 170, o);
+}
+// 直方圖（等寬組距）
+function histogram(edges, cnt, unit) {
+  const W = 290, H = 175, L = 30, B = 26, mx = Math.ceil(Math.max(...cnt) / 2) * 2, bw = (W - L - 16) / cnt.length; const py = v => H - B - (H - B - 12) * v / mx; let o = '';
+  for (let v = 0; v <= mx; v += 2) o += LN(L, py(v), W - 8, py(v), { c: '#bbb', w: 0.7, d: '2,2' }) + T_(L - 5, py(v) + 4, v, { fs: 10, a: 'end' });
+  cnt.forEach((c, i) => { o += `<rect x="${(L + 4 + i * bw).toFixed(1)}" y="${py(c).toFixed(1)}" width="${bw.toFixed(1)}" height="${(H - B - py(c)).toFixed(1)}" fill="#e6e6e6" stroke="#000" stroke-width="1"/>`; });
+  edges.forEach((e, i) => { o += T_(L + 4 + i * bw, H - 10, e, { fs: 10 }); });
+  o += LN(L, 8, L, H - B) + LN(L, H - B, W - 8, H - B) + T_(4, 9, '（人）', { fs: 10, a: 'start' }) + T_(W - 6, H - 1, `（${unit}）`, { fs: 10, a: 'end' });
+  return SVG(W, H, o);
+}
+// 盒狀圖
+function boxPlot(mn, q1, md, q3, mx, lo, hi) {
+  const W = 300, H = 90, L = 16, px = v => L + (W - 2 * L) * (v - lo) / (hi - lo), y = 34; let o = '';
+  o += LN(px(mn), y, px(q1), y) + LN(px(q3), y, px(mx), y) + LN(px(mn), y - 9, px(mn), y + 9) + LN(px(mx), y - 9, px(mx), y + 9);
+  o += `<rect x="${px(q1)}" y="${y - 14}" width="${px(q3) - px(q1)}" height="28" fill="#eee" stroke="#000" stroke-width="1.3"/>` + LN(px(md), y - 14, px(md), y + 14, { w: 1.8 });
+  o += LN(L, 70, W - L, 70); for (let v = lo; v <= hi; v += 10) o += LN(px(v), 66, px(v), 74) + T_(px(v), 86, v, { fs: 10 });
+  return SVG(W, H, o);
+}
+// 尺規作圖痕跡
+const ARC = (cx, cy, r, a1, a2) => { const P = d => [cx + r * Math.cos(d * Math.PI / 180), cy - r * Math.sin(d * Math.PI / 180)], [x1, y1] = P(a1), [x2, y2] = P(a2); return `<path d="M${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 0 0 ${x2.toFixed(1)},${y2.toFixed(1)}" fill="none" stroke="#000" stroke-width="1"/>`; };
+function constructFig(type) {
+  let o = '';
+  if (type === 'perpbis') { // 中垂線
+    const A = [30, 90], B = [170, 90], r = 95; o += LN(...A, ...B) + DOT(...A) + DOT(...B) + T_(A[0] - 8, A[1] + 4, 'A', { it: 1, fs: 14 }) + T_(B[0] + 9, B[1] + 4, 'B', { it: 1, fs: 14 });
+    o += ARC(A[0], A[1], r, 35, 60) + ARC(A[0], A[1], r, -60, -35) + ARC(B[0], B[1], r, 120, 145) + ARC(B[0], B[1], r, 215, 240) + LN(100, 10, 100, 170, { d: '4,3' });
+    return SVG(200, 180, o);
+  }
+  if (type === 'angbis') { // 角平分線
+    const O = [20, 150], a = 50; const R = (d, r) => [O[0] + r * Math.cos(d * Math.PI / 180), O[1] - r * Math.sin(d * Math.PI / 180)];
+    o += LN(...O, ...R(0, 180)) + LN(...O, ...R(a, 180)) + ARC(O[0], O[1], 70, -5, a + 5) + T_(O[0] - 4, O[1] + 14, 'O', { it: 1, fs: 14 }) + T_(R(0, 180)[0], O[1] + 14, 'B', { it: 1, fs: 14 }) + T_(R(a, 180)[0] + 8, R(a, 180)[1], 'A', { it: 1, fs: 14 });
+    const P1 = R(0, 70), P2 = R(a, 70); o += ARC(P1[0], P1[1], 62, 50, 85) + ARC(P2[0], P2[1], 62, -25, 10) + LN(...O, ...R(a / 2, 185), { d: '4,3' });
+    return SVG(210, 170, o);
+  }
+  // 過線外一點作垂線
+  const P = [100, 30]; o += LN(10, 110, 190, 110) + DOT(...P) + T_(P[0] + 10, P[1] - 4, 'P', { it: 1, fs: 14 }) + T_(185, 126, 'L', { it: 1, fs: 14 });
+  o += ARC(P[0], P[1], 100, -60, -30) + ARC(P[0], P[1], 100, -150, -120) + ARC(43, 110, 95, -75, -40) + ARC(157, 110, 95, 220, 255) + LN(100, 20, 100, 180, { d: '4,3' });
+  return SVG(200, 190, o);
+}
+
+// ════ 函數圖形判讀 ════
+g8b.push(
+  function () { // 方格圖讀線型函數
+    const m = pk([-2, -1, 1, 2, 3, -3, 0.5, -0.5]), c = ri(-3, 3), f = x => m * x + c; const xa = Number.isInteger(m) ? 1 : 2, xb = -xa;
+    if (Math.abs(f(xa)) > 5 || Math.abs(f(xb)) > 5) return null;
+    const t = ri(4, 9) * pk([1, -1]), ans = f(t);
+    return V_(MC(`右圖是線型函數 \\(y=f(x)\\) 的圖形，圖中每一小格的邊長為 \\(1\\)，則 \\(f(${t})\\) 的值為何？`, ans, [-ans, f(-t), m * t - c, ans + (m > 0 ? 1 : -1)].filter(v => v !== ans), `圖形通過 \\((${xb},${f(xb)})\\)、\\((${xa},${f(xa)})\\)，斜率 \\(=${Number.isInteger(m) ? m : fr(m * 2, 2)}\\)，\\(y\\) 截距 \\(=${c}\\)，所以 \\(f(${t})=${num(ans)}\\)。`, { lv: 2, step: Number.isInteger(m) ? 1 : 0.5, fig: gridGraph([f], [-5, 5], [-5, 5], [[xb, f(xb)], [xa, f(xa)]]) }), { m, c, t });
+  },
+  function () { // 計程車資圖：讀出每公里車資
+    const base = pk([70, 85, 100]), d0 = pk([1, 1.5, 2]), per = pk([5, 10, 15, 20]), k = pk([0.5, 1, 1.25]); // 每 k 公里 per 元（化為線型）
+    const rate = per / k, x1 = d0 + 2, x2 = d0 + 6, y1 = base + rate * 2, y2 = base + rate * 6; if (!Number.isInteger(y1) || !Number.isInteger(y2)) return null;
+    const X = 10, ans = base + rate * (X - d0);
+    return V_(MC(`某計程車行駛超過 \\(${d0}\\) 公里後，車資 \\(y\\)（元）與行駛距離 \\(x\\)（公里）的關係為線型函數。已知行駛 \\(${x1}\\) 公里的車資為 \\(${y1}\\) 元、行駛 \\(${x2}\\) 公里的車資為 \\(${y2}\\) 元，則行駛 \\(${X}\\) 公里的車資為多少元？`, ans, [y2 + (y2 - y1), rate * X, ans + rate].filter(v => v !== ans), `每公里增加 \\(\\dfrac{${y2}-${y1}}{${x2}-${x1}}=${num(rate)}\\) 元，車資 \\(=${y2}+${num(rate)}\\times(${X}-${x2})=${num(ans)}\\) 元。`, { lv: 2, pos: 1, step: 5 }), { x1, y1, x2, y2, X });
+  },
+);
+g9b.push(
+  function () { // 方格圖讀二次函數，選函數式
+    const a = pk([1, -1]), h = ri(-3, 3), k = ri(-4, 4) * 1; if (Math.abs(k) < 1 || a * k > 0 && Math.abs(k) > 4) return null;
+    const f = x => a * (x - h) ** 2 + k, E = (aa, hh, kk) => M(`y=${aa < 0 ? '-' : ''}(x${sg(-hh)})^{2}${sg(kk)}`.replace('(x)', 'x'));
+    if (Math.abs(f(h + 2)) > 6) return null;
+    const ans = E(a, h, k), w = [E(a, -h, k), E(-a, h, k), E(a, h, -k), E(a, -h, -k)].filter(s => s !== ans);
+    return V_(MC(`右圖為某二次函數的圖形，頂點與圖上兩點都在格線的交點上（每小格邊長為 \\(1\\)），則此函數為下列何者？`, ans, [...new Set(w)], `頂點為 \\((${h},${k})\\)，開口${a > 0 ? '向上' : '向下'}；又通過 \\((${h + 1},${f(h + 1)})\\)，得 \\(y=${ans.slice(4, -2)}\\)。`, { lv: 2, fig: gridGraph([f], [-6, 6], [-6, 6], [[h, k], [h - 1, f(h - 1)], [h + 1, f(h + 1)]]) }), { a, h, k });
+  },
+  function () { // 兩函數圖形交點個數（直線與拋物線）
+    const r1 = ri(-4, 2), r2 = r1 + ri(1, 5), m = ri(-2, 2), c = ri(-3, 3);
+    // y=x²  與 y=mx+c 的交點：x²−mx−c=0
+    const D = m * m + 4 * c, ans = D > 0 ? 2 : D === 0 ? 1 : 0;
+    if (!m && !c) return null;
+    const line = m ? lin(m, c) : String(c);
+    return V_(MC(`坐標平面上，二次函數 \\(y=x^{2}\\) 的圖形與直線 \\(y=${line}\\) 有幾個交點？`, ans, [0, 1, 2, 3, 4], `聯立得 \\(${quad(1, -m, -c)}=0\\)，判別式 \\(=${D}\\)，${ans === 2 ? '大於 0，有 2 個交點' : ans === 1 ? '等於 0，有 1 個交點' : '小於 0，沒有交點'}。`, { lv: 3, u: '個', min: 0 }), { m, c });
+  },
+);
+// ════ 統計圖表 ════
+g7b.push(
+  function () { // 折線圖：氣溫變化最大
+    const days = ['一', '二', '三', '四', '五', '六', '日'], v = days.map(() => ri(16, 30)); const d = v.slice(1).map((x, i) => Math.abs(x - v[i])), mx = Math.max(...d); if (d.filter(x => x === mx).length > 1) return null;
+    const i = d.indexOf(mx), P = k => `星期${days[k]}到星期${days[k + 1]}`;
+    return V_(MC(`右圖為某地一週每天中午氣溫的折線圖。前後兩天的氣溫變化（升高或下降）最大的是哪兩天之間？`, P(i), shuf([0, 1, 2, 3, 4, 5].filter(k => k !== i)).slice(0, 3).map(P), `相鄰兩天的溫差依序為 ${d.join('、')} 度，最大的是${P(i)}，相差 \\(${mx}\\) 度。`, { lv: 1, ord: s => days.indexOf(s[2]), fig: lineChart(days, v, '°C', 14, 32, 2) }), { v });
+  },
+  function () { // 圓形圖：求人數
+    const items = ['騎車', '搭公車', '走路', '家長接送'], p = [ri(3, 7) * 5, ri(3, 6) * 5, ri(3, 5) * 5]; const last = 100 - p[0] - p[1] - p[2]; if (last < 15) return null; const P = [...p, last];
+    const N = pk([40, 60, 80, 120, 200]), k = ri(0, 3), ans = N * P[k] / 100; if (!Number.isInteger(ans)) return null;
+    const show = P.map((x, i) => i === 3 ? '?' : x);
+    return V_(MC(`某校調查 \\(${N}\\) 位學生上學的方式，結果如右邊的圓形圖。選擇「${items[k]}」的學生有幾人？`, ans, [P[k], N * (100 - P[k]) / 100, ans + N / 20].filter(v => Number.isInteger(v) && v !== ans), k === 3 ? `家長接送占 \\(100\\%-${p.join('\\%-')}\\%=${last}\\%\\)，人數 \\(=${N}\\times ${last}\\%=${ans}\\)。` : `人數 \\(=${N}\\times ${P[k]}\\%=${ans}\\)。`, { lv: k === 3 ? 2 : 1, pos: 1, fig: pieChart(items, P, show) }), { N, P, k });
+  },
+);
+g8a.push(
+  function () { // 直方圖：某分數以上的百分比
+    const edges = [40, 50, 60, 70, 80, 90, 100], c = edges.slice(1).map(() => ri(1, 9)), T = c.reduce((a, b) => a + b, 0), k = ri(2, 4), above = c.slice(k).reduce((a, b) => a + b, 0), pc = above * 100 / T;
+    if (!Number.isInteger(pc)) return null;
+    return V_(MC(`右圖為某班數學成績的直方圖（每組含下限、不含上限，最後一組含 100 分）。成績在 \\(${edges[k]}\\) 分以上的人數占全班的百分之多少？`, pc, [c[k] * 100 / T, (T - above) * 100 / T, pc + 10, pc - 10].filter(v => Number.isInteger(v) && v > 0 && v !== pc), `全班 \\(${T}\\) 人，${edges[k]} 分以上有 \\(${c.slice(k).join('+')}=${above}\\) 人，\\(\\dfrac{${above}}{${T}}=${pc}\\%\\)。`, { lv: 2, pos: 1, step: 5, fmt: v => num(v) + '\\%', fig: histogram(edges, c, '分') }), { c, k });
+  },
+);
+g9b.push(
+  function () { // 盒狀圖判讀
+    const mn = ri(30, 45), q1 = mn + ri(5, 15), md = q1 + ri(3, 12), q3 = md + ri(3, 12), mx = Math.min(100, q3 + ri(5, 15)); const t = ri(0, 2);
+    const fig = boxPlot(mn, q1, md, q3, mx, 30, 100);
+    if (t === 0) return V_(MC(`右圖為某班數學成績的盒狀圖，這組資料的四分位距為何？`, q3 - q1, [mx - mn, q3 - md, md - q1, q3].filter(v => v !== q3 - q1), `由圖讀出 \\(Q_1=${q1}\\)、\\(Q_3=${q3}\\)，四分位距 \\(=${q3}-${q1}=${q3 - q1}\\)。`, { lv: 2, pos: 1, fig }), { q1, q3, mn, mx, md, t });
+    if (t === 1) return V_(MC(`右圖為某班數學成績的盒狀圖，這組資料的全距為何？`, mx - mn, [q3 - q1, mx - md, mx, mn].filter(v => v !== mx - mn), `最大值 \\(${mx}\\)、最小值 \\(${mn}\\)，全距 \\(=${mx}-${mn}=${mx - mn}\\)。`, { lv: 1, pos: 1, fig }), { q1, q3, mn, mx, md, t });
+    return MC(`右圖為某班 \\(40\\) 位學生數學成績的盒狀圖，下列敘述何者正確？`, `約有一半的學生成績在 \\(${md}\\) 分以上`, [`約有一半的學生成績在 \\(${q1}\\) 分以下`, `平均成績為 \\(${md}\\) 分`, `約有 \\(75\\%\\) 的學生成績在 \\(${q3}\\) 分以上`], `中位數為 \\(${md}\\)，約有一半的人在 \\(${md}\\) 分以上；\\(Q_1\\) 以下約 \\(25\\%\\)、\\(Q_3\\) 以上約 \\(25\\%\\)，盒狀圖看不出平均數。`, { lv: 2, fig });
+  },
+);
+// ════ 尺規作圖 ════
+g8b.push(
+  function () { // 依痕跡判斷作圖
+    const K = [['perpbis', '線段 \\(\\overline{AB}\\) 的垂直平分線'], ['angbis', '\\(\\angle AOB\\) 的角平分線'], ['perp', '過 \\(P\\) 點作直線 \\(L\\) 的垂直線']], [t, d] = pk(K);
+    const all = ['線段 \\(\\overline{AB}\\) 的垂直平分線', '\\(\\angle AOB\\) 的角平分線', '過 \\(P\\) 點作直線 \\(L\\) 的垂直線', '過 \\(P\\) 點作直線 \\(L\\) 的平行線', '作一角等於已知角', '線段 \\(\\overline{AB}\\) 的三等分點'];
+    return MC(`右圖為小明用尺規作圖所留下的痕跡（虛線為最後畫出的直線），他作的是下列哪一種圖形？`, d, shuf(all.filter(s => s !== d)).slice(0, 3), t === 'perpbis' ? `分別以 \\(A\\)、\\(B\\) 為圓心、相同半徑畫弧，兩弧交點的連線為 \\(\\overline{AB}\\) 的垂直平分線。` : t === 'angbis' ? `以 \\(O\\) 為圓心畫弧交兩邊，再以兩交點為圓心、相同半徑畫弧，交點與 \\(O\\) 的連線為角平分線。` : `以 \\(P\\) 為圓心畫弧交 \\(L\\) 於兩點，再以這兩點為圓心、相同半徑畫弧，交點與 \\(P\\) 的連線垂直 \\(L\\)。`, { lv: 1, fig: constructFig(t) });
+  },
+  function () { // 中垂線：三角形周長
+    const AB = ri(5, 12), BC = ri(8, 18), AC = ri(Math.abs(BC - AB) + 2, BC + AB - 2);
+    // 中垂線須交 BC 於線段內部：cos C > 0 且 PC = AC/(2cos C) < BC
+    const cosC = (AC * AC + BC * BC - AB * AB) / (2 * AC * BC); if (cosC <= 0.05 || AC / (2 * cosC) >= BC - 0.5) return null;
+    return V_(MC(`\\(\\triangle ABC\\) 中，\\(\\overline{AB}=${AB}\\)、\\(\\overline{BC}=${BC}\\)、\\(\\overline{AC}=${AC}\\)。以尺規作 \\(\\overline{AC}\\) 的垂直平分線，交 \\(\\overline{BC}\\) 於 \\(P\\) 點，則 \\(\\triangle ABP\\) 的周長為何？`, AB + BC, [AB + AC, AB + BC + AC / 2, AB + BC / 2 + AC / 2, AB + BC - AC].filter(v => v !== AB + BC && Number.isInteger(v)), `\\(P\\) 在 \\(\\overline{AC}\\) 的垂直平分線上，\\(\\overline{PA}=\\overline{PC}\\)，周長 \\(=\\overline{AB}+\\overline{BP}+\\overline{PA}=\\overline{AB}+\\overline{BP}+\\overline{PC}=${AB}+${BC}=${AB + BC}\\)。`, { lv: 2, pos: 1 }), { AB, BC });
+  },
+  function () { // 角平分線：點到兩邊等距
+    const CD = ri(2, 8), AB = ri(6, 20);
+    return V_(MC(`直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，以尺規作 \\(\\angle A\\) 的角平分線交 \\(\\overline{BC}\\) 於 \\(D\\) 點。若 \\(\\overline{CD}=${CD}\\)、\\(\\overline{AB}=${AB}\\)，則 \\(\\triangle ABD\\) 的面積為何？`, AB * CD / 2, [AB * CD, AB * CD / 4, (AB + CD) * CD / 2].filter(Number.isInteger), `角平分線上的點到角兩邊等距，\\(D\\) 到 \\(\\overline{AB}\\) 的距離 \\(=\\overline{CD}=${CD}\\)，面積 \\(=\\dfrac{${AB}\\times ${CD}}{2}=${AB * CD / 2}\\)。`, { lv: 3, pos: 1 }), { AB, CD });
+  },
+);
+// ════ 幾何證明（多步驟） ════
+g8b.push(function () { // 不能判定全等的條件
+  const ok = ['SAS', 'SSS', 'ASA', 'AAS', 'RHS'], D = { SAS: '兩邊及其夾角對應相等', SSS: '三邊對應相等', ASA: '兩角及其夾邊對應相等', AAS: '兩角及一角的對邊對應相等', RHS: '直角三角形的斜邊與一股對應相等' };
+  const bad = pk([['三個角對應相等', '三個角相等只能保證形狀相同（相似），大小不一定相同'], ['兩邊及其中一邊的對角對應相等', '兩邊及非夾角（SSA）可能作出兩個不同的三角形']]);
+  return MC(`下列哪一組條件，不能保證兩個三角形全等？`, bad[0], shuf(ok).slice(0, 3).map(k => D[k]), `${bad[1]}，所以不能保證全等。`, { lv: 2 });
+});
+n8b.push(
+  function () { // 等腰三角形頂角平分線
+    const [h, b] = pk([[4, 3], [12, 5], [8, 6], [15, 8], [12, 9], [24, 7]]), AB = Math.hypot(h, b);
+    return NC(`\\(\\triangle ABC\\) 中，\\(\\overline{AB}=\\overline{AC}=${AB}\\)，\\(D\\) 為 \\(\\overline{BC}\\) 的中點，\\(\\overline{BC}=${2 * b}\\)。`,
+      [`完成下列證明：在 \\(\\triangle ABD\\) 與 \\(\\triangle ACD\\) 中，\\(\\overline{AB}=\\overline{AC}\\)（已知）、\\(\\overline{BD}=\\overline{CD}\\)（＿＿＿＿）、\\(\\overline{AD}=\\overline{AD}\\)（＿＿＿＿），所以 \\(\\triangle ABD\\cong\\triangle ACD\\)（＿＿＿＿全等性質）。`, `說明 \\(\\overline{AD}\\perp\\overline{BC}\\) 的理由。`, `求 \\(\\overline{AD}\\) 的長度與 \\(\\triangle ABC\\) 的面積。`],
+      [`\\(D\\) 為中點；公用邊；SSS。`, `由全等得 \\(\\angle ADB=\\angle ADC\\)，又 \\(\\angle ADB+\\angle ADC=180^\\circ\\)，所以 \\(\\angle ADB=90^\\circ\\)，\\(\\overline{AD}\\perp\\overline{BC}\\)。`, `\\(\\overline{AD}=\\sqrt{${AB}^{2}-${b}^{2}}=${h}\\)，面積 \\(=\\dfrac{${2 * b}\\times ${h}}{2}=${b * h}\\)。`]);
+  },
+  function () { // 平行四邊形的證明
+    const a = ri(8, 16), b = ri(4, 9), e = ri(2, a - 3);
+    return NC(`平行四邊形 \\(ABCD\\) 中，\\(\\overline{AB}=${a}\\)、\\(\\overline{AD}=${b}\\)。\\(E\\)、\\(F\\) 分別在 \\(\\overline{AB}\\)、\\(\\overline{CD}\\) 上，且 \\(\\overline{AE}=\\overline{CF}=${e}\\)。`,
+      [`說明四邊形 \\(EBFD\\) 是平行四邊形的理由。`, `若 \\(\\overline{DE}=${b + 1}\\)，求四邊形 \\(EBFD\\) 的周長。`],
+      [`\\(\\overline{AB}=\\overline{CD}\\) 且 \\(\\overline{AE}=\\overline{CF}\\)，所以 \\(\\overline{EB}=\\overline{AB}-\\overline{AE}=\\overline{CD}-\\overline{CF}=\\overline{DF}\\)；又 \\(\\overline{EB}\\parallel\\overline{DF}\\)，一組對邊平行且相等，所以 \\(EBFD\\) 是平行四邊形。`, `\\(\\overline{EB}=\\overline{DF}=${a}-${e}=${a - e}\\)，\\(\\overline{BF}=\\overline{DE}=${b + 1}\\)，周長 \\(=2(${a - e}+${b + 1})=${2 * (a - e + b + 1)}\\)。`]);
+  },
+);
+n9a.push(function () { // 相似證明
+  const AD = ri(2, 6), DB = ri(2, 10), AB = AD + DB, AC2 = AD * AB, AC = Math.sqrt(AC2); if (!Number.isInteger(AC)) return null;
+  return NC(`\\(\\triangle ABC\\) 中，\\(D\\) 點在 \\(\\overline{AB}\\) 上，且 \\(\\angle ACD=\\angle B\\)。已知 \\(\\overline{AD}=${AD}\\)、\\(\\overline{DB}=${DB}\\)。`,
+    [`說明 \\(\\triangle ACD\\sim\\triangle ABC\\) 的理由。`, `求 \\(\\overline{AC}\\) 的長度，並寫出計算過程。`],
+    [`\\(\\angle A=\\angle A\\)（公用角），\\(\\angle ACD=\\angle B\\)（已知），由 \\(AA\\) 相似性質得 \\(\\triangle ACD\\sim\\triangle ABC\\)。`, `對應邊成比例：\\(\\dfrac{\\overline{AC}}{\\overline{AB}}=\\dfrac{\\overline{AD}}{\\overline{AC}}\\)，\\(\\overline{AC}^{2}=${AD}\\times ${AB}=${AC2}\\)，\\(\\overline{AC}=${AC}\\)。`]);
+});
+n9b.push(function () { // 二次函數圖形判讀
+  const r1 = ri(-4, 0), r2 = ri(1, 4), a = -1, f = x => a * (x - r1) * (x - r2), h = (r1 + r2) / 2, k = f(h); if (k > 6.5 || !Number.isInteger(h * 2)) return null;
+  return NC(`右圖為二次函數 \\(y=-x^{2}+bx+c\\) 的圖形，與 \\(x\\) 軸交於 \\(A(${r1},0)\\)、\\(B(${r2},0)\\) 兩點（每小格邊長為 \\(1\\)）。`,
+    [`求 \\(b\\)、\\(c\\) 的值。`, `求圖形頂點的坐標，以及 \\(\\triangle ABP\\) 的面積（\\(P\\) 為頂點）。`],
+    [`\\(y=-(x${sg(-r1)})(x${sg(-r2)})=${quad(-1, r1 + r2, -r1 * r2)}\\)，\\(b=${r1 + r2}\\)、\\(c=${-r1 * r2}\\)。`.replace('(x)', 'x'), `對稱軸 \\(x=${num(h)}\\)，頂點 \\(\\left(${num(h)},${num(k)}\\right)\\)；面積 \\(=\\dfrac{${r2 - r1}\\times ${num(k)}}{2}=${num((r2 - r1) * k / 2)}\\)。`],
+    { fig: gridGraph([f], [-5, 5], [-3, 7], [[r1, 0, 'A'], [r2, 0, 'B']]) });
+});
+
 window.EXAM_BANK = {
   '7a': { name: '七上', mc: g7a, nc: n7a },
   '7b': { name: '七下', mc: g7b, nc: n7b },
