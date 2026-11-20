@@ -1214,6 +1214,142 @@ n9b.push(function () { // 機率：轉盤
     [`\\(${fr(w, n)}\\)`, `兩次都紅：\\(${fr(w, n)}\\times ${fr(w, n)}=${fr(w * w, n * n)}\\)；顏色不同：\\(2\\times ${fr(w, n)}\\times ${fr(n - w, n)}=${fr(2 * w * (n - w), n * n)}\\)。`]);
 });
 
+// ── 第五批：七上、七下補充題型 ──────────────────────────────────────
+// 數線（標出 0 與若干點）
+function nlSVG(pts) {
+  const W = 260, H = 56, y = 24, vs = pts.map(p => p[0]).concat(0), lo = Math.min(...vs), hi = Math.max(...vs), px = v => 24 + (v - lo) / (hi - lo) * (W - 52);
+  let o = `<line x1="6" y1="${y}" x2="${W - 6}" y2="${y}" stroke="#000" stroke-width="1.3"/><polygon points="${W - 2},${y} ${W - 9},${y - 4} ${W - 9},${y + 4}"/>`;
+  [[0, '0']].concat(pts).forEach(([v, t]) => { const x = px(v).toFixed(1); o += `<line x1="${x}" y1="${y - 5}" x2="${x}" y2="${y + 5}" stroke="#000" stroke-width="1.3"/>` + lbl(x, y + 24, t); });
+  return SVG(W, H, o);
+}
+// ════ 七上 ════
+g7a.push(
+  function () { // 數線上 a、b 的位置判斷正負
+    const t = ri(0, 2); // 0: a<0<b、|a|>|b|；1: a<0<b、|a|<|b|；2: a<b<0
+    const R = () => Math.random() * 4 + 0.3;
+    const S = [() => { const b = R(); return [-(b + R()), b]; }, () => { const a = -R(); return [a, -a + R()]; }, () => { const b = -R(); return [b - R(), b]; }][t];
+    const E = { 'a+b': (a, b) => a + b, 'a-b': (a, b) => a - b, 'b-a': (a, b) => b - a, 'ab': (a, b) => a * b, '-ab': (a, b) => -a * b, '\\dfrac{a}{b}': (a, b) => a / b, 'a^{2}b': (a, b) => a * a * b, '|a|-|b|': (a, b) => Math.abs(a) - Math.abs(b), '-a-b': (a, b) => -a - b, 'ab^{2}': (a, b) => a * b * b };
+    const sign = {}; for (const k in E) { let s = null; for (let i = 0; i < 60; i++) { const [a, b] = S(), v = Math.sign(E[k](a, b)); if (s === null) s = v; else if (s !== v) { s = 'x'; break; } } sign[k] = s; }
+    const want = pk([1, -1]), good = Object.keys(E).filter(k => sign[k] === want), badk = Object.keys(E).filter(k => sign[k] === -want);
+    if (!good.length || badk.length < 3) return null;
+    const ans = pk(good), ws = shuf(badk).slice(0, 3), pos = [[-3, 1.5], [-1.5, 3], [-3.5, -1.5]][t];
+    const cond = ['a\\lt 0\\lt b\\)，且 \\(|a|\\gt|b|', 'a\\lt 0\\lt b\\)，且 \\(|a|\\lt|b|', 'a\\lt b\\lt 0'][t];
+    return V_(MC(`數線上 \\(a\\)、\\(b\\) 兩數的位置如右圖所示，下列何者的值為${want > 0 ? '正數' : '負數'}？`, M(ans), ws.map(M), `由圖知 \\(${cond}\\)，所以 \\(${ans}${want > 0 ? '\\gt' : '\\lt'} 0\\)；其他三式的值皆為${want > 0 ? '負數' : '正數'}。`, { lv: 2, fig: nlSVG([[pos[0], 'a'], [pos[1], 'b']]) }), { t, want });
+  },
+  function () { // 正因數個數
+    const e = [ri(1, 4), ri(0, 3), ri(0, 2)]; if (e.filter(Boolean).length < 2) return null; const n = 2 ** e[0] * 3 ** e[1] * 5 ** e[2]; if (n > 2000 || n < 30) return null;
+    const nz = e.filter(Boolean), ans = nz.reduce((p, x) => p * (x + 1), 1), f = [2, 3, 5].map((p, i) => e[i] ? pw(p, e[i]) : '').filter(Boolean).join('\\times ');
+    return V_(MC(`\\(${n}\\) 的正因數共有幾個？`, ans, [nz.reduce((p, x) => p * x, 1), nz.reduce((p, x) => p + x, 0) + 1, ans - 2].filter(v => v > 0 && v !== ans), `\\(${n}=${f}\\)，正因數個數為 \\(${nz.map(x => `(${x}+1)`).join('\\times ')}=${ans}\\)（個）。`, { lv: 2, pos: 1, u: '個' }), { n });
+  },
+  function () { // 整數四則混合運算
+    const a = ri(2, 9), d = ri(2, 6), c = d * ri(1, 6), b = ri(2, 9), ans = a * a + b * c / d;
+    return V_(MC(`計算 \\((-${a})^{2}-${b}\\times(-${c})\\div ${d}\\) 的值為何？`, ans, [-a * a + b * c / d, a * a - b * c / d, (a * a - b) * (-c) / d].filter(v => v !== ans), `\\((-${a})^{2}=${a * a}\\)，\\(${b}\\times(-${c})\\div ${d}=${-b * c / d}\\)，原式 \\(=${a * a}-(${-b * c / d})=${ans}\\)。`, { lv: 1, int: 1 }), { a, b, c, d });
+  },
+  function () { // 分配座位
+    const x = ri(6, 20), a = ri(3, 6), b = a + pk([1, 2]), s = ri(1, b - 1), r = (b - a) * x - s, N = a * x + r; if (r <= 0) return null;
+    return V_(MC(`禮堂裡有一些長椅。若每張長椅坐 \\(${a}\\) 人，則有 \\(${r}\\) 人沒有位子坐；若每張長椅坐 \\(${b}\\) 人，則恰好空出 \\(${s}\\) 個位子。共有幾人要坐？`, N, [x, b * x + s, a * x - r, N + a].filter(v => v > 0 && v !== N), `設有 \\(x\\) 張長椅，\\(${a}x+${r}=${b}x-${s}\\)，\\(x=${x}\\)，人數 \\(=${a}\\times ${x}+${r}=${N}\\)。`, { lv: 2, pos: 1 }), { a, b, r, s });
+  },
+  function () { // 去括號化簡
+    const a = ri(2, 6), b = ri(1, 9), c = ri(2, 5), d = ri(1, 4), e = ri(1, 9), p = a - c * d, q = a * b + c * e; if (!p) return null;
+    const L = (m, k) => M(lin(m, k));
+    return V_(MC(`化簡 \\(${a}(x+${b})-${c}(${co(d)}x-${e})\\) 的結果為何？`, L(p, q), [L(p, a * b - c * e), L(a + c * d, q), L(p, a * b + e), L(p, b + c * e)], `原式 \\(=${a}x+${a * b}-${c * d}x+${c * e}=${lin(p, q)}\\)。`, { lv: 1 }), { a, b, c, d, e });
+  },
+  function () { // 工作問題
+    let [a, b] = pk([[3, 6], [4, 12], [6, 12], [10, 15], [12, 24], [6, 30], [20, 30], [12, 36], [10, 40], [15, 30], [8, 24], [9, 18], [5, 20], [14, 35]]); if (Math.random() < 0.5) [a, b] = [b, a];
+    const pre = `一項工作，甲單獨做需 \\(${a}\\) 天完成，乙單獨做需 \\(${b}\\) 天完成。`;
+    if (Math.random() < 0.5) { const ans = a * b / (a + b); return V_(MC(`${pre}若兩人合作，需幾天可以完成？`, ans, [(a + b) / 2, Math.abs(b - a), a + b].filter(v => Number.isInteger(v) && v > 0 && v !== ans), `設需 \\(x\\) 天，\\(\\dfrac{x}{${a}}+\\dfrac{x}{${b}}=1\\)，\\(x=${ans}\\)。`, { lv: 2, pos: 1 }), { a, b, t: 0 }); }
+    const ks = []; for (let k = 1; k < a; k++) if (b * (a - k) % a === 0) ks.push(k); if (!ks.length) return null; const k = pk(ks), y = b * (a - k) / a;
+    return V_(MC(`${pre}若甲先做 \\(${k}\\) 天後，剩下的由乙單獨完成，則乙還需要做幾天？`, y, [b - k, a - k, b * k / a].filter(v => Number.isInteger(v) && v > 0 && v !== y), `甲做了全部的 \\(${fr(k, a)}\\)，剩下 \\(${fr(a - k, a)}\\)，乙需 \\(${fr(a - k, a)}\\times ${b}=${y}\\)（天）。`, { lv: 2, pos: 1 }), { a, b, k, t: 1 });
+  },
+  function () { // 判斷質數
+    const P = [53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113], C = [51, 57, 87, 91, 93, 111, 117, 119, 121, 129, 133, 141, 143, 161, 169, 187, 203, 209, 221];
+    const p = pk(P), lo = shuf(C.filter(n => n < p)), hi = shuf(C.filter(n => n > p)), t = ri(0, 3); if (lo.length < t || hi.length < 3 - t) return null; const cs = [...lo.slice(0, t), ...hi.slice(0, 3 - t)];
+    const fac = n => { for (let d = 2; d * d <= n; d++) if (n % d === 0) return `${n}=${d}\\times ${n / d}`; };
+    return V_(MC(`下列哪一個數是質數？`, M(p), cs.map(n => M(n)), `${cs.sort((x, y) => x - y).map(n => M(fac(n))).join('、')}，都是合數；\\(${p}\\) 不能被 \\(2\\)、\\(3\\)、\\(5\\)、\\(7\\) 整除，是質數。`, { lv: 1, ord: s => +s.replace(/\D/g, '') }), { p });
+  },
+  function () { // 由最大公因數與最小公倍數求另一數
+    const g = ri(2, 12), p = ri(2, 9), q = ri(2, 9); if (gcd(p, q) !== 1 || p === q) return null; const a = g * p, b = g * q, L = g * p * q; if (L > 400) return null;
+    return V_(MC(`兩個正整數 \\(a\\)、\\(b\\) 的最大公因數為 \\(${g}\\)、最小公倍數為 \\(${L}\\)。若 \\(a=${a}\\)，則 \\(b\\) 的值為何？`, b, [p * q, L - a, 2 * b].filter(v => v > 0 && v !== b), `\\(a\\times b=${g}\\times ${L}\\)，所以 \\(b=\\dfrac{${g}\\times ${L}}{${a}}=${b}\\)。`, { lv: 2, pos: 1, step: g }), { g, L, a });
+  },
+  function () { // 代入求值
+    const A = pk([-3, -2, 2, 3, 4]), B = ri(-6, 6), C = ri(-9, 9), v = pk([-3, -2, -1]); if (!B || !C) return null;
+    const ans = A * v * v + B * v + C;
+    return V_(MC(`當 \\(x=${v}\\) 時，\\(${quad(A, B, C)}\\) 的值為何？`, ans, [-A * v * v + B * v + C, A * v * v - B * v + C, 2 * A * v + B * v + C].filter(w => w !== ans), `\\(${A}\\times(${v})^{2}${sg(B)}\\times(${v})${sg(C)}=${A * v * v}${sg(B * v)}${sg(C)}=${ans}\\)。`, { lv: 1, int: 1 }), { A, B, C, v });
+  },
+);
+n7a.push(
+  function () { // 停車費
+    const a = ri(3, 6) * 10, b = ri(2, 5) * 10, h = ri(2, 5), half = ri(0, 1), k1 = (h - 1) * 2 + half, c1 = a + b * k1, k2 = ri(k1 + 2, k1 + 8), T = a + b * k2, mins = 60 + 30 * k2;
+    return NC(`某停車場的收費方式為：第 \\(1\\) 小時收 \\(${a}\\) 元，之後每半小時收 \\(${b}\\) 元，未滿半小時以半小時計算。`,
+      [`停車 \\(${h}\\) 小時${half ? ' \\(30\\) 分' : ''}，需付多少元？`, `小華停車後付了 \\(${T}\\) 元，他最多停了多少時間？請列式說明。`],
+      [`第 \\(1\\) 小時之後還有 \\(${k1}\\) 個半小時，\\(${a}+${b}\\times ${k1}=${c1}\\)（元）。`, `設第 \\(1\\) 小時之後又停了 \\(x\\) 個半小時，\\(${a}+${b}x=${T}\\)，\\(x=${k2}\\)，最多停了 \\(${Math.floor(mins / 60)}\\) 小時${mins % 60 ? ' \\(30\\) 分' : ''}。`]);
+  },
+  function () { // 圖形規律：火柴棒
+    const [sh, d] = pk([['正方形', 3], ['正三角形', 2], ['正六邊形', 5]]), f = n => d * n + 1, k = ri(8, 20), m = ri(25, 60), T = f(m);
+    return NC(`用火柴棒排出一列相連的${sh}：排 \\(1\\) 個${sh}要用 \\(${f(1)}\\) 根，排 \\(2\\) 個要用 \\(${f(2)}\\) 根，排 \\(3\\) 個要用 \\(${f(3)}\\) 根，依此規律排下去。`,
+      [`排 \\(${k}\\) 個${sh}需要幾根火柴棒？`, `排 \\(n\\) 個${sh}需要幾根火柴棒？（以 \\(n\\) 表示）`, `若共用了 \\(${T}\\) 根火柴棒，排出了幾個${sh}？`],
+      [`每多排一個${sh}多用 \\(${d}\\) 根，\\(${f(1)}+${d}\\times ${k - 1}=${f(k)}\\)（根）。`, `\\(${d}n+1\\)（根）`, `\\(${d}n+1=${T}\\)，\\(n=${m}\\)，共排出 \\(${m}\\) 個。`]);
+  },
+);
+// ════ 七下 ════
+g7b.push(
+  function () { // 解聯立方程式
+    const x = ri(-5, 6), y = ri(-5, 6), Q = [-4, -3, -2, -1, 1, 2, 3, 4], a1 = ri(1, 5), b1 = pk(Q), a2 = ri(1, 5), b2 = pk(Q); if (a1 * b2 - a2 * b1 === 0 || !x || !y || x === y) return null;
+    const c1 = a1 * x + b1 * y, c2 = a2 * x + b2 * y, E = (a, b, c) => `${co(a)}x${b < 0 ? '-' : '+'}${Math.abs(b) === 1 ? '' : Math.abs(b)}y=${c}`;
+    const t = ri(0, 1), ans = t ? x - y : x + y, nm = t ? 'a-b' : 'a+b';
+    return V_(MC(`若二元一次聯立方程式 \\(\\begin{cases}${E(a1, b1, c1)}\\\\${E(a2, b2, c2)}\\end{cases}\\) 的解為 \\(x=a\\)、\\(y=b\\)，則 \\(${nm}\\) 的值為何？`, ans, [t ? x + y : x - y, -ans, x * y].filter(v => v !== ans), `解聯立方程式得 \\(x=${x}\\)、\\(y=${y}\\)，所以 \\(${nm}=${ans}\\)。`, { lv: 2, int: 1 }), { a1, b1, c1, a2, b2, c2, t });
+  },
+  function () { // 坐標平面上的三角形面積
+    const x1 = ri(-6, -1), x2 = ri(1, 7), p = ri(-5, 5), q = pk([-6, -5, -4, -3, -2, 2, 3, 4, 5, 6]), ans = (x2 - x1) * Math.abs(q) / 2;
+    return V_(MC(`坐標平面上有 \\(A(${x1},0)\\)、\\(B(${x2},0)\\)、\\(C(${p},${q})\\) 三點，則 \\(\\triangle ABC\\) 的面積為何？`, ans, [(x2 - x1) * Math.abs(q), (x2 - x1) * Math.abs(p) / 2, (x2 + x1) * Math.abs(q) / 2].filter(v => v > 0 && v !== ans), `底 \\(\\overline{AB}=${x2}-(${x1})=${x2 - x1}\\)，高為 \\(C\\) 點到 \\(x\\) 軸的距離 \\(${Math.abs(q)}\\)，面積 \\(=\\dfrac{${x2 - x1}\\times ${Math.abs(q)}}{2}=${num(ans)}\\)。`, { lv: 2, pos: 1 }), { x1, x2, p, q });
+  },
+  function () { // 由象限與距離求坐標
+    const qd = ri(1, 4), [sx, sy] = { 1: [1, 1], 2: [-1, 1], 3: [-1, -1], 4: [1, -1] }[qd], d1 = ri(1, 8), d2 = ri(1, 8); if (d1 === d2) return null;
+    const P = (a, b) => M(`(${a},${b})`), ans = P(sx * d2, sy * d1), N4 = '一二三四';
+    return V_(MC(`坐標平面上的 \\(P\\) 點在第${N4[qd - 1]}象限，且 \\(P\\) 點到 \\(x\\) 軸的距離為 \\(${d1}\\)、到 \\(y\\) 軸的距離為 \\(${d2}\\)，則 \\(P\\) 點的坐標為何？`, ans, [P(sx * d1, sy * d2), P(-sx * d2, sy * d1), P(sx * d2, -sy * d1), P(-sx * d1, -sy * d2)], `到 \\(x\\) 軸的距離是 \\(|y|=${d1}\\)，到 \\(y\\) 軸的距離是 \\(|x|=${d2}\\)；第${N4[qd - 1]}象限的點 \\(x${sx > 0 ? '\\gt' : '\\lt'} 0\\)、\\(y${sy > 0 ? '\\gt' : '\\lt'} 0\\)，所以 \\(P(${sx * d2},${sy * d1})\\)。`, { lv: 2 }), { qd, d1, d2 });
+  },
+  function () { // 比例：調動後相等
+    const m = ri(3, 9), n = ri(2, m - 1); if (gcd(m, n) !== 1) return null; const k = ri(2, 12), t = 2 * k / (m - n); if (!Number.isInteger(t)) return null; const A = m * t, B = n * t; if (A + B > 200 || A + B < 20) return null;
+    return V_(MC(`甲、乙兩個書架上的書本數量比為 \\(${m}:${n}\\)。若從甲書架拿 \\(${k}\\) 本書放到乙書架，則兩個書架上的書一樣多。原來甲書架上有幾本書？`, A, [B, A + B, A - k, m * k].filter(v => v > 0 && v !== A), `設甲有 \\(${m}t\\) 本、乙有 \\(${n}t\\) 本，\\(${m}t-${k}=${n}t+${k}\\)，\\(t=${t}\\)，甲原有 \\(${m}\\times ${t}=${A}\\) 本。`, { lv: 2, pos: 1 }), { m, n, k });
+  },
+  function () { // 不等式：競賽答對題數
+    const n = pk([20, 25, 30]), a = pk([4, 5]), b = pk([1, 2]), S = ri(Math.floor(n * a * 0.4), Math.floor(n * a * 0.8)), R = (S + b * n) / (a + b), ans = Math.ceil(R); if (ans > n || Number.isInteger(R)) return null;
+    return V_(MC(`某次數學競賽共有 \\(${n}\\) 題，答對一題得 \\(${a}\\) 分，答錯或不作答一題扣 \\(${b}\\) 分。小明想得到 \\(${S}\\) 分以上，他至少要答對幾題？`, ans, [Math.ceil(S / a), ans - 1, ans + 1].filter(v => v !== ans), `設答對 \\(x\\) 題，\\(${a}x-${co(b)}(${n}-x)\\ge ${S}\\)，\\(${a + b}x\\ge ${S + b * n}\\)，\\(x\\ge ${fr(S + b * n, a + b)}\\)，至少答對 \\(${ans}\\) 題。`, { lv: 2, pos: 1 }), { n, a, b, S });
+  },
+  function () { // 直線與兩軸所圍面積
+    const X = pk([-6, -4, -3, -2, 2, 3, 4, 5, 6, 8]), Y = pk([-6, -4, -3, 2, 3, 4, 5, 6, 8]), g = gcd(X, Y); let a = Y / g, b = X / g, c = X * Y / g; if (a < 0) { a = -a; b = -b; c = -c; }
+    const ans = Math.abs(X * Y) / 2, eq = `${co(a)}x${b < 0 ? '-' : '+'}${Math.abs(b) === 1 ? '' : Math.abs(b)}y=${c}`;
+    return V_(MC(`坐標平面上，二元一次方程式 \\(${eq}\\) 的圖形與兩坐標軸所圍成的三角形面積為何？`, ans, [Math.abs(X * Y), Math.abs(c) / 2, (Math.abs(X) + Math.abs(Y)) / 2].filter(v => v > 0 && v !== ans), `令 \\(y=0\\) 得 \\(x=${X}\\)；令 \\(x=0\\) 得 \\(y=${Y}\\)。面積 \\(=\\dfrac{${Math.abs(X)}\\times ${Math.abs(Y)}}{2}=${num(ans)}\\)。`, { lv: 2, pos: 1 }), { a, b, c });
+  },
+  function () { // 列聯表
+    const G = pk([20, 25, 40, 50]), l2 = ri(2, G - 2), pct = l2 * 100 / G; if (!Number.isInteger(pct) || pct % 5) return null;
+    const B = ri(15, 25), l1 = ri(3, B - 3);
+    const td = s => `<td style="border:1px solid #000;padding:2px 10px;text-align:center;font-style:normal;white-space:nowrap">${s}</td>`;
+    const tb = `<table style="border-collapse:collapse;font-size:.92em">${[['', '喜歡', '不喜歡', '合計'], ['男生', l1, B - l1, B], ['女生', '？', '？', G], ['合計', l1 + l2, B + G - l1 - l2, B + G]].map(r => '<tr>' + r.map(td).join('') + '</tr>').join('')}</table>`;
+    return V_(MC(`某校調查 \\(${B + G}\\) 位學生是否喜歡數學，結果整理成右邊的列聯表，但有兩格資料遺失。女生中喜歡數學的人數占女生人數的百分之多少？`, pct, [l2 * 100 / (B + G), l2 * 100 / (l1 + l2), 100 - pct].filter(v => Number.isInteger(v) && v > 0 && v !== pct), `女生中喜歡數學的有 \\(${l1 + l2}-${l1}=${l2}\\) 人，\\(\\dfrac{${l2}}{${G}}\\times 100\\%=${pct}\\%\\)。`, { lv: 2, pos: 1, step: 5, fmt: v => num(v) + '\\%', fig: tb }), { l1, l2, G, B });
+  },
+  function () { // 對稱點
+    const a = ri(-7, 7), b = ri(-7, 7); if (!a || !b || Math.abs(a) === Math.abs(b)) return null; const t = ri(0, 2);
+    const P = (x, y) => M(`(${x},${y})`), Rr = [[a, -b], [-a, b], [-a, -b]], ans = P(...Rr[t]);
+    const nm = t === 2 ? '原點' : `\\(${'xy'[t]}\\) 軸`, why = ['\\(x\\) 坐標不變、\\(y\\) 坐標變號', '\\(y\\) 坐標不變、\\(x\\) 坐標變號', '\\(x\\)、\\(y\\) 坐標都變號'][t];
+    return V_(MC(`坐標平面上，\\(A(${a},${b})\\) 對稱於${nm}的點坐標為何？`, ans, [...Rr.filter((_, i) => i !== t).map(r => P(...r)), P(b, a)], `對稱於${nm}：${why}，所以為 \\((${Rr[t][0]},${Rr[t][1]})\\)。`, { lv: 1 }), { a, b, t });
+  },
+);
+n7b.push(
+  function () { // 二位數數字對調
+    const t = ri(1, 8), u = ri(t + 1, 9), s = t + u, d = 9 * (u - t);
+    return NC(`一個二位數，十位數字與個位數字的和為 \\(${s}\\)；若將十位數字與個位數字對調，得到的新二位數比原數大 \\(${d}\\)。`,
+      [`設原數的十位數字為 \\(x\\)、個位數字為 \\(y\\)，請列出二元一次聯立方程式。`, `求原來的二位數。`],
+      [`\\(\\begin{cases}x+y=${s}\\\\(10y+x)-(10x+y)=${d}\\end{cases}\\)`, `第二式化簡為 \\(y-x=${u - t}\\)，與 \\(x+y=${s}\\) 聯立，得 \\(x=${t}\\)、\\(y=${u}\\)，原數為 \\(${10 * t + u}\\)。`]);
+  },
+  function () { // 坐標平面上的三角形
+    const a = ri(-6, -1), b = ri(1, 6), c = pk([3, 4, 5, 6, -3, -4, -5]), area = (b - a) * Math.abs(c) / 2, P1 = b + 2 * (b - a), P2 = b - 2 * (b - a);
+    return NC(`坐標平面上有 \\(A(${a},0)\\)、\\(B(${b},0)\\)、\\(C(0,${c})\\) 三點。`,
+      [`求 \\(\\triangle ABC\\) 的面積。`, `若 \\(x\\) 軸上有一點 \\(P\\)，使得 \\(\\triangle PBC\\) 的面積是 \\(\\triangle ABC\\) 面積的 \\(2\\) 倍，求 \\(P\\) 點所有可能的坐標。`],
+      [`\\(\\overline{AB}=${b}-(${a})=${b - a}\\)，高為 \\(${Math.abs(c)}\\)，面積 \\(=\\dfrac{${b - a}\\times ${Math.abs(c)}}{2}=${num(area)}\\)。`, `兩個三角形的高相同，所以 \\(\\overline{PB}=2\\overline{AB}=${2 * (b - a)}\\)，\\(P\\) 點坐標為 \\((${P1},0)\\) 或 \\((${P2},0)\\)。`]);
+  },
+);
+
 window.EXAM_BANK = {
   '7a': { name: '七上', mc: g7a, nc: n7a },
   '7b': { name: '七下', mc: g7b, nc: n7b },
