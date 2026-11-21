@@ -1,4 +1,6 @@
 'use strict';
+// 純文字＋數學式的題幹包成一塊，避免 flex 排版把「文字／數學式／文字」拆成三塊各自換行
+const _qText = t => /<[a-z]/i.test(String(t)) ? t : `<span class="q-text">${t}</span>`;
 
 const _KATEX_OPTS = {
   delimiters: [
@@ -802,7 +804,7 @@ function renderQuiz(questions, params) {
       row.innerHTML = `
         <div class="q-number">${idx + 1}</div>
         <div class="q-body">
-          <div class="q-expr">${badge}${q.question}</div>
+          <div class="q-expr">${badge}${_qText(q.question)}</div>
           <div class="q-answer-area">
             ${partsHtml}
             <span class="q-feedback" id="fb-${idx}"></span>
@@ -816,7 +818,7 @@ function renderQuiz(questions, params) {
       row.innerHTML = `
         <div class="q-number">${idx + 1}</div>
         <div class="q-body">
-          <div class="q-expr">${badge}${q.question}</div>
+          <div class="q-expr">${badge}${_qText(q.question)}</div>
           <div class="q-answer-area">
             <span class="q-eq">${q.answerPrefix===undefined?'=':q.answerPrefix?(/[<>≤≥]$/.test(q.answerPrefix)?q.answerPrefix:q.answerPrefix+' ='):''}</span>
             <input class="${_iCls}" type="text" id="ans-${idx}"
