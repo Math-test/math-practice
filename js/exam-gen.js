@@ -273,8 +273,8 @@ const g8a = [
   function () { // 一元二次方程式的根
     const r1 = ri(-5, 8), r2 = ri(-8, 5); if (r1 <= r2) return null;
     const P = quad(1, -(r1 + r2), r1 * r2);
-    return MC(`若一元二次方程式 \\(${P}=0\\) 的兩根為 \\(\\alpha\\)、\\(\\beta\\)，且 \\(\\alpha>\\beta\\)，則 \\(\\alpha-2\\beta\\) 的值為何？`, r1 - 2 * r2, [r2 - 2 * r1, r1 + 2 * r2, 2 * r1 - r2],
-      `\\(${P}=(x${sg(-r1)})(x${sg(-r2)})=0\\)，\\(\\alpha=${r1}\\)、\\(\\beta=${r2}\\)，\\(\\alpha-2\\beta=${r1}-2(${r2})=${r1 - 2 * r2}\\)。`.replace(/\(x\)/g, 'x'), { lv: 2 });
+    return MC(`若一元二次方程式 \\(${P}=0\\) 的兩根為 \\(a\\)、\\(b\\)，且 \\(a\\gt b\\)，則 \\(a-2b\\) 的值為何？`, r1 - 2 * r2, [r2 - 2 * r1, r1 + 2 * r2, 2 * r1 - r2],
+      `\\(${P}=(x${sg(-r1)})(x${sg(-r2)})=0\\)，\\(a=${r1}\\)、\\(b=${r2}\\)，\\(a-2b=${r1}-2(${r2})=${r1 - 2 * r2}\\)。`.replace(/\(x\)/g, 'x'), { lv: 2 });
   },
   function () { // 重根
     const s = ri(2, 9);
@@ -282,7 +282,7 @@ const g8a = [
       `兩根相等時判別式為 \\(0\\)：\\(k^{2}-4\\times ${s * s}=0\\)，\\(k^{2}=${4 * s * s}\\)，因為 \\(k>0\\)，所以 \\(k=${2 * s}\\)。`, { lv: 2, pos: 1 });
   },
   function () { // 一元二次應用：道路寬
-    const x = ri(1, 4), L = ri(12, 30), W = ri(8, L - 2), A = (L - x) * (W - x), other = L + W - x;
+    const x = ri(2, 5), L = ri(12, 30), W = ri(8, L - 2), A = (L - x) * (W - x), other = L + W - x;
     return MC(`一塊長 \\(${L}\\) 公尺、寬 \\(${W}\\) 公尺的長方形空地，要開闢一條直的與一條橫的道路，兩條道路互相垂直且寬度相同，剩下部分的面積為 \\(${A}\\) 平方公尺，則道路寬為幾公尺？`, x, [other, x + 1, x + 2],
       `設路寬 \\(x\\) 公尺，\\((${L}-x)(${W}-x)=${A}\\)，\\(x^{2}-${L + W}x+${L * W - A}=0\\)，\\((x-${x})(x-${other})=0\\)。因為 \\(x<${W}\\)，所以 \\(x=${x}\\)。`, { lv: 3, pos: 1 });
   },
@@ -702,13 +702,7 @@ g9a.push(
   },
   function () { // 圓外切四邊形
     const a = ri(4, 12), b = ri(4, 12), c = ri(4, 12), d = a + c - b; if (d < 2) return null;
-    return V_(MC(`四邊形 \\(ABCD\\) 的四個邊都與一圓相切。若 \\(\\overline{AB}=${a}\\)、\\(\\overline{BC}=${b}\\)、\\(\\overline{CD}=${c}\\)，則 \\(\\overline{DA}\\) 的長度為何？`, d, [a + b - c, b + c - a, (a + b + c) / 3].filter(v => v > 0), `圓外切四邊形兩組對邊和相等：\\(\\overline{AB}+\\overline{CD}=\\overline{BC}+\\overline{DA}\\)，\\(\\overline{DA}=${a}+${c}-${b}=${d}\\)。`, { lv: 2, pos: 1 }), { a, b, c });
-  },
-  function () { // 兩圓位置關係
-    const r1 = ri(2, 9), r2 = ri(2, 9), t = ri(0, 3); let d, ans;
-    const K = ['外離', '外切', '交於兩點', '內切'];
-    if (t === 0) { d = r1 + r2 + ri(1, 5); ans = '外離'; } else if (t === 1) { d = r1 + r2; ans = '外切'; } else if (t === 2) { d = Math.abs(r1 - r2) + ri(1, r1 + r2 - Math.abs(r1 - r2) - 1); if (!(d < r1 + r2 && d > Math.abs(r1 - r2))) return null; ans = '交於兩點'; } else { if (r1 === r2) return null; d = Math.abs(r1 - r2); ans = '內切'; }
-    return V_(MC(`兩圓的半徑分別為 \\(${r1}\\)、\\(${r2}\\)，連心線長為 \\(${d}\\)，則兩圓的位置關係為何？`, ans, K.filter(k => k !== ans), `兩半徑和 \\(=${r1 + r2}\\)、差 \\(=${Math.abs(r1 - r2)}\\)，連心線長 \\(${d}\\)，所以兩圓${ans}。`, { lv: 2, ord: v => K.indexOf(v) }), { r1, r2, d });
+    return V_(MC(`四邊形 \\(ABCD\\) 的四個邊都與一圓相切。若 \\(\\overline{AB}=${a}\\)、\\(\\overline{BC}=${b}\\)、\\(\\overline{CD}=${c}\\)，則 \\(\\overline{DA}\\) 的長度為何？`, d, [a + b - c, b + c - a, (a + b + c) / 3, a + b + c - 2 * d].filter(v => Number.isInteger(v) && v > 0), `圓外切四邊形兩組對邊和相等：\\(\\overline{AB}+\\overline{CD}=\\overline{BC}+\\overline{DA}\\)，\\(\\overline{DA}=${a}+${c}-${b}=${d}\\)。`, { lv: 2, pos: 1 }), { a, b, c });
   },
   function () { // 重心面積
     const S = ri(3, 20) * 6, t = ri(0, 1);
@@ -750,31 +744,23 @@ g9b.push(
   },
   function () { // 兩點同高求對稱軸
     const h = ri(-5, 5), d = ri(1, 6), y = ri(-9, 9);
-    return V_(MC(`二次函數 \\(y=ax^{2}+bx+c\\) 的圖形通過 \\((${h - d},${y})\\)、\\((${h + d},${y})\\) 兩點，則圖形的對稱軸為何？`, M(`x=${h}`), [M(`x=${-h}`), M(`x=${h + d}`), M(`x=${h - d}`), M(`y=${y}`)].filter(s => s !== M(`x=${h}`)), `兩點的 \\(y\\) 坐標相同，對稱軸為兩點 \\(x\\) 坐標的中點：\\(x=\\dfrac{(${h - d})+(${h + d})}{2}=${h}\\)。`, { lv: 2, ord: s => s.includes('y=') ? 99 : +s.match(/-?\d+/)[0] }), { h });
+    return V_(MC(`二次函數 \\(y=ax^{2}+bx+c\\) 的圖形通過 \\((${h - d},${y})\\)、\\((${h + d},${y})\\) 兩點，則圖形的對稱軸為何？`, M(`x=${h}`), [M(`x=${-h}`), M(`x=${h + d}`), M(`x=${h - d}`), M(`y=${y}`), M(`x=${d}`), M(`x=${-d}`)].filter(s => s !== M(`x=${h}`)), `兩點的 \\(y\\) 坐標相同，對稱軸為兩點 \\(x\\) 坐標的中點：\\(x=\\dfrac{(${h - d})+(${h + d})}{2}=${h}\\)。`, { lv: 2, ord: s => s.includes('y=') ? 99 : +s.match(/-?\d+/)[0] }), { h });
   },
   function () { // 區間最值
     const a = pk([1, -1]), h = ri(-3, 3), k = ri(-6, 6), L = h + ri(1, 3), R = L + ri(2, 4); const f = x => a * (x - h) ** 2 + k;
     const mx = a > 0; const val = mx ? Math.max(f(L), f(R)) : Math.min(f(L), f(R));
     return V_(MC(`當 \\(${L}\\le x\\le ${R}\\) 時，二次函數 \\(y=${a < 0 ? '-' : ''}(x${sg(-h)})^{2}${sg(k)}\\) 的${mx ? '最大' : '最小'}值為何？`.replace('(x)', 'x'), val, [k, f(L) === val ? f(R) : f(L), -val], `頂點 \\(x=${h}\\) 不在範圍內，函數在此範圍${(a > 0) ? '遞增' : '遞減'}，在 \\(x=${R}\\) 時有${mx ? '最大' : '最小'}值 \\(${val}\\)。`, { lv: 3 }), { a, h, k, L, R, mx });
   },
-  function () { // 中位數與眾數
-    const vals = Array.from({ length: ri(7, 10) }, () => ri(1, 9)), s = vals.slice().sort((p, q) => p - q), n = s.length;
-    const med = n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2;
-    const cnt = {}; s.forEach(v => cnt[v] = (cnt[v] || 0) + 1); const mc = Math.max(...Object.values(cnt)), modes = Object.keys(cnt).filter(k => cnt[k] === mc); if (modes.length > 1 || mc < 2) return null;
-    const mode = +modes[0]; if (mode === med) return null;
-    if (Math.random() < 0.5) return V_(MC(`某班 \\(${n}\\) 位同學上個月看的課外書本數如下：${vals.join('、')}（本），這組資料的中位數為何？`, med, [mode, s.reduce((p, q) => p + q, 0) / n, s[Math.floor(n / 2)] === med ? med + 1 : s[Math.floor(n / 2)]], `由小到大排列：${s.join('、')}，中位數為 \\(${num(med)}\\)。`, { lv: 1, pos: 1, step: 0.5 }), { s, t: 'med' });
-    return V_(MC(`某班 \\(${n}\\) 位同學上個月看的課外書本數如下：${vals.join('、')}（本），這組資料的眾數為何？`, mode, [med, Math.max(...s), mc], `出現次數最多的是 \\(${mode}\\)（${mc} 次），眾數為 \\(${mode}\\)。`, { lv: 1, pos: 1 }), { s, t: 'mode' });
-  },
   function () { // 角柱體積
     const t = ri(0, 1);
     if (t === 0) { const [a, b, c] = pk([[3, 4, 5], [6, 8, 10], [5, 12, 13]]), h = ri(3, 12), V = a * b / 2 * h;
       return V_(MC(`一個直角柱的底面是兩股長為 \\(${a}\\)、\\(${b}\\) 的直角三角形，高為 \\(${h}\\)，則此角柱的體積為何？`, V, [a * b * h, (a + b + c) * h, V + a * b], `體積 \\(=\\dfrac{${a}\\times ${b}}{2}\\times ${h}=${V}\\)。`, { lv: 1, pos: 1 }), { V }); }
     const r = ri(2, 8), h = ri(3, 12);
-    return MC(`一個圓柱的底面半徑為 \\(${r}\\)、高為 \\(${h}\\)，則它的體積為何？`, M(piL(r * r * h, 1)), [M(piL(2 * r * h, 1)), M(piL(r * h, 1)), M(piL(r * r * h * 2, 1))], `體積 \\(=\\pi\\times ${r}^{2}\\times ${h}=${r * r * h}\\pi\\)。`, { lv: 1, ord: s => +(s.match(/(\d+)\\pi/) || [0, 1])[1] });
+    return MC(`一個圓柱的底面半徑為 \\(${r}\\)、高為 \\(${h}\\)，則它的體積為何？`, M(piL(r * r * h, 1)), [M(piL(2 * r * h, 1)), M(piL(r * h, 1)), M(piL(r * r * h * 2, 1)), M(piL(r * r * h * 4, 1)), M(piL(r * h * h, 1)), ...(r * r * h % 3 ? [] : [M(piL(r * r * h / 3, 1))])].filter(s => s !== M(piL(r * r * h, 1))), `體積 \\(=\\pi\\times ${r}^{2}\\times ${h}=${r * r * h}\\pi\\)。`, { lv: 1, ord: s => +(s.match(/(\d+)\\pi/) || [0, 1])[1] });
   },
   function () { // 機率：抽號碼
     const N = ri(10, 30), k = pk([3, 4, 5, 6]), c = Math.floor(N / k);
-    return V_(MC(`箱中有 \\(${N}\\) 張分別寫著 \\(1\\)～\\(${N}\\) 的號碼牌。從中隨機抽出一張，抽到的號碼是 \\(${k}\\) 的倍數的機率為何？`, M(fr(c, N)), [M(fr(c + 1, N)), M(fr(1, k)), M(fr(c, N - c)), M(fr(c - 1, N)), M(fr(c, N + k)), M(fr(c - 1, N - 1))].filter(s => !/\{0\}|\(0\)/.test(s)), `\\(1\\)～\\(${N}\\) 中 \\(${k}\\) 的倍數有 \\(${c}\\) 個，機率為 \\(${fr(c, N)}\\)。`, { lv: 1, ord: s => { const m = /\\dfrac\{(\d+)\}\{(\d+)\}/.exec(s); return m ? m[1] / m[2] : 1; } }), { N, k });
+    return V_(MC(`箱中有 \\(${N}\\) 張分別寫著 \\(1\\)～\\(${N}\\) 的號碼牌。從中隨機抽出一張，抽到的號碼是 \\(${k}\\) 的倍數的機率為何？`, M(fr(c, N)), [M(fr(c + 1, N)), M(fr(1, k)), M(fr(c, N - c)), M(fr(c - 1, N)), M(fr(c, N + k)), M(fr(c - 1, N - 1)), M(fr(c + 2, N)), M(fr(c, N - k))].filter(s => !/\{0\}|\(0\)/.test(s)), `\\(1\\)～\\(${N}\\) 中 \\(${k}\\) 的倍數有 \\(${c}\\) 個，機率為 \\(${fr(c, N)}\\)。`, { lv: 1, ord: s => { const m = /\\dfrac\{(\d+)\}\{(\d+)\}/.exec(s); return m ? m[1] / m[2] : 1; } }), { N, k });
   },
   function () { // 二次函數平移
     const h = ri(-4, 4), k = ri(-5, 5), dx = ri(-4, 4), dy = ri(-5, 5); if (!dx || !dy || !h) return null; const a = pk([1, 2, -1, -2]);
@@ -900,6 +886,7 @@ g9b.push(
     // y=x²  與 y=mx+c 的交點：x²−mx−c=0
     const D = m * m + 4 * c, ans = D > 0 ? 2 : D === 0 ? 1 : 0;
     if (!m && !c) return null;
+    if (ans !== ri(0, 2)) return null; // 讓 0、1、2 個交點平均出現
     const line = m ? lin(m, c) : String(c);
     return V_(MC(`坐標平面上，二次函數 \\(y=x^{2}\\) 的圖形與直線 \\(y=${line}\\) 有幾個交點？`, ans, [0, 1, 2, 3, 4], `聯立得 \\(${quad(1, -m, -c)}=0\\)，判別式 \\(=${D}\\)，${ans === 2 ? '大於 0，有 2 個交點' : ans === 1 ? '等於 0，有 1 個交點' : '小於 0，沒有交點'}。`, { lv: 3, u: '個', min: 0 }), { m, c });
   },
@@ -1033,11 +1020,6 @@ n7a.push(function () { // 打折與利潤
 
 // ════ 七下 ════
 g7b.push(
-  function () { // 連比
-    const a = ri(1, 5), b = ri(2, 6), b2 = ri(2, 6), c = ri(1, 7); if (gcd(a, b) !== 1 || gcd(b2, c) !== 1 || b === b2) return null;
-    const L = lcm(b, b2), x = a * L / b, y = L, z = c * L / b2, g = gcd(gcd(x, y), z), R = (p, q, r) => M(`${p}:${q}:${r}`);
-    return V_(MC(`若 \\(a:b=${a}:${b}\\)、\\(b:c=${b2}:${c}\\)，則 \\(a:b:c\\) 為何？`, R(x / g, y / g, z / g), [R(a, b, c), R(a, b + b2, c), R(a * b2, b * b2, c * b)].filter(s => s !== R(x / g, y / g, z / g)).concat([R(a * b2, b * c, c * b)]), `\\(b\\) 取 \\(${b}\\) 與 \\(${b2}\\) 的最小公倍數 \\(${L}\\)：\\(a:b=${x}:${L}\\)、\\(b:c=${L}:${z}\\)，所以 \\(a:b:c=${x / g}:${y / g}:${z / g}\\)。`, { lv: 2 }), { a, b, b2, c });
-  },
   function () { // 按比例分配
     const m = ri(1, 5), n = ri(2, 7); if (gcd(m, n) !== 1 || m === n) return null; const k = ri(20, 120) * 10, T = (m + n) * k;
     return V_(MC(`甲、乙兩人依 \\(${m}:${n}\\) 分配 \\(${T}\\) 元，則${n > m ? '乙' : '甲'}比${n > m ? '甲' : '乙'}多分得多少元？`, Math.abs(n - m) * k, [Math.max(m, n) * k, Math.min(m, n) * k, T / 2].filter(v => v !== Math.abs(n - m) * k), `每一份 \\(${T}\\div ${m + n}=${k}\\) 元，相差 \\(${Math.abs(n - m)}\\) 份，即 \\(${Math.abs(n - m) * k}\\) 元。`, { lv: 1, pos: 1, step: 10 }), { m, n, T });
@@ -1262,7 +1244,8 @@ g7a.push(
     return V_(MC(`${pre}若甲先做 \\(${k}\\) 天後，剩下的由乙單獨完成，則乙還需要做幾天？`, y, [b - k, a - k, b * k / a].filter(v => Number.isInteger(v) && v > 0 && v !== y), `甲做了全部的 \\(${fr(k, a)}\\)，剩下 \\(${fr(a - k, a)}\\)，乙需 \\(${fr(a - k, a)}\\times ${b}=${y}\\)（天）。`, { lv: 2, pos: 1 }), { a, b, k, t: 1 });
   },
   function () { // 判斷質數
-    const P = [53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113], C = [51, 57, 87, 91, 93, 111, 117, 119, 121, 129, 133, 141, 143, 161, 169, 187, 203, 209, 221];
+    // 108 課綱 N-7-1 只要求認識 100 以內的質數；誤答選看起來像質數的合數
+    const P = [41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97], C = [39, 49, 51, 57, 63, 69, 77, 81, 87, 91, 93, 99];
     const p = pk(P), lo = shuf(C.filter(n => n < p)), hi = shuf(C.filter(n => n > p)), t = ri(0, 3); if (lo.length < t || hi.length < 3 - t) return null; const cs = [...lo.slice(0, t), ...hi.slice(0, 3 - t)];
     const fac = n => { for (let d = 2; d * d <= n; d++) if (n % d === 0) return `${n}=${d}\\times ${n / d}`; };
     return V_(MC(`下列哪一個數是質數？`, M(p), cs.map(n => M(n)), `${cs.sort((x, y) => x - y).map(n => M(fac(n))).join('、')}，都是合數；\\(${p}\\) 不能被 \\(2\\)、\\(3\\)、\\(5\\)、\\(7\\) 整除，是質數。`, { lv: 1, ord: s => +s.replace(/\D/g, '') }), { p });
@@ -1331,7 +1314,7 @@ g7b.push(
   function () { // 對稱點
     const a = ri(-7, 7), b = ri(-7, 7); if (!a || !b || Math.abs(a) === Math.abs(b)) return null; const t = ri(0, 2);
     const P = (x, y) => M(`(${x},${y})`), Rr = [[a, -b], [-a, b], [-a, -b]], ans = P(...Rr[t]);
-    const nm = t === 2 ? '原點' : `\\(${'xy'[t]}\\) 軸`, why = ['\\(x\\) 坐標不變、\\(y\\) 坐標變號', '\\(y\\) 坐標不變、\\(x\\) 坐標變號', '\\(x\\)、\\(y\\) 坐標都變號'][t];
+    const nm = t === 2 ? '原點' : ` \\(${'xy'[t]}\\) 軸`, why = ['\\(x\\) 坐標不變、\\(y\\) 坐標變號', '\\(y\\) 坐標不變、\\(x\\) 坐標變號', '\\(x\\)、\\(y\\) 坐標都變號'][t];
     return V_(MC(`坐標平面上，\\(A(${a},${b})\\) 對稱於${nm}的點坐標為何？`, ans, [...Rr.filter((_, i) => i !== t).map(r => P(...r)), P(b, a)], `對稱於${nm}：${why}，所以為 \\((${Rr[t][0]},${Rr[t][1]})\\)。`, { lv: 1 }), { a, b, t });
   },
 );
@@ -1347,6 +1330,30 @@ n7b.push(
     return NC(`坐標平面上有 \\(A(${a},0)\\)、\\(B(${b},0)\\)、\\(C(0,${c})\\) 三點。`,
       [`求 \\(\\triangle ABC\\) 的面積。`, `若 \\(x\\) 軸上有一點 \\(P\\)，使得 \\(\\triangle PBC\\) 的面積是 \\(\\triangle ABC\\) 面積的 \\(2\\) 倍，求 \\(P\\) 點所有可能的坐標。`],
       [`\\(\\overline{AB}=${b}-(${a})=${b - a}\\)，高為 \\(${Math.abs(c)}\\)，面積 \\(=\\dfrac{${b - a}\\times ${Math.abs(c)}}{2}=${num(area)}\\)。`, `兩個三角形的高相同，所以 \\(\\overline{PB}=2\\overline{AB}=${2 * (b - a)}\\)，\\(P\\) 點坐標為 \\((${P1},0)\\) 或 \\((${P2},0)\\)。`]);
+  },
+);
+
+// ════ 七下：中位數與眾數（108 課綱 D-7-2） ════
+g7b.push(
+  function () { // 中位數與眾數
+    const vals = Array.from({ length: ri(7, 10) }, () => ri(1, 9)), s = vals.slice().sort((p, q) => p - q), n = s.length;
+    const med = n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2;
+    const cnt = {}; s.forEach(v => cnt[v] = (cnt[v] || 0) + 1); const mc = Math.max(...Object.values(cnt)), modes = Object.keys(cnt).filter(k => cnt[k] === mc); if (modes.length > 1 || mc < 2) return null;
+    const mode = +modes[0]; if (mode === med) return null;
+    if (Math.random() < 0.5) return V_(MC(`某班 \\(${n}\\) 位同學上個月看的課外書本數如下：${vals.join('、')}（本），這組資料的中位數為何？`, med, [mode, s.reduce((p, q) => p + q, 0) / n, s[Math.floor(n / 2)] === med ? med + 1 : s[Math.floor(n / 2)]], `由小到大排列：${s.join('、')}，中位數為 \\(${num(med)}\\)。`, { lv: 1, pos: 1, step: 0.5 }), { s, t: 'med' });
+    return V_(MC(`某班 \\(${n}\\) 位同學上個月看的課外書本數如下：${vals.join('、')}（本），這組資料的眾數為何？`, mode, [med, Math.max(...s), mc], `出現次數最多的是 \\(${mode}\\)（${mc} 次），眾數為 \\(${mode}\\)。`, { lv: 1, pos: 1 }), { s, t: 'mode' });
+  },
+);
+
+// ════ 九上：連比（108 課綱 N-9-1） ════
+g9a.push(
+  function () { // 連比
+    const a = ri(1, 5), b = ri(2, 6), b2 = ri(2, 6), c = ri(1, 7); if (gcd(a, b) !== 1 || gcd(b2, c) !== 1 || b === b2) return null;
+    const L = lcm(b, b2), x = a * L / b, y = L, z = c * L / b2, g = gcd(gcd(x, y), z), R = (p, q, r) => M(`${p}:${q}:${r}`);
+    // 誤答若約分後與正確答案相同（如 2:8:12 與 1:4:6）就剔除，誤答之間也不可等價
+    const nr = s => { const v = s.match(/\d+/g).map(Number), h = v.reduce((p, r) => gcd(p, r)); return v.map(t => t / h).join(':'); };
+    const seenR = new Set([nr(R(x / g, y / g, z / g))]), wr = [R(a, b, c), R(a, b + b2, c), R(a * b2, b * b2, c * b), R(a * b2, b * c, c * b), R(a * b, b * b2, c * b), R(c, y / g, x / g)].filter(s => { const k = nr(s); if (seenR.has(k)) return false; seenR.add(k); return true; });
+    return V_(MC(`若 \\(a:b=${a}:${b}\\)、\\(b:c=${b2}:${c}\\)，則 \\(a:b:c\\) 為何？`, R(x / g, y / g, z / g), wr, `\\(b\\) 取 \\(${b}\\) 與 \\(${b2}\\) 的最小公倍數 \\(${L}\\)：\\(a:b=${x}:${L}\\)、\\(b:c=${L}:${z}\\)，所以 \\(a:b:c=${x / g}:${y / g}:${z / g}\\)。`, { lv: 2 }), { a, b, b2, c });
   },
 );
 
