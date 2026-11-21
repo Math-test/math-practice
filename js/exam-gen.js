@@ -1365,6 +1365,308 @@ g9a.push(
   },
 );
 
+// ── 第六批：圖形題與判斷題 ──────────────────────────────────────────
+// 甲、乙說法判斷：選項順序固定
+const JO = ['兩人皆正確', '甲正確，乙錯誤', '甲錯誤，乙正確', '兩人皆錯誤'];
+function JUD(head, s1, s2, t1, t2, sol, o) {
+  const k = t1 ? (t2 ? 0 : 1) : (t2 ? 2 : 3);
+  return MC(`${head}<br>甲：${s1}<br>乙：${s2}<br>下列判斷何者正確？`, JO[k], JO.filter((_, i) => i !== k), `甲的說法${t1 ? '正確' : '錯誤'}，乙的說法${t2 ? '正確' : '錯誤'}。${sol || ''}`, Object.assign({ lv: 2 }, o || {}, { ord: s => JO.indexOf(s) }));
+}
+const coin = () => Math.random() < 0.5;
+// 反覆產生敘述，直到真假符合 want（先決定真假，答案位置才會平均）
+const pickC = (g, want) => { for (let i = 0; i < 80; i++) { const c = g(); if (c && c[1] === want) return c; } return null; };
+// 文字敘述的判斷：TT 為正確敘述，FF 為 [錯誤敘述, 說明]
+function textJUD(head, TT, FF) {
+  const t1 = coin(), t2 = coin(), T = shuf(TT), F = shuf(FF), a = t1 ? [T.pop()] : F.pop(), b = t2 ? [T.pop()] : F.pop();
+  const why = [a, b].map((c, i) => c[1] ? `${'甲乙'[i]}：${c[1]}` : '').filter(Boolean).join('；');
+  return V_(JUD(head, `「${a[0]}」`, `「${b[0]}」`, t1, t2, why ? why + '。' : ''), { t1, t2 });
+}
+// 根式化簡：√n → k√m
+const sqS = n => { let k = 1, m = n; for (let d = 2; d * d <= m; d++) while (m % (d * d) === 0) { m /= d * d; k *= d; } return m === 1 ? String(k) : (k === 1 ? '' : k) + `\\sqrt{${m}}`; };
+const fval = s => { s = s.replace(/\\\(|\\\)/g, ''); let m = /^(-)?\\dfrac\{(\d+)\}\{(\d+)\}$/.exec(s); if (m) return (m[1] ? -1 : 1) * m[2] / m[3]; m = /^(\d*)\\sqrt\{(\d+)\}$/.exec(s); if (m) return (+(m[1] || 1)) * Math.sqrt(+m[2]); return +s; };
+// 等距刻度的數線（9 個刻度，只標字母）
+function tickSVG(marks) {
+  const W = 300, y = 34, px = k => 22 + k * 32;
+  let o = LN(6, y, W - 9, y) + `<polygon points="${W - 2},${y} ${W - 9},${y - 4} ${W - 9},${y + 4}"/>`;
+  for (let k = 0; k <= 8; k++) o += LN(px(k), y - 5, px(k), y + 5);
+  marks.forEach(([k, t]) => { o += DOT(px(k), y) + lbl(px(k), y - 12, t); });
+  return SVG(W, 48, o);
+}
+// 火柴棒圖形：t=0 一排正方形，t=1 兩排正方形
+function stickSVG(t) {
+  const s = 16, R = t ? 2 : 1; let o = '', x0 = 10;
+  for (let n = 1; n <= 3; n++) {
+    for (let r = 0; r <= R; r++) o += LN(x0, 10 + r * s, x0 + n * s, 10 + r * s, { w: 2 });
+    for (let c = 0; c <= n; c++) o += LN(x0 + c * s, 10, x0 + c * s, 10 + R * s, { w: 2 });
+    o += T_(x0 + n * s / 2, 10 + R * s + 18, `圖(${n})`, { fs: 12 });
+    x0 += n * s + 36;
+  }
+  return SVG(x0 - 20, 10 + R * s + 26, o);
+}
+// 數線上的不等式解
+function ineqSVG(c, op) {
+  const W = 280, y = 30, px = v => 140 + (v - c) * 30, R = op === '\\gt' || op === '\\ge', e = R ? W - 12 : 12;
+  let o = LN(8, y, W - 8, y);
+  for (let v = c - 4; v <= c + 4; v++) o += LN(px(v), y - 4, px(v), y + 4) + T_(px(v), y + 20, v, { fs: 12 });
+  o += LN(px(c), y, e, y, { w: 3 }) + `<polygon points="${e + (R ? 8 : -8)},${y} ${e},${y - 5} ${e},${y + 5}"/>`;
+  o += `<circle cx="${px(c)}" cy="${y}" r="5" fill="${op === '\\ge' || op === '\\le' ? '#000' : '#fff'}" stroke="#000" stroke-width="1.5"/>`;
+  return SVG(W, 56, o);
+}
+// 方格紙上的線段 AB
+function segSVG(dx, dy) {
+  const s = 22, C = 7, R = 6, x0 = 8, y0 = 8; let o = '';
+  for (let i = 0; i <= C; i++) o += LN(x0 + i * s, y0, x0 + i * s, y0 + R * s, { c: '#999', w: 0.8 });
+  for (let j = 0; j <= R; j++) o += LN(x0, y0 + j * s, x0 + C * s, y0 + j * s, { c: '#999', w: 0.8 });
+  const ax = ri(0, C - dx), ay = ri(dy, R), fl = coin(), A = [ax, ay], B = [ax + dx, ay - dy], P = p => [x0 + (fl ? C - p[0] : p[0]) * s, y0 + p[1] * s];
+  const [Ax, Ay] = P(A), [Bx, By] = P(B);
+  o += LN(Ax, Ay, Bx, By, { w: 2 }) + DOT(Ax, Ay) + DOT(Bx, By) + T_(Ax + (Ax < Bx ? -9 : 9), Ay + 14, 'A', { it: 1, fs: 14 }) + T_(Bx + (Bx > Ax ? 9 : -9), By - 5, 'B', { it: 1, fs: 14 });
+  return SVG(x0 * 2 + C * s, y0 * 2 + R * s + 8, o);
+}
+// (x+p)(x+q) 的面積圖
+function rectXY(p, q) {
+  const X = 70, P = 13 * p, Q = 13 * q, x0 = 24, y0 = 22;
+  let o = `<rect x="${x0}" y="${y0}" width="${X + P}" height="${X + Q}" fill="none" stroke="#000" stroke-width="1.4"/>` + LN(x0 + X, y0, x0 + X, y0 + X + Q) + LN(x0, y0 + X, x0 + X + P, y0 + X);
+  o += T_(x0 + X / 2, y0 - 6, 'x', { it: 1, fs: 15 }) + T_(x0 + X + P / 2, y0 - 6, p, { fs: 14 }) + T_(x0 - 9, y0 + X / 2 + 5, 'x', { it: 1, fs: 15 }) + T_(x0 - 9, y0 + X + Q / 2 + 5, q, { fs: 14 });
+  return SVG(x0 + X + P + 10, y0 + X + Q + 10, o);
+}
+// 兩平行線被一直線所截；phi 為截線向上方向與 L 的夾角，r1、r2 為 ∠1、∠2 所在區域（0 右上、1 左上、2 左下、3 右下）
+function parFig(phi, r1, r2) {
+  const y1 = 50, y2 = 120, rad = phi * Math.PI / 180, c = Math.cos(rad), s = Math.sin(rad), X1 = 112 + 35 * c / s, X2 = 112 - 35 * c / s, ext = 42;
+  let o = LN(10, y1, 214, y1) + LN(10, y2, 214, y2) + T_(224, y1 + 5, 'L₁', { it: 1, fs: 14 }) + T_(224, y2 + 5, 'L₂', { it: 1, fs: 14 });
+  o += LN(X1 + ext * c, y1 - ext * s, X2 - ext * c, y2 + ext * s) + T_(X1 + ext * c + (c > 0 ? 8 : -8), y1 - ext * s + 2, 'M', { it: 1, fs: 14 });
+  const rays = [0, phi, 180, phi + 180, 360], at = (X, Y, r, t) => { const b = (rays[r] + rays[r + 1]) / 2 * Math.PI / 180; return T_((X + 16 * Math.cos(b)).toFixed(1), (Y - 16 * Math.sin(b) + 5).toFixed(1), t, { fs: 13 }); };
+  o += at(X1, y1, r1, '1') + at(X2, y2, r2, '2');
+  return SVG(240, 170, o);
+}
+// 轉盤
+function spinSVG(names, degs) {
+  const cx = 85, cy = 85, r = 72; let a = -90, o = '';
+  degs.forEach((d, i) => {
+    const b = a + d, R = t => [cx + r * Math.cos(t * Math.PI / 180), cy + r * Math.sin(t * Math.PI / 180)], [x1, y1] = R(a), [x2, y2] = R(b), m = (a + b) / 2 * Math.PI / 180;
+    o += `<path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${d > 180 ? 1 : 0} 1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="${['#fff', '#e8e8e8', '#fff', '#e8e8e8'][i]}" stroke="#000" stroke-width="1.2"/>`;
+    const tx = cx + 45 * Math.cos(m), ty = cy + 45 * Math.sin(m); o += T_(tx.toFixed(1), (ty - 2).toFixed(1), names[i], { fs: 12 }) + T_(tx.toFixed(1), (ty + 12).toFixed(1), d + '°', { fs: 11 }); a = b;
+  });
+  return SVG(170, 170, o + `<circle cx="${cx}" cy="${cy}" r="3"/>`);
+}
+const TD = s => `<td style="border:1px solid #000;padding:2px 10px;text-align:center;font-style:normal;white-space:nowrap">${s}</td>`;
+
+// ════ 七上 ════
+g7a.push(
+  function () { // 數線上等距刻度求坐標
+    const d = pk([1, 2, 3, 4, 5]), v0 = -d * ri(1, 7), [kA, kB, kC] = shuf([0, 1, 2, 3, 4, 5, 6, 7, 8]).slice(0, 3); if (kA > kB) return null;
+    const a = v0 + kA * d, b = v0 + kB * d, ans = v0 + kC * d, g = Math.abs(kC - kA);
+    return V_(MC(`右圖數線上每一小格的長度都相同。若 \\(A\\) 點的坐標為 \\(${a}\\)、\\(B\\) 點的坐標為 \\(${b}\\)，則 \\(C\\) 點的坐標為何？`, ans, [a + (kC - kA) * (b - a) / (kB - kA + 1), -ans, ans + d, ans - d].filter(v => Number.isInteger(v) && v !== ans),
+      `\\(A\\)、\\(B\\) 相距 \\(${kB - kA}\\) 格，每格長 \\(${b - a}\\div ${kB - kA}=${d}\\)；\\(C\\) 在 \\(A\\) 的${kC > kA ? '右' : '左'}邊 \\(${g}\\) 格，坐標為 \\(${a}${kC > kA ? '+' : '-'}${d}\\times ${g}=${ans}\\)。`, { lv: 2, step: d, fig: tickSVG([[kA, 'A'], [kB, 'B'], [kC, 'C']]) }), { d });
+  },
+  function () { // 火柴棒圖形規律（附圖）
+    const t = ri(0, 1), d = t ? 5 : 3, f = n => t ? 5 * n + 2 : 3 * n + 1, k = ri(8, 30), ans = f(k);
+    return V_(MC(`小明用火柴棒依右圖的規律排出圖形。依此規律排下去，第 \\(${k}\\) 個圖形共需用幾根火柴棒？`, ans, [d * k, f(k - 1), (d + 1) * k, f(1) * k].filter(v => v !== ans),
+      `圖(1)、圖(2)、圖(3) 分別用了 \\(${f(1)}\\)、\\(${f(2)}\\)、\\(${f(3)}\\) 根，每多一個圖形多用 \\(${d}\\) 根，第 \\(${k}\\) 個圖形需 \\(${f(1)}+${d}\\times ${k - 1}=${ans}\\) 根。`, { lv: 2, pos: 1, fig: stickSVG(t) }), { t, k });
+  },
+  function () { // 判斷等式是否成立
+    const g = () => {
+      const b = ri(2, 5), b2 = ri(2, 3), m = ri(2, 4), n = ri(2, 4), e = ri(2, 5), a = ri(10, 20), p = ri(2, 9), q = ri(2, 9), x = pk([-9, -7, -5, -4, -3, -2, 2, 3, 4, 5, 7, 9]), y = pk([-8, -6, -3, -2, 2, 3, 6, 8]), c = ri(2, 4), d = ri(2, 3), N = c * d * ri(1, 3) * 2, r = coin();
+      const L = pk([
+        [`(-${b})^{${e}}`, `-${b}^{${e}}`, (-b) ** e, -(b ** e)],
+        [`${b2}^{${m}}\\times ${b2}^{${n}}`, r ? `${b2}^{${m + n}}` : `${b2}^{${m * n}}`, b2 ** (m + n), b2 ** (r ? m + n : m * n)],
+        [`(${b2}^{${m}})^{${n}}`, r ? `${b2}^{${m * n}}` : `${b2}^{${m + n}}`, b2 ** (m * n), b2 ** (r ? m * n : m + n)],
+        [`${a}-(${p}-${q})`, `${a}-${p}${r ? '+' : '-'}${q}`, a - (p - q), r ? a - p + q : a - p - q],
+        [`|${x}+${y < 0 ? `(${y})` : y}|`, `|${x}|+|${y}|`, Math.abs(x + y), Math.abs(x) + Math.abs(y)],
+        [`${N}\\div ${c}\\times ${d}`, `${N}\\div(${c}\\times ${d})`, N / c * d, N / (c * d)],
+        [`2^{${e}}+2^{${e}}`, r ? `2^{${e + 1}}` : `4^{${e}}`, 2 ** (e + 1), r ? 2 ** (e + 1) : 4 ** e],
+      ]);
+      return [`\\(${L[0]}=${L[1]}\\)`, L[2] === L[3], `\\(${L[0]}=${L[2]}\\)，\\(${L[1]}=${L[3]}\\)`];
+    };
+    const t1 = coin(), t2 = coin(), A = pickC(g, t1), B = pickC(g, t2); if (!A || !B || A[0] === B[0]) return null;
+    return V_(JUD('甲、乙兩人各寫了一個等式如下：', A[0], B[0], t1, t2, `甲：${A[2]}；乙：${B[2]}。`), { t1, t2 });
+  },
+);
+// ════ 七下 ════
+g7b.push(
+  function () { // 方格坐標圖求三角形面積
+    const P = () => [pk([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]), pk([-4, -3, -2, -1, 1, 2, 3, 4])], A = P(), B = P(), C = P();
+    const S2 = Math.abs((B[0] - A[0]) * (C[1] - A[1]) - (C[0] - A[0]) * (B[1] - A[1])), ans = S2 / 2; if (ans < 4 || ans > 24) return null;
+    const xs = [A[0], B[0], C[0]], ys = [A[1], B[1], C[1]], box = (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys));
+    return V_(MC(`右圖坐標平面上每一小格的邊長為 \\(1\\)，\\(A\\)、\\(B\\)、\\(C\\) 三點都在格點上，則 \\(\\triangle ABC\\) 的面積為何？`, ans, [S2, box, box - ans].filter(v => v > 0 && v !== ans),
+      `由圖讀出 \\(A(${A})\\)、\\(B(${B})\\)、\\(C(${C})\\)。用外框長方形面積 \\(${box}\\) 減去周圍的直角三角形，得 \\(\\triangle ABC\\) 的面積為 \\(${num(ans)}\\)。`, { lv: 3, pos: 1, fig: gridGraph([], [-5, 5], [-5, 5], [[...A, 'A'], [...B, 'B'], [...C, 'C']]) }), {});
+  },
+  function () { // 由圖形選二元一次方程式
+    const p = pk([-4, -3, -2, 2, 3, 4]), q = pk([-4, -3, -2, 2, 3, 4]);
+    const E = (a, b, c) => { const g = gcd(gcd(a, b), c) || 1; a /= g; b /= g; c /= g; if (a < 0) { a = -a; b = -b; c = -c; } return M(`${co(a)}x${b < 0 ? '-' : '+'}${Math.abs(b) === 1 ? '' : Math.abs(b)}y=${c}`); };
+    const ans = E(q, p, p * q);
+    return V_(MC(`右圖坐標平面上每一小格的邊長為 \\(1\\)，圖中的直線是下列哪一個二元一次方程式的圖形？`, ans, [E(p, q, p * q), E(q, -p, p * q), E(q, p, -p * q), E(-q, p, p * q)],
+      `直線通過 \\((${p},0)\\)、\\((0,${q})\\) 兩點，只有 ${ans} 代入兩點都成立。`, { lv: 2, fig: gridGraph([x => q - q * x / p], [-5, 5], [-5, 5], [[p, 0], [0, q]]) }), { p, q });
+  },
+  function () { // 數線上的不等式解
+    const c = ri(-4, 5), ops = ['\\gt', '\\ge', '\\lt', '\\le'], oi = ri(0, 3), op = ops[oi], flip = i => [2, 3, 0, 1][i], strict = i => [1, 0, 3, 2][i];
+    const mk = (i, cc) => { const a = pk([2, 3, 4, -2, -3]), b = pk([-9, -7, -5, -4, -3, -1, 1, 2, 3, 5, 6, 8]); return M(`${a}x${sg(b)}${ops[a < 0 ? flip(i) : i]} ${a * cc + b}`); };
+    const ans = mk(oi, c);
+    return V_(MC(`下列哪一個一元一次不等式的解，可以用右圖數線上的圖形表示？`, ans, [mk(strict(oi), c), mk(flip(oi), c), mk(oi, c + pk([1, -1]))],
+      `由圖知解為 \\(x${op} ${c}\\)（${oi % 2 ? '實心點表示包含' : '空心圈表示不包含'} \\(${c}\\)）。解各選項的不等式，只有 ${ans} 的解為 \\(x${op} ${c}\\)。`, { lv: 2, fig: ineqSVG(c, op) }), { c, oi });
+  },
+  function () { // 正比、反比判斷（表格）
+    const CL = ['\\(y\\) 與 \\(x\\) 成正比', '\\(y\\) 與 \\(x\\) 成反比', '\\(x\\) 的值愈大，\\(y\\) 的值也愈大', '\\(xy\\) 的值都相同', '\\(\\dfrac{y}{x}\\) 的值都相同'];
+    const T = [ty => ty === 0, ty => ty === 1, ty => ty === 0 || ty === 2, ty => ty === 1, ty => ty === 0];
+    const t1 = coin(), t2 = coin(); let ty, i, j, n = 0;
+    do { ty = ri(0, 3); i = ri(0, 4); j = ri(0, 4); } while ((i === j || T[i](ty) !== t1 || T[j](ty) !== t2) && ++n < 300);
+    if (n >= 300) return null;
+    let xs, ys; const k = ri(2, 5), m = ri(1, 9);
+    if (ty === 1) { const K = pk([12, 24, 36, 48, 60]), dv = []; for (let d = 1; d <= 12; d++) if (K % d === 0) dv.push(d); xs = shuf(dv).slice(0, 4).sort((p, q) => p - q); ys = xs.map(x => K / x); }
+    else { xs = shuf([1, 2, 3, 4, 5, 6, 8]).slice(0, 4).sort((p, q) => p - q); ys = xs.map(x => ty === 0 ? k * x : ty === 2 ? k * x + m : 50 - k * x); }
+    const tb = `<table style="border-collapse:collapse;font-size:.92em">${[['<i>x</i>', ...xs], ['<i>y</i>', ...ys]].map(r => '<tr>' + r.map(TD).join('') + '</tr>').join('')}</table>`;
+    const why = ['每一組的 \\(\\dfrac{y}{x}\\) 都相同，\\(y\\) 與 \\(x\\) 成正比', '每一組的 \\(xy\\) 都相同，\\(y\\) 與 \\(x\\) 成反比', '\\(y\\) 隨 \\(x\\) 增加而增加，但 \\(\\dfrac{y}{x}\\)、\\(xy\\) 都不固定，既不成正比也不成反比', '\\(y\\) 隨 \\(x\\) 增加而減少，但 \\(\\dfrac{y}{x}\\)、\\(xy\\) 都不固定，既不成正比也不成反比'][ty];
+    return V_(JUD('已知 \\(x\\)、\\(y\\) 的對應值如右表，甲、乙兩人的說法如下：', `「${CL[i]}」`, `「${CL[j]}」`, t1, t2, `由表可知${why}。`, { fig: tb }), { xs, ys });
+  },
+);
+// ════ 八上 ════
+g8a.push(
+  function () { // 方格紙上的線段長
+    const dx = ri(1, 6), dy = ri(1, 5), n = dx * dx + dy * dy, ans = sqS(n), d2 = Math.abs(dx * dx - dy * dy);
+    const ws = [String(dx + dy), sqS(n + 2), d2 ? sqS(d2) : sqS(n + 4), sqS(2 * n), sqS(n - 1), ...[n - 2, n - 3, n - 4].filter(v => v > 0).map(sqS)].map(M);
+    return V_(MC(`右圖方格紙中每一小格都是邊長為 \\(1\\) 的正方形，\\(A\\)、\\(B\\) 兩點都在格點上，則 \\(\\overline{AB}\\) 的長度為何？`, M(ans), ws,
+      `\\(A\\)、\\(B\\) 水平相距 \\(${dx}\\) 格、垂直相距 \\(${dy}\\) 格，\\(\\overline{AB}=\\sqrt{${dx}^{2}+${dy}^{2}}=\\sqrt{${n}}${ans === `\\sqrt{${n}}` ? '' : '=' + ans}\\)。`, { lv: 2, ord: fval, fig: segSVG(dx, dy) }), { dx, dy });
+  },
+  function () { // 面積圖與乘法公式
+    const p = ri(1, 6), q = ri(1, 6); if (p === q) return null;
+    return V_(MC(`右圖的大長方形是由一個正方形與三個長方形拼成，各邊長如圖所示，則大長方形的面積可以表示為下列何者？`, M(quad(1, p + q, p * q)), [M(quad(1, p * q, p + q)), M(quad(1, p + q, p + q)), M(quad(1, 0, p * q)), M(quad(2, p + q, p * q))],
+      `大長方形的長為 \\(x+${p}\\)、寬為 \\(x+${q}\\)，面積 \\(=(x+${p})(x+${q})=x^{2}+${co(p)}x+${co(q)}x+${p * q}=${quad(1, p + q, p * q)}\\)。`, { lv: 2, fig: rectXY(p, q) }), { p, q });
+  },
+  function () { // 判斷根式運算是否正確
+    const g = () => {
+      const a = pk([2, 3, 5, 6, 7]), b = pk([2, 3, 5, 7, 10]), k = pk([2, 3, 5]), m = pk([2, 3, 6, 7]), r = coin(); if (a === b || k === m) return null;
+      const L = pk([
+        [`\\sqrt{${a}}+\\sqrt{${b}}=\\sqrt{${a + b}}`, false, `\\(\\sqrt{${a}}+\\sqrt{${b}}\\) 無法合併成 \\(\\sqrt{${a + b}}\\)`],
+        [`\\sqrt{${a}}\\times\\sqrt{${b}}=\\sqrt{${a * b}}`, true, ''],
+        r ? [`\\sqrt{${k * k * m}}=${k}\\sqrt{${m}}`, true, ''] : [`\\sqrt{${k * k * m}}=${m}\\sqrt{${k}}`, false, `\\(\\sqrt{${k * k * m}}=${k}\\sqrt{${m}}\\)`],
+        r ? [`\\sqrt{(-${k})^{2}}=${k}`, true, ''] : [`\\sqrt{(-${k})^{2}}=-${k}`, false, `\\(\\sqrt{(-${k})^{2}}=\\sqrt{${k * k}}=${k}\\)`],
+        [`\\dfrac{\\sqrt{${a * b}}}{\\sqrt{${b}}}=\\sqrt{${a}}`, true, ''],
+        r ? [`(\\sqrt{${a}}+\\sqrt{${b}})^{2}=${a + b}`, false, `\\((\\sqrt{${a}}+\\sqrt{${b}})^{2}=${a + b}+2\\sqrt{${a * b}}\\)`] : [`(\\sqrt{${a}}+\\sqrt{${b}})^{2}=${a + b}+2\\sqrt{${a * b}}`, true, ''],
+      ]);
+      return [`\\(${L[0]}\\)`, L[1], L[2]];
+    };
+    const t1 = coin(), t2 = coin(), A = pickC(g, t1), B = pickC(g, t2); if (!A || !B || A[0] === B[0]) return null;
+    const why = [A, B].map((c, i) => c[2] ? `${'甲乙'[i]}：${c[2]}` : '').filter(Boolean).join('；');
+    return V_(JUD('甲、乙兩人各寫了一個根式的計算如下：', A[0], B[0], t1, t2, why ? why + '。' : ''), { t1, t2 });
+  },
+);
+// ════ 八下 ════
+g8b.push(
+  function () { // 平行線截角（附圖）
+    const a = ri(8, 28) * 5; if (a === 90) return null; const r1 = ri(0, 3), r2 = ri(0, 3), phi = r1 % 2 === 0 ? a : 180 - a, same = r1 % 2 === r2 % 2, ans = same ? a : 180 - a;
+    return V_(MC(`如右圖，直線 \\(L_{1}\\parallel L_{2}\\)，且直線 \\(M\\) 與 \\(L_{1}\\)、\\(L_{2}\\) 相交。若 \\(\\angle 1=${a}^\\circ\\)，則 \\(\\angle 2\\) 為多少度？`, ans, [180 - ans, Math.abs(90 - ans), 360 - 2 * ans, ans / 2, 2 * ans, 90 + ans / 2, 180 - ans / 2, 2 * ans - 90].filter(v => v > 0 && v < 180 && v !== ans && v % 5 === 0),
+      `因為 \\(L_{1}\\parallel L_{2}\\)，由圖可知 \\(\\angle 2\\) 與 \\(\\angle 1\\) ${same ? '相等' : '互補'}，所以 \\(\\angle 2=${same ? `${a}^\\circ` : `180^\\circ-${a}^\\circ=${ans}^\\circ`}\\)。`, { lv: 2, int: 1, step: 5, fmt: v => num(v) + '^\\circ', fig: parFig(phi, r1, r2) }), { a, r1, r2 });
+  },
+  function () { // 三角形外角（附圖）
+    const al = ri(8, 16) * 5, be = ri(6, 14) * 5, e = al + be, ga = 180 - e; if (ga < 20) return null;
+    const AB = 130 * Math.sin(ga * Math.PI / 180) / Math.sin(al * Math.PI / 180), A = [20 + AB * Math.cos(be * Math.PI / 180), 140 - AB * Math.sin(be * Math.PI / 180)]; if (A[1] < 18 || A[0] < 12 || A[0] > 200) return null;
+    const fig = SVG(230, 160, LN(20, 140, 215, 140) + LN(20, 140, A[0], A[1]) + LN(150, 140, A[0], A[1]) + T_(A[0].toFixed(1), (A[1] - 5).toFixed(1), 'A', { it: 1, fs: 14 }) + T_(12, 154, 'B', { it: 1, fs: 14 }) + T_(150, 156, 'C', { it: 1, fs: 14 }) + T_(215, 156, 'D', { it: 1, fs: 14 }));
+    const t = ri(0, 1), [gv, gn, an, ans] = t ? [be, 'B', 'A', al] : [al, 'A', 'B', be];
+    return V_(MC(`如右圖，\\(D\\) 點在 \\(\\overline{BC}\\) 的延長線上。若 \\(\\angle ${gn}=${gv}^\\circ\\)、\\(\\angle ACD=${e}^\\circ\\)，則 \\(\\angle ${an}\\) 為多少度？`, ans, [180 - e, 180 - gv, e - ga, 180 - ans].filter(v => v > 0 && v < 180 && v !== ans),
+      `三角形的外角等於兩個內對角的和：\\(\\angle ACD=\\angle A+\\angle B\\)，所以 \\(\\angle ${an}=${e}^\\circ-${gv}^\\circ=${ans}^\\circ\\)。`, { lv: 2, int: 1, step: 5, fmt: v => num(v) + '^\\circ', fig }), { t });
+  },
+  function () { // 平行四邊形的對角線（附圖）
+    const m = ri(3, 9), n = ri(3, 9), c = ri(Math.abs(m - n) + 1, m + n - 1), t = coin(), [nm, sd] = t ? ['AOB', 'AB'] : ['BOC', 'BC'], ans = m + n + c;
+    const fig = SVG(230, 150, `<polygon points="20,120 160,120 210,30 70,30" fill="none" stroke="#000" stroke-width="1.4"/>` + LN(20, 120, 210, 30) + LN(160, 120, 70, 30) + T_(12, 134, 'A', { it: 1, fs: 14 }) + T_(166, 136, 'B', { it: 1, fs: 14 }) + T_(218, 30, 'C', { it: 1, fs: 14 }) + T_(62, 26, 'D', { it: 1, fs: 14 }) + T_(115, 94, 'O', { it: 1, fs: 14 }));
+    return V_(MC(`如右圖，平行四邊形 \\(ABCD\\) 的兩條對角線交於 \\(O\\) 點。若 \\(\\overline{AC}=${2 * m}\\)、\\(\\overline{BD}=${2 * n}\\)、\\(\\overline{${sd}}=${c}\\)，則 \\(\\triangle ${nm}\\) 的周長為何？`, ans, [2 * m + 2 * n + c, 2 * ans, m + n + 2 * c].filter(v => v !== ans),
+      `平行四邊形的對角線互相平分，\\(\\overline{AO}=\\overline{OC}=${m}\\)、\\(\\overline{BO}=\\overline{OD}=${n}\\)，周長 \\(=${m}+${n}+${c}=${ans}\\)。`, { lv: 2, pos: 1, fig }), { m, n, c });
+  },
+  function () { // 四邊形性質判斷
+    return textJUD('關於四邊形的性質，甲、乙兩人的說法如下：',
+      ['平行四邊形的兩條對角線互相平分', '菱形的兩條對角線互相垂直', '矩形的兩條對角線等長', '正方形的兩條對角線等長且互相垂直', '等腰梯形的兩條對角線等長', '平行四邊形的兩組對角分別相等', '兩組對邊分別相等的四邊形是平行四邊形', '對角線互相平分的四邊形是平行四邊形'],
+      [['平行四邊形的兩條對角線一定等長', '平行四邊形的對角線互相平分，但不一定等長'], ['菱形的兩條對角線一定等長', '菱形的對角線互相垂直平分，但不一定等長'], ['矩形的兩條對角線一定互相垂直', '矩形的對角線等長，但不一定互相垂直'], ['梯形的兩條對角線一定互相平分', '對角線互相平分的四邊形是平行四邊形，梯形不是'],
+        ['一組對邊平行、另一組對邊相等的四邊形一定是平行四邊形', '等腰梯形也符合這個條件'], ['兩條對角線互相垂直的四邊形一定是菱形', '對角線需互相垂直平分才是菱形'], ['四個角都相等的四邊形一定是正方形', '四個角都相等的四邊形是矩形，不一定是正方形'], ['兩條對角線等長的四邊形一定是矩形', '等腰梯形的對角線也等長']]);
+  },
+  function () { // 等差、等比數列判斷
+    const ty = ri(0, 3), s = []; let a1 = pk([-9, -7, -5, -3, -2, 1, 2, 3, 4, 5, 6, 8]);
+    if (ty === 0) { const d = pk([-6, -5, -4, -3, -2, 2, 3, 4, 5, 6]); for (let i = 0; i < 4; i++) s.push(a1 + d * i); }
+    else if (ty === 1) { const r = pk([2, 3, -2, -3]); a1 = pk([-3, -2, -1, 1, 2, 3, 4, 5]); for (let i = 0; i < 4; i++) s.push(a1 * r ** i); }
+    else if (ty === 2) { a1 = ri(2, 9) * pk([1, -1]); for (let i = 0; i < 4; i++) s.push(a1); }
+    else { const d = pk([1, 2, 3]); for (let i = 0; i < 4; i++) s.push(a1 + d * i * (i + 1) / 2); }
+    const isA = s[1] - s[0] === s[2] - s[1] && s[2] - s[1] === s[3] - s[2], isG = s.every(v => v) && s[1] * s[1] === s[0] * s[2] && s[2] * s[2] === s[1] * s[3];
+    const sw = coin(), c1 = sw ? '此數列是等比數列' : '此數列是等差數列', c2 = sw ? '此數列是等差數列' : '此數列是等比數列', t1 = sw ? isG : isA, t2 = sw ? isA : isG;
+    const why = `相鄰兩項的差${isA ? `都是 \\(${s[1] - s[0]}\\)` : '不全相同'}，相鄰兩項的比${isG ? `都是 \\(${fr(s[1], s[0])}\\)` : '不全相同'}`;
+    return V_(JUD(`關於數列 \\(${s.join(',')}\\)，甲、乙兩人的說法如下：`, `「${c1}」`, `「${c2}」`, t1, t2, why + '。'), { s, sw });
+  },
+);
+// ════ 九上 ════
+g9a.push(
+  function () { // 直徑所對的圓周角（附圖）
+    const x = ri(4, 14) * 5, t = coin(), ans = t ? 2 * x : 90 - x, gm = 2 * x * Math.PI / 180, C = [95 + 70 * Math.cos(gm), 90 - 70 * Math.sin(gm)];
+    const fig = SVG(190, 175, `<circle cx="95" cy="90" r="70" fill="none" stroke="#000" stroke-width="1.4"/>` + DOT(95, 90) + LN(25, 90, 165, 90) + LN(25, 90, C[0], C[1]) + LN(165, 90, C[0], C[1]) + (t ? LN(95, 90, C[0], C[1]) : '') +
+      T_(14, 95, 'A', { it: 1, fs: 14 }) + T_(176, 95, 'B', { it: 1, fs: 14 }) + T_((C[0] + (C[0] > 95 ? 8 : -8)).toFixed(1), (C[1] - 4).toFixed(1), 'C', { it: 1, fs: 14 }) + T_(95, 108, 'O', { it: 1, fs: 14 }));
+    return V_(MC(`如右圖，\\(\\overline{AB}\\) 為圓 \\(O\\) 的直徑，\\(C\\) 點在圓上。若 \\(\\angle CAB=${x}^\\circ\\)，則 \\(${t ? '\\angle BOC' : '\\angle ABC'}\\) 為多少度？`, ans, [x, 90 - x, 2 * x, 180 - 2 * x, 90 + x].filter(v => v > 0 && v < 180 && v !== ans),
+      t ? `圓心角是同弧所對圓周角的 \\(2\\) 倍，\\(\\angle BOC=2\\angle CAB=${ans}^\\circ\\)。` : `直徑所對的圓周角 \\(\\angle ACB=90^\\circ\\)，所以 \\(\\angle ABC=90^\\circ-${x}^\\circ=${ans}^\\circ\\)。`, { lv: 2, int: 1, step: 5, fmt: v => num(v) + '^\\circ', fig }), { x, t });
+  },
+  function () { // 切線性質（附圖）
+    const p = ri(4, 10) * 10, t = coin(), ans = t ? p / 2 : 180 - p, r = 50, d = r / Math.sin(p / 2 * Math.PI / 180), th = Math.acos(r / d), O = [70, 90], P = [70 + d, 90];
+    const A = [O[0] + r * Math.cos(th), O[1] - r * Math.sin(th)], B = [O[0] + r * Math.cos(th), O[1] + r * Math.sin(th)];
+    const fig = SVG(Math.ceil(P[0] + 20), 180, `<circle cx="${O[0]}" cy="${O[1]}" r="${r}" fill="none" stroke="#000" stroke-width="1.4"/>` + DOT(...O) + LN(...P, ...A) + LN(...P, ...B) + LN(...O, ...A) + LN(...O, ...B) + (t ? LN(...O, ...P) : '') +
+      T_(A[0].toFixed(1), (A[1] - 6).toFixed(1), 'A', { it: 1, fs: 14 }) + T_(B[0].toFixed(1), (B[1] + 16).toFixed(1), 'B', { it: 1, fs: 14 }) + T_(O[0] - 10, O[1] + 5, 'O', { it: 1, fs: 14 }) + T_(P[0] + 10, P[1] + 5, 'P', { it: 1, fs: 14 }));
+    return V_(MC(`如右圖，\\(\\overline{PA}\\)、\\(\\overline{PB}\\) 分別與圓 \\(O\\) 相切於 \\(A\\)、\\(B\\) 兩點。若 \\(\\angle APB=${p}^\\circ\\)，則 \\(${t ? '\\angle OPA' : '\\angle AOB'}\\) 為多少度？`, ans, [p, 180 - p, p / 2, 90 - p / 2, 90 + p / 2].filter(v => v > 0 && v < 180 && v !== ans),
+      t ? `\\(\\overline{OP}\\) 平分 \\(\\angle APB\\)，\\(\\angle OPA=${p}^\\circ\\div 2=${ans}^\\circ\\)。` : `切線垂直於過切點的半徑，\\(\\angle OAP=\\angle OBP=90^\\circ\\)，四邊形內角和 \\(360^\\circ\\)，\\(\\angle AOB=180^\\circ-${p}^\\circ=${ans}^\\circ\\)。`, { lv: 2, int: 1, step: 5, fmt: v => num(v) + '^\\circ', fig }), { p, t });
+  },
+  function () { // 重心與面積（附圖）
+    const S = 6 * ri(4, 20), t = ri(0, 2), nm = pk([['AGF', 'BGF', 'BGD', 'CGD', 'CGE', 'AGE'], ['GAB', 'GBC', 'GCA'], ['ABD', 'ACD', 'BAE', 'BCE', 'CAF', 'CBF']][t]), ans = [S / 6, S / 3, S / 2][t];
+    const A = [95, 14], B = [14, 150], C = [186, 150], D = [100, 150], E = [140.5, 82], F = [54.5, 82], G = [98.3, 104.7];
+    const fig = SVG(200, 170, `<polygon points="${[A, B, C].join(' ')}" fill="none" stroke="#000" stroke-width="1.4"/>` + LN(...A, ...D) + LN(...B, ...E) + LN(...C, ...F) + DOT(...G) +
+      T_(95, 10, 'A', { it: 1, fs: 14 }) + T_(8, 164, 'B', { it: 1, fs: 14 }) + T_(192, 164, 'C', { it: 1, fs: 14 }) + T_(100, 166, 'D', { it: 1, fs: 14 }) + T_(150, 80, 'E', { it: 1, fs: 14 }) + T_(44, 80, 'F', { it: 1, fs: 14 }) + T_(110, 102, 'G', { it: 1, fs: 14 }));
+    return V_(MC(`如右圖，\\(G\\) 為 \\(\\triangle ABC\\) 的重心，\\(\\overline{AD}\\)、\\(\\overline{BE}\\)、\\(\\overline{CF}\\) 為三條中線。若 \\(\\triangle ABC\\) 的面積為 \\(${S}\\)，則 \\(\\triangle ${nm}\\) 的面積為何？`, ans, [S / 2, S / 3, S / 4, S / 6, S / 9].filter(v => Number.isInteger(v) && v !== ans),
+      [`三條中線把 \\(\\triangle ABC\\) 分成六個面積相等的小三角形，\\(\\triangle ${nm}=${S}\\div 6=${ans}\\)。`, `重心與三頂點連線把 \\(\\triangle ABC\\) 分成三個面積相等的三角形，\\(\\triangle ${nm}=${S}\\div 3=${ans}\\)。`, `中線把三角形分成兩個面積相等的三角形，\\(\\triangle ${nm}=${S}\\div 2=${ans}\\)。`][t], { lv: 2, pos: 1, fig }), { S, nm });
+  },
+  function () { // 三心性質判斷
+    return textJUD('關於三角形的外心、內心與重心，甲、乙兩人的說法如下：',
+      ['三角形的外心到三個頂點的距離相等', '三角形的內心到三邊的距離相等', '直角三角形的外心在斜邊的中點', '鈍角三角形的外心在三角形的外部', '正三角形的外心、內心、重心是同一點', '三角形的內心一定在三角形的內部', '三角形的重心一定在三角形的內部', '三角形的重心到頂點的距離是它到對邊中點距離的 \\(2\\) 倍'],
+      [['三角形的外心到三邊的距離相等', '外心到三個頂點等距，到三邊等距的是內心'], ['三角形的內心到三個頂點的距離相等', '內心到三邊等距，到三個頂點等距的是外心'], ['鈍角三角形的內心在三角形的外部', '內心一定在三角形內部'], ['直角三角形的重心在斜邊的中點', '直角三角形的外心才在斜邊中點'],
+        ['銳角三角形的外心在三角形的外部', '銳角三角形的外心在三角形內部'], ['三角形的外心一定在三角形的內部', '直角三角形的外心在斜邊上，鈍角三角形的外心在外部'], ['三角形的重心到三個頂點的距離相等', '到三個頂點等距的是外心'], ['三角形的重心到三邊的距離相等', '到三邊等距的是內心']]);
+  },
+  function () { // 三角形相似判斷（SSS）
+    const g = () => {
+      const a = ri(2, 7), b = ri(a, 8), c = ri(b, Math.min(a + b - 1, 9)), k = pk([2, 3]), sim = coin(), s2 = [a * k, b * k, c * k]; if (c < b) return null;
+      if (!sim) { const i = ri(0, 2); s2[i] += pk([1, -1]); }
+      const x = [a, b, c].sort((p, q) => p - q), y = s2.slice().sort((p, q) => p - q), ok = x[0] * y[1] === x[1] * y[0] && x[1] * y[2] === x[2] * y[1];
+      if (y[0] + y[1] <= y[2]) return null;
+      return [`三邊長為 \\(${a}\\)、\\(${b}\\)、\\(${c}\\) 的三角形與三邊長為 \\(${shuf(s2).join('\\)、\\(')}\\) 的三角形相似`, ok, `\\(${x.join(':')}\\) ${ok ? '與' : '不等於'} \\(${y.join(':')}\\)${ok ? ' 相等' : ''}`];
+    };
+    const t1 = coin(), t2 = coin(), A = pickC(g, t1), B = pickC(g, t2); if (!A || !B || A[0] === B[0]) return null;
+    return V_(JUD('甲、乙兩人的說法如下（三邊長的單位都相同）：', `「${A[0]}」`, `「${B[0]}」`, t1, t2, `將三邊長由小到大排列比較，甲：${A[2]}；乙：${B[2]}。`), { t1, t2 });
+  },
+);
+// ════ 九下 ════
+g9b.push(
+  function () { // 轉盤機率（附圖）
+    const n = ri(3, 4), u = []; let left = 12; for (let i = 0; i < n - 1; i++) { const v = ri(2, left - 2 * (n - 1 - i)); u.push(v); left -= v; } if (left < 2) return null; u.push(left);
+    const degs = shuf(u).map(v => v * 30), names = shuf(['紅', '黃', '藍', '綠']).slice(0, n), two = n === 4 && coin(), i = ri(0, n - 1), j = (i + ri(1, n - 1)) % n, sum = degs[i] + (two ? degs[j] : 0);
+    const ask = two ? `${names[i]}色或${names[j]}色區域` : `${names[i]}色區域`, ans = M(fr(sum, 360));
+    return V_(MC(`右圖為一個轉盤，各區域的圓心角如圖所示。轉動轉盤一次，若指針停在轉盤上每一點的機會都相同（不考慮停在分界線上），則指針停在${ask}的機率為何？`, ans, [M(fr(two ? 2 : 1, n)), M(fr(360 - sum, 360)), M(fr(sum, 360 + sum)), M(fr(sum - 30, 360)), M(fr(sum + 30, 360)), M(fr(sum, 360 - sum)), M(fr(sum, 720)), M(fr(sum, 180))].filter(s => s !== ans && fval(s) > 0 && fval(s) < 1),
+      `${ask}的圓心角共 \\(${sum}^\\circ\\)，機率為 \\(\\dfrac{${sum}}{360}=${fr(sum, 360)}\\)。`, { lv: 2, ord: fval, fig: spinSVG(names, degs) }), { degs, names });
+  },
+  function () { // 比較 y=ax² 的 a 值大小（附圖）
+    const vs = shuf([-2, -1, -0.5, 0.5, 1, 2]).slice(0, 3), nm = ['a', 'b', 'c'], s = 18, px = x => 87 + x * s, py = y => 105 - y * s; let lab = '';
+    [1, -1].forEach(sgn => { const g = vs.map((v, i) => [v, i]).filter(([v]) => Math.sign(v) === sgn).sort((p, q) => Math.abs(q[0]) - Math.abs(p[0]));
+      g.forEach(([v, i], r) => { const xl = Math.sqrt(4.4 / Math.abs(v)), L = r === 0 && g.length > 1, yl = v * xl * xl; lab += T_((L ? px(-xl) - 7 : px(xl) + 7).toFixed(1), (py(yl) + (v > 0 ? 4 : 10)).toFixed(1), nm[i], { it: 1, fs: 14, a: L ? 'end' : 'start' }); }); });
+    const fig = gridGraph(vs.map(v => x => v * x * x), [-4, 4], [-5, 5], []).replace('</svg>', lab + '</svg>');
+    const ordS = p => M(p.map(i => nm[i]).join('\\gt ')), right = [0, 1, 2].sort((p, q) => vs[q] - vs[p]), ans = ordS(right);
+    const perms = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]].map(ordS).filter(s => s !== ans), byAbs = ordS([0, 1, 2].sort((p, q) => Math.abs(vs[q]) - Math.abs(vs[p])));
+    return V_(MC(`右圖為二次函數 \\(y=ax^{2}\\)、\\(y=bx^{2}\\)、\\(y=cx^{2}\\) 的圖形，則 \\(a\\)、\\(b\\)、\\(c\\) 的大小關係為何？`, ans, [byAbs, ...shuf(perms)],
+      `開口向上的係數為正、開口向下的係數為負；開口向上時，開口愈小係數愈大；開口向下時，開口愈小係數愈小。所以 ${ans}。`, { lv: 3, fig }), { vs });
+  },
+  function () { // 二次函數圖形性質判斷
+    const a = pk([-3, -2, -1, 1, 2, 3]), h = pk([-4, -3, -2, -1, 1, 2, 3, 4]), k = pk([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]);
+    const g = () => { const r = coin(), x0 = h + pk([1, -1, 2, -2]), y0 = a * (x0 - h) ** 2 + k;
+      return pk([
+        r ? [`圖形的頂點為 \\((${h},${k})\\)`, true, ''] : [`圖形的頂點為 \\((${-h},${k})\\)`, false, `頂點為 \\((${h},${k})\\)`],
+        r ? ['圖形的開口向上', a > 0, `\\(${a}${a > 0 ? '\\gt' : '\\lt'} 0\\)，開口向${a > 0 ? '上' : '下'}`] : ['圖形的開口向下', a < 0, `\\(${a}${a > 0 ? '\\gt' : '\\lt'} 0\\)，開口向${a > 0 ? '上' : '下'}`],
+        r ? [`圖形的對稱軸為 \\(x=${h}\\)`, true, ''] : [`圖形的對稱軸為 \\(x=${-h}\\)`, false, `對稱軸為 \\(x=${h}\\)`],
+        ['圖形與 \\(x\\) 軸有兩個交點', a * k < 0, `頂點在 \\(x\\) 軸${k > 0 ? '上' : '下'}方且開口向${a > 0 ? '上' : '下'}，與 \\(x\\) 軸${a * k < 0 ? '有兩個交點' : '沒有交點'}`],
+        r ? [`圖形通過點 \\((${x0},${y0})\\)`, true, ''] : [`圖形通過點 \\((${x0},${y0 + a})\\)`, false, `\\(x=${x0}\\) 時 \\(y=${y0}\\)`],
+        [`當 \\(x=${h}\\) 時，\\(y\\) 有最${r ? '大' : '小'}值 \\(${k}\\)`, r === (a < 0), `開口向${a > 0 ? '上' : '下'}，\\(x=${h}\\) 時 \\(y\\) 有最${a > 0 ? '小' : '大'}值 \\(${k}\\)`],
+      ]); };
+    const t1 = coin(), t2 = coin(), A = pickC(g, t1), B = pickC(g, t2); if (!A || !B || A[0] === B[0]) return null;
+    const why = [A, B].map((c, i) => c[1] ? '' : `${'甲乙'[i]}：${c[2]}`).filter(Boolean).join('；');
+    return V_(JUD(`關於二次函數 \\(y=${co(a)}(x${sg(-h)})^{2}${sg(k)}\\) 的圖形，甲、乙兩人的說法如下：`, `「${A[0]}」`, `「${B[0]}」`, t1, t2, why ? why + '。' : ''), { a, h, k });
+  },
+);
+
 window.EXAM_BANK = {
   '7a': { name: '七上', mc: g7a, nc: n7a },
   '7b': { name: '七下', mc: g7b, nc: n7b },
