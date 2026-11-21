@@ -62,6 +62,11 @@
       body.print-answers #booklet { display:none; }
       #answers { break-before:page; page-break-before:always; }
       body.print-answers #answers { break-before:auto; page-break-before:auto; }
+      /* 只印答案表／只印詳解 */
+      body.print-key #booklet, body.print-sol #booklet { display:none; }
+      body.print-key #answers, body.print-sol #answers { break-before:auto; page-break-before:auto; }
+      body.print-key #ans-sol, body.print-sol #ans-key { display:none; }
+      body.print-key .h-sol { display:none; }
       .nc-block { break-before:page; page-break-before:always; }
       #booklet .q { padding-bottom:30mm; }
       #booklet .nc-block .q { padding-bottom:8mm; }
@@ -106,6 +111,8 @@
     <button class="btn btn-reset" id="btn-regen">重新出題</button>
     <button class="btn btn-print" id="btn-print-q">列印題本</button>
     <button class="btn btn-print-ans" id="btn-print-a">列印答案與詳解</button>
+    <button class="btn btn-print-ans" id="btn-print-key">只印答案</button>
+    <button class="btn btn-print-ans" id="btn-print-sol">只印詳解</button>
     <button class="btn btn-word" id="btn-print-all">列印全部</button>
   </div>
 
@@ -147,16 +154,16 @@
     document.getElementById('booklet').innerHTML = h;
 
     // 答案與詳解
-    let a = `<div class="paper"><h2>答案與詳解</h2><div class="sub">範圍：${range}　｜　${today()}</div><div class="part">選擇題答案</div>`;
+    let a = `<div class="paper"><h2>答案<span class="h-sol">與詳解</span></h2><div class="sub">範圍：${range}　｜　${today()}</div><div id="ans-key"><div class="part">選擇題答案</div>`;
     for (let r = 0; r < ex.mc.length; r += 10) {
       const seg = ex.mc.slice(r, r + 10);
       a += `<table class="ans-table"><tr>${seg.map((_, k) => `<td>${r + k + 1}</td>`).join('')}${'<td></td>'.repeat(10 - seg.length)}</tr><tr>${seg.map(q => `<td><b>${L[q.ans]}</b></td>`).join('')}${'<td></td>'.repeat(10 - seg.length)}</tr></table>`;
     }
-    a += `<div class="part">選擇題詳解</div>`;
+    a += `</div><div id="ans-sol"><div class="part">選擇題詳解</div>`;
     ex.mc.forEach((q, i) => { a += `<div class="sol"><b>${i + 1}.（${L[q.ans]}）</b>〔${semNames[q.sem]}〕${q.sol}</div>`; });
     a += `<div class="part">非選擇題參考解答</div>`;
     ex.nc.forEach((q, i) => { a += `<div class="sol"><b>${i + 1}.</b>〔${semNames[q.sem]}〕` + q.sols.map((s, j) => `<div class="nc-part">(${j + 1}) ${s}</div>`).join('') + `</div>`; });
-    a += `</div>`;
+    a += `</div></div>`;
     document.getElementById('answers').innerHTML = a;
 
     renderMathInElement(document.getElementById('booklet'), KX);
@@ -172,7 +179,9 @@
     document.getElementById('tools').scrollIntoView({ behavior: 'smooth' });
   }
   const printAs = cls => { document.body.classList.add(cls); window.print(); };
-  window.addEventListener('afterprint', () => document.body.classList.remove('print-booklet', 'print-answers'));
+  window.addEventListener('afterprint', () => document.body.classList.remove('print-booklet', 'print-answers', 'print-key', 'print-sol'));
+  document.getElementById('btn-print-key').onclick = () => printAs('print-key');
+  document.getElementById('btn-print-sol').onclick = () => printAs('print-sol');
   document.getElementById('btn-gen').onclick = gen;
   document.getElementById('btn-regen').onclick = () => { render(); };
   document.getElementById('btn-print-q').onclick = () => printAs('print-booklet');
