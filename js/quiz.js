@@ -262,10 +262,15 @@ const LEVEL_NAMES = {
 function getParams() {
   const params = new URLSearchParams(window.location.search);
   const topicsStr = params.get('topics') || 'frac-add';
-  const topics = topicsStr.split(',').filter(t => ALL_GENERATORS[t]);
-  const level = params.get('level') || 'basic';
-  const count = parseInt(params.get('count') || '20');
-  const from  = params.get('from') || '';
+  // 只接受白名單內的值，避免網址參數被塞進 HTML（XSS）
+  const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+  const topics = topicsStr.split(',').filter(t => own(ALL_GENERATORS, t));
+  const lv = params.get('level') || 'basic';
+  const level = own(LEVEL_NAMES, lv) ? lv : 'basic';
+  const n = parseInt(params.get('count') || '20', 10);
+  const count = Number.isFinite(n) ? Math.min(Math.max(n, 1), 100) : 20;
+  const fr = params.get('from') || '';
+  const from  = fr === 'junior' || fr === 'senior' ? fr : '';
   return { topics, level, count, from };
 }
 
