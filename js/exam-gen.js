@@ -23,6 +23,8 @@ const lin = (c, k) => `${c === 1 ? '' : c === -1 ? '-' : c}x${sg(k)}`;
 const piL = (n, d) => { const f = fr(n, d); return f === '1' ? '\\pi' : f === '-1' ? '-\\pi' : f + '\\pi'; };
 
 // 選擇題：數值選項自動補足並由小到大排列；文字選項打亂（或依 o.ord 排序）
+let _want = null; // 指定的正確答案位置（0～3），null 表示不指定
+window.EXAM_WANT = w => { _want = w; }; // 供檢查程式模擬組題本的流程
 function MC(stem, ans, wrong, sol, o) {
   o = o || {};
   const isNum = typeof ans === 'number';
@@ -41,11 +43,13 @@ function MC(stem, ans, wrong, sol, o) {
   if (rk) {
     // 有大小順序的選項：先隨機決定正確答案的位置，再從兩側挑誤答（題目給的誤答優先）
     const lo = cand.filter(v => rk(v) < rk(ans)), hi = cand.filter(v => rk(v) > rk(ans));
-    const ts = shuf([0, 1, 2, 3]).filter(t => lo.length >= t && hi.length >= 3 - t);
+    // 組題本時先指定答案位置（_want）；這組數字放不進該位置就回傳 null 重新出題，答案位置才會平均（o.fixed：選項順序固定的題型不受此限）
+    const ok = t => lo.length >= t && hi.length >= 3 - t;
+    const ts = o.fixed || _want === null ? shuf([0, 1, 2, 3]).filter(ok) : [_want].filter(ok);
     if (!ts.length) return null;
     const t = ts[0];
     opts = [...lo.slice(0, t), ans, ...hi.slice(0, 3 - t)].sort((a, b) => rk(a) - rk(b));
-  } else opts = shuf([ans, ...cand.slice(0, 3)]);
+  } else { opts = shuf(cand.slice(0, 3)); opts.splice(_want === null ? ri(0, 3) : _want, 0, ans); }
   const idx = opts.findIndex(v => key(v) === key(ans));
   const show = v => isNum ? M(o.fmt ? o.fmt(v) : num(v)) + (o.u ? ' ' + o.u : '') : v;
   return { kind: 'mc', stem, opts: opts.map(show), ans: idx, sol, fig: o.fig || '', lv: o.lv || 2 };
@@ -1370,7 +1374,7 @@ g9a.push(
 const JO = ['兩人皆正確', '甲正確，乙錯誤', '甲錯誤，乙正確', '兩人皆錯誤'];
 function JUD(head, s1, s2, t1, t2, sol, o) {
   const k = t1 ? (t2 ? 0 : 1) : (t2 ? 2 : 3);
-  return MC(`${head}<br>甲：${s1}<br>乙：${s2}<br>下列判斷何者正確？`, JO[k], JO.filter((_, i) => i !== k), `甲的說法${t1 ? '正確' : '錯誤'}，乙的說法${t2 ? '正確' : '錯誤'}。${sol || ''}`, Object.assign({ lv: 2 }, o || {}, { ord: s => JO.indexOf(s) }));
+  return MC(`${head}<br>甲：${s1}<br>乙：${s2}<br>下列判斷何者正確？`, JO[k], JO.filter((_, i) => i !== k), `甲的說法${t1 ? '正確' : '錯誤'}，乙的說法${t2 ? '正確' : '錯誤'}。${sol || ''}`, Object.assign({ lv: 2 }, o || {}, { ord: s => JO.indexOf(s), fixed: 1 }));
 }
 const coin = () => Math.random() < 0.5;
 // 反覆產生敘述，直到真假符合 want（先決定真假，答案位置才會平均）
@@ -1678,7 +1682,14 @@ window.EXAM_BANK = {
 // 產生一份題本：25 題選擇（依難度排列）、2 題非選
 window.buildExam = function (sems, nMC, nNC) {
   nMC = nMC || 25; nNC = nNC || 2;
-  const gen = (g, seen) => { for (let t = 0; t < 60; t++) { let q = null; try { q = g(); } catch (e) { q = null; } if (q && !seen.has(q.stem)) { seen.add(q.stem); return q; } } return null; };
+  // 每題先平均抽出答案位置，用同一個位置反覆出題；真的放不進去（如選項固定為 0、1、2、3 個）才改為不指定
+  const gen = (g, seen) => {
+    for (const w of [ri(0, 3), null]) {
+      _want = w;
+      for (let t = 0; t < 60; t++) { let q = null; try { q = g(); } catch (e) { q = null; } if (q && !seen.has(q.stem)) { seen.add(q.stem); _want = null; return q; } }
+    }
+    _want = null; return null;
+  };
   const pool = []; sems.forEach(s => EXAM_BANK[s].mc.forEach(g => pool.push({ g, s })));
   const mc = [], seen = new Set(); let order = shuf(pool), i = 0, guard = 0;
   while (mc.length < nMC && guard++ < 500) {
