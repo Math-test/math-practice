@@ -10345,3 +10345,160 @@ function _b3bLogFuncExt(level){
     SR_GENERATORS[key]=(lv,n)=>{if(F()&&Math.random()<0.35){for(let i=0;i<40;i++){let q=null;try{q=fig(lv);}catch(e){q=null;}if(q)return q;}}return base(lv,n);};});
   window._SR_FIG=G; // 檢查程式用
 })();
+
+// ══ 隨機數字題：原本題庫題數較少的單元（分母有理化、分式運算、雙重根號）══
+(function(){
+  const R=srRandInt,P=a=>a[R(0,a.length-1)];
+  const SF=[2,3,5,6,7,10,11,13,14,15];                       // 不含平方因數的數
+  const isSq=n=>Number.isInteger(Math.sqrt(n));
+  const sgn=v=>v>0?1:-1;
+  const rt=m=>`\\sqrt{${m}}`;
+  const cS=(c,s)=>c===1?s:c===-1?'-'+s:c+s;                    // 係數×符號
+  // 答案：r＋c√m（c＝0 時為整數）
+  const RM=(r,c,m)=>c===0?{answer:r,type:'number'}:{type:'radical-mix',rational:r,radCoeff:c,radM:m};
+  // √n 化簡：{c,r}
+  const simp=n=>{let c=1,r=n;for(let k=Math.floor(Math.sqrt(n));k>=2;k--)if(n%(k*k)===0){c=k;r=n/(k*k);break;}return {c,r};};
+  const rS=n=>{const {c,r}=simp(n);return r===1?String(c):cS(c,rt(r));};  // √n 的最簡寫法
+  const lx=n=>n>0?`x+${n}`:`x-${-n}`;                         // x±n
+  const fmtH=s=>s.replace(/\d+/g,'N');                          // 格式提示
+  const Q=(q,o)=>Object.assign({question:q},o);
+
+  // ── 分母有理化 ──
+  // 預先列出 (√m±k)/(√m∓k) 化簡後係數皆為整數的組合
+  const RAT_SELF=[];
+  for(const m of SF)for(let k=1;k<=4;k++){const D=m-k*k;if(!D)continue;
+    if((m+k*k)%D===0&&(2*k)%D===0)RAT_SELF.push({m,k,D});}
+  const RAT_PQ=[];
+  for(const p of SF)for(const q of SF){if(q>=p)continue;const E=p-q,{c,r}=simp(p*q);
+    if((p+q)%E===0&&(2*c)%E===0&&r>1)RAT_PQ.push({p,q,E,c,r});}
+  function ratBasic(){
+    const t=R(0,3);
+    if(t===0){ // c／(a＋b√m)
+      const m=P(SF),k=R(1,4),a=P([k,-k]),b=P([1,-1]);if(a<0&&b<0)return null;const E=a*a-m;if(!E||Math.abs(E)>6)return null;
+      const s=R(1,3),c=Math.abs(E)*s,den=b>0?(a>0?(R(0,1)?`${rt(m)}+${a}`:`${a}+${rt(m)}`):`${rt(m)}-${-a}`):`${a}-${rt(m)}`;
+      return Q(`化簡 \\(\\dfrac{${c}}{${den}}\\) \\(=\\)`,RM(s*sgn(E)*a,-s*sgn(E)*b,m));}
+    if(t===1){ // c／(√p±√q)
+      const p=P(SF),q=P(SF);if(q>=p||p-q>4)return null;const E=p-q,s=R(1,3),sg=P([1,-1]);
+      return Q(`化簡 \\(\\dfrac{${E*s}}{${rt(p)}${sg>0?'+':'-'}${rt(q)}}\\) \\(=\\)`,{type:'radical2',coeffA:s,radA:p,coeffB:-sg*s,radB:q});}
+    if(t===2){ // (√m＋k)／(√m－k) 或 (√m－k)／(√m＋k)
+      const {m,k,D}=P(RAT_SELF),sg=P([1,-1]),up=`${rt(m)}${sg>0?'+':'-'}${k}`,dn=`${rt(m)}${sg>0?'-':'+'}${k}`;
+      return Q(`化簡 \\(\\dfrac{${up}}{${dn}}\\) \\(=\\)`,RM((m+k*k)/D,sg*2*k/D,m));}
+    const {p,q,E,c,r}=P(RAT_PQ),sg=P([1,-1]);
+    return Q(`化簡 \\(\\dfrac{${rt(p)}${sg>0?'+':'-'}${rt(q)}}{${rt(p)}${sg>0?'-':'+'}${rt(q)}}\\) \\(=\\)`,RM((p+q)/E,sg*2*c/E,r));
+  }
+  function ratMedium(){
+    const t=R(0,3);
+    if(t===0){ // 兩個互為倒數的分式相加或相減
+      const plus=R(0,1);
+      if(R(0,1)){const {m,k,D}=P(RAT_SELF);const A=`${rt(m)}+${k}`,B=`${rt(m)}-${k}`;
+        return Q(`化簡 \\(\\dfrac{${A}}{${B}}${plus?'+':'-'}\\dfrac{${B}}{${A}}\\) \\(=\\)`,plus?RM(2*(m+k*k)/D,0,m):RM(0,4*k/D,m));}
+      const {p,q,E,c,r}=P(RAT_PQ);const A=`${rt(p)}+${rt(q)}`,B=`${rt(p)}-${rt(q)}`;
+      if(!plus&&(4*c)%E)return null;
+      return Q(`化簡 \\(\\dfrac{${A}}{${B}}${plus?'+':'-'}\\dfrac{${B}}{${A}}\\) \\(=\\)`,plus?RM(2*(p+q)/E,0,r):RM(0,4*c/E,r));}
+    if(t===1){ // a＝k＋√m、b＝k－√m
+      const m=P(SF),k=R(1,5),ab=k*k-m;if(!ab)return null;
+      const pre=`設 \\(a=${k}+${rt(m)}\\)，\\(b=${k}-${rt(m)}\\)，求 `,w=R(0,4);
+      if(w===0)return Q(pre+`\\(ab\\) 的值`,RM(ab,0,m));
+      if(w===1)return Q(pre+`\\(a^2+b^2\\) 的值`,RM(2*(k*k+m),0,m));
+      if(w===2)return Q(pre+`\\(a^2-b^2\\) 的值`,RM(0,4*k,m));
+      if(w===3)return Q(pre+`\\(a^2b+ab^2\\) 的值`,RM(2*k*ab,0,m));
+      if((2*k)%ab)return null;return Q(pre+`\\(\\dfrac{1}{a}+\\dfrac{1}{b}\\) 的值`,RM(2*k/ab,0,m));}
+    if(t===2){ // 連續相消
+      const p=R(1,3),q=R(p+1,p+6),a=p*p,b=q*q;if(b-a<3)return null;
+      return Q(`求 \\(\\dfrac{1}{${rt(a)}+${rt(a+1)}}+\\dfrac{1}{${rt(a+1)}+${rt(a+2)}}+\\cdots+\\dfrac{1}{${rt(b-1)}+${rt(b)}}\\) 的值`,RM(q-p,0,2));}
+    const p=P(SF),q=P(SF);if(q>=p||p-q>4)return null;const E=p-q,s=R(1,3),c=E*s,minus=R(0,1);
+    return Q(`化簡 \\(\\dfrac{${c}}{${rt(p)}-${rt(q)}}${minus?'-':'+'}\\dfrac{${c}}{${rt(p)}+${rt(q)}}\\) \\(=\\)`,minus?RM(0,2*s,q):RM(0,2*s,p));
+  }
+  function ratHard(){
+    const t=R(0,4);
+    if(t===0){const k=R(3,6),w=R(0,2);
+      if(w===0)return Q(`設正實數 \\(x\\) 滿足 \\(\\sqrt{x}+\\dfrac{1}{\\sqrt{x}}=${k}\\)，求 \\(x+\\dfrac{1}{x}\\) 的值`,RM(k*k-2,0,2));
+      if(w===1)return Q(`設正實數 \\(x\\) 滿足 \\(\\sqrt{x}+\\dfrac{1}{\\sqrt{x}}=${k}\\)，求 \\(x^2+\\dfrac{1}{x^2}\\) 的值`,RM((k*k-2)**2-2,0,2));
+      return Q(`設正實數 \\(x\\) 滿足 \\(\\sqrt{x}-\\dfrac{1}{\\sqrt{x}}=${k-2}\\)，求 \\(x+\\dfrac{1}{x}\\) 的值`,RM((k-2)**2+2,0,2));}
+    if(t===1){const p=P(SF),q=P(SF);if(q>=p)return null;const xy=p-q,s2=2*(p+q),w=R(0,3);
+      const pre=`設 \\(x=${rt(p)}+${rt(q)}\\)，\\(y=${rt(p)}-${rt(q)}\\)，求 `;
+      if(w===0)return Q(pre+`\\(x^3y+xy^3\\) 的值`,RM(xy*s2,0,2));
+      if(w===1)return Q(pre+`\\(x^2+xy+y^2\\) 的值`,RM(s2+xy,0,2));
+      if(w===2){if(s2%xy)return null;return Q(pre+`\\(\\dfrac{x}{y}+\\dfrac{y}{x}\\) 的值`,RM(s2/xy,0,2));}
+      return Q(pre+`\\(x^2y+xy^2\\) 的值`,RM(0,2*xy,p));}
+    if(t===2){const {p,q,E,c,r}=P(RAT_PQ);if((4*c)%E)return null;
+      return Q(`化簡 \\(\\dfrac{${rt(p)}+${rt(q)}}{${rt(p)}-${rt(q)}}-\\dfrac{${rt(p)}-${rt(q)}}{${rt(p)}+${rt(q)}}\\) \\(=\\)`,RM(0,4*c/E,r));}
+    if(t===3){ // a／(√p－√q)＋b／(√p＋√q)＝n√p 或 n√q
+      const p=P(SF),q=P(SF);if(q>=p||p-q>3)return null;const E=p-q,n=R(1,4),onP=R(0,1);
+      return onP?Q(`已知 \\(\\dfrac{a}{${rt(p)}-${rt(q)}}+\\dfrac{b}{${rt(p)}+${rt(q)}}=${cS(n,rt(p))}\\)，其中 \\(a,b\\) 為有理數，求 \\(a+b\\)`,RM(n*E,0,2))
+        :Q(`已知 \\(\\dfrac{a}{${rt(p)}-${rt(q)}}+\\dfrac{b}{${rt(p)}+${rt(q)}}=${cS(n,rt(q))}\\)，其中 \\(a,b\\) 為有理數，求 \\(a-b\\)`,RM(n*E,0,2));}
+    const m=P(SF),k=R(1,4),c=R(1,9);
+    return Q(`設 \\(x=${k}+${rt(m)}\\)，求 \\(x^2-${2*k}x+${c}\\) 的值`,RM(m-k*k+c,0,2));
+  }
+
+  // ── 分式運算 ──
+  const nz=()=>P([-5,-4,-3,-2,-1,1,2,3,4,5]);
+  const qd=(s,p)=>{let o='x^2';if(s)o+=(s>0?'+':'-')+(Math.abs(s)===1?'':Math.abs(s))+'x';if(p)o+=(p>0?'+':'-')+Math.abs(p);return o;}; // x²+sx+p
+  const TX=(q,a)=>Q(`${q}（格式：${fmtH(a)}）`,{answer:a,type:'text'});
+  function fracBasic(){
+    const t=R(0,4);
+    if(t===0){const a=R(1,9),s=P([1,-1]);return TX(`化簡 \\(\\dfrac{x^2-${a*a}}{${lx(s*a)}}\\)`,lx(-s*a));}
+    if(t===1){const p=nz(),q=nz();if(p===q||p===-q)return null;return TX(`化簡 \\(\\dfrac{${qd(p+q,p*q)}}{${lx(p)}}\\)`,lx(q));}
+    if(t===2){const p=nz(),q=nz();if(p===q||p===-q)return null;return TX(`化簡 \\(\\dfrac{${qd(p+q,p*q)}}{x^2-${p*p}}\\)`,`(${lx(q)})/(${lx(-p)})`);}
+    if(t===3){const a=R(1,6),k=R(2,5),s=P([1,-1]);return TX(`化簡 \\(\\dfrac{${k}x^2-${k*a*a}}{${k}x${s>0?'+':'-'}${k*a}}\\)`,lx(-s*a));}
+    const a=R(1,9),s=P([1,-1]);return TX(`計算 \\(\\dfrac{x^2}{${lx(-s*a)}}-\\dfrac{${a*a}}{${lx(-s*a)}}\\) 的化簡結果`,lx(s*a));
+  }
+  function fracMedium(){
+    const t=R(0,4);
+    if(t===0){const a=R(1,9),s=P([1,-1]);return TX(`化簡 \\(\\dfrac{x^2-${a*a}}{${qd(2*s*a,a*a)}}\\)`,`(${lx(-s*a)})/(${lx(s*a)})`);}
+    if(t===1){const p=nz(),q=nz(),r=nz();if(p===q||r===p||r===q)return null;return TX(`化簡 \\(\\dfrac{${qd(p+q,p*q)}}{${lx(r)}}\\div\\dfrac{${lx(p)}}{${lx(r)}}\\)`,lx(q));}
+    if(t===2){const a=nz(),b=nz();if(a===b)return null;return Q(`計算 \\(\\left(\\dfrac{1}{${lx(a)}}-\\dfrac{1}{${lx(b)}}\\right)\\times(${lx(a)})(${lx(b)})\\)（化簡結果）`,{answer:b-a,type:'number'});}
+    if(t===3){const a=R(1,9);return Q(`計算 \\(\\left(\\dfrac{x}{x-${a}}-1\\right)\\div\\dfrac{1}{x-${a}}\\)（化簡結果）`,{answer:a,type:'number'});}
+    const a=R(1,9),k=R(2,6);return Q(`計算 \\(\\dfrac{${k}x^2-${k*a*a}}{x+${a}}\\div(x-${a})\\)（化簡結果）`,{answer:k,type:'number'});
+  }
+  function fracHard(){
+    const t=R(0,4);
+    if(t===0){const p=nz(),q=nz(),r=nz();if(p===q||p===r||q===r)return null;return TX(`化簡 \\(\\dfrac{${qd(p+q,p*q)}}{${qd(p+r,p*r)}}\\)`,`(${lx(q)})/(${lx(r)})`);}
+    if(t===1){const a=R(1,9),k=R(2,5);return Q(`計算 \\(\\left(\\dfrac{1}{x-${a}}-\\dfrac{${2*a}}{x^2-${a*a}}\\right)\\times ${k}(x+${a})\\)（化簡結果）`,{answer:k,type:'number'});}
+    if(t===2){const a=R(1,9);return Q(`計算 \\(\\left(\\dfrac{x}{x-${a}}-\\dfrac{x}{x+${a}}\\right)\\div\\dfrac{x}{x^2-${a*a}}\\)（化簡結果）`,{answer:2*a,type:'number'});}
+    if(t===3){const a=R(1,9);return TX(`化簡繁分式 \\(\\dfrac{1+\\dfrac{${a}}{x}}{1-\\dfrac{${a*a}}{x^2}}\\)`,`x/(x-${a})`);}
+    const p=nz(),q=nz();if(p===q||p===-q)return null;return TX(`化簡 \\(\\dfrac{${qd(p+q,p*q)}}{x^2-${q*q}}\\times(${lx(-q)})\\)`,lx(p));
+  }
+
+  // ── 雙重根號（困難）── 以 √(K＋2k√m)＝k＋√m 為基礎
+  const inner=(k,m,s)=>`\\sqrt{${k*k+m}${s>0?'+':'-'}${rS(4*k*k*m)}}`;   // √(k²+m ± 2k√m)
+  function dblHard(){
+    const t=R(0,3);
+    if(t===0){ // k＋√m 的整數部分 a、小數部分 b
+      const m=P(SF),k=R(1,4),f=Math.floor(Math.sqrt(m)),a=k+f,w=R(0,2),pre=`設 \\(${inner(k,m,1)}\\) 的整數部分為 \\(a\\)，小數部分為 \\(b\\)，求 `;
+      if(w===0)return Q(pre+`\\(b^2+${2*f}b\\) 的值`,RM(m-f*f,0,2));
+      if(w===1){if(m-f*f!==1)return null;return Q(pre+`\\(\\dfrac{1}{b}\\) 的值`,RM(f,1,m));}
+      return Q(pre+`\\((b+${f})^2+a\\) 的值`,RM(m+a,0,2));}
+    if(t===1){ // x＋√(k²+m−2k√m)＝c＋y√(k²+m+2k√m)，但 k＜√m 時 √(…−…)＝√m−k
+      // k＜√m 時 √(k²+m−2k√m)＝√m−k：x＋y(√m−k)＝c＋y(k＋√m)，比較有理部分得 x−c＝2yk
+      const m=P(SF),k=R(1,3);if(k*k>=m)return null;const y=R(1,4)*P([1,-1]),ys=y>0?'+':'-',ya=Math.abs(y);
+      return Q(`已知有理數 \\(x\\)、\\(c\\) 滿足 \\(x${ys}${cS(ya,inner(k,m,-1))}=c${ys}${cS(ya,inner(k,m,1))}\\)，求 \\(x-c\\) 的值`,RM(2*y*k,0,2));}
+    if(t===2){ // 小於 √(n+√s)−√(n−√s)（或相加）的正整數個數
+      const n=R(4,12),tt=R(1,n-1),s=n*n-tt*tt;if(isSq(s))return null;const plus=R(0,1),v2=plus?2*n+2*tt:2*n-2*tt;
+      const cnt=isSq(v2)?Math.sqrt(v2)-1:Math.floor(Math.sqrt(v2));if(cnt<1)return null;
+      return Q(`小於 \\(\\sqrt{${n}+${rS(s)}}${plus?'+':'-'}\\sqrt{${n}-${rS(s)}}\\) 的正整數共有幾個？`,RM(cnt,0,2));}
+    // a＝(√p＋√q)／(√p－√q)，b＝1／a
+    const p=R(2,12),q=R(1,p-1),S=2*(p+q)/(p-q);if(!Number.isInteger(S)||S>20)return null;const sq=v=>isSq(v)?String(Math.sqrt(v)):rt(v);
+    const w=R(0,1),A=`${sq(p)}+${sq(q)}`,B=`${sq(p)}-${sq(q)}`;
+    return Q(`設 \\(a=\\dfrac{${A}}{${B}}\\)，\\(b=\\dfrac{${B}}{${A}}\\)，求 \\(${w?'a^3+b^3':'a^2+b^2'}\\) 的值`,RM(w?S**3-3*S:S*S-2,0,2));
+  }
+
+  const mix=(key,gens,pr)=>{const base=SR_GENERATORS[key];if(!base)return;
+    SR_GENERATORS[key]=(lv,n)=>{const g=gens[lv];if(g&&Math.random()<pr){for(let i=0;i<60;i++){const q=g();if(q)return q;}}return base(lv,n);};};
+  mix('b1-rationalize',{basic:ratBasic,medium:ratMedium,hard:ratHard},0.7);
+  mix('b1-frac-expr',{basic:fracBasic,medium:fracMedium,hard:fracHard},0.7);
+  mix('b1-dbl-rad',{hard:dblHard},0.6);
+  // ── 三角函數的疊合（困難）：a sin x＋b cos x 的最大值、最小值 ──
+  function trigSupHard(){
+    const [u,v]=P([[3,4],[4,3],[5,12],[12,5],[6,8],[8,6],[8,15],[15,8],[9,12],[12,9]]),a=u*P([1,-1]),b=v*P([1,-1]),r=Math.hypot(a,b),c=R(-6,6);
+    const ex=`${cS(a,'\\sin x')}${b>0?'+':'-'}${cS(Math.abs(b),'\\cos x')}`,cc=c?(c>0?'+':'-')+Math.abs(c):'',t=R(0,4);
+    if(t===0)return Q(`設 \\(x\\) 為實數，函數 \\(y=${ex}${cc}\\) 的最大值為 \\(M\\)、最小值為 \\(m\\)，則 \\(Mm=\\)`,RM(c*c-r*r,0,2));
+    if(t===1)return Q(`設 \\(x\\) 為實數，函數 \\(y=${ex}${cc}\\) 的最大值為 \\(M\\)、最小值為 \\(m\\)，則 \\(M-2m=\\)`,RM(3*r-c,0,2));
+    if(t===2)return Q(`設 \\(x\\) 為實數，求函數 \\(y=${ex}${cc}\\) 的最大值`,RM(r+c,0,2));
+    if(t===3)return Q(`若方程式 \\(${ex}=k\\) 有實數解，則整數 \\(k\\) 共有幾個？`,RM(2*r+1,0,2));
+    const k=R(1,4);return Q(`若方程式 \\(${ex}=${cS(k,'m')}\\) 有實數解，則整數 \\(m\\) 共有幾個？`,RM(2*Math.floor(r/k)+1,0,2));
+  }
+  mix('b3a-trig-sup',{hard:trigSupHard},0.5);
+  mix('b3b-trig-sup',{hard:trigSupHard},0.5);
+  window._SR_RAND={ratBasic,ratMedium,ratHard,fracBasic,fracMedium,fracHard,dblHard,trigSupHard}; // 檢查程式用
+})();

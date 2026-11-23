@@ -10694,7 +10694,37 @@ function _8bKite(level){
 // ═══════════════════════════════════════════════════════════════════
 let _rcBQ=[],_rcMQ=[],_rcHQ=[];
 function gen9aRatioChain(level){
+  // 基礎、中等約一半改出隨機數字題（原題庫題數較少，練習題數多時會重複）
+  if((level==='medium'&&Math.random()<0.6)||(level==='basic'&&Math.random()<0.4)){
+    for(let i=0;i<60;i++){const q=_9aRatioRand(level);if(q)return q;}
+  }
   return _9aRatioChain(level);
+}
+function _9aRatioRand(level){
+  const g3=(a,b,c)=>gcd(gcd(a,b),c),red=(a,b,c)=>{const g=g3(a,b,c);return [a/g,b/g,c/g];};
+  const Q=(q,ans,type,pfx)=>({question:q,answer:ans,type,answerPrefix:pfx});
+  const t=level==='basic'?randInt(0,1):randInt(0,4);
+  if(t===0){ // x:y＝a:b，y:z＝c:d → x:y:z
+    const a=randInt(1,9),b=randInt(1,9),c=randInt(1,9),d=randInt(1,9);if(gcd(a,b)>1||gcd(c,d)>1||a===b||c===d)return null;
+    const [p,q,r]=red(a*c,b*c,b*d);if(Math.max(p,q,r)>60)return null;
+    const v=pick([['x','y','z'],['a','b','c']]);
+    return Q(`已知 \\(${v[0]}:${v[1]}=${a}:${b}\\)，\\(${v[1]}:${v[2]}=${c}:${d}\\)，則 \\(${v.join(':')}=\\)`,`${p}:${q}:${r}`,'text',`\\(${v.join(':')}\\)`);}
+  if(t===1){ // 三角形內角：∠A:∠B＝a:b，∠B:∠C＝c:d
+    const a=randInt(1,6),b=randInt(1,6),c=randInt(1,6),d=randInt(1,6);if(gcd(a,b)>1||gcd(c,d)>1)return null;
+    const [p,q,r]=red(a*c,b*c,b*d),S=p+q+r;if(180%S)return null;const k=180/S,ask=randInt(0,2);
+    return Q(`\\(\\triangle ABC\\) 中，\\(\\angle A:\\angle B=${a}:${b}\\)，\\(\\angle B:\\angle C=${c}:${d}\\)，則 \\(\\angle ${'ABC'[ask]}\\) 為多少度？`,[p,q,r][ask]*k,'number',`\\(\\angle ${'ABC'[ask]}\\)（度）`);}
+  if(t===2){ // Ax＝By＝Cz → x:y:z
+    const A=randInt(2,12),B=randInt(2,12),C=randInt(2,12);if(A===B||B===C||A===C)return null;
+    const [p,q,r]=red(B*C,A*C,A*B);if(Math.max(p,q,r)>40)return null;
+    return Q(`已知 \\(${A}x=${B}y=${C}z\\neq 0\\)，則 \\(x:y:z=\\)`,`${p}:${q}:${r}`,'text','\\(x:y:z\\)');}
+  if(t===3){ // x／a＝y／b＝z／c，且 αx＋βy－γz＝N
+    const a=randInt(2,9),b=randInt(2,9),c=randInt(2,9),k=randInt(2,6),al=randInt(1,4),be=randInt(1,4),ga=randInt(1,3);
+    const N=k*(al*a+be*b-ga*c);if(N<=0)return null;const ask=randInt(0,2);
+    const co=v=>v===1?'':v;
+    return Q(`若 \\(\\dfrac{x}{${a}}=\\dfrac{y}{${b}}=\\dfrac{z}{${c}}\\)，且 \\(${co(al)}x+${co(be)}y-${co(ga)}z=${N}\\)，則 \\(${'xyz'[ask]}=\\)`,[a,b,c][ask]*k,'number',`\\(${'xyz'[ask]}\\)`);}
+  // 十元、五元、一元硬幣的個數比與總金額
+  const a=randInt(1,5),b=randInt(1,5),c=randInt(1,6);if(g3(a,b,c)>1)return null;const unit=10*a+5*b+c,k=randInt(2,12),ask=randInt(0,2);
+  return Q(`存錢筒中有十元硬幣 \\(x\\) 枚、五元硬幣 \\(y\\) 枚、一元硬幣 \\(z\\) 枚，且 \\(x:y:z=${a}:${b}:${c}\\)。若總金額為 \\(${unit*k}\\) 元，則${['十','五','一'][ask]}元硬幣有幾枚？`,[a,b,c][ask]*k,'number',`${['十','五','一'][ask]}元硬幣`);
 }
 function _9aRatioChain(level){
   if(level==='basic'){
