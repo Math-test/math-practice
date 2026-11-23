@@ -113,6 +113,7 @@ const TOPIC_NAMES = {
   '9a-ratio-chain':    '九上·連比',
   '9a-prop-seg':       '九上·比例線段',
   '9a-similar-poly':   '九上·相似多邊形',
+  '9a-similar-app':    '九上·相似形應用',
   '9a-trig':           '九上·三角比',
   '9a-circle-line':    '九上·點線圓',
   '9a-circle-angle':   '九上·圓心角與圓周角',

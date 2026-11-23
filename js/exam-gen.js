@@ -734,7 +734,7 @@ g9a.push(
   },
   function () { // 相似：母子相似（直角三角形斜邊上的高）
     const p = ri(1, 6), q = ri(p + 1, 9), x = p * q, h = Math.sqrt(x); if (!Number.isInteger(h)) return null;
-    return V_(MC(`直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，\\(\\overline{CD}\\) 為斜邊 \\(\\overline{AB}\\) 上的高。若 \\(\\overline{AD}=${p}\\)、\\(\\overline{DB}=${q}\\)，則 \\(\\overline{CD}\\) 的長度為何？`, h, [(p + q) / 2, q - p, h + 1].filter(v => v > 0), `\\(\\triangle ACD\\sim\\triangle CBD\\)，\\(\\overline{CD}^{2}=\\overline{AD}\\times\\overline{DB}=${x}\\)，\\(\\overline{CD}=${h}\\)。`, { lv: 3, pos: 1 }), { p, q });
+    return V_(MC(`如右圖，直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，\\(\\overline{CD}\\) 為斜邊 \\(\\overline{AB}\\) 上的高。若 \\(\\overline{AD}=${p}\\)、\\(\\overline{DB}=${q}\\)，則 \\(\\overline{CD}\\) 的長度為何？`, h, [(p + q) / 2, q - p, h + 1].filter(v => v > 0), `\\(\\triangle ACD\\sim\\triangle CBD\\)，\\(\\overline{CD}^{2}=\\overline{AD}\\times\\overline{DB}=${x}\\)，\\(\\overline{CD}=${h}\\)。`, { lv: 3, pos: 1, fig: GF().motherChild(p, q, { AD: p, DB: q }) }), { p, q });
   },
 );
 n9a.push(function () { // 圓周角與圓心角
@@ -1116,7 +1116,7 @@ g8b.push(
   },
   function () { // 三角形兩邊中點連線
     const a = ri(4, 20) * 2, t = ri(0, 1);
-    if (t === 0) return V_(MC(`\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 的中點。若 \\(\\overline{BC}=${a}\\)，則 \\(\\overline{DE}\\) 的長度為何？`, a / 2, [a, a / 4, 2 * a].filter(Number.isInteger), `三角形兩邊中點的連線段平行第三邊，且長度為第三邊的一半：\\(\\overline{DE}=${a / 2}\\)。`, { lv: 1, pos: 1 }), { a, t });
+    if (t === 0) return V_(MC(`如右圖，\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 的中點。若 \\(\\overline{BC}=${a}\\)，則 \\(\\overline{DE}\\) 的長度為何？`, a / 2, [a, a / 4, 2 * a].filter(Number.isInteger), `三角形兩邊中點的連線段平行第三邊，且長度為第三邊的一半：\\(\\overline{DE}=${a / 2}\\)。`, { lv: 1, pos: 1, fig: GF().triDE(0.5, true, { BC: a }) }), { a, t });
     const p = ri(4, 15), q = ri(4, 15), r = ri(Math.abs(p - q) + 1, p + q - 1);
     return V_(MC(`\\(\\triangle ABC\\) 的三邊長分別為 \\(${2 * p}\\)、\\(${2 * q}\\)、\\(${2 * r}\\)，連接三邊中點所成的三角形周長為何？`, p + q + r, [2 * (p + q + r), (p + q + r) / 2, p + q].filter(v => Number.isInteger(v) && v !== p + q + r), `中點連線段為第三邊的一半，周長 \\(=\\dfrac{${2 * p}+${2 * q}+${2 * r}}{2}=${p + q + r}\\)。`, { lv: 2, pos: 1 }), { s: 2 * (p + q + r), t });
   },
@@ -1781,8 +1781,8 @@ g9a.push(
   function () { // 素養：路燈下的影子（相似）
     const [H, h] = pk([[4.5, 1.5], [6, 1.5], [4, 1.6], [4.8, 1.6], [5.4, 1.8], [3.6, 1.8], [6.4, 1.6]]), d = ri(2, 9), s = h * d / (H - h); if (Math.abs(s * 10 - Math.round(s * 10)) > 1e-9) return null;
     const ans = +s.toFixed(2);
-    return V_(MC(`路燈高 \\(${H}\\) 公尺，身高 \\(${h}\\) 公尺的小芳站在距離路燈底部 \\(${d}\\) 公尺的地方，則她在地面上的影子長多少公尺？`, ans, [+(h * d / H).toFixed(2), +(H * d / h / 10).toFixed(2), +(d * (H - h) / h).toFixed(2), +(ans + 1).toFixed(2)].filter(v => v > 0 && v !== ans),
-      `設影長 \\(x\\) 公尺，由相似三角形得 \\(\\dfrac{${h}}{${H}}=\\dfrac{x}{${d}+x}\\)，\\(${H}x=${h}(${d}+x)\\)，\\(x=${num(ans)}\\)。`, { lv: 3, pos: 1, step: 0.5 }), { H, h, d });
+    return V_(MC(`如右圖，路燈高 \\(${H}\\) 公尺，身高 \\(${h}\\) 公尺的小芳站在距離路燈底部 \\(${d}\\) 公尺的地方，則她在地面上的影子長多少公尺？`, ans, [+(h * d / H).toFixed(2), +(H * d / h / 10).toFixed(2), +(d * (H - h) / h).toFixed(2), +(ans + 1).toFixed(2)].filter(v => v > 0 && v !== ans),
+      `設影長 \\(x\\) 公尺，由相似三角形得 \\(\\dfrac{${h}}{${H}}=\\dfrac{x}{${d}+x}\\)，\\(${H}x=${h}(${d}+x)\\)，\\(x=${num(ans)}\\)。`, { lv: 3, pos: 1, step: 0.5, fig: GF().lamp(H, h, d) }), { H, h, d });
   },
 );
 // ════ 九下 ════
@@ -1910,6 +1910,90 @@ g9a.push(
     return MC(`如右圖，學校操場的跑道由兩段直線跑道和兩端的半圓形跑道組成，每一道的寬都是 \\(${w}\\) 公尺。跑一圈時，若都沿著各道的內側邊線跑，則第 \\(${n}\\) 道比第 \\(1\\) 道多跑多少公尺？`, ans, [d, 2 * w * n, 4 * d, w * n],
       `兩道的直線部分一樣長，只差在兩端的半圓（合起來是一個圓）。第 \\(${n}\\) 道的半徑比第 \\(1\\) 道多 \\(${w}\\times ${n - 1}=${num(d)}\\) 公尺，多跑 \\(2\\pi\\times ${num(d)}=${num(ans)}\\pi\\)（公尺）。`,
       { lv: 2, pos: 1, step: w, fmt: v => (num(v) === '1' ? '' : num(v)) + '\\pi', fig: AF().track() });
+  },
+);
+
+// ════ 八下、九上：全等、平行、比例線段、相似（附圖）════
+const GF = () => window.GEO_FIG.exam;
+const CRIT = ['SSS', 'SAS', 'ASA', 'AAS', 'RHS'];
+const DEG = { int: 1, step: 5, fmt: v => num(v) + '^\\circ' };
+g8b.push(
+  function () { // 全等性質的判定（附圖）
+    const kind = pk(['x', 'sss', 'asa', 'rhs']), ans = { x: 'SAS', sss: 'SSS', asa: 'ASA', rhs: 'RHS' }[kind], skip = { asa: 'AAS', rhs: 'SSS' }[kind], tail = '利用下列哪一個全等性質，可以說明';
+    const S = {
+      x: [`如右圖，\\(\\overline{AB}\\) 與 \\(\\overline{CD}\\) 相交於 \\(O\\) 點，且 \\(\\overline{OA}=\\overline{OB}\\)、\\(\\overline{OC}=\\overline{OD}\\)。${tail} \\(\\triangle AOC\\cong\\triangle BOD\\)？`,
+        `\\(\\overline{OA}=\\overline{OB}\\)，\\(\\angle AOC=\\angle BOD\\)（對頂角），\\(\\overline{OC}=\\overline{OD}\\)，兩邊及其夾角對應相等，`],
+      sss: [`如右圖，四邊形 \\(ABCD\\) 中，\\(\\overline{AB}=\\overline{AD}\\)、\\(\\overline{CB}=\\overline{CD}\\)。${tail} \\(\\triangle ABC\\cong\\triangle ADC\\)？`,
+        `\\(\\overline{AB}=\\overline{AD}\\)，\\(\\overline{CB}=\\overline{CD}\\)，\\(\\overline{AC}\\) 為共用邊，三邊對應相等，`],
+      asa: [`如右圖，\\(\\triangle ABC\\) 中，\\(\\overline{AD}\\) 平分 \\(\\angle BAC\\)，且 \\(\\overline{AD}\\perp\\overline{BC}\\) 於 \\(D\\) 點。${tail} \\(\\triangle ABD\\cong\\triangle ACD\\)？`,
+        `\\(\\angle BAD=\\angle CAD\\)，\\(\\overline{AD}\\) 為共用邊，\\(\\angle ADB=\\angle ADC=90^\\circ\\)，兩角及其夾邊對應相等，`],
+      rhs: [`如右圖，四邊形 \\(ABCD\\) 中，\\(\\angle B=\\angle D=90^\\circ\\)，且 \\(\\overline{AB}=\\overline{AD}\\)。${tail} \\(\\triangle ABC\\cong\\triangle ADC\\)？`,
+        `兩個都是直角三角形，斜邊 \\(\\overline{AC}\\) 共用，且一股 \\(\\overline{AB}=\\overline{AD}\\)，`],
+    }[kind];
+    return V_(MC(S[0], `${ans} 全等性質`, shuf(CRIT.filter(x => x !== ans && x !== skip)).slice(0, 3).map(x => `${x} 全等性質`), S[1] + `由 ${ans} 全等性質得證。`, { lv: 2, fig: GF().congCase(kind) }), { kind });
+  },
+  function () { // 全等三角形的對應角、對應邊（附圖）
+    const CP = `如右圖，\\(\\triangle ABC\\cong\\triangle DEF\\)，且 \\(A\\)、\\(B\\)、\\(C\\) 的對應點依序為 \\(D\\)、\\(E\\)、\\(F\\)。`;
+    if (coin()) { const a = ri(6, 16) * 5, b = ri(6, 16) * 5, ans = 180 - a - b; if (ans < 25) return null;
+      return V_(MC(CP + `若 \\(\\angle A=${a}^\\circ\\)、\\(\\angle E=${b}^\\circ\\)，則 \\(\\angle F\\) 為多少度？`, ans, [a, b, 180 - a, 180 - b, a + b].filter(v => v > 0 && v < 180),
+        `\\(\\angle D=\\angle A=${a}^\\circ\\)，\\(\\angle F=180^\\circ-${a}^\\circ-${b}^\\circ=${ans}^\\circ\\)。`, Object.assign({ lv: 1, fig: GF().congPair({ A: a + '°', E: b + '°' }) }, DEG)), { a, b }); }
+    const p = ri(3, 12), q = ri(3, 12), r = ri(Math.abs(p - q) + 1, p + q - 1), ans = p + q + r;
+    return V_(MC(CP + `若 \\(\\overline{AB}=${p}\\)、\\(\\overline{EF}=${q}\\)、\\(\\overline{DF}=${r}\\)，則 \\(\\triangle ABC\\) 的周長為何？`, ans, [p + q, 2 * ans, p + r, q + r],
+      `\\(\\overline{BC}=\\overline{EF}=${q}\\)，\\(\\overline{AC}=\\overline{DF}=${r}\\)，周長 \\(=${p}+${q}+${r}=${ans}\\)。`, { lv: 1, pos: 1, fig: GF().congPair({ AB: p, EF: q, DF: r }) }), { p, q, r });
+  },
+  function () { // 箏形：由全等求角（附圖）
+    const p = ri(6, 14) * 10, q = ri(4, 12) * 10, B = (360 - p - q) / 2; if (B < 40 || B > 140) return null;
+    const t = ri(0, 2), nm = ['\\angle ABC', '\\angle BAC', '\\angle BCA'][t], ans = [B, p / 2, q / 2][t];
+    return V_(MC(`如右圖，四邊形 \\(ABCD\\) 中，\\(\\overline{AB}=\\overline{AD}\\)、\\(\\overline{CB}=\\overline{CD}\\)。若 \\(\\angle BAD=${p}^\\circ\\)、\\(\\angle BCD=${q}^\\circ\\)，則 \\(${nm}\\) 為多少度？`, ans,
+      [B, p / 2, q / 2, p, q, 180 - p, 180 - q, 360 - p - q].filter(v => v > 0 && v < 180 && v !== ans),
+      `\\(\\overline{AB}=\\overline{AD}\\)，\\(\\overline{CB}=\\overline{CD}\\)，\\(\\overline{AC}\\) 共用，所以 \\(\\triangle ABC\\cong\\triangle ADC\\)（SSS）。` +
+      [`\\(\\angle ABC=\\angle ADC=\\dfrac{360^\\circ-${p}^\\circ-${q}^\\circ}{2}=${B}^\\circ\\)。`, `\\(\\angle BAC=\\angle DAC=${p}^\\circ\\div 2=${p / 2}^\\circ\\)。`, `\\(\\angle BCA=\\angle DCA=${q}^\\circ\\div 2=${q / 2}^\\circ\\)。`][t],
+      Object.assign({ lv: 2, fig: GF().kite(p, q) }, DEG)), { p, q, t });
+  },
+  function () { // 平行線：兩線之間的折角（附圖）
+    const a1 = ri(5, 13) * 5, a2 = ri(5, 13) * 5, s = a1 + a2, t = coin(), fig = GF().bent(a1, a2);
+    const head = `如右圖，\\(L_1\\parallel L_2\\)，\\(A\\) 點在 \\(L_1\\) 上、\\(B\\) 點在 \\(L_2\\) 上，\\(P\\) 點在兩直線之間。`, why = `過 \\(P\\) 點作一直線平行 \\(L_1\\)，由內錯角相等可得 \\(\\angle APB=\\angle 1+\\angle 2\\)，`;
+    if (!t) return V_(MC(head + `若 \\(\\angle 1=${a1}^\\circ\\)、\\(\\angle 2=${a2}^\\circ\\)，則 \\(\\angle APB\\) 為多少度？`, s, [180 - s, Math.abs(a1 - a2), 360 - 2 * s, 180 - Math.abs(a1 - a2)].filter(v => v > 0 && v < 180 && v !== s),
+      why + `\\(\\angle APB=${a1}^\\circ+${a2}^\\circ=${s}^\\circ\\)。`, Object.assign({ lv: 2, fig }, DEG)), { a1, a2, t });
+    return V_(MC(head + `若 \\(\\angle APB=${s}^\\circ\\)、\\(\\angle 1=${a1}^\\circ\\)，則 \\(\\angle 2\\) 為多少度？`, a2, [s + a1, 180 - s, 180 - s + a1, a1].filter(v => v > 0 && v < 180 && v !== a2),
+      why + `\\(\\angle 2=${s}^\\circ-${a1}^\\circ=${a2}^\\circ\\)。`, Object.assign({ lv: 2, fig }, DEG)), { a1, a2, t });
+  },
+);
+g9a.push(
+  function () { // 三條平行線截比例線段（附圖）
+    const a = ri(2, 9), b = ri(2, 9), k = pk([2, 3, 4]); if (a === b) return null; const t = coin();
+    const head = `如右圖，\\(L_1\\parallel L_2\\parallel L_3\\)，兩條直線分別交 \\(L_1\\)、\\(L_2\\)、\\(L_3\\) 於 \\(A\\)、\\(B\\)、\\(C\\) 與 \\(D\\)、\\(E\\)、\\(F\\)。`, I = v => v > 0 && Number.isInteger(v);
+    if (!t) return V_(MC(head + `若 \\(\\overline{AB}=${a}\\)、\\(\\overline{BC}=${b}\\)、\\(\\overline{DE}=${a * k}\\)，則 \\(\\overline{EF}\\) 的長度為何？`, b * k, [a * a * k / b, b + a * k - a, (a + b) * k, a * k].filter(I),
+      `\\(\\overline{AB}:\\overline{BC}=\\overline{DE}:\\overline{EF}\\)，\\(${a}:${b}=${a * k}:\\overline{EF}\\)，\\(\\overline{EF}=${b * k}\\)。`, { lv: 2, pos: 1, fig: GF().par3(a, b, { AB: a, BC: b, DE: a * k }) }), { a, b, k, t });
+    return V_(MC(head + `若 \\(\\overline{AB}=${a}\\)、\\(\\overline{BC}=${b}\\)、\\(\\overline{DF}=${(a + b) * k}\\)，則 \\(\\overline{DE}\\) 的長度為何？`, a * k, [b * k, (a + b) * k / 2, a * (a + b) * k / b, (a + b) * k - a].filter(I),
+      `\\(\\overline{AB}:\\overline{AC}=\\overline{DE}:\\overline{DF}\\)，\\(${a}:${a + b}=\\overline{DE}:${(a + b) * k}\\)，\\(\\overline{DE}=${a * k}\\)。`, { lv: 2, pos: 1, fig: GF().par3(a, b, { AB: a, BC: b }) }), { a, b, k, t });
+  },
+  function () { // 沙漏型相似（附圖）
+    const a = ri(2, 8), k = pk([1.5, 2, 2.5, 3]), c = ri(2, 9), b = a * k, d = c * k; if (!Number.isInteger(b) || !Number.isInteger(d) || b === c) return null;
+    const t = ri(0, 2), I = v => v > 0 && Number.isInteger(v * 2), head = `如右圖，\\(\\overline{AB}\\parallel\\overline{CD}\\)，\\(\\overline{AD}\\) 與 \\(\\overline{BC}\\) 相交於 \\(O\\) 點。`, sim = `\\(\\overline{AB}\\parallel\\overline{CD}\\)，所以 \\(\\triangle OAB\\sim\\triangle ODC\\)（AA），`;
+    const fig = lb => GF().hourglass(k, lb);
+    if (t === 0) return V_(MC(head + `若 \\(\\overline{OA}=${a}\\)、\\(\\overline{OD}=${b}\\)、\\(\\overline{AB}=${c}\\)，則 \\(\\overline{CD}\\) 的長度為何？`, d, [c * a / b, c + b - a, b, a + c].filter(I),
+      sim + `\\(\\overline{CD}=${c}\\times\\dfrac{${b}}{${a}}=${num(d)}\\)。`, { lv: 2, pos: 1, fig: fig({ OA: a, OD: b, AB: c }) }), { a, b, c, d, t });
+    if (t === 1) return V_(MC(head + `若 \\(\\overline{OA}=${a}\\)、\\(\\overline{OD}=${b}\\)、\\(\\overline{CD}=${d}\\)，則 \\(\\overline{AB}\\) 的長度為何？`, c, [d * k, d - (b - a), a, d / 2].filter(v => I(v) && v !== c),
+      sim + `\\(\\overline{AB}=${d}\\times\\dfrac{${a}}{${b}}=${c}\\)。`, { lv: 2, pos: 1, fig: fig({ OA: a, OD: b, CD: d }) }), { a, b, c, d, t });
+    return V_(MC(head + `若 \\(\\overline{OA}=${a}\\)、\\(\\overline{AB}=${c}\\)、\\(\\overline{CD}=${d}\\)，則 \\(\\overline{OD}\\) 的長度為何？`, b, [a * c / d, a + d - c, d, a * d / c * k].filter(v => I(v) && v !== b),
+      sim + `\\(\\overline{OD}=${a}\\times\\dfrac{${d}}{${c}}=${num(b)}\\)。`, { lv: 2, pos: 1, fig: fig({ OA: a, AB: c, CD: d }) }), { a, b, c, d, t });
+  },
+  function () { // 母子相似求股長（附圖）
+    const [u, v] = pk([[1, 3], [1, 8], [2, 6], [4, 5], [9, 16], [4, 12], [3, 9], [2, 16], [8, 10], [16, 9], [9, 7]]), t = coin(), ans = Math.sqrt(u * (u + v));
+    const AD = t ? v : u, DB = t ? u : v, X = t ? 'BC' : 'AC';
+    return V_(MC(`如右圖，直角 \\(\\triangle ABC\\) 中，\\(\\angle ACB=90^\\circ\\)，\\(\\overline{CD}\\perp\\overline{AB}\\) 於 \\(D\\) 點。若 \\(\\overline{AD}=${AD}\\)、\\(\\overline{DB}=${DB}\\)，則 \\(\\overline{${X}}\\) 的長度為何？`, ans,
+      [u + v, Math.sqrt(u * v), Math.sqrt(v * (u + v)), (u + v) / 2].filter(z => Number.isInteger(z) && z !== ans),
+      t ? `\\(\\triangle BCD\\sim\\triangle BAC\\)，\\(\\overline{BC}^{2}=\\overline{BD}\\times\\overline{BA}=${u}\\times ${u + v}=${u * (u + v)}\\)，\\(\\overline{BC}=${ans}\\)。`
+        : `\\(\\triangle ACD\\sim\\triangle ABC\\)，\\(\\overline{AC}^{2}=\\overline{AD}\\times\\overline{AB}=${u}\\times ${u + v}=${u * (u + v)}\\)，\\(\\overline{AC}=${ans}\\)。`,
+      { lv: 3, pos: 1, fig: GF().motherChild(AD, DB, { AD, DB }) }), { AD, DB, t });
+  },
+  function () { // 三角形內接正方形（附圖）
+    const [a, h] = pk([[6, 3], [12, 6], [10, 15], [12, 4], [20, 5], [30, 20], [15, 10], [24, 8], [18, 9], [28, 21], [36, 12], [40, 10], [30, 15], [14, 35], [21, 28]]), ans = a * h / (a + h);
+    return V_(MC(`如右圖，正方形 \\(DEFG\\) 的頂點 \\(D\\)、\\(E\\) 分別在 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 上，\\(F\\)、\\(G\\) 在 \\(\\overline{BC}\\) 上，\\(\\overline{AH}\\) 為 \\(\\overline{BC}\\) 上的高。若 \\(\\overline{BC}=${a}\\)、\\(\\overline{AH}=${h}\\)，則正方形 \\(DEFG\\) 的邊長為何？`, ans,
+      [(a + h) / 2, h / 2, a / 2, Math.min(a, h) - ans / 2].filter(z => z > 0 && Number.isInteger(z * 2) && z !== ans),
+      `設正方形邊長為 \\(x\\)。\\(\\overline{DE}\\parallel\\overline{BC}\\)，\\(\\triangle ADE\\sim\\triangle ABC\\)，對應高的比等於對應邊的比：\\(\\dfrac{x}{${a}}=\\dfrac{${h}-x}{${h}}\\)，\\(${h}x=${a}(${h}-x)\\)，\\(x=\\dfrac{${a}\\times ${h}}{${a}+${h}}=${ans}\\)。`,
+      { lv: 3, pos: 1, fig: GF().squareTri(a, h) }), { a, h });
   },
 );
 

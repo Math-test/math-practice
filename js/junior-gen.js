@@ -10056,16 +10056,16 @@ function _8bParallel(level){
     '</svg>';
   // 三個基礎版（含角度位置標記）
   const SVG_CORR=SVG_PAR.replace('</svg>',
-    '<text x="71" y="36" font-size="13" fill="#4a90d9">α</text>'+
-    '<text x="121" y="112" font-size="13" fill="#4a90d9">β</text>'+
+    '<text x="68" y="36" font-size="13" fill="#4a90d9">∠1</text>'+
+    '<text x="117" y="112" font-size="13" fill="#4a90d9">∠2</text>'+
     '</svg>');
   const SVG_ALT=SVG_PAR.replace('</svg>',
-    '<text x="45" y="56" font-size="13" fill="#e07000">α</text>'+
-    '<text x="121" y="112" font-size="13" fill="#e07000">β</text>'+
+    '<text x="40" y="56" font-size="13" fill="#e07000">∠1</text>'+
+    '<text x="117" y="112" font-size="13" fill="#e07000">∠2</text>'+
     '</svg>');
   const SVG_CO=SVG_PAR.replace('</svg>',
-    '<text x="71" y="56" font-size="13" fill="#c0392b">α</text>'+
-    '<text x="121" y="112" font-size="13" fill="#2980b9">β</text>'+
+    '<text x="68" y="56" font-size="13" fill="#c0392b">∠1</text>'+
+    '<text x="117" y="112" font-size="13" fill="#2980b9">∠2</text>'+
     '</svg>');
   const SVG_BENT=
     '<svg width="200" height="145" viewBox="0 0 200 145" xmlns="http://www.w3.org/2000/svg">'+
@@ -10091,14 +10091,14 @@ function _8bParallel(level){
     const t=randInt(0,2);
     const ang=randInt(35,145);
     if(t===0){
-      return {question:`如圖，\\(L_1//L_2\\)，截線與 \\(L_1\\) 所成角（圖中 \\(\\alpha\\)）為 \\(${ang}^\\circ\\)，同位角 \\(\\beta\\) 為`,
+      return {question:`如圖，\\(L_1//L_2\\)，截線與 \\(L_1\\) 所成角（圖中 \\(\\angle 1\\)）為 \\(${ang}^\\circ\\)，求它的同位角 \\(\\angle 2\\)`,
         answer:ang,type:'number',answerPrefix:'同位角',graph:SVG_CORR};
     }
     if(t===1){
-      return {question:`如圖，\\(L_1//L_2\\)，截線所成內角（圖中 \\(\\alpha\\)）為 \\(${ang}^\\circ\\)，內錯角 \\(\\beta\\) 為`,
+      return {question:`如圖，\\(L_1//L_2\\)，截線所成內角（圖中 \\(\\angle 1\\)）為 \\(${ang}^\\circ\\)，求它的內錯角 \\(\\angle 2\\)`,
         answer:ang,type:'number',answerPrefix:'內錯角',graph:SVG_ALT};
     }
-    return {question:`如圖，\\(L_1//L_2\\)，同側內角之一（圖中 \\(\\alpha\\)）為 \\(${ang}^\\circ\\)，另一同側內角 \\(\\beta\\) 為`,
+    return {question:`如圖，\\(L_1//L_2\\)，同側內角之一（圖中 \\(\\angle 1\\)）為 \\(${ang}^\\circ\\)，求另一同側內角 \\(\\angle 2\\)`,
       answer:180-ang,type:'number',answerPrefix:'同側內角',graph:SVG_CO};
   }
   if(level==='medium'){
@@ -12632,6 +12632,62 @@ function _9bProbExt(level){
   return P(`同時擲兩顆公正的骰子，${e[0]}的機率為`,D2(e[1]),36);
 }
 
+// ── 附圖題：全等、比例線段、相似（js/geo-fig.js）。這幾個單元約三分之一的題目改出附圖題 ──
+const _GF=()=>window.GEO_FIG&&window.GEO_FIG.quiz;
+const _withFig=(gen,fig)=>lv=>{if(_GF()&&Math.random()<0.35){for(let i=0;i<30;i++){const q=fig(lv);if(q)return _jrTidy(q);}}return _jrTidy(gen(lv));};
+const _gN=(q,v,p,g)=>({question:q,answer:v,type:'number',answerPrefix:p||'',graph:g});
+const _CP='（\\(A\\)、\\(B\\)、\\(C\\) 的對應點依序為 \\(D\\)、\\(E\\)、\\(F\\)）';
+function _figCong(lv){
+  const F=_GF();
+  if(lv==='basic'){
+    if(Math.random()<0.5){const a=randInt(4,16)*5,b=randInt(4,16)*5;if(a+b>=170)return null;
+      return _gN(`如右圖，\\(\\triangle ABC\\cong\\triangle DEF\\)${_CP}，\\(\\angle A=${a}^\\circ\\)，\\(\\angle E=${b}^\\circ\\)，求 \\(\\angle F\\)`,180-a-b,'\\(\\angle F\\)',F.congPair({A:a+'°',E:b+'°',F:'?'}));}
+    const p=randInt(3,12),q=randInt(3,12),r=randInt(Math.abs(p-q)+1,p+q-1);
+    return _gN(`如右圖，\\(\\triangle ABC\\cong\\triangle DEF\\)${_CP}，\\(\\overline{AB}=${p}\\)，\\(\\overline{EF}=${q}\\)，\\(\\overline{DF}=${r}\\)，求 \\(\\triangle ABC\\) 的周長`,p+q+r,'周長',F.congPair({AB:p,EF:q,DF:r}));
+  }
+  if(lv==='medium'){
+    const k=pick(['x','sss','asa','rhs']);
+    const s={x:`如右圖，\\(\\overline{AB}\\) 與 \\(\\overline{CD}\\) 交於 \\(O\\)，\\(\\overline{OA}=\\overline{OB}\\)，\\(\\overline{OC}=\\overline{OD}\\)，說明 \\(\\triangle AOC\\cong\\triangle BOD\\) 的全等性質`,
+      sss:`如右圖，\\(\\overline{AB}=\\overline{AD}\\)，\\(\\overline{CB}=\\overline{CD}\\)，說明 \\(\\triangle ABC\\cong\\triangle ADC\\) 的全等性質`,
+      asa:`如右圖，\\(\\overline{AD}\\) 平分 \\(\\angle BAC\\) 且 \\(\\overline{AD}\\perp\\overline{BC}\\)，說明 \\(\\triangle ABD\\cong\\triangle ACD\\) 的全等性質`,
+      rhs:`如右圖，\\(\\angle B=\\angle D=90^\\circ\\)，\\(\\overline{AB}=\\overline{AD}\\)，說明 \\(\\triangle ABC\\cong\\triangle ADC\\) 的全等性質`}[k];
+    return {question:s+'（填 SSS、SAS、ASA、AAS 或 RHS）',answer:{x:'SAS',sss:'SSS',asa:'ASA',rhs:'RHS'}[k],type:'text',answerPrefix:'全等性質',graph:F.congCase(k)};
+  }
+  const p=randInt(6,14)*10,q=randInt(4,12)*10,B=(360-p-q)/2;if(!Number.isInteger(B)||B<40||B>140)return null;
+  const t=randInt(0,2),nm=['\\(\\angle ABC\\)','\\(\\angle BAC\\)','\\(\\angle ACD\\)'][t];
+  return _gN(`如右圖，四邊形 \\(ABCD\\) 中，\\(\\overline{AB}=\\overline{AD}\\)，\\(\\overline{CB}=\\overline{CD}\\)，\\(\\angle BAD=${p}^\\circ\\)，\\(\\angle BCD=${q}^\\circ\\)，求 ${nm}`,[B,p/2,q/2][t],nm,F.kite(p,q));
+}
+function _figPropSeg(lv){
+  const F=_GF(),PL='\\(L_1\\parallel L_2\\parallel L_3\\)';
+  if(lv==='basic'){const a=randInt(2,9),b=randInt(2,9),k=pick([2,3]);if(a===b)return null;
+    return _gN(`如右圖，${PL}，若 \\(\\overline{AB}=${a}\\)，\\(\\overline{BC}=${b}\\)，\\(\\overline{DE}=${a*k}\\)，求 \\(\\overline{EF}\\)`,b*k,'\\(\\overline{EF}\\)',F.par3(a,b,{AB:a,BC:b,DE:a*k,EF:'?'}));}
+  if(lv==='medium'){const m=randInt(1,5),n=randInt(1,5),k=randInt(2,5),L=(m+n)*k;if(m===n)return null;
+    return _gN(`如右圖，\\(\\triangle ABC\\) 中，\\(\\overline{DE}\\parallel\\overline{BC}\\)，若 \\(\\overline{AD}=${m}\\)，\\(\\overline{DB}=${n}\\)，\\(\\overline{BC}=${L}\\)，求 \\(\\overline{DE}\\)`,m*k,'\\(\\overline{DE}\\)',F.triDE(m/(m+n),false,{AD:m,DB:n,BC:L,DE:'?'}));}
+  if(Math.random()<0.5){const a=randInt(2,9),b=randInt(2,9),k=pick([2,3,4]);if(a===b)return null;
+    return _gN(`如右圖，${PL}，若 \\(\\overline{AB}=${a}\\)，\\(\\overline{DE}=${a*k}\\)，\\(\\overline{DF}=${(a+b)*k}\\)，求 \\(\\overline{BC}\\)`,b,'\\(\\overline{BC}\\)',F.par3(a,b,{AB:a,BC:'?',DE:a*k}));}
+  const m=randInt(2,6),n=randInt(1,6),k=randInt(2,4);if(m===n)return null;
+  return _gN(`如右圖，\\(\\triangle ABC\\) 中，\\(\\overline{DE}\\parallel\\overline{BC}\\)，若 \\(\\overline{AD}=${m}\\)，\\(\\overline{DE}=${m*k}\\)，\\(\\overline{BC}=${(m+n)*k}\\)，求 \\(\\overline{DB}\\)`,n,'\\(\\overline{DB}\\)',F.triDE(m/(m+n),false,{AD:m,DB:'?',DE:m*k}));
+}
+function _figSim(lv){
+  const F=_GF(),HG='如右圖，\\(\\overline{AB}\\parallel\\overline{CD}\\)，\\(\\overline{AD}\\) 與 \\(\\overline{BC}\\) 交於 \\(O\\)';
+  if(lv!=='hard'){const a=randInt(2,8),k=pick([1.5,2,2.5,3]),c=randInt(2,9),b=a*k,d=c*k;if(!Number.isInteger(b)||!Number.isInteger(d))return null;
+    if(lv==='basic')return _gN(`${HG}，若 \\(\\overline{OA}=${a}\\)，\\(\\overline{OD}=${b}\\)，\\(\\overline{AB}=${c}\\)，求 \\(\\overline{CD}\\)`,d,'\\(\\overline{CD}\\)',F.hourglass(k,{OA:a,OD:b,AB:c,CD:'?'}));
+    return _gN(`${HG}，若 \\(\\overline{OA}=${a}\\)，\\(\\overline{AB}=${c}\\)，\\(\\overline{CD}=${d}\\)，求 \\(\\overline{OD}\\)`,b,'\\(\\overline{OD}\\)',F.hourglass(k,{OA:a,OD:'?',AB:c,CD:d}));}
+  const MS='如右圖，直角 \\(\\triangle ABC\\) 中，\\(\\angle ACB=90^\\circ\\)，\\(\\overline{CD}\\perp\\overline{AB}\\)';
+  if(Math.random()<0.5){const [p,q]=pick([[1,4],[1,9],[4,9],[2,8],[3,12],[4,16],[9,16],[1,16],[2,18],[3,27]]),h=Math.sqrt(p*q);
+    return _gN(`${MS}，若 \\(\\overline{AD}=${p}\\)，\\(\\overline{DB}=${q}\\)，求 \\(\\overline{CD}\\)`,h,'\\(\\overline{CD}\\)',F.motherChild(p,q,{AD:p,DB:q,CD:'?'}));}
+  const [p,q]=pick([[1,3],[1,8],[2,6],[4,5],[9,16],[4,12],[3,9],[2,16],[8,10],[16,9],[9,7]]),ac=Math.sqrt(p*(p+q));
+  return _gN(`${MS}，若 \\(\\overline{AD}=${p}\\)，\\(\\overline{DB}=${q}\\)，求 \\(\\overline{AC}\\)`,ac,'\\(\\overline{AC}\\)',F.motherChild(p,q,{AD:p,DB:q,AC:'?'}));
+}
+const _SQT=[[6,3],[12,6],[10,15],[12,4],[20,5],[30,20],[15,10],[24,8],[18,9],[28,21],[36,12],[40,10],[30,15],[14,35],[21,28]];
+function _figSimApp(lv){
+  const F=_GF();
+  if(lv==='hard'){const [a,h]=pick(_SQT);
+    return _gN(`如右圖，正方形 \\(DEFG\\) 的頂點 \\(D\\)、\\(E\\) 分別在 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 上，\\(F\\)、\\(G\\) 在 \\(\\overline{BC}\\) 上。若 \\(\\overline{BC}=${a}\\)，\\(\\overline{BC}\\) 上的高 \\(\\overline{AH}=${h}\\)，求正方形的邊長`,a*h/(a+h),'邊長',F.squareTri(a,h));}
+  const [H,h]=pick([[4.5,1.5],[6,1.5],[4,1.6],[4.8,1.6],[5.4,1.8],[3.6,1.8],[6.4,1.6]]),d=randInt(2,9),s=h*d/(H-h);if(Math.abs(s*10-Math.round(s*10))>1e-9)return null;
+  return _gN(`如右圖，路燈高 \\(${H}\\) 公尺，身高 \\(${h}\\) 公尺的小芳站在距離路燈底部 \\(${d}\\) 公尺的地方，求她在地面上的影長（公尺）`,+s.toFixed(2),'影長',F.lamp(H,h,d));
+}
+
 // ─── 對外介面 ──────────────────────────────────────────────────────
 const JR_GENERATORS = {
   // 七上 整數
@@ -12704,7 +12760,7 @@ const JR_GENERATORS = {
   '8b-geo-seq':        lv=>_jrTidy(gen8bGeoSeq(lv)),
   '8b-linear-func':    lv=>_jrTidy(gen8bLinearFunc(lv)),
   '8b-tri-angle':      lv=>_jrTidy(gen8bTriAngle(lv)),
-  '8b-tri-congruence': lv=>_jrTidy(gen8bTriCongruence(lv)),
+  '8b-tri-congruence': _withFig(gen8bTriCongruence,_figCong),
   '8b-tri-bisector':   lv=>_jrTidy(gen8bTriBisector(lv)),
   '8b-tri-side-angle': lv=>_jrTidy(gen8bTriSideAngle(lv)),
   '8b-parallel':       lv=>_jrTidy(gen8bParallel(lv)),
@@ -12712,9 +12768,9 @@ const JR_GENERATORS = {
   '8b-special-quad':   lv=>_jrTidy(gen8bSpecialQuad(lv)),
   // 九上
   '9a-ratio-chain':    lv=>_jrTidy(gen9aRatioChain(lv)),
-  '9a-prop-seg':       lv=>_jrTidy(gen9aPropSeg(lv)),
-  '9a-similar-poly':   lv=>_jrTidy(gen9aSimilarPoly(lv)),
-  '9a-similar-app':    lv=>_jrTidy(gen9aSimilarApp(lv)),
+  '9a-prop-seg':       _withFig(gen9aPropSeg,_figPropSeg),
+  '9a-similar-poly':   _withFig(gen9aSimilarPoly,_figSim),
+  '9a-similar-app':    _withFig(gen9aSimilarApp,_figSimApp),
   '9a-trig':           lv=>_jrTidy(gen9aTrig(lv)),
   '9a-circle-line':    lv=>_jrTidy(gen9aCircleLine(lv)),
   '9a-circle-angle':   lv=>_jrTidy(gen9aCircleAngle(lv)),
