@@ -2132,6 +2132,153 @@ g8b.push(
   },
 );
 
+// ════ 附圖題補充：二元一次方程式圖形、不等式、統計、畢氏定理、三角形、圓、三心、二次函數、立體圖形 ════
+const cpE = (cx, cy, R, d) => [cx + R * Math.cos(d * PI_ / 180), cy - R * Math.sin(d * PI_ / 180)];
+const TRI3 = [[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17], [9, 12, 15], [12, 16, 20], [7, 24, 25], [15, 20, 25]];
+const eqS = (a, b, c) => `${co(a)}x${b > 0 ? '+' : '-'}${Math.abs(b) === 1 ? '' : Math.abs(b)}y=${c}`;
+const xyS = (x, y) => `\\(x=${x}\\)、\\(y=${y}\\)`;
+g7b.push(
+  function () { // 由兩直線讀聯立方程式的解（附圖）
+    const px = pk([-3, -2, -1, 1, 2, 3]), py = pk([-3, -2, -1, 1, 2, 3]), a1 = pk([1, 2]), b1 = pk([1, -1]), a2 = pk([1, 3]), b2 = pk([2, -2]);
+    if (a1 * b2 === a2 * b1 || Math.abs(px) === Math.abs(py)) return null;
+    const c1 = a1 * px + b1 * py, c2 = a2 * px + b2 * py, A = xyS(px, py);
+    return V_(MC(`右圖為二元一次聯立方程式 \\(\\begin{cases}${eqS(a1, b1, c1)}\\\\${eqS(a2, b2, c2)}\\end{cases}\\) 中兩個方程式的圖形，圖中每一小格的邊長為 \\(1\\)，則此聯立方程式的解為何？`, A,
+      [[py, px], [-px, py], [px, -py], [-px, -py]].map(p => xyS(...p)),
+      `兩直線的交點 \\(P\\) 同時在兩條直線上，由圖知 \\(P\\) 點坐標為 ${ptS(px, py)}，所以聯立方程式的解為 ${A}。（代回檢查：\\(${a1 * px}${sg(b1 * py)}=${c1}\\)，\\(${a2 * px}${sg(b2 * py)}=${c2}\\)）`,
+      { lv: 1, fig: GF().plot({ xr: [-5, 5], yr: [-5, 5], lines: [[a1, b1, c1], [a2, b2, c2, '5 4']], pts: [[px, py, 'P']] }) }), { a1, b1, c1, a2, b2, c2 });
+  },
+  function () { // 數線上的不等式解求未知數（附圖）
+    const a = pk([2, 3, 4, 5]), k = ri(-3, 4), r = ri(-6, 9), m = a * k - r, le = coin(), op = le ? '\\le' : '\\lt';
+    return V_(MC(`右圖為一元一次不等式 \\(${a}x-m${op} ${r}\\) 的解在數線上的表示，則 \\(m\\) 的值為何？`, m, [a * k + r, r - a * k, k - r, -m].filter(v => v !== m),
+      `移項得 \\(${a}x${op} ${r}+m\\)，\\(x${op}\\dfrac{${r}+m}{${a}}\\)。由圖知不等式的解為 \\(x${op} ${k}\\)，所以 \\(\\dfrac{${r}+m}{${a}}=${k}\\)，\\(${r}+m=${a * k}\\)，\\(m=${m}\\)。`,
+      { lv: 2, fig: GF().numLine({ min: -5, max: 6, rays: [{ v: k, dir: -1, open: !le }] }) }), { a, k, r, le });
+  },
+  function () { // 長條圖：畫成圓形圖時的圓心角（附圖）
+    const T = pk([20, 24, 30, 36, 40, 45, 60, 72]), cats = ['籃球', '排球', '桌球', '羽球', '跑步'].slice(0, pk([4, 5])); let vals = null;
+    for (let i = 0; i < 50 && !vals; i++) { const cut = cats.slice(1).map(() => ri(1, T - 1)).sort((a, b) => a - b); const v = [...cut, T].map((x, j, a) => x - (j ? a[j - 1] : 0)); if (v.every(x => x > 0)) vals = v; }
+    if (!vals) return null; const i = vals.findIndex(v => 360 * v % T === 0); if (i < 0) return null;
+    const ans = 360 * vals[i] / T, mx = Math.ceil(Math.max(...vals) / 4) * 4 + 4;
+    return V_(MC(`右圖為某班同學最喜歡的運動長條圖。若將這筆資料畫成圓形圖，則「${cats[i]}」所占扇形的圓心角為幾度？`, ans, [vals[i], 100 * vals[i] / T, 360 / cats.length].filter(v => Number.isInteger(v) && v !== ans),
+      `全班共 \\(${vals.join('+')}=${T}\\) 人，最喜歡「${cats[i]}」的有 \\(${vals[i]}\\) 人，圓心角為 \\(360^\\circ\\times\\dfrac{${vals[i]}}{${T}}=${ans}^\\circ\\)。`,
+      { lv: 2, int: 1, pos: 1, step: 360 / T, fmt: v => num(v) + '^\\circ', fig: GF().bars({ cats, vals, max: mx, step: mx > 20 ? 8 : 4, yl: '人數', show: true }) }), { vals, i });
+  },
+);
+g8a.push(
+  function () { // 畢氏定理：直角三角形求邊長（附圖）
+    const [a, b, c] = pk(TRI3), ask = ri(0, 2), S = [a, b, c], L = S.map((v, i) => i === ask ? '?' : String(v)), ans = S[ask];
+    const sol = ask === 2 ? `\\(\\overline{AC}^{2}=${b}^{2}+${a}^{2}=${b * b + a * a}\\)，\\(\\overline{AC}=${c}\\)。`
+      : `\\(${ask ? '\\overline{AB}' : '\\overline{BC}'}^{2}=${c}^{2}-${S[1 - ask]}^{2}=${c * c - S[1 - ask] ** 2}\\)，所以「?」\\(=${ans}\\)。`;
+    return V_(MC(`如右圖，直角 \\(\\triangle ABC\\) 中，\\(\\angle B=90^\\circ\\)，則圖中「?」所標示的邊長為何？`, ans,
+      (ask === 2 ? [a + b, a + b - 1, Math.max(a, b) + 1] : [c - S[1 - ask], c + S[1 - ask] - ans, ans + 2]).filter(v => v > 0 && v !== ans),
+      `由畢氏定理，` + sol, { lv: 1, pos: 1, fig: GF().geo({ P: (k => ({ A: [190 - b * k, 140], B: [190, 140], C: [190, 140 - a * k] }))(Math.min(165 / b, 115 / a)), polys: [{ pts: 'ABC' }], right: [['B', 'A', 'C']], side: [['B', 'C', L[0]], ['A', 'B', L[1]], ['A', 'C', L[2]]], w: 214, h: 162 }) }), { a, b, c, ask });
+  },
+  function () { // 畢氏定理：梯子靠牆（附圖）
+    const [a, b, c] = pk(TRI3.filter(t => t[2] <= 17)), t = coin(), G = t ? a : b, H = t ? b : a;
+    return V_(MC(`如右圖，一把長 \\(${c}\\) 公尺的梯子斜靠在垂直的牆上，梯子底端距離牆角 \\(${G}\\) 公尺，則梯子頂端距離地面幾公尺？`, H, [c - G, c + G - H, G, H + 1, H - 1].filter(v => v > 0 && v !== H),
+      `牆、地面與梯子形成直角三角形，梯子為斜邊。頂端高度 \\(=\\sqrt{${c}^{2}-${G}^{2}}=\\sqrt{${c * c - G * G}}=${H}\\)（公尺）。`,
+      { lv: 1, pos: 1, fig: GF().geo({ P: { A: [150, 24], B: [150, 138], C: [150 - Math.min(128, 114 * G / H), 138] }, segs: [['A', 'C', { w: 3 }], ['B', 'A', { w: 3 }], [[10, 138], [190, 138]]], right: [['B', 'A', 'C']], side: [['B', 'C', String(G)], ['A', 'C', String(c)]], hide: 'ABC', text: [[[162, 80], '牆', { fs: 12, a: 'start' }]], w: 200, h: 160 }) }), { G, c });
+  },
+);
+g8b.push(
+  function () { // 三角形內角和：含 x 的內角（附圖）
+    const x = ri(15, 40), p = ri(2, 3), q = ri(1, 3), r = ri(5, 30), A = x + r, B = p * x, C = 180 - A - B; if (C <= 10) return null; const cq = C - q * x; if (cq === 0) return null;
+    const t3 = `(${co(q)}x${sg(cq)})`;
+    return V_(MC(`如右圖，\\(\\triangle ABC\\) 的三個內角分別為 \\((x+${r})^\\circ\\)、\\(${p}x^\\circ\\)、\\(${t3}^\\circ\\)，則 \\(x\\) 的值為何？`, x,
+      [(180 - r) / (1 + p + q), (180 - r - cq) / (p + q), (180 + r + cq) / (1 + p + q), x + 5].filter(v => Number.isInteger(v) && v > 0 && v !== x),
+      `三角形內角和為 \\(180^\\circ\\)：\\((x+${r})+${p}x+${t3}=180\\)，\\(${1 + p + q}x${sg(r + cq)}=180\\)，\\(x=${x}\\)。`,
+      { lv: 1, pos: 1, fig: GF().geo({ P: { A: [90, 20], B: [16, 130], C: [190, 130] }, polys: [{ pts: 'ABC' }], ang: [['A', 'B', 'C', `(x+${r})°`, 1, 32], ['B', 'A', 'C', `${p}x°`], ['C', 'A', 'B', `${t3}°`, 1, 40]], w: 206, h: 150 }) }), { x, p, q, r, cq });
+  },
+  function () { // 五角星的五個尖角和（附圖）
+    const v = [ri(25, 45), ri(25, 45), ri(25, 45), ri(25, 45)], s4 = v.reduce((a, b) => a + b, 0), last = 180 - s4; if (last < 15) return null;
+    const P = {}, nm = 'ABCDE'; for (let i = 0; i < 5; i++) P[nm[i]] = cpE(100, 92, 78, 90 + 72 * i);
+    const lab = [...v.map(x => x + '°'), '?'];
+    return V_(MC(`如右圖，五角星 \\(ACEBD\\) 中，\\(\\angle A\\)、\\(\\angle B\\)、\\(\\angle C\\)、\\(\\angle D\\) 分別為 \\(${v[0]}^\\circ\\)、\\(${v[1]}^\\circ\\)、\\(${v[2]}^\\circ\\)、\\(${v[3]}^\\circ\\)，則 \\(\\angle E\\) 為多少度？`, last,
+      [360 - s4, 540 - s4, 36, 72].filter(z => z > 0 && z < 180 && z !== last),
+      `利用三角形的外角等於兩內對角的和，可把五個尖角集中到同一個三角形中，所以五角星的五個尖角和為 \\(180^\\circ\\)。\\(\\angle E=180^\\circ-${v[0]}^\\circ-${v[1]}^\\circ-${v[2]}^\\circ-${v[3]}^\\circ=${last}^\\circ\\)。`,
+      { lv: 2, int: 1, pos: 1, fmt: v => num(v) + '^\\circ', fig: GF().geo({ P, segs: ['AC', 'CE', 'EB', 'BD', 'DA'], ang: nm.split('').map((k, i) => [k, nm[(i + 2) % 5], nm[(i + 3) % 5], lab[i], 1, 24]), w: 200, h: 186, cc: [100, 92] }) }), { v });
+  },
+  function () { // 三角形第三邊的可能長度（附圖）
+    const a = ri(3, 12), b = ri(3, 12); if (a === b) return null; const n = a + b - 1 - Math.abs(a - b);
+    return V_(MC(`如右圖，\\(\\triangle ABC\\) 中，\\(\\overline{AB}=${a}\\)、\\(\\overline{AC}=${b}\\)。若 \\(\\overline{BC}\\) 的長度為整數，則 \\(\\overline{BC}\\) 有幾種可能？`, n, [n + 1, n + 2, a + b - 1, n - 1].filter(v => v > 0 && v !== n),
+      `三角形任兩邊之差 \\(\\lt\\) 第三邊 \\(\\lt\\) 任兩邊之和：\\(${Math.abs(a - b)}\\lt\\overline{BC}\\lt ${a + b}\\)，整數 \\(\\overline{BC}\\) 為 \\(${Math.abs(a - b) + 1}\\)～\\(${a + b - 1}\\)，共 \\(${n}\\) 種。`,
+      { lv: 2, pos: 1, fig: GF().geo({ P: (() => { const L = Math.hypot(a, b), k = 172 / L, x = (a * a - b * b + L * L) / (2 * L), y = Math.sqrt(Math.max(a * a - x * x, 0)); return { A: [18 + x * k, 136 - Math.max(y * k, 40)], B: [18, 136], C: [190, 136] }; })(), polys: [{ pts: 'ABC' }], side: [['A', 'B', String(a)], ['A', 'C', String(b)], ['B', 'C', '?']], w: 206, h: 155 }) }), { a, b });
+  },
+);
+g9a.push(
+  function () { // 弦心距求弦長（附圖）
+    const [a, b, c] = pk(TRI3.filter(t => t[2] <= 17)), R = 70, dpx = R * a / c, O = [100, 88], Mp = [100, 88 + dpx], hw = Math.sqrt(R * R - dpx * dpx);
+    return V_(MC(`如右圖，圓 \\(O\\) 的半徑為 \\(${c}\\)，\\(\\overline{OM}\\perp\\overline{AB}\\) 於 \\(M\\) 點，且 \\(\\overline{OM}=${a}\\)，則弦 \\(\\overline{AB}\\) 的長度為何？`, 2 * b, [b, 2 * a, 2 * c - a, c + a].filter(v => v !== 2 * b),
+      `圓心到弦的垂線段平分弦，\\(\\overline{AM}=\\overline{BM}\\)。直角 \\(\\triangle OMB\\) 中，\\(\\overline{BM}=\\sqrt{${c}^{2}-${a}^{2}}=${b}\\)，所以 \\(\\overline{AB}=2\\times ${b}=${2 * b}\\)。`,
+      { lv: 2, pos: 1, fig: GF().geo({ P: { O, A: [100 - hw, Mp[1]], B: [100 + hw, Mp[1]], M: Mp }, circles: [{ c: 'O', r: R }], segs: ['AB', 'OM', 'OB'], right: [['M', 'O', 'B']], dots: ['O'], side: [['O', 'M', String(a)], ['O', 'B', String(c)]], lab: { O: [-14, 0], M: [-4, 16] }, w: 200, h: 178, cc: O }) }), { a, c });
+  },
+  function () { // 切線段長（附圖）
+    const [a, b, c] = pk(TRI3.filter(t => t[2] <= 17)), R = 44, O = [60, 90], d = Math.min(R * c / a, 140), Pp = [60 + d, 90], th = Math.acos(R / d), A = [60 + R * Math.cos(th), 90 - R * Math.sin(th)];
+    return V_(MC(`如右圖，\\(\\overline{PA}\\) 與圓 \\(O\\) 相切於 \\(A\\) 點。若圓 \\(O\\) 的半徑為 \\(${a}\\)，\\(\\overline{OP}=${c}\\)，則切線段 \\(\\overline{PA}\\) 的長度為何？`, b, [c - a, c + a, a, b + 1].filter(v => v !== b),
+      `切線垂直於過切點的半徑，\\(\\overline{OA}\\perp\\overline{PA}\\)。直角 \\(\\triangle OAP\\) 中，\\(\\overline{PA}=\\sqrt{${c}^{2}-${a}^{2}}=${b}\\)。`,
+      { lv: 2, pos: 1, fig: GF().geo({ P: { O, A, P: Pp }, circles: [{ c: 'O', r: R }], segs: ['OA', 'AP', 'OP'], right: [['A', 'O', 'P']], dots: ['O'], side: [['O', 'A', String(a)], ['O', 'P', String(c)]], lab: { O: [-14, 4] }, w: Math.ceil(Pp[0] + 26), h: 150, cc: [110, 110] }) }), { a, c });
+  },
+  function () { // 圓內接四邊形對角互補（附圖）
+    const a = ri(12, 30) * 5, O = [100, 92], R = 70, P = d => cpE(100, 92, R, d), ds = [110 + ri(-10, 10), 200 + ri(-10, 10), 290 + ri(-10, 10), 20 + ri(-10, 10)];
+    return V_(MC(`如右圖，四邊形 \\(ABCD\\) 內接於圓。若 \\(\\angle A=${a}^\\circ\\)，則 \\(\\angle C\\) 為多少度？`, 180 - a, [a, 360 - 2 * a, 90 - a / 2, a / 2].filter(v => v > 0 && v < 180 && v !== 180 - a),
+      `圓內接四邊形的對角互補，\\(\\angle C=180^\\circ-${a}^\\circ=${180 - a}^\\circ\\)。`,
+      Object.assign({ lv: 1, fig: GF().geo({ P: { A: P(ds[0]), B: P(ds[1]), C: P(ds[2]), D: P(ds[3]) }, circles: [{ c: O, r: R }], polys: [{ pts: 'ABCD' }], ang: [['A', 'B', 'D', a + '°', 1, 30], ['C', 'B', 'D', '?', 1, 30]], w: 200, h: 186, cc: O }) }, DEG)), { a });
+  },
+  function () { // 兩切線段：∠AOB 或 ∠PAB（附圖）
+    const p = ri(4, 12) * 10, r = Math.min(62, 140 * Math.sin(p / 2 * PI_ / 180)), d = Math.min(r / Math.sin(p / 2 * PI_ / 180), 150), O = [62, 90], Pp = [62 + d, 90], th = Math.acos(r / d), A = cpE(62, 90, r, th * 180 / PI_), B = cpE(62, 90, r, -th * 180 / PI_), t = coin();
+    const fig = GF().geo({ P: { O, A, B, P: Pp }, circles: [{ c: 'O', r }], segs: ['PA', 'PB', 'OA', 'OB', ...(t ? [] : ['AB'])], dots: ['O'], right: [['A', 'O', 'P'], ['B', 'O', 'P']], ang: [['P', 'A', 'B', p + '°', 1, 30]], lab: { O: [-14, 4], P: [12, 4] }, w: Math.ceil(Pp[0] + 26), h: 180, cc: [100, 90] });
+    const head = `如右圖，\\(\\overline{PA}\\)、\\(\\overline{PB}\\) 分別與圓 \\(O\\) 相切於 \\(A\\)、\\(B\\) 兩點。若 \\(\\angle APB=${p}^\\circ\\)，則`;
+    if (t) return V_(MC(head + ` \\(\\angle AOB\\) 為多少度？`, 180 - p, [p, 2 * p, 90 - p / 2, 360 - 2 * p].filter(v => v > 0 && v < 180 && v !== 180 - p),
+      `切線垂直於過切點的半徑，\\(\\angle OAP=\\angle OBP=90^\\circ\\)。四邊形 \\(OAPB\\) 內角和為 \\(360^\\circ\\)，\\(\\angle AOB=360^\\circ-90^\\circ-90^\\circ-${p}^\\circ=${180 - p}^\\circ\\)。`, Object.assign({ lv: 2, fig }, DEG)), { p, t });
+    const ans = (180 - p) / 2;
+    return V_(MC(head + ` \\(\\angle PAB\\) 為多少度？`, ans, [p, 180 - p, p / 2, 90 - ans].filter(v => v > 0 && v < 180 && v !== ans),
+      `圓外一點到圓的兩切線段等長，\\(\\overline{PA}=\\overline{PB}\\)，\\(\\triangle PAB\\) 為等腰三角形，\\(\\angle PAB=\\dfrac{180^\\circ-${p}^\\circ}{2}=${ans}^\\circ\\)。`, Object.assign({ lv: 2, fig }, DEG)), { p, t });
+  },
+  function () { // 外心：∠BOC＝2∠A（附圖）
+    const a = ri(10, 16) * 5, A = [96, 18], B = [22, 140], C = [188, 140], ox = (B[0] + C[0]) / 2, mx = (A[0] + B[0]) / 2, my = (A[1] + B[1]) / 2, oy = my - (B[0] - A[0]) / (B[1] - A[1]) * (ox - mx);
+    return V_(MC(`如右圖，\\(O\\) 為銳角 \\(\\triangle ABC\\) 的外心。若 \\(\\angle A=${a}^\\circ\\)，則 \\(\\angle BOC\\) 為多少度？`, 2 * a, [180 - a, 90 + a / 2, a, 180 - 2 * a].filter(v => v > 0 && v !== 2 * a),
+      `外心 \\(O\\) 到三頂點等距，\\(O\\) 為 \\(\\triangle ABC\\) 外接圓的圓心。\\(\\angle BOC\\) 是 \\(\\overset{\\frown}{BC}\\) 所對的圓心角，\\(\\angle A\\) 是它所對的圓周角，所以 \\(\\angle BOC=2\\angle A=${2 * a}^\\circ\\)。`,
+      Object.assign({ lv: 2, fig: GF().geo({ P: { A, B, C, O: [ox, oy] }, polys: [{ pts: 'ABC' }], segs: ['OB', 'OC', 'OA'], dots: ['O'], ang: [['A', 'B', 'C', a + '°', 1, 30], ['O', 'B', 'C', '?', 1, 22]], lab: { O: [0, -10] }, w: 210, h: 160 }) }, DEG)), { a });
+  },
+  function () { // 內心：∠BIC＝90°＋∠A／2（附圖）
+    const b = ri(5, 8) * 10, A = [96, 18], B = [22, 140], C = [188, 140], la = Math.hypot(B[0] - C[0], B[1] - C[1]), lb = Math.hypot(A[0] - C[0], A[1] - C[1]), lc = Math.hypot(A[0] - B[0], A[1] - B[1]), s = la + lb + lc;
+    const I = [(la * A[0] + lb * B[0] + lc * C[0]) / s, (la * A[1] + lb * B[1] + lc * C[1]) / s], ans = 90 + b / 2;
+    return V_(MC(`如右圖，\\(I\\) 為 \\(\\triangle ABC\\) 的內心。若 \\(\\angle A=${b}^\\circ\\)，則 \\(\\angle BIC\\) 為多少度？`, ans, [2 * b, 180 - b / 2, 90 - b / 2, 180 - b].filter(v => v > 0 && v < 180 && v !== ans),
+      `內心是三內角平分線的交點。\\(\\angle IBC+\\angle ICB=\\dfrac{1}{2}(\\angle B+\\angle C)=\\dfrac{1}{2}(180^\\circ-${b}^\\circ)=${90 - b / 2}^\\circ\\)，\\(\\angle BIC=180^\\circ-${90 - b / 2}^\\circ=${ans}^\\circ\\)。`,
+      Object.assign({ lv: 2, fig: GF().geo({ P: { A, B, C, I }, polys: [{ pts: 'ABC' }], segs: ['IB', 'IC'], dots: ['I'], ang: [['A', 'B', 'C', b + '°', 1, 30], ['I', 'B', 'C', '?', 1, 20]], lab: { I: [0, -10] }, w: 210, h: 160 }) }, DEG)), { b });
+  },
+);
+g9b.push(
+  function () { // 由頂點與圖上一點求 a（附圖）
+    const h = ri(-2, 2), k = ri(-4, 2), a = pk([1, 2, -1, -2, 0.5, -0.5]), x1 = h + pk([1, 2, -1, -2]), y1 = k + a * (x1 - h) ** 2; if (Math.abs(y1) > 5 || !Number.isInteger(y1)) return null;
+    const fa = v => Number.isInteger(v) ? num(v) : fr(Math.round(v * 2), 2), xh = h ? `(x${sg(-h)})^{2}` : 'x^{2}', d2 = (x1 - h) ** 2;
+    return V_(MC(`右圖為二次函數 \\(y=a(x-h)^{2}+k\\) 的圖形，頂點為 \\(V\\)，且圖形通過 \\(P\\) 點，圖中每一小格的邊長為 \\(1\\)，則 \\(a\\) 的值為何？`, a,
+      [-a, 2 * a, -2 * a, a + 1, a - 1, a + 2, a - 2, 1 - a, -1 - a, y1 - k].filter(v => v !== a && v !== 0 && Number.isInteger(v * 2)), `由圖知頂點 \\(V(${h},${k})\\)，所以 \\(y=a${xh}${sg(k)}\\)。又圖形通過 \\(P(${x1},${y1})\\)：\\(${y1}=a\\times ${d2}${sg(k)}\\)，\\(a=${fa(a)}\\)。`,
+      { lv: 2, step: 0.5, fmt: fa, fig: GF().plot({ xr: [-5, 5], yr: [-5, 5], fns: [{ f: x => a * (x - h) ** 2 + k }], pts: [[h, k, 'V'], [x1, y1, 'P']] }) }), { h, k, x1, y1 });
+  },
+  function () { // 由與兩軸的交點求 b（附圖）
+    const p = ri(-4, -1), q = ri(1, 4), a = pk([1, -1, 2, -2]), r = a * p * q, ans = -a * (p + q); if (Math.abs(r) > 8 || p + q === 0) return null;
+    return V_(MC(`右圖為二次函數 \\(y=ax^{2}+bx+c\\) 的圖形，與 \\(x\\) 軸交於 \\((${p},0)\\)、\\((${q},0)\\) 兩點，與 \\(y\\) 軸交於 \\((0,${r})\\)，則 \\(b\\) 的值為何？`, ans,
+      [-ans, p + q, -(p + q), r].filter(v => v !== ans),
+      `與 \\(x\\) 軸交於 \\((${p},0)\\)、\\((${q},0)\\)，可設 \\(y=a(x${sg(-p)})(x${sg(-q)})\\)。代入 \\((0,${r})\\)：\\(${r}=a\\times(${-p})\\times(${-q})\\)，\\(a=${a}\\)。展開得 \\(y=${quad(a, ans, r)}\\)，所以 \\(b=${ans}\\)。`,
+      { lv: 3, fig: GF().plot({ xr: [-5, 5], yr: [-9, 9], s: 12, step: 2, fns: [{ f: x => a * (x - p) * (x - q) }], pts: [[p, 0], [q, 0], [0, r]] }) }), { p, q, r });
+  },
+  function () { // 圓柱的體積、表面積（附圖）
+    const r = ri(2, 8), h = ri(3, 12), t = coin(); if (r === h) return null;
+    const fig = GF().cyl(String(r), String(h)), head = `如右圖，圓柱的底面半徑為 \\(${r}\\)、高為 \\(${h}\\)，則它的`;
+    if (t) return V_(MCv(head + `體積為何？`, kp(r * r * h, 1), [kp(2 * r * h, 1), kp(r * r * h, 3), kp(r * r * h, 2), kp(r * h, 1), kp(r * h * h, 1), kp(2 * r * r * h, 1), kp(3 * r * r * h, 1), kp(2 * r * h * h, 1)],
+      `圓柱體積 \\(=\\) 底面積 \\(\\times\\) 高 \\(=${r}^{2}\\pi\\times ${h}=${piL(r * r * h, 1)}\\)。`, { lv: 1, fig }), { r, h, t });
+    return V_(MCv(head + `表面積為何？`, kp(2 * r * r + 2 * r * h, 1), [kp(2 * r * h, 1), kp(r * r + 2 * r * h, 1), kp(2 * r * r + r * h, 1), kp(r * r + r * h, 1), kp(2 * r * r + 4 * r * h, 1), kp(4 * r * r + 2 * r * h, 1), kp(r * r * h, 1), kp(2 * r * r * h, 1)],
+      `表面積 \\(=\\) 兩個底面積 \\(+\\) 側面積 \\(=2\\times ${r}^{2}\\pi+2\\pi\\times ${r}\\times ${h}=${piL(2 * r * r, 1)}+${piL(2 * r * h, 1)}=${piL(2 * r * r + 2 * r * h, 1)}\\)。`, { lv: 2, fig }), { r, h, t });
+  },
+  function () { // 直圓錐的體積、側面積（附圖）
+    const [r, h, l] = pk(TRI3.filter(t => t[2] <= 17)), t = coin();
+    if (t) return V_(MCv(`如右圖，直圓錐的底面半徑為 \\(${r}\\)、高為 \\(${h}\\)，則它的體積為何？`, kp(r * r * h, 3), [kp(r * r * h, 1), kp(r * h, 1), kp(r * r * l, 3), kp(r * h * h, 3), kp(2 * r * r * h, 3), kp(r * r * h, 6), kp(r * h, 3), kp(r * r * h, 2)],
+      `圓錐體積 \\(=\\dfrac{1}{3}\\times\\) 底面積 \\(\\times\\) 高 \\(=\\dfrac{1}{3}\\times ${r}^{2}\\pi\\times ${h}=${piL(r * r * h, 3)}\\)。`, { lv: 2, fig: GF().cone(String(r), String(h), '') }), { r, h, l, t });
+    return V_(MCv(`如右圖，直圓錐的底面半徑為 \\(${r}\\)、斜高為 \\(${l}\\)，則它的側面積為何？`, kp(r * l, 1), [kp(2 * r * l, 1), kp(r * r + r * l, 1), kp(l * l, 1), kp(r * l, 2), kp(r * r, 1), kp(r * h, 1), kp(r * l, 3), kp(2 * r * r + r * l, 1)],
+      `側面展開為扇形，半徑為斜高 \\(${l}\\)，弧長等於底圓周長 \\(${piL(2 * r, 1)}\\)。側面積 \\(=\\dfrac{1}{2}\\times ${piL(2 * r, 1)}\\times ${l}=${piL(r * l, 1)}\\)。`, { lv: 3, fig: GF().cone(String(r), '', String(l)) }), { r, h, l, t });
+  },
+);
+
 window.EXAM_BANK = {
   '7a': { name: '七上', mc: g7a, nc: n7a },
   '7b': { name: '七下', mc: g7b, nc: n7b },
