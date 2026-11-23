@@ -294,10 +294,24 @@ function generateQuiz(topics, level, count) {
   const questions = [];
   const topicCount = topics.length;
   const perTopic = Math.ceil(count / topicCount);
+  // 同一份練習不出重複的題目：題目文字＋答案相同就重出（題型變化太少、重試多次仍重複時才保留）
+  const seen = new Set();
+  const qKey = q => q.question + '|' + JSON.stringify(q.answer !== undefined ? q.answer : q.answerParts);
 
   for (let ti = 0; ti < topicCount; ti++) {
     const topic = topics[ti];
-    const gen = ALL_GENERATORS[topic];
+    const rawGen = ALL_GENERATORS[topic];
+    const gen = lv => {
+      let last = null;
+      for (let t = 0; t < 40; t++) {
+        const q = rawGen(lv);
+        if (!q) continue;
+        last = q;
+        const k = qKey(q);
+        if (!seen.has(k)) { seen.add(k); return q; }
+      }
+      return last;
+    };
     const needed = ti === topicCount - 1
       ? count - questions.length
       : Math.min(perTopic, count - questions.length);
