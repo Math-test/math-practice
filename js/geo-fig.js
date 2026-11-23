@@ -140,6 +140,16 @@ function mk(st) {
         T([111, 172], bc, { fs: 13 }) + T([A[0] - 5, (A[1] + Dd[1]) / 2 + 5], ah, { fs: 13, a: 'end' });
       return svg(222, 178, o);
     },
+    // 月曆（7 欄 × 5 列，不寫日期），框出 3×3 的九個日期
+    calendar() {
+      const x0 = 8, y0 = 28, w = 28, h = 22; let o = '';
+      '日一二三四五六'.split('').forEach((d, i) => { o += T([x0 + w * i + w / 2, y0 - 8], d, { fs: 12 }); });
+      o += `<rect x="${x0 + w * 2}" y="${y0 + h}" width="${w * 3}" height="${h * 3}" fill="${c.fill}"/>`;
+      for (let i = 0; i <= 7; i++) o += L([x0 + w * i, y0], [x0 + w * i, y0 + h * 5], { w: 0.8 });
+      for (let j = 0; j <= 5; j++) o += L([x0, y0 + h * j], [x0 + w * 7, y0 + h * j], { w: 0.8 });
+      o += `<rect x="${x0 + w * 2}" y="${y0 + h}" width="${w * 3}" height="${h * 3}" fill="none" stroke="${c.line}" stroke-width="2.4"/>`;
+      return svg(x0 * 2 + w * 7, y0 + h * 5 + 8, o);
+    },
     // 路燈與影子：燈高 H、人高 h、人到燈的距離 d（只用來決定比例）
     lamp(H, h, d) {
       const g = 140, ph = 112, mh = Math.max(28, ph * h / H), x0 = 24;

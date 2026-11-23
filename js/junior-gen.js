@@ -12728,6 +12728,49 @@ function _figLin(lv){
   return {question:`如右圖，直線 \\(L_1：${yS(m1,c1)}\\) 與 \\(L_2：${yS(m2,c2)}\\) 交於 \\(P\\) 點，寫出 \\(P\\) 點的坐標`,..._coordAns(px,py),graph:_makeSVG({lines:[ln(m1,c1),{...ln(m2,c2),color:'#2E7D32'}],pts:[{x:px,y:py,label:'P'}],size:180})};
 }
 
+// ── 數列補充題：一般項、插入數、註標性質、等比中項、生活應用（約四成題目改出這些題型）──
+const _sq=(q,v,p,g)=>{const o={question:q,answer:v,type:'number',answerPrefix:p||''};if(g)o.graph=g;return o;};
+function _seqA(lv){ // 等差數列
+  if(lv==='basic'){
+    if(Math.random()<0.5){const a=randInt(-9,12),d=pick([-5,-4,-3,-2,2,3,4,5,6]);
+      return {question:`等差數列 \\(${a},\\,${a+d},\\,${a+2*d},\\cdots\\) 的第 \\(n\\) 項可以寫成 \\(a_n=pn+q\\)，求 \\(p\\)、\\(q\\)`,answerParts:[{prefix:'\\(p\\)',answer:d,type:'number'},{prefix:'\\(q\\)',answer:a-d,type:'number'}]};}
+    const a=randInt(-10,20),n=randInt(2,5),d=pick([2,3,4,5,-2,-3]),b=a+(n+1)*d,k=randInt(1,n);
+    return _sq(`在 \\(${a}\\) 與 \\(${b}\\) 之間插入 \\(${n}\\) 個數，使這 \\(${n+2}\\) 個數依序成等差數列，求插入的第 \\(${k}\\) 個數`,a+k*d,'第 '+k+' 個數');
+  }
+  if(lv==='medium'){
+    if(Math.random()<0.5){const m=randInt(4,9),e=randInt(1,3),a1=randInt(-10,15),d=pick([-3,-2,2,3,4]),am=a1+(m-1)*d;
+      return _sq(`等差數列中，\\(a_{${m-e}}+a_{${m+e}}=${2*am}\\)，求 \\(a_{${m}}\\)`,am,`\\(a_{${m}}\\)`);}
+    const a=randInt(40,120),d=-pick([3,4,5,6,7]);const n=Math.floor(a/-d)+2;
+    return _sq(`等差數列首項為 \\(${a}\\)，公差為 \\(${d}\\)，從第幾項開始為負數？`,n,'第幾項');
+  }
+  const c=randInt(9,22),t=randInt(0,1);
+  return _sq(`如右圖，在某個月的月曆上框出 \\(3\\times 3\\) 的九個日期，這九個日期的和為 \\(${9*c}\\)，求其中${t?'最小':'最大'}的日期`,t?c-8:c+8,'日期',window.GEO_FIG.quiz.calendar());
+}
+function _seqS(lv){ // 等差級數
+  if(lv==='basic'){const n=randInt(10,40);return _sq(`若 \\(1+2+3+\\cdots+n=${n*(n+1)/2}\\)，求 \\(n\\)`,n,'\\(n\\)');}
+  if(lv==='medium'){
+    if(Math.random()<0.5){const n=randInt(8,30);return _sq(`若 \\(1+3+5+\\cdots+k=${n*n}\\)，求 \\(k\\)`,2*n-1,'\\(k\\)');}
+    const a=randInt(10,30),d=randInt(1,4),n=randInt(8,25);
+    return _sq(`某禮堂的座位第一排有 \\(${a}\\) 個，之後每一排都比前一排多 \\(${d}\\) 個，共有 \\(${n}\\) 排，禮堂共有幾個座位？`,(2*a+(n-1)*d)*n/2,'座位');
+  }
+  if(Math.random()<0.5){const a=randInt(2,10)*10,d=randInt(1,5)*10,T=randInt(20,60)*100;let s=0,n=0;while(s<T){n++;s+=a+(n-1)*d;}
+    return _sq(`小安第 \\(1\\) 週存 \\(${a}\\) 元，之後每週都比前一週多存 \\(${d}\\) 元。至少要到第幾週，累積的存款才會達到 \\(${T}\\) 元？`,n,'第幾週');}
+  const top=randInt(1,5),d=randInt(1,3),n=randInt(5,12),bot=top+(n-1)*d;
+  return _sq(`超市把罐頭堆成好幾層，最上層有 \\(${top}\\) 罐，往下每一層都比上一層多 \\(${d}\\) 罐，最下層有 \\(${bot}\\) 罐，共有幾罐？`,(top+bot)*n/2,'罐');
+}
+function _seqG(lv){ // 等比數列（國中不含等比級數）
+  if(lv==='basic'){const a=randInt(1,6),r=pick([2,3,4]);return _sq(`若 \\(${a}\\)、\\(x\\)、\\(${a*r*r}\\) 三數依序成等比數列，且 \\(x>0\\)，求 \\(x\\)`,a*r,'\\(x\\)');}
+  if(lv==='medium'){
+    if(Math.random()<0.5){const a=randInt(1,5),r=pick([2,3]);return _sq(`各項都是正數的等比數列中，\\(a_3=${a*r*r}\\)，\\(a_5=${a*r**4}\\)，求 \\(a_4\\)`,a*r**3,'\\(a_4\\)');}
+    const k=pick([10,15,20,30]),n=randInt(3,6),a0=pick([1,2,3,5]);
+    return _sq(`某種細菌每 \\(${k}\\) 分鐘分裂一次，每次 \\(1\\) 個分裂成 \\(2\\) 個。一開始有 \\(${a0}\\) 個細菌，\\(${k*n}\\) 分鐘後共有幾個細菌？`,a0*2**n,'個');
+  }
+  if(Math.random()<0.5){const X=pick([1,2,3,5,10]);let m=0;while(0.1*2**m<=X*10)m++;
+    return _sq(`一張厚度 \\(0.1\\) 公釐的紙，每對折一次厚度變為原來的 \\(2\\) 倍。至少要對折幾次，厚度才會超過 \\(${X}\\) 公分？`,m,'次');}
+  const a=randInt(1,5),r=pick([2,3]),n=randInt(5,8);
+  return _sq(`等比數列 \\(${a},\\,${a*r},\\,${a*r*r},\\cdots\\) 中，\\(${a*r**(n-1)}\\) 是第幾項？`,n,'第幾項');
+}
+
 // ─── 對外介面 ──────────────────────────────────────────────────────
 const JR_GENERATORS = {
   // 七上 整數
@@ -12795,9 +12838,9 @@ const JR_GENERATORS = {
   '8a-quad3':    gen8bQuad3,
   '8a-stat':     gen8bStat,
   // 八下（數列、線型函數、三角形）
-  '8b-arith-seq':      lv=>_jrTidy(gen8bArithSeq(lv)),
-  '8b-arith-series':   lv=>_jrTidy(gen8bArithSeries(lv)),
-  '8b-geo-seq':        lv=>_jrTidy(gen8bGeoSeq(lv)),
+  '8b-arith-seq':      _withFig(gen8bArithSeq,_seqA,0.4),
+  '8b-arith-series':   _withFig(gen8bArithSeries,_seqS,0.4),
+  '8b-geo-seq':        _withFig(gen8bGeoSeq,_seqG,0.4),
   '8b-linear-func':    _withFig(gen8bLinearFunc,_figLin,0.5),
   '8b-tri-angle':      lv=>_jrTidy(gen8bTriAngle(lv)),
   '8b-tri-congruence': _withFig(gen8bTriCongruence,_figCong),
