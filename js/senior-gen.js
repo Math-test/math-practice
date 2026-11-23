@@ -10263,3 +10263,85 @@ function _b3bLogFuncExt(level){
   mix('b3b-trig-arc',_b3bArcExt,0.55);
   mix('b3b-log-func',_b3bLogFuncExt,0.5);
 })();
+
+// ══ 附圖題補充：原本只有文字題的高中單元（使用 js/geo-fig.js、js/arc-fig.js 的畫圖工具）══
+// 各單元約三成五的題目改出附圖題；角度一律標度數或「弳」，不用希臘字母
+(function(){
+  const F=()=>window.GEO_FIG&&window.GEO_FIG.quiz,R=srRandInt,pk=a=>a[Math.floor(Math.random()*a.length)];
+  const N=(q,v,p,g,t)=>({question:q,answer:v,type:t||'number',answerPrefix:p||'',graph:g});
+  const AP=(q,parts,g)=>({question:q,answerParts:parts.map(([p,a,t])=>({prefix:p,answer:a,type:t||'number'})),graph:g});
+  const TRI=[[3,4,5],[6,8,10],[5,12,13],[8,15,17],[9,12,15],[7,24,25]];
+  const absIneq=lv=>{const h=R(-3,4),k=R(1,4),cl=Math.random()<0.5,out=lv==='hard';
+    const g=F().numLine({min:-7,max:9,...(out?{rays:[{v:h-k,dir:-1,open:!cl},{v:h+k,dir:1,open:!cl}]}:{segs:[{a:h-k,b:h+k,oa:!cl,ob:!cl}]})});
+    return AP(`右圖為不等式 \\(|x-h|${out?(cl?'\\ge':'\\gt'):(cl?'\\le':'\\lt')} k\\) 的解在數線上的表示（\\(k>0\\)），求 \\(h\\)、\\(k\\)`,[['\\(h\\)',h],['\\(k\\)',k]],g);};
+  const polyIneq=lv=>{const p=R(-4,1),q=R(p+1,4),a=pk([1,-1]),sc=Math.min(1,4.5/((q-p)*(q-p)/4)),g=F().plot({xr:[-5,5],yr:[-5,5],fns:[{f:x=>a*sc*(x-p)*(x-q)}],pts:[[p,0],[q,0]]});
+    const inside=lv==='basic'||Math.random()<0.5,sign=inside?(a>0?'\\lt':'\\gt'):(a>0?'\\ge':'\\le');
+    return AP(`右圖為二次函數 \\(y=f(x)\\) 的圖形（每一小格邊長為 \\(1\\)）。不等式 \\(f(x)${sign} 0\\) 的解為 ${inside?'\\(m\\lt x\\lt n\\)':'\\(x\\le m\\) 或 \\(x\\ge n\\)'}，求 \\(m\\)、\\(n\\)`,[['\\(m\\)',p],['\\(n\\)',q]],g);};
+  const line=lv=>{const [n,d]=pk([[1,1],[2,1],[-1,1],[-2,1],[1,2],[-1,2],[3,2],[-3,2],[2,3],[-2,3]]),k=R(-3,3),y2=k+n;if(Math.abs(y2)>5)return null;
+    const g=F().plot({xr:[-5,5],yr:[-5,5],lines:[[-n,d,d*k]],pts:[[0,k],[d,y2]]});
+    if(lv==='basic')return N(`右圖為直線 \\(L\\) 的圖形（每一小格邊長為 \\(1\\)），求 \\(L\\) 的斜率`,frac(n,d),'斜率',g,'fraction');
+    return AP(`右圖為直線 \\(L：y=mx+k\\) 的圖形（每一小格邊長為 \\(1\\)），求 \\(m\\)、\\(k\\)`,[['\\(m\\)',frac(n,d),'fraction'],['\\(k\\)',k]],g);};
+  const lineDist=lv=>{const [a,b,c]=pk([[3,4,5],[4,3,5],[3,-4,5],[4,-3,5],[6,8,10],[8,-6,10]]),x0=R(-2,2),y0=R(-2,2),d=R(1,3),C=a*x0+b*y0+pk([1,-1])*d*c;
+    const t=(C-a*x0-b*y0)/(a*a+b*b),fx=x0+a*t,fy=y0+b*t;
+    return N(`如右圖，求點 \\(P(${x0},\\,${y0})\\) 到直線 \\(L：${a}x${b<0?'-':'+'}${Math.abs(b)}y=${C}\\) 的距離`,d,'距離',F().plot({xr:[-6,6],yr:[-6,6],s:15,lines:[[a,b,C]],segs:[[x0,y0,fx,fy,1]],pts:[[x0,y0,'P']]}));};
+  const lineSys=lv=>{const px=R(-3,3),py=R(-3,3),a1=pk([1,2,3]),b1=pk([1,-1,2]),a2=pk([1,-2,3]),b2=pk([-1,3,-2]);if(a1*b2===a2*b1)return null;const c1=a1*px+b1*py,c2=a2*px+b2*py;
+    const eq=(a,b,c)=>`${a===1?'':a===-1?'-':a}x${b>0?'+':'-'}${Math.abs(b)===1?'':Math.abs(b)}y=${c}`;
+    return AP(`右圖中兩直線 \\(L_1：${eq(a1,b1,c1)}\\)、\\(L_2：${eq(a2,b2,c2)}\\) 交於 \\(P\\) 點，求 \\(P\\) 點的坐標 \\((x,\\,y)\\)`,[['\\(x\\)',px],['\\(y\\)',py]],F().plot({xr:[-5,5],yr:[-5,5],lines:[[a1,b1,c1],[a2,b2,c2,'5 4']],pts:[[px,py,'P']]}));};
+  const lineIneq=lv=>{
+    if(lv==='hard'){ // 三角形區域內的格子點個數
+      const A=[R(-4,-1),R(-4,-1)],B=[R(1,4),R(-4,0)],C=[R(-2,2),R(2,4)],cr=(o,p,q)=>(p[0]-o[0])*(q[1]-o[1])-(p[1]-o[1])*(q[0]-o[0]);if(cr(A,B,C)===0)return null;
+      let n=0;for(let x=-5;x<=5;x++)for(let y=-5;y<=5;y++){const s=[cr(A,B,[x,y]),cr(B,C,[x,y]),cr(C,A,[x,y])];if(s.every(v=>v>=0)||s.every(v=>v<=0))n++;}
+      return N(`右圖塗色的三角形區域（含邊界）是某個二元一次聯立不等式的解。區域內（含邊界）共有幾個格子點（\\(x\\)、\\(y\\) 坐標都是整數的點）？`,n,'個',F().plot({xr:[-5,5],yr:[-5,5],poly:[A,B,C],pts:[[...A],[...B],[...C]]}));}
+    const m=pk([-2,-1,1,2,3]),k=R(-3,3),up=Math.random()<0.5,cl=Math.random()<0.5;
+    return AP(`右圖塗色部分（${cl?'含':'不含'}邊界直線）為不等式 \\(y${up?(cl?'\\ge':'\\gt'):(cl?'\\le':'\\lt')} mx+k\\) 的圖形（每一小格邊長為 \\(1\\)），求 \\(m\\)、\\(k\\)`,[['\\(m\\)',m],['\\(k\\)',k]],
+      F().plot({xr:[-5,5],yr:[-5,5],shade:{f:x=>m*x+k,up},lines:[[-m,1,k,cl?'':'5 4']],pts:[[0,k],[1,m+k]]}));};
+  const divPt=lv=>{const m=R(1,3),n=R(1,3),ux=pk([-2,-1,1,2]),uy=pk([-2,-1,1,2]),A=[R(-4,0),R(-4,0)];const B=[A[0]+(m+n)*ux,A[1]+(m+n)*uy];if([B[0],B[1]].some(v=>Math.abs(v)>5))return null;
+    return AP(`如右圖，\\(P\\) 點在 \\(\\overline{AB}\\) 上，且 \\(\\overline{AP}:\\overline{PB}=${m}:${n}\\)，求 \\(P\\) 點的坐標（每一小格邊長為 \\(1\\)）`,[['\\(x\\)',A[0]+m*ux],['\\(y\\)',A[1]+m*uy]],
+      F().plot({xr:[-5,5],yr:[-5,5],segs:[[...A,...B]],pts:[[...A,'A'],[...B,'B']]}));};
+  const circEq=lv=>{const h=R(-2,2),k=R(-2,2),r=R(1,3);
+    return AP(`右圖為圓心在格子點上的圓（每一小格邊長為 \\(1\\)），其方程式可寫成 \\(x^{2}+y^{2}+dx+ey+f=0\\)，求 \\(d\\)、\\(e\\)、\\(f\\)`,[['\\(d\\)',-2*h],['\\(e\\)',-2*k],['\\(f\\)',h*h+k*k-r*r]],
+      F().plot({xr:[-6,6],yr:[-6,6],s:15,circles:[[h,k,r]],pts:[[h,k,'C']]}));};
+  const circLine2=lv=>{const h=R(-1,1),k=R(-1,1),[dd,hh]=pk([[3,4],[4,3]]),hor=Math.random()<0.5,sg=pk([1,-1]),c=hor?k+sg*dd:h+sg*dd;
+    const sq=(v,t)=>`(${t}${v>0?'-'+v:v<0?'+'+(-v):''})^{2}`;
+    return N(`如右圖，圓 \\(C：${sq(h,'x')}+${sq(k,'y')}=25\\) 與直線 \\(L：${hor?'y':'x'}=${c}\\) 交於 \\(A\\)、\\(B\\) 兩點，求弦 \\(\\overline{AB}\\) 的長度`,2*hh,'\\(\\overline{AB}\\)',
+      F().plot({xr:[-7,7],yr:[-7,7],s:13,step:2,circles:[[h,k,5]],lines:[hor?[0,1,c]:[1,0,c]],pts:hor?[[h-hh,c,'A',-8],[h+hh,c,'B']]:[[c,k-hh,'A'],[c,k+hh,'B']]}));};
+  const trig=lv=>{const [a,b,c]=pk(TRI);
+    if(lv!=='hard'){const f=pk([['sin',a,c],['cos',b,c],['tan',a,b]]);
+      return N(`如右圖，直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，求 \\(\\${f[0]} A\\)`,frac(f[1],f[2]),`\\(\\${f[0]} A\\)`,
+        F().geo({P:{A:[18,132],B:[188,30],C:[188,132]},polys:[{pts:'ABC'}],right:[['C','A','B']],side:[['B','C',String(a)],['A','C',String(b)],['A','B',String(c)]],ang:[['A','C','B','',1]],w:212,h:158}),'fraction');}
+    const k=R(2,8);return N(`如右圖，在地面上距離塔底 \\(${b*k}\\) 公尺處測得塔頂的仰角為 \\(\\angle A\\)，且 \\(\\tan A=\\dfrac{${a}}{${b}}\\)，求塔高（公尺）`,a*k,'塔高',
+      F().geo({P:{A:[22,132],B:[180,132],C:[180,26]},segs:['AB','AC','BC'],right:[['B','A','C']],ang:[['A','B','C','',1]],text:[[[100,150],`${b*k} 公尺`,{fs:12}]],w:214,h:158}));};
+  const arcRad=lv=>{const r=R(2,12),k=pk([1,2,3]),th=Math.round(k*180/Math.PI),g=window.ARC_FIG.quiz.sector(r,th).replace(`>${th}°<`,`>${k} 弳<`);
+    const t=lv==='basic'?0:lv==='medium'?1:2;
+    if(t===0)return N(`如右圖，扇形的半徑為 \\(${r}\\)，圓心角為 \\(${k}\\) 弳，求弧長`,r*k,'弧長',g);
+    if(t===1)return N(`如右圖，扇形的半徑為 \\(${r}\\)，圓心角為 \\(${k}\\) 弳，求扇形面積`,frac(r*r*k,2),'面積',g,'fraction');
+    return N(`如右圖，扇形的半徑為 \\(${r}\\)，周長為 \\(${2*r+r*k}\\)，求圓心角為幾弳`,k,'弳',window.ARC_FIG.quiz.sector(r,th).replace(`>${th}°<`,'>?<'));};
+  const trigGraph=lv=>{const a=R(1,3),b=pk([1,2]),c=R(-2,2),u=Math.PI/4;
+    const lab=x=>({2:'π/2',4:'π',6:'3π/2',8:'2π'})[x]||'';
+    return AP(`右圖為函數 \\(y=a\\sin(bx)+c\\)（\\(a\\gt 0\\)、\\(b\\gt 0\\)）的圖形，\\(x\\) 軸每一小格代表 \\(\\dfrac{\\pi}{4}\\)，求 \\(a\\)、\\(b\\)、\\(c\\)`,[['\\(a\\)',a],['\\(b\\)',b],['\\(c\\)',c]],
+      F().plot({xr:[-1,8],yr:[Math.min(-1,c-a-1),Math.max(1,c+a+1)],s:20,xfmt:lab,fns:[{f:x=>a*Math.sin(b*x*u)+c}],segs:[[0,c,8,c,1]]}));};
+  const expFunc=lv=>{const a=pk([2,3]),k=R(-3,2);
+    return AP(`右圖為函數 \\(y=a^{x}+k\\)（\\(a\\gt 1\\)）的圖形，虛線為圖形的漸近線（每一小格邊長為 \\(1\\)），求 \\(a\\)、\\(k\\)`,[['\\(a\\)',a],['\\(k\\)',k]],
+      F().plot({xr:[-4,4],yr:[Math.min(-1,k-1),Math.max(5,a+k+1)],fns:[{f:x=>a**x+k}],lines:[[0,1,k,'5 4']],pts:[[0,1+k],[1,a+k]]}));};
+  const logFunc=lv=>{const a=pk([2,3]),h=R(-2,1);
+    return AP(`右圖為函數 \\(y=\\log_{a}(x-h)\\) 的圖形，虛線為圖形的漸近線（每一小格邊長為 \\(1\\)），求 \\(a\\)、\\(h\\)`,[['\\(a\\)',a],['\\(h\\)',h]],
+      F().plot({xr:[-3,7],yr:[-4,4],fns:[{f:x=>x>h?Math.log(x-h)/Math.log(a):NaN}],lines:[[1,0,h,'5 4']],pts:[[h+1,0],[h+a,1]]}));};
+  const vecRepr=lv=>{const va=pk([[2,1],[1,2],[2,-1],[1,-1],[-1,2]]),vb=pk([[0,1],[1,0],[-1,1],[1,1],[1,-2]]);if(va[0]*vb[1]===va[1]*vb[0])return null;
+    const m=pk([-2,-1,1,2]),n=pk([-2,-1,1,2]),vc=[m*va[0]+n*vb[0],m*va[1]+n*vb[1]];if(vc.some(v=>Math.abs(v)>5)||(vc[0]===0&&vc[1]===0))return null;
+    return AP(`如右圖，向量 \\(\\vec{c}=m\\vec{a}+n\\vec{b}\\)（每一小格邊長為 \\(1\\)），求 \\(m\\)、\\(n\\)`,[['\\(m\\)',m],['\\(n\\)',n]],
+      F().plot({xr:[-5,5],yr:[-5,5],s:22,nolab:true,arrows:[[0,0,...va,'a'],[0,0,...vb,'b'],[0,0,...vc,'c']]}));};
+  const vecDot=lv=>{
+    if(lv==='hard'){const b=R(2,8),c=R(2,8),A=pk([60,120]);const bc=b*c;
+      return N(`如右圖，\\(\\triangle ABC\\) 中 \\(\\overline{AB}=${c}\\)、\\(\\overline{AC}=${b}\\)、\\(\\angle A=${A}^\\circ\\)，求 \\(\\overrightarrow{AB}\\cdot\\overrightarrow{AC}\\)`,frac(A===60?bc:-bc,2),'內積',
+        F().geo({P:{A:[A===60?60:110,24],B:[16,132],C:[196,132]},polys:[{pts:'ABC'}],side:[['A','B',String(c)],['A','C',String(b)]],ang:[['A','B','C',A+'°',1,30]],w:212,h:156}),'fraction');}
+    const va=[R(-3,4),R(-3,4)],vb=[R(-3,4),R(-3,4)];if((!va[0]&&!va[1])||(!vb[0]&&!vb[1]))return null;
+    return N(`如右圖，求 \\(\\vec{a}\\cdot\\vec{b}\\)（每一小格邊長為 \\(1\\)）`,va[0]*vb[0]+va[1]*vb[1],'內積',F().plot({xr:[-5,5],yr:[-5,5],s:22,nolab:true,arrows:[[0,0,...va,'a'],[0,0,...vb,'b']]}));};
+  const areaDet=lv=>{const A=[R(-4,0),R(-4,0)],B=[R(1,4),R(-4,1)],C=[R(-3,3),R(1,4)],d=(B[0]-A[0])*(C[1]-A[1])-(B[1]-A[1])*(C[0]-A[0]);if(!d)return null;
+    return N(`如右圖，\\(\\triangle ABC\\) 的三個頂點都在格子點上（每一小格邊長為 \\(1\\)），求 \\(\\triangle ABC\\) 的面積`,frac(Math.abs(d),2),'面積',F().plot({xr:[-5,5],yr:[-5,5],poly:[A,B,C],pts:[[...A,'A'],[...B,'B'],[...C,'C']]}),'fraction');};
+  const G={'b1-abs-ineq':absIneq,'b1-poly-ineq2':polyIneq,'b1-line':line,'b1-line-dist':lineDist,'b1-line-sys':lineSys,'b1-line-ineq':lineIneq,'b1-div-pt':divPt,'b1-circ-eq':circEq,'b1-circ-line':circLine2,
+    'b2-trig':trig,'b3a-arc':arcRad,'b3b-trig-arc':arcRad,'b3a-trig-graph':trigGraph,'b3a-exp-func':expFunc,'b3b-exp-func':expFunc,'b3a-log-func':logFunc,'b3b-log-func':logFunc,
+    'b3a-vec-repr':vecRepr,'b3b-vec-repr':vecRepr,'b3a-vec-dot':vecDot,'b3b-vec-dot':vecDot,'b3a-area-det':areaDet};
+  Object.entries(G).forEach(([key,fig])=>{const base=SR_GENERATORS[key];if(!base)return;
+    SR_GENERATORS[key]=(lv,n)=>{if(F()&&Math.random()<0.35){for(let i=0;i<40;i++){let q=null;try{q=fig(lv);}catch(e){q=null;}if(q)return q;}}return base(lv,n);};});
+  window._SR_FIG=G; // 檢查程式用
+})();

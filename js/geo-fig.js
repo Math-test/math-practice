@@ -76,7 +76,8 @@ function mk(st) {
       g += L(P(x0, axY), [X(x1) + 10, Y(axY)], { w: 1.2 }) + arrowHead([X(x1) + 14, Y(axY)], [1, 0], 8) + L(P(axX, y0), [X(axX), Y(y1) - 10], { w: 1.2 }) + arrowHead([X(axX), Y(y1) - 14], [0, -1], 8);
       g += T([X(x1) + 12, Y(axY) + 15], 'x', { it: 1, fs: 13 }) + T([X(axX) + 10, Y(y1) - 6], 'y', { it: 1, fs: 13 }) + (x0 <= 0 && y0 <= 0 ? T([X(0) - 7, Y(0) + 13], 'O', { it: 1, fs: 12 }) : '');
       const st = o.step || ((x1 - x0) > 12 || (y1 - y0) > 12 ? 2 : 1);
-      if (!o.nolab) { for (let x = Math.ceil(x0); x <= x1; x++) if (x && x % st === 0) g += T([X(x), Y(axY) + 13], x, { fs: 10 }); for (let y = Math.ceil(y0); y <= y1; y++) if (y && y % st === 0) g += T([X(axX) - 5, Y(y) + 4], y, { fs: 10, a: 'end' }); }
+      // xfmt：x 軸刻度改用自訂文字（例如以 π 為單位），傳回空字串表示不標
+      if (!o.nolab) { for (let x = Math.ceil(x0); x <= x1; x++) { const t = o.xfmt ? o.xfmt(x) : (x && x % st === 0 ? x : ''); if (t !== '' && x) g += T([X(x), Y(axY) + 13], t, { fs: 10 }); } for (let y = Math.ceil(y0); y <= y1; y++) if (y && y % st === 0) g += T([X(axX) - 5, Y(y) + 4], y, { fs: 10, a: 'end' }); }
       let cl = '';
       const curve = (f, d) => { const segs = [[]]; for (let i = 0; i <= 300; i++) { const x = x0 + (x1 - x0) * i / 300, y = f(x); if (isFinite(y) && y >= y0 - 3 && y <= y1 + 3) segs[segs.length - 1].push(`${f1(X(x))},${f1(Y(y))}`); else if (segs[segs.length - 1].length) segs.push([]); }
         return `<path d="${segs.filter(z => z.length > 1).map(z => 'M' + z.join(' L')).join(' ')}" fill="none" stroke="${c.line}" stroke-width="2"${d ? ` stroke-dasharray="${d}"` : ''}/>`; };
