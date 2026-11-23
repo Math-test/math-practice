@@ -390,6 +390,20 @@ body {
 }
 .coming-soon strong { display: block; font-size: 1.4rem; margin-bottom: 8px; color: #90A4AE; }
 
+/* ─── 頁尾版權聲明（列印時隱藏）─────────────────────── */
+.site-footer {
+  margin: 32px auto 0;
+  padding: 18px 16px 28px;
+  max-width: 900px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: .8rem;
+  line-height: 1.8;
+  color: var(--text-s);
+}
+.site-footer a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+@media print { .site-footer { display: none !important; } }
+
 /* ─── 列印頁首（螢幕隱藏，列印顯示）───────────────── */
 .print-page-header { display: none; }
 .print-page-break   { display: none; }
