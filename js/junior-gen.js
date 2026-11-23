@@ -12634,7 +12634,7 @@ function _9bProbExt(level){
 
 // ── 附圖題：全等、比例線段、相似（js/geo-fig.js）。這幾個單元約三分之一的題目改出附圖題 ──
 const _GF=()=>window.GEO_FIG&&window.GEO_FIG.quiz;
-const _withFig=(gen,fig)=>lv=>{if(_GF()&&Math.random()<0.35){for(let i=0;i<30;i++){const q=fig(lv);if(q)return _jrTidy(q);}}return _jrTidy(gen(lv));};
+const _withFig=(gen,fig,pr)=>lv=>{if(_GF()&&Math.random()<(pr||0.35)){for(let i=0;i<30;i++){const q=fig(lv);if(q)return _jrTidy(q);}}return _jrTidy(gen(lv));};
 const _gN=(q,v,p,g)=>({question:q,answer:v,type:'number',answerPrefix:p||'',graph:g});
 const _CP='（\\(A\\)、\\(B\\)、\\(C\\) 的對應點依序為 \\(D\\)、\\(E\\)、\\(F\\)）';
 function _figCong(lv){
@@ -12688,6 +12688,46 @@ function _figSimApp(lv){
   return _gN(`如右圖，路燈高 \\(${H}\\) 公尺，身高 \\(${h}\\) 公尺的小芳站在距離路燈底部 \\(${d}\\) 公尺的地方，求她在地面上的影長（公尺）`,+s.toFixed(2),'影長',F.lamp(H,h,d));
 }
 
+// ── 附圖題：坐標平面（七下）、線型函數圖形（八下）。用 _makeSVG 畫方格坐標圖 ──
+const _coordAns=(x,y)=>({coordAnswer:true,answerParts:[{answer:x,type:'number'},{answer:y,type:'number'}]});
+function _figCoord(lv){
+  const nz=()=>pick([-4,-3,-2,-1,1,2,3,4]);
+  if(lv==='basic'){
+    const x=nz(),y=nz();if(Math.abs(x)===Math.abs(y))return null;const t=randInt(0,2),nm=['\\(x\\) 軸','\\(y\\) 軸','原點'][t],a=[[x,-y],[-x,y],[-x,-y]][t];
+    return {question:`如右圖，\\(Q\\) 點與 \\(P\\) 點對稱於${nm}，寫出 \\(Q\\) 點的坐標`,..._coordAns(...a),graph:_makeSVG({pts:[{x,y,label:'P'}],size:180})};
+  }
+  if(lv==='medium'){
+    const x1=randInt(-4,0),x2=randInt(1,4),y1=randInt(-4,0),y2=randInt(1,4);if(x2-x1<2||y2-y1<2)return null;
+    const V4=[[x1,y1],[x2,y1],[x2,y2],[x1,y2]],k=randInt(0,3),[A,B,C,D]=[1,2,3,0].map(i=>V4[(k+i)%4]);
+    return {question:`如右圖，四邊形 \\(ABCD\\) 是長方形，寫出 \\(D\\) 點的坐標`,..._coordAns(...D),graph:_makeSVG({pts:[{x:A[0],y:A[1],label:'A'},{x:B[0],y:B[1],label:'B'},{x:C[0],y:C[1],label:'C'}],segs:[{x1:A[0],y1:A[1],x2:B[0],y2:B[1]},{x1:B[0],y1:B[1],x2:C[0],y2:C[1]}],size:180})};
+  }
+  // 由圖中 P(a,b) 的位置判斷 Q 的象限（答案填 1～4）
+  const sa=pick([1,-1]),sb=pick([1,-1]),x=sa*randInt(1,4),y=sb*randInt(1,4);
+  const E=[['-a',-sa],['-b',-sb],['ab',sa*sb],['-ab',-sa*sb],['a-b',sa!==sb?sa:0],['b-a',sa!==sb?sb:0],['a^{2}',1],['-b^{2}',-1]].filter(e=>e[1]);
+  const [e1,e2]=[pick(E),pick(E)];if(e1[0]===e2[0])return null;
+  const q=e1[1]>0?(e2[1]>0?1:4):(e2[1]>0?2:3);
+  return {question:`如右圖，點 \\(P(a,b)\\) 的位置如圖所示，則 \\(Q(${e1[0]},\\,${e2[0]})\\) 在第幾象限？（填 1～4）`,answer:q,type:'number',answerPrefix:'象限',graph:_makeSVG({pts:[{x,y,label:'P'}],size:180})};
+}
+function _figLin(lv){
+  const ln=(m,c)=>({a:-m,b:1,c});
+  const yS=(m,c)=>`y=${m===1?'':m===-1?'-':m}x${c>0?'+'+c:c<0?c:''}`;
+  if(lv==='basic'){
+    const m=pick([-3,-2,-1,1,2,3]),c=randInt(-3,3);if(Math.abs(m+c)>4||Math.abs(c-m)>4)return null;
+    if(Math.random()<0.5)return {question:`右圖為線型函數 \\(y=ax+b\\) 的圖形（每一小格邊長為 \\(1\\)），求 \\(a\\)、\\(b\\)`,answerParts:[{prefix:'\\(a\\)',answer:m,type:'number'},{prefix:'\\(b\\)',answer:c,type:'number'}],graph:_makeSVG({lines:[ln(m,c)],pts:[{x:0,y:c},{x:1,y:m+c}],size:180})};
+    const t=pick([-1,1])*randInt(5,9);
+    return {question:`右圖為線型函數 \\(y=f(x)\\) 的圖形（每一小格邊長為 \\(1\\)），求 \\(f(${t})\\)`,answer:m*t+c,type:'number',answerPrefix:`\\(f(${t})\\)`,graph:_makeSVG({lines:[ln(m,c)],pts:[{x:0,y:c},{x:1,y:m+c}],size:180})};
+  }
+  if(lv==='medium'){
+    // 與兩軸圍成的三角形面積：截距都是整數
+    const p=pick([-4,-3,-2,-1,1,2,3,4]),q=pick([-4,-3,-2,-1,1,2,3,4]);if(Math.abs(p)===Math.abs(q))return null;
+    return {question:`右圖的直線與 \\(x\\) 軸交於 \\((${p},\\,0)\\)、與 \\(y\\) 軸交於 \\((0,\\,${q})\\)，求此直線與兩坐標軸所圍成的三角形面積`,answer:Math.abs(p*q)/2,type:'number',answerPrefix:'面積',
+      graph:_makeSVG({lines:[{a:q,b:p,c:p*q}],pts:[{x:p,y:0},{x:0,y:q}],size:180})};
+  }
+  // 兩直線的交點：由圖讀出兩條直線，再解聯立
+  const px=randInt(-3,3),py=randInt(-3,3),[m1,m2]=[pick([1,2,3]),pick([-1,-2,-3])];const c1=py-m1*px,c2=py-m2*px;if(Math.abs(c1)>4||Math.abs(c2)>4)return null;
+  return {question:`如右圖，直線 \\(L_1：${yS(m1,c1)}\\) 與 \\(L_2：${yS(m2,c2)}\\) 交於 \\(P\\) 點，寫出 \\(P\\) 點的坐標`,..._coordAns(px,py),graph:_makeSVG({lines:[ln(m1,c1),{...ln(m2,c2),color:'#2E7D32'}],pts:[{x:px,y:py,label:'P'}],size:180})};
+}
+
 // ─── 對外介面 ──────────────────────────────────────────────────────
 const JR_GENERATORS = {
   // 七上 整數
@@ -12722,7 +12762,7 @@ const JR_GENERATORS = {
   // 七下 二元一次多項式
   '7b-poly':      gen7bPoly,
   // 七下 平面座標與圖形
-  '7b-coord':     gen7bCoord,
+  '7b-coord':     _withFig(gen7bCoord,_figCoord),
   '7b-linepic':   gen7bLinePic,
   '7b-chain':     gen7bChain,
   // 七下 比例
@@ -12758,7 +12798,7 @@ const JR_GENERATORS = {
   '8b-arith-seq':      lv=>_jrTidy(gen8bArithSeq(lv)),
   '8b-arith-series':   lv=>_jrTidy(gen8bArithSeries(lv)),
   '8b-geo-seq':        lv=>_jrTidy(gen8bGeoSeq(lv)),
-  '8b-linear-func':    lv=>_jrTidy(gen8bLinearFunc(lv)),
+  '8b-linear-func':    _withFig(gen8bLinearFunc,_figLin,0.5),
   '8b-tri-angle':      lv=>_jrTidy(gen8bTriAngle(lv)),
   '8b-tri-congruence': _withFig(gen8bTriCongruence,_figCong),
   '8b-tri-bisector':   lv=>_jrTidy(gen8bTriBisector(lv)),

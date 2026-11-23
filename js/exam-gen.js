@@ -1997,6 +1997,85 @@ g9a.push(
   },
 );
 
+// ════ 七下：坐標平面；八下：線型函數圖形（附圖）════
+const ptS = (x, y) => `\\((${x},${y})\\)`;
+// 簡圖坐標軸（不畫格線），原點在 (85,75)
+const axSk = body => SVG(170, 150, LN(10, 75, 155, 75, { w: 1.2 }) + LN(85, 142, 85, 12, { w: 1.2 }) + `<polygon points="162,75 154,71 154,79"/><polygon points="85,5 81,13 89,13"/>` +
+  T_(160, 92, 'x', { it: 1, fs: 13 }) + T_(97, 14, 'y', { it: 1, fs: 13 }) + T_(76, 90, 'O', { it: 1, fs: 13 }) + body);
+const QN = ['第一象限', '第二象限', '第三象限', '第四象限'], quadOf = (sx, sy) => sx > 0 ? (sy > 0 ? 0 : 3) : (sy > 0 ? 1 : 2);
+// y＝(mn/md)x＋(cn/cd)
+const yEq = (mn, md, cn, cd) => { const m = fr(mn, md), c = cn === 0 ? '' : (cn * (cd || 1) > 0 ? '+' : '-') + fr(Math.abs(cn), Math.abs(cd || 1)); return `y=${m === '1' ? '' : m === '-1' ? '-' : m}x${c}`; };
+g7b.push(
+  function () { // 對稱點（附圖）
+    const nz = () => pk([-4, -3, -2, -1, 1, 2, 3, 4]), x = nz(), y = nz(); if (Math.abs(x) === Math.abs(y)) return null;
+    const t = ri(0, 2), nm = ['\\(x\\) 軸', '\\(y\\) 軸', '原點'][t], ans = [[x, -y], [-x, y], [-x, -y]][t], A = ptS(...ans);
+    return V_(MC(`如右圖，坐標平面上每一小格的邊長為 \\(1\\)。若 \\(Q\\) 點與 \\(P\\) 點對稱於${nm}，則 \\(Q\\) 點的坐標為何？`, A, [[x, -y], [-x, y], [-x, -y], [y, x], [-y, -x]].map(p => ptS(...p)).filter(s => s !== A),
+      `由圖可知 \\(P\\) 點坐標為 ${ptS(x, y)}。對稱於${nm}時，${['\\(x\\) 坐標不變、\\(y\\) 坐標變號', '\\(y\\) 坐標不變、\\(x\\) 坐標變號', '兩個坐標都變號'][t]}，\\(Q\\) 點坐標為 ${A}。`,
+      { lv: 1, fig: gridGraph([], [-5, 5], [-5, 5], [[x, y, 'P']]) }), { x, y, t });
+  },
+  function () { // 長方形的第四個頂點（附圖）
+    const x1 = ri(-4, 0), x2 = ri(1, 4), y1 = ri(-4, 0), y2 = ri(1, 4); if (x2 - x1 < 2 || y2 - y1 < 2) return null;
+    const V4 = [[x1, y1], [x2, y1], [x2, y2], [x1, y2]], k = ri(0, 3), [Ap, Bp, Cp, Dp] = [1, 2, 3, 0].map(i => V4[(k + i) % 4]), A = ptS(...Dp);
+    const wr = [[Dp[1], Dp[0]], [-Dp[0], Dp[1]], [Dp[0], -Dp[1]], [Bp[0], Dp[1] + Bp[1] - Ap[1]], [Ap[0] + Cp[0], Ap[1] + Cp[1]]].map(p => ptS(...p)).filter(s => s !== A);
+    return V_(MC(`如右圖，坐標平面上每一小格的邊長為 \\(1\\)。若四邊形 \\(ABCD\\) 是長方形，則 \\(D\\) 點的坐標為何？`, A, [...new Set(wr)],
+      `由圖可知 \\(A\\)${ptS(...Ap)}、\\(B\\)${ptS(...Bp)}、\\(C\\)${ptS(...Cp)}。長方形的邊與坐標軸平行，\\(D\\) 點與 \\(A\\) 點${Ap[0] === Dp[0] ? '的 \\(x\\) 坐標相同' : '的 \\(y\\) 坐標相同'}、與 \\(C\\) 點${Cp[0] === Dp[0] ? '的 \\(x\\) 坐標相同' : '的 \\(y\\) 坐標相同'}，所以 \\(D\\) 點坐標為 ${A}。`,
+      { lv: 1, fig: gridGraph([], [-5, 5], [-5, 5], [[...Ap, 'A'], [...Bp, 'B'], [...Cp, 'C']]) }), { k });
+  },
+  function () { // 由 P(a,b) 的象限判斷另一點的象限（附圖）
+    const sa = pk([1, -1]), sb = pk([1, -1]);
+    const E = [['-a', -sa], ['-b', -sb], ['ab', sa * sb], ['-ab', -sa * sb], ['a-b', sa !== sb ? sa : 0], ['b-a', sa !== sb ? sb : 0], ['a^{2}', 1], ['-b^{2}', -1]].filter(e => e[1]);
+    const [e1, e2] = shuf(E).slice(0, 2), ans = QN[quadOf(e1[1], e2[1])], qp = QN[quadOf(sa, sb)], P = [85 + sa * 45, 75 - sb * 35], g = v => v > 0 ? '\\gt ' : '\\lt ';
+    if (_want !== null && QN.indexOf(ans) !== _want) return null; // 選項固定為四個象限，重出直到答案落在指定位置
+    return V_(MC(`如右圖，坐標平面上 \\(P(a,b)\\) 在${qp}，則 \\(Q(${e1[0]},${e2[0]})\\) 在第幾象限？`, ans, QN.filter(v => v !== ans),
+      `\\(P\\) 在${qp}，所以 \\(a${g(sa)}0\\)、\\(b${g(sb)}0\\)，得 \\(${e1[0]}${g(e1[1])}0\\)、\\(${e2[0]}${g(e2[1])}0\\)，\\(Q\\) 在${ans}。`,
+      { lv: 2, ord: v => QN.indexOf(v), fixed: 1, fig: axSk(DOT(...P) + T_(P[0] + (sa > 0 ? 8 : -8), P[1] - 7, 'P', { it: 1, fs: 13, a: sa > 0 ? 'start' : 'end' })) }), { sa, sb });
+  },
+);
+g8b.push(
+  function () { // 由圖形判斷 y＝ax＋b 的 a、b 正負（附圖）
+    const sa = pk([1, -1]), sb = pk([1, -1]), i = (sa > 0 ? 0 : 2) + (sb > 0 ? 0 : 1), t = coin();
+    const k = sa * pk([0.6, 0.9, 1.4]), yb = 75 - sb * 28, xa = 85 + (yb - 10) / k, xb = 85 + (yb - 140) / k, lo = Math.max(12, Math.min(xa, xb)), hi = Math.min(158, Math.max(xa, xb));
+    const fig = axSk(LN(lo, yb - k * (lo - 85), hi, yb - k * (hi - 85), { w: 1.8 }));
+    const why = `圖形由${sa > 0 ? '左下往右上' : '左上往右下'}，斜率 \\(a${sa > 0 ? '\\gt' : '\\lt'} 0\\)；與 \\(y\\) 軸交在原點${sb > 0 ? '上方' : '下方'}，\\(y\\) 截距 \\(b${sb > 0 ? '\\gt' : '\\lt'} 0\\)`;
+    if (!t) { const OP = ['\\(a\\gt 0\\)，\\(b\\gt 0\\)', '\\(a\\gt 0\\)，\\(b\\lt 0\\)', '\\(a\\lt 0\\)，\\(b\\gt 0\\)', '\\(a\\lt 0\\)，\\(b\\lt 0\\)'];
+      return V_(MC(`右圖為線型函數 \\(y=ax+b\\) 的圖形，則下列關於 \\(a\\)、\\(b\\) 的敘述何者正確？`, OP[i], OP.filter((_, j) => j !== i), why + '。', { lv: 1, ord: v => OP.indexOf(v), fixed: 1, fig }), { sa, sb, t }); }
+    const m = ri(1, 3), c = ri(1, 4), OP = [M(yEq(m, 1, c)), M(yEq(m, 1, -c)), M(yEq(-m, 1, c)), M(yEq(-m, 1, -c))];
+    return V_(MC(`右圖為某線型函數的圖形，則此函數可能為下列何者？`, OP[i], OP.filter((_, j) => j !== i), why + `，只有 ${OP[i]} 符合。`, { lv: 1, ord: v => OP.indexOf(v), fixed: 1, fig }), { sa, sb, t });
+  },
+  function () { // 由方格圖選線型函數（附圖）
+    const [mn, md] = pk([[1, 1], [2, 1], [3, 1], [-1, 1], [-2, 1], [-3, 1], [1, 2], [-1, 2], [3, 2], [-3, 2]]), c = pk([-3, -2, -1, 1, 2, 3]), f = x => mn / md * x + c, xa = md === 1 ? 1 : 2;
+    if ([xa, -xa].some(x => Math.abs(f(x)) > 5)) return null;
+    const eq = (a, b, cc) => M(yEq(a, b, cc, 1)), ans = eq(mn, md, c), cand = [...new Set([eq(-mn, md, c), eq(mn, md, -c), eq(md, mn, c), eq(-mn, md, -c), eq(-md, mn, c)])].filter(s => s !== ans);
+    return V_(MC(`右圖為某線型函數的圖形，圖中每一小格的邊長為 \\(1\\)，則此函數為下列何者？`, ans, cand,
+      `圖形與 \\(y\\) 軸交於 \\((0,${c})\\)，\\(y\\) 截距為 \\(${c}\\)；又通過 \\((${xa},${num(f(xa))})\\)，斜率 \\(=\\dfrac{${num(f(xa))}-(${c})}{${xa}}=${fr(mn, md)}\\)，所以函數為 ${ans}。`,
+      { lv: 2, fig: gridGraph([f], [-5, 5], [-5, 5], [[0, c], [xa, f(xa)]]) }), { mn, md, c });
+  },
+  function () { // 兩直線與 x 軸圍成的三角形面積（附圖）
+    const a = ri(-5, -1), b = ri(1, 5), p = ri(a + 1, b - 1), h = ri(2, 5), S = (b - a) * h / 2;
+    const f1 = x => h / (p - a) * (x - a), f2 = x => -h / (b - p) * (x - b), e1 = yEq(h, p - a, -h * a, p - a), e2 = yEq(-h, b - p, h * b, b - p);
+    return V_(MC(`如右圖，直線 \\(L_1：${e1}\\) 與直線 \\(L_2：${e2}\\) 交於 \\(P\\) 點，並分別與 \\(x\\) 軸交於 \\(A\\)、\\(B\\) 兩點，則 \\(\\triangle PAB\\) 的面積為何？`, S,
+      [(b - a) * h, (b - a) + h, b * h / 2, -a * h / 2 + h].filter(v => v > 0 && v !== S),
+      `令 \\(y=0\\)，得 \\(A(${a},0)\\)、\\(B(${b},0)\\)；解聯立方程式得 \\(P(${p},${h})\\)。底 \\(\\overline{AB}=${b - a}\\)，高為 \\(${h}\\)，面積 \\(=\\dfrac{${b - a}\\times ${h}}{2}=${num(S)}\\)。`,
+      { lv: 3, pos: 1, step: 0.5, fig: gridGraph([f1, f2], [-6, 6], [-2, 6], [[a, 0, 'A'], [b, 0, 'B'], [p, h, 'P']]) }), { a, b, p, h });
+  },
+  function () { // 素養：手機電量（線型函數圖形）
+    const r = pk([5, 8, 10, 20, 25]), T = 100 / r, t1 = ri(1, Math.ceil(T) - 2), y1 = 100 - r * t1; if (t1 < 1 || y1 <= 0) return null;
+    const ask = coin(), t2 = ri(t1 + 1, Math.ceil(T) - 1); if (ask && (t2 >= T || t2 === t1)) return null;
+    const ox = 42, oy = 142, sx = 158 / T, sy = 1.2, px = x => ox + x * sx, py = y => oy - y * sy;
+    let o = LN(ox, oy, 218, oy, { w: 1.2 }) + LN(ox, oy, ox, 10, { w: 1.2 }) + `<polygon points="225,${oy} 217,${oy - 4} 217,${oy + 4}"/><polygon points="${ox},3 ${ox - 4},11 ${ox + 4},11"/>`;
+    o += LN(px(0), py(100), px(T), py(0), { w: 1.8 }) + LN(px(t1), oy, px(t1), py(y1), { d: '3 3', w: 1 }) + LN(ox, py(y1), px(t1), py(y1), { d: '3 3', w: 1 }) + DOT(px(0), py(100)) + DOT(px(t1), py(y1));
+    o += T_(ox - 5, py(100) + 4, 100, { fs: 11, a: 'end' }) + T_(ox - 5, py(y1) + 4, y1, { fs: 11, a: 'end' }) + T_(px(t1), oy + 14, t1, { fs: 11 }) + T_(ox - 6, oy + 13, 'O', { it: 1, fs: 12 }) +
+      T_(224, oy + 16, 'x（小時）', { fs: 11, a: 'end' }) + T_(ox + 6, 12, 'y（%）', { fs: 11, a: 'start' });
+    const head = `某支手機充飽電（電量 100%）後持續使用，剩下的電量 \\(y\\)（%）與使用時間 \\(x\\)（小時）的關係為線型函數，圖形如右圖。`;
+    const rate = `由圖可知，每小時用掉 \\(\\dfrac{100-${y1}}{${t1}}=${r}\\)（%），所以 \\(y=100-${r}x\\)。`;
+    if (!ask) return V_(MC(head + `依此推算，充飽電後使用幾小時，電量會剛好用完？`, T, [100 / (100 - y1), T / 2, y1 / r + t1 + 1, 2 * T, 100 / y1 * t1].filter(v => v > 0 && v !== T && Number.isInteger(v * 2)),
+      rate + `令 \\(y=0\\)，\\(x=${num(T)}\\)（小時）。`, { lv: 2, pos: 1, step: 0.5, fig: SVG(230, 162, o) }), { r, t1, y1, ask });
+    const ans = 100 - r * t2;
+    return V_(MC(head + `依此推算，使用 \\(${t2}\\) 小時後，電量剩下多少 %？`, ans, [r * t2, 100 - r * (t2 - t1), y1 - t2, 100 - r * (t2 + 1)].filter(v => v > 0 && v < 100 && v !== ans && Number.isInteger(v)),
+      rate + `\\(x=${t2}\\) 時，\\(y=100-${r}\\times ${t2}=${ans}\\)。`, { lv: 2, pos: 1, step: 5, fig: SVG(230, 162, o) }), { r, t1, y1, ask, t2 });
+  },
+);
+
 window.EXAM_BANK = {
   '7a': { name: '七上', mc: g7a, nc: n7a },
   '7b': { name: '七下', mc: g7b, nc: n7b },
