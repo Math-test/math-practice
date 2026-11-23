@@ -495,7 +495,7 @@ const g9b = [
       return MC(`若一個角錐共有 \\(${2 * n}\\) 條稜邊，則這個角錐有幾個面？`, n + 1, [n, n + 2, 2 * n], `\\(n\\) 角錐有 \\(2n\\) 條稜邊，\\(n=${n}\\)，面數 \\(=n+1=${n + 1}\\)。`, { lv: 1, pos: 1 }); }
     const [r, l] = pk([[3, 9], [2, 6], [4, 12], [3, 12], [5, 15], [2, 8], [4, 10], [5, 9], [3, 10]]), ang = 360 * r / l; if (!Number.isInteger(ang)) return null;
     return MC(`一個直圓錐的底面半徑為 \\(${r}\\)、斜高為 \\(${l}\\)，其側面展開圖為扇形，則此扇形的圓心角為幾度？`, ang, [180 * r / l, 360 * l / r / 10, ang + 30].filter(Number.isInteger),
-      `扇形弧長等於底面圓周長：\\(2\\pi\\times ${l}\\times\\dfrac{\\theta}{360}=2\\pi\\times ${r}\\)，\\(\\theta=${ang}^\\circ\\)。`, { lv: 2, pos: 1, int: 1, step: 10, fmt: v => num(v) + '^\\circ' });
+      `扇形弧長等於底面圓周長：\\(2\\pi\\times ${l}\\times\\dfrac{圓心角}{360^\\circ}=2\\pi\\times ${r}\\)，圓心角 \\(=360^\\circ\\times\\dfrac{${r}}{${l}}=${ang}^\\circ\\)。`, { lv: 2, pos: 1, int: 1, step: 10, fmt: v => num(v) + '^\\circ' });
   },
   function () { // 三枚硬幣
     const k = ri(0, 3), C = [1, 3, 3, 1][k];
@@ -1840,6 +1840,76 @@ n9b.push(
     return NC(`某商店販售一種商品，每件可賺 \\(${p}\\) 元，每天可賣出 \\(${n}\\) 件。經調查發現，每件每漲價 \\(1\\) 元，每天就會少賣出 \\(${k}\\) 件。設每件漲價 \\(x\\) 元，每天的利潤為 \\(y\\) 元。`,
       [`若每件漲價 \\(${x1}\\) 元，每天的利潤為多少元？`, `寫出 \\(y\\) 與 \\(x\\) 的關係式，並化成 \\(y=a(x-h)^{2}+k\\) 的形式。`, `每件漲價多少元時，每天的利潤最大？最大利潤為多少元？`],
       [`\\((${p}+${x1})(${n}-${k * x1})=${(p + x1) * (n - k * x1)}\\)（元）。`, `\\(y=(${p}+x)(${n}-${k}x)=-${k}x^{2}+${k * 2 * x0}x+${p * n}=-${k}(x-${x0})^{2}+${mx}\\)。`, `漲價 \\(${x0}\\) 元時利潤最大，最大利潤為 \\(${mx}\\) 元。`]);
+  },
+);
+
+// ════ 九上：弧長與扇形（附圖與素養）════
+// 文字選項（含 π）：依數值去除重複與非正數；o.uo 為真時選項不排序
+function MCv(stem, a, wrong, sol, o) {
+  const mp = new Map([[M(a[0]), a[1]]]), seenV = new Set([num(a[1])]), ws = [];
+  wrong.forEach(([s, v]) => { if (!(v > 0) || seenV.has(num(v))) return; seenV.add(num(v)); mp.set(M(s), v); ws.push(M(s)); });
+  return MC(stem, M(a[0]), ws, sol, o && o.uo ? o : Object.assign({}, o, { ord: s => mp.get(s) }));
+}
+const PI_ = Math.PI;
+const kp = (n, d) => [piL(n, d), n / d * PI_];                                   // kπ
+const kpFill = (n, d) => [[n, 2 * d], [2 * n, d], [3 * n, 2 * d], [2 * n, 3 * d], [3 * n, 4 * d], [4 * n, 3 * d]].map(([p, q]) => kp(p, q));
+const apb = (a, n, d) => [`${a}+${piL(n, d)}`, a + n / d * PI_];                // a+kπ
+const amb = (a, n, d) => [`${a}-${piL(n, d)}`, a - n / d * PI_];                // a−kπ
+const bma = (n, d, a) => [`${piL(n, d)}-${a}`, n / d * PI_ - a];                // kπ−a
+const AF = () => window.ARC_FIG.exam;
+g9a.push(
+  function () { // 扇形求弧長、面積、周長（附圖）
+    const r = ri(2, 12), th = pk([30, 45, 60, 72, 90, 120, 135, 150, 210, 240, 270, 300]), t = ri(0, 2), fig = AF().sector(r, th);
+    const stem = `如右圖，扇形 \\(OAB\\) 的半徑為 \\(${r}\\)，圓心角為 \\(${th}^\\circ\\)，則此扇形的${['弧長', '面積', '周長'][t]}為何？`;
+    const arcS = `2\\pi\\times ${r}\\times\\dfrac{${th}}{360}=${piL(r * th, 180)}`;
+    if (t === 0) return MCv(stem, kp(r * th, 180), [kp(r * r * th, 360), kp(r * th, 360), kp(r * (360 - th), 180), ...kpFill(r * th, 180)], `弧長 \\(=${arcS}\\)。`, { lv: 1, fig });
+    if (t === 1) return MCv(stem, kp(r * r * th, 360), [kp(r * th, 180), kp(r * r * th, 180), kp(r * r * (360 - th), 360), ...kpFill(r * r * th, 360)],
+      `面積 \\(=\\pi\\times ${r}^{2}\\times\\dfrac{${th}}{360}=${piL(r * r * th, 360)}\\)。`, { lv: 1, fig });
+    return MCv(stem, apb(2 * r, r * th, 180), [kp(r * th, 180), apb(r, r * th, 180), apb(2 * r, r * r * th, 360), apb(2 * r, r * th, 360), apb(2 * r, r * (360 - th), 180)],
+      `周長 \\(=\\) 兩條半徑 \\(+\\) 弧長，弧長 \\(=${arcS}\\)，周長 \\(=${2 * r}+${piL(r * th, 180)}\\)。`, { lv: 2, fig, uo: 1 });
+  },
+  function () { // 正方形與四分之一圓的陰影面積（附圖）
+    const s = 2 * ri(2, 10), S2 = s * s, t = coin(), fig = AF().square(s, t);
+    if (!t) return MCv(`如右圖，正方形 \\(ABCD\\) 的邊長為 \\(${s}\\)，以 \\(A\\) 為圓心、\\(\\overline{AB}\\) 為半徑畫弧，則灰色部分的面積為何？`, amb(S2, S2, 4),
+      [kp(S2, 4), amb(S2, S2, 16), amb(S2, s, 2), bma(S2, 2, S2)],
+      `灰色面積 \\(=\\) 正方形 \\(-\\) 四分之一圓 \\(=${s}^{2}-\\dfrac{1}{4}\\times\\pi\\times ${s}^{2}=${S2}-${piL(S2, 4)}\\)。`, { lv: 2, fig, uo: 1 });
+    return MCv(`如右圖，正方形 \\(ABCD\\) 的邊長為 \\(${s}\\)，分別以 \\(A\\)、\\(C\\) 為圓心、邊長為半徑畫弧，則灰色部分的面積為何？`, bma(S2, 2, S2),
+      [amb(S2, S2, 4), bma(S2, 4, S2 / 2), kp(S2, 2), amb(2 * S2, S2, 2)],
+      `兩個四分之一圓的面積和比正方形多出的部分就是灰色部分：\\(2\\times\\dfrac{1}{4}\\times\\pi\\times ${s}^{2}-${s}^{2}=${piL(S2, 2)}-${S2}\\)。`, { lv: 3, fig, uo: 1 });
+  },
+  function () { // 扇環的面積、周長（附圖）
+    const r = ri(2, 8), w = ri(1, 6), R = r + w, th = pk([60, 90, 120, 135, 150, 180]), t = coin(), fig = AF().ring(r, w, th, r / R);
+    const stem = `如右圖，扇形 \\(OBC\\) 與扇形 \\(OAD\\) 的圓心都是 \\(O\\)，\\(A\\)、\\(D\\) 分別在 \\(\\overline{OB}\\)、\\(\\overline{OC}\\) 上。若 \\(\\angle BOC=${th}^\\circ\\)，\\(\\overline{OA}=${r}\\)，\\(\\overline{AB}=${w}\\)，則灰色部分的${t ? '周長' : '面積'}為何？`;
+    if (!t) { const n = (R * R - r * r) * th;
+      return MCv(stem, kp(n, 360), [kp(R * R * th, 360), kp(w * w * th, 360), kp(R * R - r * r, 1), kp((R * R + r * r) * th, 360), ...kpFill(n, 360)],
+        `灰色面積 \\(=\\) 大扇形 \\(-\\) 小扇形 \\(=\\pi\\times ${R}^{2}\\times\\dfrac{${th}}{360}-\\pi\\times ${r}^{2}\\times\\dfrac{${th}}{360}=${piL(n, 360)}\\)。`, { lv: 2, fig }); }
+    return MCv(stem, apb(2 * w, (R + r) * th, 180), [kp((R + r) * th, 180), apb(w, (R + r) * th, 180), apb(2 * w, R * th, 180), apb(2 * w, (R * R - r * r) * th, 360), apb(2 * R, (R + r) * th, 180)],
+      `周長 \\(=\\) 大弧 \\(+\\) 小弧 \\(+2\\overline{AB}=2\\pi\\times ${R}\\times\\dfrac{${th}}{360}+2\\pi\\times ${r}\\times\\dfrac{${th}}{360}+2\\times ${w}=${2 * w}+${piL((R + r) * th, 180)}\\)。`, { lv: 3, fig, uo: 1 });
+  },
+  function () { // 素養：時鐘分針（附圖）
+    const Lh = ri(5, 15), m = pk([10, 15, 20, 25, 30, 40, 45, 50]), h0 = ri(1, 11), t = coin(), fig = AF().clock(h0, m);
+    const stem = `如右圖，時鐘的分針長 \\(${Lh}\\) 公分。從 ${h0} 時整到 ${h0} 時 ${m} 分，分針${t ? '掃過的面積為多少平方公分' : '的尖端走過的路徑長為多少公分'}？`;
+    const pre = `分針每分鐘轉 \\(6^\\circ\\)，\\(${m}\\) 分鐘轉 \\(${6 * m}^\\circ\\)。`;
+    if (!t) return MCv(stem, kp(Lh * m, 30), [kp(Lh * Lh * m, 60), kp(Lh * m, 60), kp(Lh * m, 360), ...kpFill(Lh * m, 30)],
+      pre + `路徑長 \\(=2\\pi\\times ${Lh}\\times\\dfrac{${6 * m}}{360}=${piL(Lh * m, 30)}\\)（公分）。`, { lv: 2, fig });
+    return MCv(stem, kp(Lh * Lh * m, 60), [kp(Lh * m, 30), kp(Lh * Lh * m, 30), kp(Lh * Lh * m, 360), ...kpFill(Lh * Lh * m, 60)],
+      pre + `面積 \\(=\\pi\\times ${Lh}^{2}\\times\\dfrac{${6 * m}}{360}=${piL(Lh * Lh * m, 60)}\\)（平方公分）。`, { lv: 2, fig });
+  },
+  function () { // 素養：小狗綁在牆角的活動範圍（附圖）
+    const a = ri(2, 5), b = ri(a + 4, 12), wrap = coin(), Lr = wrap ? ri(a + 1, Math.min(b, 2 * a)) : ri(2, a), e = Lr - a, fig = AF().dog(a, b, wrap);
+    const stem = `如右圖（示意圖），一間長方形倉庫的長為 \\(${b}\\) 公尺、寬為 \\(${a}\\) 公尺。小狗用一條長 \\(${Lr}\\) 公尺的繩子綁在倉庫外的牆角 \\(P\\)。若小狗不能進入倉庫，則小狗可以活動的範圍面積為多少平方公尺？（繩子的粗細與小狗的大小不計）`;
+    const big = `\\pi\\times ${Lr}^{2}\\times\\dfrac{3}{4}`;
+    if (!wrap) return MCv(stem, kp(3 * Lr * Lr, 4), [kp(Lr * Lr, 1), kp(Lr * Lr, 4), kp(Lr * Lr, 2), ...kpFill(3 * Lr * Lr, 4)],
+      `繩長 \\(${Lr}\\) 不超過倉庫的寬 \\(${a}\\)，小狗可以在以 \\(P\\) 為圓心、半徑 \\(${Lr}\\) 的圓中，倉庫以外的 \\(\\dfrac{3}{4}\\) 個圓內活動，面積 \\(=${big}=${piL(3 * Lr * Lr, 4)}\\)（平方公尺）。`, { lv: 3, fig });
+    const n = 3 * Lr * Lr + e * e;
+    return MCv(stem, kp(n, 4), [kp(3 * Lr * Lr, 4), kp(Lr * Lr, 1), kp(3 * Lr * Lr + 2 * e * e, 4), kp(Lr * Lr + e * e, 1), kp(3 * Lr * Lr + a * a, 4), ...kpFill(n, 4)],
+      `以 \\(P\\) 為圓心、半徑 \\(${Lr}\\) 的 \\(\\dfrac{3}{4}\\) 個圓，面積 \\(${big}\\)；繩子沿著寬 \\(${a}\\) 的牆繞過牆角後還剩 \\(${e}\\) 公尺，可再多走半徑 \\(${e}\\) 的 \\(\\dfrac{1}{4}\\) 個圓。面積 \\(=${big}+\\pi\\times ${e}^{2}\\times\\dfrac{1}{4}=${piL(n, 4)}\\)（平方公尺）。`, { lv: 3, fig });
+  },
+  function () { // 素養：操場跑道（附圖）
+    const w = pk([1, 1.2, 1.25, 1.5]), n = ri(2, 8), d = w * (n - 1), ans = 2 * d;
+    return MC(`如右圖，學校操場的跑道由兩段直線跑道和兩端的半圓形跑道組成，每一道的寬都是 \\(${w}\\) 公尺。跑一圈時，若都沿著各道的內側邊線跑，則第 \\(${n}\\) 道比第 \\(1\\) 道多跑多少公尺？`, ans, [d, 2 * w * n, 4 * d, w * n],
+      `兩道的直線部分一樣長，只差在兩端的半圓（合起來是一個圓）。第 \\(${n}\\) 道的半徑比第 \\(1\\) 道多 \\(${w}\\times ${n - 1}=${num(d)}\\) 公尺，多跑 \\(2\\pi\\times ${num(d)}=${num(ans)}\\pi\\)（公尺）。`,
+      { lv: 2, pos: 1, step: w, fmt: v => (num(v) === '1' ? '' : num(v)) + '\\pi', fig: AF().track() });
   },
 );
 

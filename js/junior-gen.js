@@ -9001,7 +9001,33 @@ function gen9aArc(level){for(let i=0;i<40;i++){const q=_9aArc(level);if(q)return
 function _9aArc(level){
   const piT=f=>(f.num===1&&f.den===1?'':fracToLatex(f))+'\\pi';
   const P=(q,v,p)=>({question:q+'（答案為 \\(k\\pi\\)，請填 \\(k\\)）',answer:v,type:'fraction',answerPrefix:p||'\\(k\\)'});
-  const t=randInt(0,3);
+  // 附圖（js/arc-fig.js）；t=4、5 為附圖題與素養題
+  const AF=window.ARC_FIG&&window.ARC_FIG.quiz,G=(q,g)=>{q.graph=g;return q;};
+  const t=randInt(0,AF?5:3);
+  if(t===4&&level==='basic'){
+    const r=randInt(2,12),th=pick([30,45,60,72,90,120,135,150,210,240,270,300]),a=Math.random()<0.5;
+    return G(P(`如右圖，扇形 \\(OAB\\) 的半徑為 \\(${r}\\)，圓心角為 \\(${th}^\\circ\\)，求此扇形的${a?'弧長':'面積'}`,a?frac(2*r*th,360):frac(r*r*th,360)),AF.sector(r,th));
+  }
+  if(t===5&&level==='basic'){
+    const L=randInt(5,15),m=pick([10,15,20,25,30,40,45,50]),h0=randInt(1,11);
+    return G(P(`如右圖，時鐘的分針長 \\(${L}\\) 公分。從 ${h0} 時整到 ${h0} 時 ${m} 分，分針的尖端走過的路徑長為多少公分？`,frac(L*m,30)),AF.clock(h0,m));
+  }
+  if(t===4&&level==='medium'){
+    const a=randInt(2,6),b=randInt(a+4,12),L=randInt(2,a);
+    return G(P(`如右圖（示意圖），長方形倉庫的長為 \\(${b}\\) 公尺、寬為 \\(${a}\\) 公尺，小狗用長 \\(${L}\\) 公尺的繩子綁在倉庫外的牆角 \\(P\\)，小狗不能進入倉庫。求小狗可以活動的範圍面積`,frac(3*L*L,4)),AF.dog(a,b,false));
+  }
+  if(t===5&&level==='medium'){
+    const w=pick([1,1.2,1.25,1.5]),n=randInt(2,8);
+    return G({question:`如右圖，操場跑道由兩段直線和兩端的半圓組成，每一道寬 \\(${w}\\) 公尺。沿各道內側邊線跑一圈，第 \\(${n}\\) 道比第 \\(1\\) 道多跑多少公尺？（答案為 \\(k\\pi\\)，請填 \\(k\\)）`,answer:+(2*w*(n-1)).toFixed(6),type:'number',answerPrefix:'\\(k\\)'},AF.track());
+  }
+  if(t===4){
+    const a=randInt(2,5),b=randInt(a+4,12),L=randInt(a+1,Math.min(b,2*a)),e=L-a;
+    return G(P(`如右圖（示意圖），長方形倉庫的長為 \\(${b}\\) 公尺、寬為 \\(${a}\\) 公尺，小狗用長 \\(${L}\\) 公尺的繩子綁在倉庫外的牆角 \\(P\\)，小狗不能進入倉庫。求小狗可以活動的範圍面積`,frac(3*L*L+e*e,4)),AF.dog(a,b,true));
+  }
+  if(t===5){
+    const s=randInt(2,10)*2;
+    return G({question:`如右圖，正方形 \\(ABCD\\) 的邊長為 \\(${s}\\)，分別以 \\(A\\)、\\(C\\) 為圓心、邊長為半徑畫弧，求灰色部分的面積（答案為 \\(b\\pi-a\\)，請依序填 \\(b\\)、\\(a\\)）`,answerParts:[{prefix:'\\(b\\)',answer:frac(s*s,2),type:'fraction'},{prefix:'\\(a\\)',answer:s*s,type:'number'}]},AF.square(s,true));
+  }
   if(level==='basic'){
     const r=randInt(2,12),th=pick([30,45,60,90,120,135,150,180,240,270]);
     if(t===0)return P(`半徑 \\(${r}\\) 的圓，圓周長為多少？`,frac(2*r),'\\(k\\)');
@@ -9019,7 +9045,7 @@ function _9aArc(level){
   const r=randInt(2,10),R=r+randInt(1,6),th=pick([60,90,120,180]);
   if(t===0)return P(`兩個同心圓的半徑分別為 \\(${r}\\) 和 \\(${R}\\)，求兩圓之間的環形面積`,frac(R*R-r*r));
   if(t===1)return P(`以半徑 \\(${r}\\) 和 \\(${R}\\) 的同心圓、圓心角 \\(${th}^\\circ\\) 截出的扇環面積為多少？`,frac((R*R-r*r)*th,360));
-  if(t===2){const s=randInt(2,10)*2;return {question:`邊長 \\(${s}\\) 的正方形內，以一頂點為圓心、邊長為半徑畫四分之一圓，求正方形內、四分之一圓外的面積（答案為 \\(a-b\\pi\\)，請依序填 \\(a\\)、\\(b\\)）`,answerParts:[{prefix:'\\(a\\)',answer:s*s,type:'number'},{prefix:'\\(b\\)',answer:frac(s*s,4),type:'fraction'}]};}
+  if(t===2){const s=randInt(2,10)*2;const q={question:`${AF?'如右圖，':''}邊長 \\(${s}\\) 的正方形內，以一頂點為圓心、邊長為半徑畫四分之一圓，求正方形內、四分之一圓外的面積（答案為 \\(a-b\\pi\\)，請依序填 \\(a\\)、\\(b\\)）`,answerParts:[{prefix:'\\(a\\)',answer:s*s,type:'number'},{prefix:'\\(b\\)',answer:frac(s*s,4),type:'fraction'}]};return AF?G(q,AF.square(s,false)):q;}
   // 弓形：圓心角 90°
   return {question:`半徑 \\(${r}\\) 的圓中，圓心角 \\(90^\\circ\\) 的弦與弧所圍成的弓形面積為多少？（答案為 \\(b\\pi-a\\)，請依序填 \\(b\\)、\\(a\\)）`,answerParts:[{prefix:'\\(b\\)',answer:frac(r*r,4),type:'fraction'},{prefix:'\\(a\\)',answer:frac(r*r,2),type:'fraction'}]};
 }
