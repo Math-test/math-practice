@@ -12771,6 +12771,186 @@ function _seqG(lv){ // 等比數列（國中不含等比級數）
   return _sq(`等比數列 \\(${a},\\,${a*r},\\,${a*r*r},\\cdots\\) 中，\\(${a*r**(n-1)}\\) 是第幾項？`,n,'第幾項');
 }
 
+// ══ 附圖題補充：原本只能出文字題的單元（使用 js/geo-fig.js 的通用畫圖工具）══
+const _Q=()=>window.GEO_FIG.quiz;
+const _cp=(cx,cy,R,d)=>[cx+R*Math.cos(d*Math.PI/180),cy-R*Math.sin(d*Math.PI/180)];
+const _gq=(q,v,p,g,t)=>({question:q,answer:v,type:t||'number',answerPrefix:p||'',graph:g});
+const _TRI=[[3,4,5],[6,8,10],[5,12,13],[8,15,17],[9,12,15],[12,16,20],[7,24,25],[15,20,25]];
+// 七下・二元一次方程式的圖形
+function _figLinePic(lv){
+  const F=_Q();
+  if(lv==='basic'){const b=pick([2,3,4]),q=pick([1,2,3,4]),c=b*q,p=pick([1,2,3,4,6].filter(v=>c%v===0&&c/v<=9));if(!p)return null;const a=c/p;
+    return _gq(`右圖為二元一次方程式 \\(ax+${b}y=${c}\\) 的圖形（每一小格邊長為 \\(1\\)），求 \\(a\\)`,a,'\\(a\\)',F.plot({xr:[-2,7],yr:[-2,6],lines:[[a,b,c]],pts:[[p,0],[0,q]]}));}
+  const px=randInt(-2,3),py=randInt(-2,3),a1=pick([1,2]),b1=pick([1,-1]),a2=pick([1,3]),b2=pick([2,-2]);if(a1*b2===a2*b1)return null;
+  const c1=a1*px+b1*py,c2=a2*px+b2*py,eq=(a,b,c)=>`${a===1?'':a}x${b>0?'+':'-'}${Math.abs(b)===1?'':Math.abs(b)}y=${c}`;
+  return {question:`右圖為聯立方程式 \\(\\begin{cases}${eq(a1,b1,c1)}\\\\${eq(a2,b2,c2)}\\end{cases}\\) 中兩個方程式的圖形，由圖寫出聯立方程式的解 \\((x,\\,y)\\)`,coordAnswer:true,answerParts:[{answer:px,type:'number'},{answer:py,type:'number'}],
+    graph:F.plot({xr:[-5,5],yr:[-5,5],lines:[[a1,b1,c1],[a2,b2,c2,'5 4']],pts:[[px,py,'P']]})};
+}
+// 七下・一元一次不等式（數線上的解）
+function _figIneq(lv){
+  const F=_Q(),k=randInt(-3,4);
+  if(lv==='basic'){const a=pick([2,3,4,5]),r=randInt(-6,9),m=a*k-r,le=Math.random()<0.5;
+    return _gq(`右圖為不等式 \\(${a}x-m${le?'\\le':'\\lt'} ${r}\\) 的解在數線上的表示，求 \\(m\\)`,m,'\\(m\\)',F.numLine({min:-5,max:6,rays:[{v:k,dir:-1,open:!le}]}));}
+  if(lv==='medium'){const a=pick([2,3,4]),r=randInt(-6,8),m=r+a*k,ge=Math.random()<0.5;
+    // -ax+m > r → x < (m-r)/a
+    return _gq(`右圖為不等式 \\(-${a}x+m${ge?'\\ge':'\\gt'} ${r}\\) 的解在數線上的表示，求 \\(m\\)`,m,'\\(m\\)',F.numLine({min:-5,max:6,rays:[{v:k,dir:-1,open:!ge}]}));}
+  const lo=randInt(-3,1),hi=randInt(lo+2,6),oa=Math.random()<0.5,ob=Math.random()<0.5;let n=0;for(let x=lo;x<=hi;x++)if((x>lo||!oa)&&(x<hi||!ob))n++;
+  return _gq(`右圖數線上表示的範圍內，共有幾個整數？`,n,'個',F.numLine({min:-5,max:7,segs:[{a:lo,b:hi,oa,ob}]}));
+}
+// 七下・統計（長條圖、圓形圖）
+function _figStat7(lv){
+  const F=_Q(),T=pick([20,24,30,36,40,45,60,72]),cats=['籃球','排球','桌球','羽球','跑步'].slice(0,pick([4,5]));let vals;
+  for(let i=0;i<50;i++){const cut=cats.slice(1).map(()=>randInt(1,T-1)).sort((a,b)=>a-b);vals=[...cut,T].map((v,j,a)=>v-(j?a[j-1]:0));if(vals.every(v=>v>0))break;vals=null;}
+  if(!vals)return null;const mx=Math.ceil(Math.max(...vals)/4)*4+4,g=F.bars({cats,vals,max:mx,step:mx>20?8:4,yl:'人數',show:true});
+  if(lv==='basic'){const i=randInt(0,cats.length-1);return _gq(`右圖為某班同學最喜歡的運動長條圖，全班共有幾人？`,T,'人',g);}
+  const i=vals.findIndex(v=>360*v%T===0);if(i<0)return null;
+  if(lv==='medium')return _gq(`右圖為某班同學最喜歡的運動長條圖。若畫成圓形圖，「${cats[i]}」所占扇形的圓心角為幾度？`,360*vals[i]/T,'度',g);
+  const j=vals.findIndex(v=>100*v%T===0);if(j<0)return null;
+  return _gq(`右圖為某班同學最喜歡的運動長條圖，最喜歡「${cats[j]}」的人占全班的百分之幾？`,100*vals[j]/T,'%',g);
+}
+// 八上・畢氏定理
+function _figPyth(lv){
+  const F=_Q(),[a,b,c]=pick(_TRI);
+  if(lv==='basic'){const ask=randInt(0,2),L=[a,b,c].map((v,i)=>i===ask?'?':String(v));
+    return _gq(`如右圖，直角 \\(\\triangle ABC\\) 中，\\(\\angle B=90^\\circ\\)，求「?」所標示的邊長`,[a,b,c][ask],'邊長',F.geo({P:{A:[20,130],B:[180,130],C:[180,30]},polys:[{pts:'ABC'}],right:[['B','A','C']],side:[['B','C',L[0]],['A','B',L[1]],['A','C',L[2]]],w:210,h:158}));}
+  if(lv==='medium'){const H=b,G=a; // 梯子長 c，底端離牆 a，頂端高 b
+    return _gq(`如右圖，一把長 \\(${c}\\) 公尺的梯子斜靠在垂直的牆上，梯子底端距離牆角 \\(${G}\\) 公尺，梯子頂端距離地面幾公尺？`,H,'公尺',
+      F.geo({P:{A:[150,24],B:[150,138],C:[60,138]},segs:[['A','C',{w:3}],['B','A',{w:3}],[[20,138],[180,138]]],right:[['B','A','C']],side:[['B','C',String(G)],['A','C',String(c)]],hide:'ABC',text:[[[162,80],'牆',{fs:12,a:'start'}]],w:200,h:160}));}
+  // 方格紙上的兩點：水平、鉛直距離取自畢氏三元數（3、4、5 或 6、8、10）
+  const [ux,dy]=pick([[3,4],[4,3],[6,8],[8,6]]),sx=Math.random()<0.5?1:-1,dx=ux*sx;
+  const x1=sx>0?randInt(-4,4-ux):randInt(-4+ux,4),y1=randInt(-4,4-dy);
+  return _gq(`如右圖，方格紙上每一小格的邊長為 \\(1\\)，求 \\(\\overline{AB}\\) 的長度`,Math.hypot(dx,dy),'\\(\\overline{AB}\\)',F.plot({xr:[-5,5],yr:[-5,5],nolab:true,segs:[[x1,y1,x1+dx,y1+dy]],pts:[[x1,y1,'A'],[x1+dx,y1+dy,'B']]}));
+}
+// 八上・統計資料處理（直方圖）
+function _figStat8(lv){
+  const F=_Q(),cats=['40~50','50~60','60~70','70~80','80~90','90~100'],vals=cats.map(()=>randInt(1,9)),T=vals.reduce((a,b)=>a+b,0),mx=Math.ceil(Math.max(...vals)/2)*2+2;
+  const g=F.bars({cats,vals,max:mx,step:2,yl:'人數',xl:'分數',show:lv==='basic'});
+  const k=randInt(2,4),up=vals.slice(k).reduce((a,b)=>a+b,0),lo=[40,50,60,70,80,90][k];
+  if(lv!=='hard')return _gq(`右圖為某班數學成績的次數分配直方圖（每組含下限、不含上限，最後一組含 \\(100\\) 分），成績在 \\(${lo}\\) 分以上的有幾人？`,up,'人',g);
+  const dn=T-up;if(100*dn%T!==0)return null;
+  return _gq(`右圖為某班數學成績的次數分配直方圖（每組含下限、不含上限），成績未滿 \\(${lo}\\) 分的人數占全班的百分之幾？`,100*dn/T,'%',g);
+}
+// 八下・三角形的內角與外角
+function _figTriAng(lv){
+  const F=_Q();
+  if(lv==='basic'){const a=randInt(5,14)*5,b=randInt(5,14)*5;if(a+b>=170)return null;
+    return _gq(`如右圖，\\(D\\) 在 \\(\\overline{BC}\\) 的延長線上，\\(\\angle A=${a}^\\circ\\)，\\(\\angle B=${b}^\\circ\\)，求 \\(\\angle ACD\\)`,a+b,'\\(\\angle ACD\\)',
+      F.geo({P:{A:[70,22],B:[16,128],C:[140,128],D:[198,128]},polys:[{pts:'ABC'}],segs:['CD'],ang:[['A','B','C',a+'°'],['B','A','C',b+'°'],['C','A','D','?']],w:212,h:150,cc:[90,90]}));}
+  if(lv==='medium'){const x=randInt(15,40),p=randInt(1,3),q=randInt(1,3),r=randInt(5,30);const A=x+r,B=p*x,C=180-A-B;if(C<=10||C%1)return null;const cq=C-q*x;
+    if(cq===0)return null;
+    return _gq(`如右圖，\\(\\triangle ABC\\) 的三個內角分別為 \\((x+${r})^\\circ\\)、\\(${p===1?'':p}x^\\circ\\)、\\((${q===1?'':q}x${cq>0?'+':'-'}${Math.abs(cq)})^\\circ\\)，求 \\(x\\)`,x,'\\(x\\)',
+      F.geo({P:{A:[90,20],B:[16,130],C:[190,130]},polys:[{pts:'ABC'}],ang:[['A','B','C',`(x+${r})°`,1,32],['B','A','C',`${p===1?'':p}x°`],['C','A','B',`(${q===1?'':q}x${cq>0?'+':'-'}${Math.abs(cq)})°`,1,40]],w:206,h:150}));}
+  // 五角星：五個尖角的和為 180°
+  const v=[randInt(25,45),randInt(25,45),randInt(25,45),randInt(25,45)],last=180-v.reduce((a,b)=>a+b,0);if(last<15)return null;
+  const P={},nm='ABCDE';for(let i=0;i<5;i++)P[nm[i]]=_cp(100,92,78,90+72*i);
+  const vals=[...v.map(x=>x+'°'),'?'];
+  return _gq(`如右圖，五角星 \\(ACEBD\\) 中，\\(\\angle A\\)、\\(\\angle B\\)、\\(\\angle C\\)、\\(\\angle D\\) 分別為 \\(${v[0]}^\\circ\\)、\\(${v[1]}^\\circ\\)、\\(${v[2]}^\\circ\\)、\\(${v[3]}^\\circ\\)，求 \\(\\angle E\\)`,last,'\\(\\angle E\\)',
+    F.geo({P,segs:['AC','CE','EB','BD','DA'],ang:nm.split('').map((k,i)=>[k,nm[(i+2)%5],nm[(i+3)%5],vals[i],1,24]),w:200,h:186,cc:[100,92]}));
+}
+// 八下・三角形的邊角關係（第三邊的範圍）
+function _figTriSide(lv){
+  const F=_Q(),a=randInt(3,12),b=randInt(3,12);if(a===b)return null;const n=a+b-1-Math.abs(a-b);
+  return _gq(`如右圖，\\(\\triangle ABC\\) 中 \\(\\overline{AB}=${a}\\)、\\(\\overline{AC}=${b}\\)，若 \\(\\overline{BC}\\) 的長度為整數，則 \\(\\overline{BC}\\) 有幾種可能？`,n,'種',
+    F.geo({P:{A:[80,20],B:[18,130],C:[190,130]},polys:[{pts:'ABC'}],side:[['A','B',String(a)],['A','C',String(b)],['B','C','?']],w:206,h:155}));
+}
+// 九上・三角比
+function _figTrig(lv){
+  const F=_Q(),[a,b,c]=pick(_TRI);
+  if(lv!=='hard'){const f=pick([['sin',a,c],['cos',b,c],['tan',a,b]]);
+    return _gq(`如右圖，直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，求 \\(\\${f[0]} A\\)`,frac(f[1],f[2]),`\\(\\${f[0]} A\\)`,
+      F.geo({P:{A:[18,132],B:[188,30],C:[188,132]},polys:[{pts:'ABC'}],right:[['C','A','B']],side:[['B','C',String(a)],['A','C',String(b)],['A','B',String(c)]],ang:[['A','C','B','',1]],w:212,h:158}),'fraction');}
+  const k=randInt(2,8),d=b*k,h=a*k,e=pick([1.5,1.6]);
+  return _gq(`如右圖，小明站在距離大樓 \\(${d}\\) 公尺處，眼睛離地 \\(${e}\\) 公尺，看大樓頂端的仰角為 \\(\\angle A\\)，且 \\(\\tan A=\\dfrac{${a}}{${b}}\\)，求大樓高度（公尺）`,+(h+e).toFixed(2),'高度',
+    F.geo({P:{A:[22,118],B:[180,118],C:[180,22]},segs:[['A','B',{d:'4 3'}],'AC',[[180,22],[180,140]],[[22,118],[22,140],{w:3}],[[8,140],[200,140]]],right:[['B','A','C']],ang:[['A','B','C','',1]],hide:'BC',lab:{A:[-12,-4]},text:[[[100,152],`${d} 公尺`,{fs:12}],[[188,80],'大樓',{fs:12,a:'start'}]],w:214,h:160}));
+}
+// 九上・點、直線與圓的關係（弦心距、切線長）
+function _figCircLine(lv){
+  const F=_Q(),[a,b,c]=pick(_TRI.filter(t=>t[2]<=17));
+  if(lv!=='hard'){ // 半徑 c、弦心距 a，弦長 2b
+    const R=70,dpx=R*a/c,O=[100,88],M=[100,88+dpx],hw=Math.sqrt(R*R-dpx*dpx),A=[100-hw,M[1]],B=[100+hw,M[1]];
+    return _gq(`如右圖，圓 \\(O\\) 的半徑為 \\(${c}\\)，弦 \\(\\overline{AB}\\) 與圓心 \\(O\\) 的距離 \\(\\overline{OM}=${a}\\)，求弦 \\(\\overline{AB}\\) 的長度`,2*b,'\\(\\overline{AB}\\)',
+      F.geo({P:{O,A,B,M},circles:[{c:'O',r:R}],segs:['AB','OM','OB'],right:[['M','O','B']],dots:['O'],side:[['O','M',String(a)],['O','B',String(c)]],lab:{O:[-14,0],M:[-4,16]},w:200,h:178,cc:O}));}
+  const R=44,O=[60,90],dpx=R*c/a,P=[60+Math.min(dpx,140),90],th=Math.acos(R/(P[0]-60)),A=[60+R*Math.cos(th),90-R*Math.sin(th)];
+  return _gq(`如右圖，\\(\\overline{PA}\\) 與圓 \\(O\\) 相切於 \\(A\\) 點，圓 \\(O\\) 的半徑為 \\(${a}\\)，\\(\\overline{OP}=${c}\\)，求切線段 \\(\\overline{PA}\\) 的長度`,b,'\\(\\overline{PA}\\)',
+    F.geo({P:{O,A,P},circles:[{c:'O',r:R}],segs:['OA','AP','OP'],right:[['A','O','P']],dots:['O'],side:[['O','A',String(a)],['O','P',String(c)]],lab:{O:[-14,4]},w:220,h:150,cc:[110,110]}));
+}
+// 九上・圓心角與圓周角
+function _figCircAng(lv){
+  const F=_Q(),O=[100,92],R=70,P=(d)=>_cp(100,92,R,d);
+  if(lv==='basic'){const x=randInt(6,16)*10,t=Math.random()<0.5,A=P(-90-x/2+180),B=P(-90+x/2+180),C=P(-90+randInt(-30,30));
+    // A、B 在上方，C 在下方的優弧上
+    const g=F.geo({P:{O,A,B,C},circles:[{c:'O',r:R}],segs:['OA','OB','CA','CB'],dots:['O'],ang:[['O','A','B',t?x+'°':'?',1,24],['C','A','B',t?'?':(x/2)+'°',1,34]],lab:{O:[0,20]},w:200,h:186,cc:O});
+    return t?_gq(`如右圖，\\(A\\)、\\(B\\)、\\(C\\) 在圓 \\(O\\) 上，\\(\\angle AOB=${x}^\\circ\\)，求 \\(\\angle ACB\\)`,x/2,'\\(\\angle ACB\\)',g):_gq(`如右圖，\\(A\\)、\\(B\\)、\\(C\\) 在圓 \\(O\\) 上，\\(\\angle ACB=${x/2}^\\circ\\)，求 \\(\\angle AOB\\)`,x,'\\(\\angle AOB\\)',g);}
+  // 圓內接四邊形對角互補
+  const a=randInt(12,30)*5,ds=[110+randInt(-10,10),200+randInt(-10,10),290+randInt(-10,10),20+randInt(-10,10)],Q={A:P(ds[0]),B:P(ds[1]),C:P(ds[2]),D:P(ds[3])};
+  return _gq(`如右圖，四邊形 \\(ABCD\\) 內接於圓，\\(\\angle A=${a}^\\circ\\)，求 \\(\\angle C\\)`,180-a,'\\(\\angle C\\)',
+    F.geo({P:{...Q},circles:[{c:O,r:R}],polys:[{pts:'ABCD'}],ang:[['A','B','D',a+'°',1,30],['C','B','D','?',1,30]],w:200,h:186,cc:O}));
+}
+// 九上・切線段（兩切線段等長、切線垂直半徑）
+function _figTangent(lv){
+  const F=_Q(),p=randInt(4,12)*10,r=46,d=r/Math.sin(p/2*Math.PI/180),O=[62,90],Pp=[62+Math.min(d,150),90],th=Math.acos(r/(Pp[0]-62)),A=[62+r*Math.cos(th),90-r*Math.sin(th)],B=[62+r*Math.cos(th),90+r*Math.sin(th)];
+  const g=t=>F.geo({P:{O,A,B,P:Pp},circles:[{c:'O',r}],segs:['PA','PB','OA','OB',...(t?['AB']:[])],dots:['O'],right:[['A','O','P'],['B','O','P']],ang:[['P','A','B',p+'°',1,30]],lab:{O:[-14,4],P:[12,4]},w:Math.ceil(Pp[0]+26),h:180,cc:[100,90]});
+  if(lv==='basic')return _gq(`如右圖，\\(\\overline{PA}\\)、\\(\\overline{PB}\\) 分別與圓 \\(O\\) 相切於 \\(A\\)、\\(B\\)，\\(\\angle APB=${p}^\\circ\\)，求 \\(\\angle AOB\\)`,180-p,'\\(\\angle AOB\\)',g(false));
+  return _gq(`如右圖，\\(\\overline{PA}\\)、\\(\\overline{PB}\\) 分別與圓 \\(O\\) 相切於 \\(A\\)、\\(B\\)，\\(\\angle APB=${p}^\\circ\\)，求 \\(\\angle PAB\\)`,(180-p)/2,'\\(\\angle PAB\\)',g(true));
+}
+// 九上・圓內角與圓外角（補充）
+function _figCircInOut(lv){
+  const F=_Q(),O=[100,92],R=70,P=d=>_cp(100,92,R,d);
+  if(lv!=='hard'){const x=randInt(5,14)*10,y=randInt(3,12)*10;if(x+y>260)return null;
+    // 弦 AC、BD 交於 E；弧 AB（不含 C、D）＝x°，弧 CD＝y°
+    const a0=90+x/2,A=P(a0),B=P(a0-x),gap=(360-x-y)/2,C=P(a0-x-gap),D=P(a0-x-gap-y);
+    return _gq(`如右圖，圓上的弦 \\(\\overline{AC}\\)、\\(\\overline{BD}\\) 交於 \\(E\\)，\\(\\overset{\\frown}{AB}=${x}^\\circ\\)、\\(\\overset{\\frown}{CD}=${y}^\\circ\\)（皆為不含其他兩點的弧），求 \\(\\angle AEB\\)`,(x+y)/2,'\\(\\angle AEB\\)',
+      F.geo({P:{A,B,C,D},circles:[{c:O,r:R}],segs:['AC','BD'],text:[[_cp(100,92,R+14,a0-x/2),x+'°',{fs:12}],[_cp(100,92,R+14,a0-x-gap-y/2),y+'°',{fs:12}]],w:206,h:196,cc:O}));}
+  const big=randInt(10,20)*10,sm=randInt(2,8)*10;if(big-sm<40)return null;
+  // 兩割線 PAB、PCD 對稱於水平直徑：∠P＝2φ，φ＝(big−sm)/4；以二分法找 P 的位置，使近弧 AC＝sm°（遠弧 BD 自然為 big°）
+  const phi=(big-sm)/4*Math.PI/180,hit=d=>{const ux=-Math.cos(phi),uy=Math.sin(phi),bq=2*d*ux,cq=d*d-R*R,ds=Math.sqrt(bq*bq-4*cq);return [(-bq-ds)/2,(-bq+ds)/2].map(t=>[d+t*ux,t*uy]);};
+  let lo=R+0.01,hi=3000;for(let i=0;i<80;i++){const m=(lo+hi)/2,[n]=hit(m);if(2*Math.atan2(n[1],n[0])*180/Math.PI<sm)lo=m;else hi=m;}
+  const dd=(lo+hi)/2;if(!(dd<150))return null;const [nA,fB]=hit(dd),Pp=[100+dd,92],A=[100+nA[0],92-nA[1]],B=[100+fB[0],92-fB[1]],C=[A[0],92+nA[1]],D=[B[0],92+fB[1]];
+  return _gq(`如右圖，自圓外一點 \\(P\\) 作兩條割線 \\(PAB\\)、\\(PCD\\)。若 \\(\\overset{\\frown}{BD}=${big}^\\circ\\)、\\(\\overset{\\frown}{AC}=${sm}^\\circ\\)（皆為兩割線之間的弧），求 \\(\\angle P\\)`,(big-sm)/2,'\\(\\angle P\\)',
+    F.geo({P:{A,B,C,D,P:Pp},circles:[{c:O,r:R}],segs:[['P','B'],['P','D']],text:[[_cp(100,92,R-16,180),big+'°',{fs:12}],[_cp(100,92,R-14,0),sm+'°',{fs:12}]],lab:{P:[10,5],A:[2,-8],C:[2,18]},w:Math.ceil(Pp[0]+24),h:186,cc:O}));
+}
+// 九上・三角形的外心與內心
+function _figCenter(lv){
+  const F=_Q(),a=randInt(10,16)*5,A=[96,18],B=[22,140],C=[188,140];
+  if(lv!=='hard'){ // 外心：∠BOC＝2∠A（銳角三角形）
+    const ox=(B[0]+C[0])/2,oy=(()=>{const mx=(A[0]+B[0])/2,my=(A[1]+B[1])/2,k=-(B[0]-A[0])/(B[1]-A[1]);return my+k*(ox-mx);})();
+    return _gq(`如右圖，\\(O\\) 為銳角 \\(\\triangle ABC\\) 的外心，\\(\\angle A=${a}^\\circ\\)，求 \\(\\angle BOC\\)`,2*a,'\\(\\angle BOC\\)',
+      F.geo({P:{A,B,C,O:[ox,oy]},polys:[{pts:'ABC'}],segs:['OB','OC','OA'],dots:['O'],ang:[['A','B','C',a+'°',1,30],['O','B','C','?',1,22]],lab:{O:[0,-10]},w:210,h:160}));}
+  // 內心：∠BIC＝90°＋∠A／2
+  const I=(()=>{const la=Math.hypot(B[0]-C[0],B[1]-C[1]),lb=Math.hypot(A[0]-C[0],A[1]-C[1]),lc=Math.hypot(A[0]-B[0],A[1]-B[1]),s=la+lb+lc;return [(la*A[0]+lb*B[0]+lc*C[0])/s,(la*A[1]+lb*B[1]+lc*C[1])/s];})();
+  const b=a%2?a+5:a;
+  return _gq(`如右圖，\\(I\\) 為 \\(\\triangle ABC\\) 的內心，\\(\\angle A=${b}^\\circ\\)，求 \\(\\angle BIC\\)`,90+b/2,'\\(\\angle BIC\\)',
+    F.geo({P:{A,B,C,I},polys:[{pts:'ABC'}],segs:['IB','IC'],dots:['I'],ang:[['A','B','C',b+'°',1,30],['I','B','C','?',1,20]],lab:{I:[0,-10]},w:210,h:160}));
+}
+// 九下・二次函數的圖形
+function _figQuad(lv){
+  const F=_Q();
+  if(lv!=='hard'){const h=randInt(-2,2),k=randInt(-4,2),a=pick([1,2,-1,-2,0.5]),x1=h+pick([1,2,-1,-2]),y1=k+a*(x1-h)**2;if(Math.abs(y1)>5||!Number.isInteger(y1))return null;
+    return _gq(`右圖為二次函數 \\(y=a(x-h)^{2}+k\\) 的圖形，頂點為 \\(V\\)，且圖形通過 \\(P\\) 點（每一小格邊長為 \\(1\\)），求 \\(a\\)`,a,'\\(a\\)',
+      F.plot({xr:[-5,5],yr:[-5,5],fns:[{f:x=>a*(x-h)**2+k}],pts:[[h,k,'V'],[x1,y1,'P']]}));}
+  const p=randInt(-4,0),q=randInt(1,4),a=pick([1,-1,2,-2]),r=a*p*q;if(p===0||Math.abs(r)>8)return null;
+  return _gq(`右圖為二次函數 \\(y=ax^{2}+bx+c\\) 的圖形，與 \\(x\\) 軸交於 \\((${p},\\,0)\\)、\\((${q},\\,0)\\)，與 \\(y\\) 軸交於 \\((0,\\,${r})\\)，求 \\(b\\)`,-a*(p+q),'\\(b\\)',
+    F.plot({xr:[-5,5],yr:[-9,9],s:12,step:2,fns:[{f:x=>a*(x-p)*(x-q)}],pts:[[p,0],[q,0],[0,r]]}));
+}
+// 九下・機率（轉盤）
+function _figProb(lv){
+  const F=_Q(),names=['紅','藍','黃','綠'].slice(0,lv==='basic'?3:4);let degs;
+  for(let i=0;i<40;i++){const cut=names.slice(1).map(()=>randInt(2,34)*10).sort((a,b)=>a-b);degs=[...cut,360].map((v,j,a)=>v-(j?a[j-1]:0));if(degs.every(d=>d>=30)&&new Set(cut).size===cut.length)break;degs=null;}
+  if(!degs)return null;const g=F.spinner(names,degs);
+  if(lv!=='hard'){const i=randInt(0,names.length-1);return _gq(`轉動右圖的公正轉盤一次，指針停在「${names[i]}」區的機率為何？（指針不會停在分界線上）`,frac(degs[i],360),'機率',g,'fraction');}
+  const i=randInt(0,3),j=(i+1)%4;return _gq(`轉動右圖的公正轉盤一次，指針停在「${names[i]}」區或「${names[j]}」區的機率為何？`,frac(degs[i]+degs[j],360),'機率',g,'fraction');
+}
+// 九下・立體圖形
+function _figSolid(lv){
+  const F=_Q(),P=(q,n,d)=>({question:q+'（答案為 \\(k\\pi\\)，請填 \\(k\\)）',answer:frac(n,d||1),type:'fraction',answerPrefix:'\\(k\\)'});
+  if(lv==='basic'){const r=randInt(2,8),h=randInt(3,12),t=Math.random()<0.5;
+    const q=t?P(`如右圖，圓柱的底面半徑為 \\(${r}\\)、高為 \\(${h}\\)，求它的體積`,r*r*h):P(`如右圖，圓柱的底面半徑為 \\(${r}\\)、高為 \\(${h}\\)，求它的表面積`,2*r*r+2*r*h);q.graph=F.cyl(String(r),String(h));return q;}
+  if(lv==='medium'){const [r,h,l]=pick(_TRI),t=Math.random()<0.5;
+    const q=t?P(`如右圖，直圓錐的底面半徑為 \\(${r}\\)、高為 \\(${h}\\)，求它的體積`,r*r*h,3):P(`如右圖，直圓錐的底面半徑為 \\(${r}\\)、斜高為 \\(${l}\\)，求它的側面積`,r*l);q.graph=t?F.cone(String(r),String(h),''):F.cone(String(r),'',String(l));return q;}
+  const a=randInt(3,10),b=randInt(2,8),c=randInt(2,9),t=Math.random()<0.5;
+  return _gq(`如右圖，長方體的長、寬、高分別為 \\(${a}\\)、\\(${b}\\)、\\(${c}\\)，求它的${t?'表面積':'體積'}`,t?2*(a*b+b*c+a*c):a*b*c,t?'表面積':'體積',F.box(String(a),String(b),String(c)));
+}
+
 // ─── 對外介面 ──────────────────────────────────────────────────────
 const JR_GENERATORS = {
   // 七上 整數
@@ -12806,7 +12986,7 @@ const JR_GENERATORS = {
   '7b-poly':      gen7bPoly,
   // 七下 平面座標與圖形
   '7b-coord':     _withFig(gen7bCoord,_figCoord),
-  '7b-linepic':   gen7bLinePic,
+  '7b-linepic':   _withFig(gen7bLinePic,_figLinePic),
   '7b-chain':     gen7bChain,
   // 七下 比例
   '7b-ratio':     gen7bRatio,
@@ -12814,8 +12994,8 @@ const JR_GENERATORS = {
   '7b-dirprop':   gen7bDirProp,
   '7b-invprop':   gen7bInvProp,
   // 七下 不等式/統計
-  '7b-ineq':      gen7bIneq,
-  '7b-stat':      gen7bStat,
+  '7b-ineq':      _withFig(gen7bIneq,_figIneq),
+  '7b-stat':      _withFig(gen7bStat,_figStat7),
   '7b-sym':       gen7bSym,
   // 八上
   '8a-mulform':     gen8aMulForm,
@@ -12829,23 +13009,23 @@ const JR_GENERATORS = {
   '8a-sqrt-add':    gen8aSqrtAdd,
   '8a-sqrt-mul':    gen8aSqrtMul,
   '8a-sqrt-mix':    gen8aSqrtMix,
-  '8a-pyth':        gen8aPyth,
+  '8a-pyth':        _withFig(gen8aPyth,_figPyth),
   // 八上（因式分解・一元二次方程式・統計）
   '8a-factor1':  gen8bFactor1,
   '8a-factor2':  gen8bFactor2,
   '8a-quad1':    gen8bQuad1,
   '8a-quad2':    gen8bQuad2,
   '8a-quad3':    gen8bQuad3,
-  '8a-stat':     gen8bStat,
+  '8a-stat':     _withFig(gen8bStat,_figStat8),
   // 八下（數列、線型函數、三角形）
   '8b-arith-seq':      _withFig(gen8bArithSeq,_seqA,0.4),
   '8b-arith-series':   _withFig(gen8bArithSeries,_seqS,0.4),
   '8b-geo-seq':        _withFig(gen8bGeoSeq,_seqG,0.4),
   '8b-linear-func':    _withFig(gen8bLinearFunc,_figLin,0.5),
-  '8b-tri-angle':      lv=>_jrTidy(gen8bTriAngle(lv)),
+  '8b-tri-angle':      _withFig(gen8bTriAngle,_figTriAng),
   '8b-tri-congruence': _withFig(gen8bTriCongruence,_figCong),
   '8b-tri-bisector':   lv=>_jrTidy(gen8bTriBisector(lv)),
-  '8b-tri-side-angle': lv=>_jrTidy(gen8bTriSideAngle(lv)),
+  '8b-tri-side-angle': _withFig(gen8bTriSideAngle,_figTriSide,0.25),
   '8b-parallel':       lv=>_jrTidy(gen8bParallel(lv)),
   '8b-parallelogram':  lv=>_jrTidy(gen8bParallelogram(lv)),
   '8b-special-quad':   lv=>_jrTidy(gen8bSpecialQuad(lv)),
@@ -12854,21 +13034,21 @@ const JR_GENERATORS = {
   '9a-prop-seg':       _withFig(gen9aPropSeg,_figPropSeg),
   '9a-similar-poly':   _withFig(gen9aSimilarPoly,_figSim),
   '9a-similar-app':    _withFig(gen9aSimilarApp,_figSimApp),
-  '9a-trig':           lv=>_jrTidy(gen9aTrig(lv)),
-  '9a-circle-line':    lv=>_jrTidy(gen9aCircleLine(lv)),
-  '9a-circle-angle':   lv=>_jrTidy(gen9aCircleAngle(lv)),
-  '9a-circle-chord-tan': lv=>_jrTidy(gen9aCircChorTan(lv)),
-  '9a-circle-inout': lv=>_jrTidy(gen9aCircInOut(lv)),
-  '9a-tri-center':     lv=>_jrTidy(gen9aTriCenter(lv)),
+  '9a-trig':           _withFig(gen9aTrig,_figTrig),
+  '9a-circle-line':    _withFig(gen9aCircleLine,_figCircLine,0.4),
+  '9a-circle-angle':   _withFig(gen9aCircleAngle,_figCircAng,0.4),
+  '9a-circle-chord-tan': _withFig(gen9aCircChorTan,_figTangent,0.4),
+  '9a-circle-inout': _withFig(gen9aCircInOut,_figCircInOut,0.4),
+  '9a-tri-center':     _withFig(gen9aTriCenter,_figCenter),
   // 八下（梯形・箏形單獨出題）
   '8b-trap':           lv=>_jrTidy(gen8bTrapezoid(lv)),
   '8b-kite':           lv=>_jrTidy(gen8bKite(lv)),
   // 七下應用
   '7b-eqn-app':        gen7bEqnApp,
   // 九下
-  '9b-quad-func':      lv=>_jrTidy(gen9bQuadFunc(lv)),
+  '9b-quad-func':      _withFig(gen9bQuadFunc,_figQuad),
   '9b-stat':           lv=>_jrTidy(gen9bStat(lv)),
-  '9b-prob':           lv=>_jrTidy(gen9bProb(lv)),
+  '9b-prob':           _withFig(gen9bProb,_figProb),
   '9a-arc':            lv=>_jrTidy(gen9aArc(lv)),
-  '9b-solid':          lv=>_jrTidy(gen9bSolid(lv)),
+  '9b-solid':          _withFig(gen9bSolid,_figSolid,0.4),
 };

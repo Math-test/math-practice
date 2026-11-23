@@ -37,7 +37,108 @@ function mk(st) {
   const rightM = (v, p, q, s) => { const u = mul(unit(sub(p, v)), s || 9), w = mul(unit(sub(q, v)), s || 9); return `<polyline points="${[add(v, u), add(add(v, u), w), add(v, w)].map(z => f1(z[0]) + ',' + f1(z[1])).join(' ')}" fill="none" stroke="${c.line}" stroke-width="1.1"/>`; };
   // 平行記號（箭頭 >）
   const chev = (p, q, t, n) => { const m = lerp(p, q, t), u = unit(sub(q, p)), nr = [-u[1], u[0]]; let o = ''; for (let i = 0; i < (n || 1); i++) { const b = add(m, mul(u, i * 5)); o += `<polyline points="${[add(sub(b, mul(u, 5)), mul(nr, 4)), b, sub(sub(b, mul(u, 5)), mul(nr, 4))].map(z => f1(z[0]) + ',' + f1(z[1])).join(' ')}" fill="none" stroke="${c.line}" stroke-width="1.3"/>`; } return o; };
+  const LG = (p, q) => `<line x1="${f1(p[0])}" y1="${f1(p[1])}" x2="${f1(q[0])}" y2="${f1(q[1])}" stroke="#c8c8c8" stroke-width="0.6"/>`;
+  const arrowHead = (B, u, sz) => { const nr = [-u[1], u[0]], k = sz || 9; return `<polygon points="${[B, add(sub(B, mul(u, k)), mul(nr, k * 0.42)), sub(sub(B, mul(u, k)), mul(nr, k * 0.42))].map(z => f1(z[0]) + ',' + f1(z[1])).join(' ')}" fill="${c.line}"/>`; };
+  const ARROW = (A, B, w) => { const u = unit(sub(B, A)); return L(A, sub(B, mul(u, 6)), { w: w || 1.8 }) + arrowHead(B, u); };
   return {
+    // ── 通用幾何圖 ──
+    // P：各點的像素坐標 {A:[x,y]}；segs：'AB' 或 ['A','B',{d:'4 3'}]；circles：[{c:'O' 或 [x,y], r, d}]；polys：[{pts:'ABC', f:1}]
+    // ang：[[頂點, 點1, 點2, 文字, 弧數, 文字距離]]；right：[[頂點, 點1, 點2]]；side：[[點1, 點2, 文字]]；ticks：[[點1, 點2, 條數]]
+    // arrows：[['A','B']]；dots：['O']；hide：不標字母的點（字串）；lab：{A:[dx,dy]} 自訂字母位置；text：[[[x,y], 文字, 選項]]
+    geo(o) {
+      const P = o.P, keys = Object.keys(P), hide = o.hide || '', cc = o.cc || ctr(...keys.filter(k => !hide.includes(k)).map(k => P[k])), pp = x => typeof x === 'string' ? P[x] : x;
+      let s = '';
+      (o.polys || []).forEach(g => { s += PL(g.pts.split('').map(k => P[k]), { f: g.f ? c.fill : 'none', w: g.w }); });
+      (o.circles || []).forEach(g => { const C = pp(g.c); s += `<circle cx="${f1(C[0])}" cy="${f1(C[1])}" r="${f1(g.r)}" fill="${g.f ? c.fill : 'none'}" stroke="${c.line}" stroke-width="1.5"${g.d ? ` stroke-dasharray="${g.d}"` : ''}/>`; });
+      (o.segs || []).forEach(g => { const [a, b, op] = typeof g === 'string' ? [g[0], g[1], null] : g; s += L(pp(a), pp(b), op || {}); });
+      (o.arrows || []).forEach(([a, b]) => { s += ARROW(pp(a), pp(b)); });
+      (o.ticks || []).forEach(([a, b, n]) => { s += tick(P[a], P[b], n); });
+      (o.right || []).forEach(([v, a, b]) => { s += rightM(P[v], P[a], P[b]); });
+      (o.ang || []).forEach(([v, a, b, t, n, d]) => { s += arcM(P[v], pp(a), pp(b), 14, n || 1) + (t ? angT(P[v], pp(a), pp(b), d || 28, t) : ''); });
+      (o.side || []).forEach(([a, b, t, d]) => { s += S(pp(a), pp(b), t, cc, d); });
+      (o.dots || []).forEach(k => { s += D(pp(k)); });
+      keys.forEach(k => { if (hide.includes(k)) return; const off = o.lab && o.lab[k]; s += off ? T(add(P[k], off), k, { it: 1 }) : V(P[k], k, cc); });
+      (o.text || []).forEach(([p, t, op]) => { s += T(p, t, op); });
+      return svg(o.w || 200, o.h || 160, s);
+    },
+    // ── 坐標平面 ──
+    // xr、yr：範圍；s：每單位像素；fns：[{f, d}] 函數圖形；lines：[[a,b,c]] 表 ax+by=c；pts：[[x,y,'A',dx,dy]]
+    // segs：[[x1,y1,x2,y2,虛線?]]；arrows：[[x1,y1,x2,y2,'文字']]；poly：[[x,y],…] 塗色多邊形；shade：{f, up} 塗 f 的上方（或下方）
+    // circles：[[h,k,r]]；grid：是否畫格線（預設畫）；step：刻度數字間隔；nolab：不寫刻度數字
+    plot(o) {
+      const [x0, x1] = o.xr, [y0, y1] = o.yr, s = o.s || 18, W = Math.round((x1 - x0) * s + 36), H = Math.round((y1 - y0) * s + 32), ox = 18 - x0 * s, oy = 16 + y1 * s;
+      const X = x => ox + x * s, Y = y => oy - y * s, P = (x, y) => [X(x), Y(y)], id = 'gc' + (++mk.n);
+      let g = '', fg = '';
+      if (o.grid !== false) { for (let x = Math.ceil(x0); x <= x1; x++) g += LG(P(x, y0), P(x, y1)); for (let y = Math.ceil(y0); y <= y1; y++) g += LG(P(x0, y), P(x1, y)); }
+      if (o.shade) { const pts = []; for (let i = 0; i <= 160; i++) { const x = x0 + (x1 - x0) * i / 160; pts.push(P(x, Math.max(y0 - 1, Math.min(y1 + 1, o.shade.f(x))))); } pts.push(P(x1, o.shade.up ? y1 + 1 : y0 - 1), P(x0, o.shade.up ? y1 + 1 : y0 - 1)); fg += PL(pts, { f: c.fill, w: 0 }); }
+      if (o.poly) fg += PL(o.poly.map(p => P(...p)), { f: c.fill, w: 1.2 });
+      const axY = Math.max(y0, Math.min(y1, 0)), axX = Math.max(x0, Math.min(x1, 0));
+      g += L(P(x0, axY), [X(x1) + 10, Y(axY)], { w: 1.2 }) + arrowHead([X(x1) + 14, Y(axY)], [1, 0], 8) + L(P(axX, y0), [X(axX), Y(y1) - 10], { w: 1.2 }) + arrowHead([X(axX), Y(y1) - 14], [0, -1], 8);
+      g += T([X(x1) + 12, Y(axY) + 15], 'x', { it: 1, fs: 13 }) + T([X(axX) + 10, Y(y1) - 6], 'y', { it: 1, fs: 13 }) + (x0 <= 0 && y0 <= 0 ? T([X(0) - 7, Y(0) + 13], 'O', { it: 1, fs: 12 }) : '');
+      const st = o.step || ((x1 - x0) > 12 || (y1 - y0) > 12 ? 2 : 1);
+      if (!o.nolab) { for (let x = Math.ceil(x0); x <= x1; x++) if (x && x % st === 0) g += T([X(x), Y(axY) + 13], x, { fs: 10 }); for (let y = Math.ceil(y0); y <= y1; y++) if (y && y % st === 0) g += T([X(axX) - 5, Y(y) + 4], y, { fs: 10, a: 'end' }); }
+      let cl = '';
+      const curve = (f, d) => { const segs = [[]]; for (let i = 0; i <= 300; i++) { const x = x0 + (x1 - x0) * i / 300, y = f(x); if (isFinite(y) && y >= y0 - 3 && y <= y1 + 3) segs[segs.length - 1].push(`${f1(X(x))},${f1(Y(y))}`); else if (segs[segs.length - 1].length) segs.push([]); }
+        return `<path d="${segs.filter(z => z.length > 1).map(z => 'M' + z.join(' L')).join(' ')}" fill="none" stroke="${c.line}" stroke-width="2"${d ? ` stroke-dasharray="${d}"` : ''}/>`; };
+      (o.fns || []).forEach(F => { cl += curve(F.f, F.d); });
+      (o.lines || []).forEach(([a, b, k, d]) => { cl += b ? curve(x => (k - a * x) / b, d) : L(P(k / a, y0 - 1), P(k / a, y1 + 1), { w: 2, d }); });
+      (o.circles || []).forEach(([h, k, r]) => { cl += `<circle cx="${f1(X(h))}" cy="${f1(Y(k))}" r="${f1(r * s)}" fill="none" stroke="${c.line}" stroke-width="2"/>`; });
+      (o.segs || []).forEach(([a, b, p, q, d]) => { cl += L(P(a, b), P(p, q), { w: 1.6, d: d ? '4 3' : '' }); });
+      let top = '';
+      (o.arrows || []).forEach(([a, b, p, q, t]) => { top += ARROW(P(a, b), P(p, q), 2); if (t) { const m = lerp(P(a, b), P(p, q), 0.5), u = unit(sub(P(p, q), P(a, b))); top += T(add(add(m, mul([-u[1], u[0]], 11)), [0, 5]), t, { fs: 13, it: 1 }); } });
+      (o.pts || []).forEach(([x, y, t, dx, dy]) => { top += D(P(x, y)) + (t ? T([X(x) + (dx == null ? 8 : dx), Y(y) + (dy == null ? -6 : dy)], t, { fs: 13, it: 1, a: (dx == null || dx >= 0) ? 'start' : 'end' }) : ''); });
+      const clip = `<clipPath id="${id}"><rect x="${f1(X(x0))}" y="${f1(Y(y1))}" width="${f1((x1 - x0) * s)}" height="${f1((y1 - y0) * s)}"/></clipPath>`;
+      return svg(W, H, clip + `<g clip-path="url(#${id})">${fg}</g>` + g + `<g clip-path="url(#${id})">${cl}</g>` + top);
+    },
+    // ── 數線 ──：min、max；rays：[{v, dir:1 往右 / -1 往左, open}]；segs：[{a, b, oa, ob}]；marks：[{v, t}]；step：刻度數字間隔
+    numLine(o) {
+      const W = 290, y = 30, n = o.max - o.min, px = v => 18 + (v - o.min) * (W - 40) / n, st = o.step || (n > 14 ? 2 : 1);
+      let s = L([6, y], [W - 8, y], { w: 1.3 }) + arrowHead([W - 2, y], [1, 0], 8);
+      for (let v = Math.ceil(o.min); v <= o.max; v++) s += L([px(v), y - 4], [px(v), y + 4], { w: 1 }) + (v % st === 0 ? T([px(v), y + 18], v, { fs: 11 }) : '');
+      const dot = (v, open) => `<circle cx="${f1(px(v))}" cy="${y}" r="4.5" fill="${open ? c.bg : c.line}" stroke="${c.line}" stroke-width="1.6"/>`;
+      (o.rays || []).forEach(r => { const e = r.dir > 0 ? W - 12 : 8; s += L([px(r.v), y - 9], [e, y - 9], { w: 2.4 }) + arrowHead([r.dir > 0 ? e + 6 : e - 6, y - 9], [r.dir, 0], 8) + L([px(r.v), y - 9], [px(r.v), y], { w: 1.6 }) + dot(r.v, r.open); });
+      (o.segs || []).forEach(r => { s += L([px(r.a), y - 9], [px(r.b), y - 9], { w: 2.4 }) + L([px(r.a), y - 9], [px(r.a), y], { w: 1.6 }) + L([px(r.b), y - 9], [px(r.b), y], { w: 1.6 }) + dot(r.a, r.oa) + dot(r.b, r.ob); });
+      (o.marks || []).forEach(m => { s += `<circle cx="${f1(px(m.v))}" cy="${y}" r="3" fill="${c.line}"/>` + (m.t ? T([px(m.v), y - 10], m.t, { fs: 12, it: 1 }) : ''); });
+      return svg(W, 54, s);
+    },
+    // ── 長條圖 ──：cats 類別、vals 數值、max 縱軸最大值、step 格線間隔、yl 縱軸單位、xl 橫軸名稱、show 是否在長條上寫數字
+    bars(o) {
+      const n = o.cats.length, bw = 34, ox = 40, oy = 140, W = ox + n * (bw + 12) + 16, py = v => oy - v * 112 / o.max;
+      let s = '';
+      for (let v = 0; v <= o.max; v += o.step) s += LG([ox, py(v)], [W - 8, py(v)]) + T([ox - 5, py(v) + 4], v, { fs: 10, a: 'end' });
+      o.cats.forEach((k, i) => { const x = ox + 8 + i * (bw + 12); s += `<rect x="${x}" y="${f1(py(o.vals[i]))}" width="${bw}" height="${f1(oy - py(o.vals[i]))}" fill="${c.fill}" stroke="${c.line}" stroke-width="1.3"/>` + T([x + bw / 2, oy + 15], k, { fs: 11 }) + (o.show ? T([x + bw / 2, py(o.vals[i]) - 4], o.vals[i], { fs: 11 }) : ''); });
+      s += L([ox, oy], [W - 6, oy], { w: 1.3 }) + L([ox, oy], [ox, 18], { w: 1.3 }) + (o.yl ? T([ox - 4, 12], o.yl, { fs: 11, a: 'start' }) : '') + (o.xl ? T([W - 6, oy + 30], o.xl, { fs: 11, a: 'end' }) : '');
+      return svg(W, o.xl ? 176 : 162, s);
+    },
+    // ── 轉盤（或圓形圖）──：names 各區名稱、degs 各區圓心角
+    spinner(names, degs) {
+      const cx = 86, cy = 86, r = 74; let a = -90, s = '';
+      degs.forEach((d, i) => { const b = a + d, R = t => [cx + r * Math.cos(t * Math.PI / 180), cy + r * Math.sin(t * Math.PI / 180)], p1 = R(a), p2 = R(b), m = (a + b) / 2 * Math.PI / 180;
+        s += `<path d="M${cx},${cy} L${f1(p1[0])},${f1(p1[1])} A${r},${r} 0 ${d > 180 ? 1 : 0} 1 ${f1(p2[0])},${f1(p2[1])} Z" fill="${i % 2 ? c.fill : c.bg}" stroke="${c.line}" stroke-width="1.3"/>`;
+        const tp = [cx + 46 * Math.cos(m), cy + 46 * Math.sin(m)]; s += T([tp[0], tp[1] - 2], names[i], { fs: 12 }) + T([tp[0], tp[1] + 12], d + '°', { fs: 11 }); a = b; });
+      return svg(172, 172, s + D([cx, cy]));
+    },
+    // ── 立體 ──：圓柱 cyl、圓錐 cone、長方體 box；標示文字 rl（半徑）、hl（高）、ll（斜高）
+    cyl(rl, hl) {
+      const cx = 90, rx = 52, ry = 14, t = 30, b = 130;
+      return svg(190, 158, `<ellipse cx="${cx}" cy="${t}" rx="${rx}" ry="${ry}" fill="${c.fill}" stroke="${c.line}" stroke-width="1.5"/>` + L([cx - rx, t], [cx - rx, b]) + L([cx + rx, t], [cx + rx, b]) +
+        `<path d="M${cx - rx},${b} A${rx},${ry} 0 0 0 ${cx + rx},${b}" fill="none" stroke="${c.line}" stroke-width="1.5"/><path d="M${cx - rx},${b} A${rx},${ry} 0 0 1 ${cx + rx},${b}" fill="none" stroke="${c.line}" stroke-width="1.2" stroke-dasharray="4 3"/>` +
+        L([cx, t], [cx + rx, t], { w: 1.2 }) + D([cx, t]) + T([cx + rx / 2, t - 5], rl, { fs: 13 }) + L([cx + rx + 12, t], [cx + rx + 12, b], { w: 1, d: '3 3' }) + T([cx + rx + 16, (t + b) / 2 + 5], hl, { fs: 13, a: 'start' }));
+    },
+    cone(rl, hl, ll) {
+      const cx = 90, rx = 56, ry = 15, ap = 18, b = 132;
+      let s = L([cx, ap], [cx - rx, b]) + L([cx, ap], [cx + rx, b]) + `<path d="M${cx - rx},${b} A${rx},${ry} 0 0 0 ${cx + rx},${b}" fill="none" stroke="${c.line}" stroke-width="1.5"/><path d="M${cx - rx},${b} A${rx},${ry} 0 0 1 ${cx + rx},${b}" fill="none" stroke="${c.line}" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+      s += L([cx, b], [cx + rx, b], { w: 1.2 }) + D([cx, b]) + T([cx + rx / 2, b + 16], rl, { fs: 13 });
+      if (hl) s += L([cx, ap], [cx, b], { w: 1.2, d: '4 3' }) + rightM([cx, b], [cx, ap], [cx + rx, b], 7) + T([cx - 6, (ap + b) / 2 + 5], hl, { fs: 13, a: 'end' });
+      if (ll) s += T([cx + rx / 2 + 12, (ap + b) / 2], ll, { fs: 13, a: 'start' });
+      return svg(190, 158, s);
+    },
+    box(al, bl, cl) {
+      const A = [20, 130], B = [130, 130], C = [170, 100], Dd = [60, 100], h = 70, up = p => [p[0], p[1] - h];
+      let s = PL([A, B, up(B), up(A)], { f: c.fill }) + PL([B, C, up(C), up(B)]) + PL([up(A), up(B), up(C), up(Dd)]) + L(A, Dd, { d: '4 3', w: 1.1 }) + L(Dd, C, { d: '4 3', w: 1.1 }) + L(Dd, up(Dd), { d: '4 3', w: 1.1 });
+      s += T([(A[0] + B[0]) / 2, A[1] + 16], al, { fs: 13 }) + T([(B[0] + C[0]) / 2 + 12, (B[1] + C[1]) / 2 + 10], bl, { fs: 13, a: 'start' }) + T([C[0] + 8, C[1] - h / 2], cl, { fs: 13, a: 'start' });
+      return svg(200, 150, s);
+    },
     // 兩個全等三角形（△DEF 是 △ABC 的鏡射）；g：{A:'50°', AB:'8', EF:'?' …} 要標的角與邊
     congPair(g) {
       const P = { A: [55, 22], B: [15, 124], C: [122, 124], D: [250, 22], E: [290, 124], F: [183, 124] };
@@ -163,5 +264,6 @@ function mk(st) {
     },
   };
 }
+mk.n = 0; // 坐標圖裁切區域的編號（同一頁有多張圖時 id 不重複）
 window.GEO_FIG = { exam: mk('exam'), quiz: mk('quiz') };
 })();
