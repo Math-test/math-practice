@@ -283,7 +283,7 @@ function goBack() {
     const m = (p.topics[0] || '').match(/^(b[12]|b[34][ab]|el[abcd])/);
     window.location.href = m ? `senior.html?tab=${m[1]}` : 'senior.html';
   } else {
-    window.location.href = 'index.html';
+    window.location.href = 'elementary.html';
   }
 }
 

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="page-title">數學練習題</title>
-  <link rel="stylesheet" href="css/style.css?v=16">
+  <link rel="stylesheet" href="css/style.css?v=17">
   <link rel="stylesheet" href="css/katex.min.css">
 </head>
 <body>
@@ -13,6 +13,14 @@
   <h1 id="site-title">數學練習系統</h1>
   <p id="header-sub">載入中…</p>
 </header>
+
+<nav class="site-nav" aria-label="網站導覽">
+  <a href="index.html">首頁</a>
+  <a href="elementary.html">國小</a>
+  <a href="junior.html">國中</a>
+  <a href="senior.html">高中</a>
+  <a href="exam.html">會考題本</a>
+</nav>
 
 <div class="container">
 
@@ -67,7 +75,7 @@
     if (topics.some(t => /^(b\d|el)/.test(t)))   document.write('<script src="js/senior-gen.js?v=104"><\/script>');
   })();
 </script>
-<script src="js/quiz.js?v=103"></script>
+<script src="js/quiz.js?v=104"></script>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
@@ -86,6 +94,12 @@
     else if (/^el[ab]-/.test(firstTopic)) { titleEl.textContent = '選修數學甲練習系統'; document.title = '選修數學甲練習'; }
     else if (/^el[cd]-/.test(firstTopic)) { titleEl.textContent = '選修數學乙練習系統'; document.title = '選修數學乙練習'; }
     else if (params.topics.length > 0)    { titleEl.textContent = '先修數學練習系統';   document.title = '先修數學練習'; }
+
+    // 導覽列標示目前所在的部分
+    const navHref = /^[789][ab]-/.test(firstTopic) ? 'junior.html'
+                  : /^(b\d|el)/.test(firstTopic)   ? 'senior.html' : 'elementary.html';
+    const navA = document.querySelector(`.site-nav a[href="${navHref}"]`);
+    if (navA) navA.setAttribute('aria-current', 'page');
 
     const topicLabel = params.topics.map(t => TOPIC_NAMES[t] || t).join('、');
     const levelLabel = {'basic':'基礎','medium':'中等','mixed':'基礎＋中等','hard':'困難'}[params.level] || '';

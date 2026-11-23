@@ -34,6 +34,78 @@ body {
 .site-header h1 { font-size: 1.7rem; letter-spacing: .04em; }
 .site-header p  { font-size: .88rem; opacity: .82; margin-top: 4px; }
 
+/* ─── 網站導覽列（每頁共用）─────────────────────────── */
+.site-nav {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 12px;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+.site-nav::-webkit-scrollbar { display: none; }
+.site-nav a {
+  flex: none;
+  padding: 10px 14px 8px;
+  font-size: .92rem;
+  font-weight: 600;
+  color: var(--text-s);
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+}
+.site-nav a:hover { color: var(--primary); background: var(--primary-l); }
+.site-nav a[aria-current="page"] { color: var(--primary); border-bottom-color: var(--primary); }
+.site-nav a:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+@media (max-width: 480px) { .site-nav { justify-content: flex-start; } .site-nav a { padding: 10px 11px 8px; } }
+
+/* ─── 首頁入口 ───────────────────────────────────────── */
+.hub-intro { color: var(--text-s); font-size: .95rem; margin: 4px 2px 18px; }
+.hub-section { margin-bottom: 26px; }
+.hub-section > h2 {
+  font-size: 1.05rem;
+  color: var(--primary);
+  border-left: 4px solid var(--primary);
+  padding-left: 10px;
+  margin-bottom: 4px;
+}
+.hub-section > p { font-size: .85rem; color: var(--text-s); margin: 0 0 12px 14px; }
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+.hub-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px 16px;
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+a.hub-card:hover { border-color: var(--primary); box-shadow: 0 4px 14px rgba(21,101,192,.14); transform: translateY(-2px); }
+a.hub-card:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.hub-card h3 { font-size: 1.2rem; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+.hub-card .hub-tag {
+  font-size: .72rem; font-weight: 700; letter-spacing: .04em;
+  color: var(--primary); background: var(--primary-l);
+  border-radius: 4px; padding: 1px 7px;
+}
+.hub-card .hub-desc { font-size: .88rem; color: var(--text-s); line-height: 1.6; }
+.hub-card .hub-go { margin-top: auto; padding-top: 6px; font-size: .88rem; font-weight: 700; color: var(--primary); }
+.hub-card.soon { border-style: dashed; background: transparent; }
+.hub-card.soon h3 { color: var(--text-s); }
+.hub-card.soon .hub-tag { color: #8a6d00; background: #FFF4CC; }
+.hub-card.soon .hub-go { color: var(--text-s); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .hub-card { transition: none; } a.hub-card:hover { transform: none; } }
+@media print { .site-nav { display: none !important; } }
+
 /* ─── Container ──────────────────────────────────────── */
 .container {
   max-width: 860px;
