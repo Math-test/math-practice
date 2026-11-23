@@ -12715,7 +12715,7 @@ function _figLin(lv){
     const m=pick([-3,-2,-1,1,2,3]),c=randInt(-3,3);if(Math.abs(m+c)>4||Math.abs(c-m)>4)return null;
     if(Math.random()<0.5)return {question:`右圖為線型函數 \\(y=ax+b\\) 的圖形（每一小格邊長為 \\(1\\)），求 \\(a\\)、\\(b\\)`,answerParts:[{prefix:'\\(a\\)',answer:m,type:'number'},{prefix:'\\(b\\)',answer:c,type:'number'}],graph:_makeSVG({lines:[ln(m,c)],pts:[{x:0,y:c},{x:1,y:m+c}],size:180})};
     const t=pick([-1,1])*randInt(5,9);
-    return {question:`右圖為線型函數 \\(y=f(x)\\) 的圖形（每一小格邊長為 \\(1\\)），求 \\(f(${t})\\)`,answer:m*t+c,type:'number',answerPrefix:`\\(f(${t})\\)`,graph:_makeSVG({lines:[ln(m,c)],pts:[{x:0,y:c},{x:1,y:m+c}],size:180})};
+    return {question:`右圖為線型函數 \\(y=ax+b\\) 的圖形（每一小格邊長為 \\(1\\)），當 \\(x=${t}\\) 時，\\(y\\) 的值為何？`,answer:m*t+c,type:'number',answerPrefix:'\\(y\\)',graph:_makeSVG({lines:[ln(m,c)],pts:[{x:0,y:c},{x:1,y:m+c}],size:180})};
   }
   if(lv==='medium'){
     // 與兩軸圍成的三角形面積：截距都是整數

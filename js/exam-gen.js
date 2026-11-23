@@ -340,8 +340,8 @@ const g8b = [
   function () { // 線型函數
     const m = pk([-4, -3, -2, -1, 1, 2, 3, 4]), c = ri(-8, 8), p = ri(-4, 2), r = p + ri(2, 5), t = ri(-6, 8); if (t === p || t === r) return null;
     const f = x => m * x + c;
-    return MC(`線型函數 \\(y=f(x)\\) 的圖形通過 \\((${p},${f(p)})\\)、\\((${r},${f(r)})\\) 兩點，則 \\(f(${t})\\) 的值為何？`, f(t), [-m * t + c, m * t - c, m * (t - p)],
-      `斜率 \\(=\\dfrac{${f(r)}-(${f(p)})}{${r}-(${p})}=${m}\\)，\\(f(x)=${lin(m, c)}\\)，\\(f(${t})=${f(t)}\\)。`.replace('x+0', 'x').replace(/f\(x\)=(-?\d*)x\)/, 'f(x)=$1x)'), { lv: 2 });
+    return MC(`線型函數 \\(y=ax+b\\) 的圖形通過 \\((${p},${f(p)})\\)、\\((${r},${f(r)})\\) 兩點，則當 \\(x=${t}\\) 時，\\(y\\) 的值為何？`, f(t), [-m * t + c, m * t - c, m * (t - p)],
+      `\\(a=\\dfrac{${f(r)}-(${f(p)})}{${r}-(${p})}=${m}\\)，再代入 \\((${p},${f(p)})\\) 得 \\(b=${c}\\)，所以 \\(${c ? 'y=' + lin(m, c) : 'y=' + co(m) + 'x'}\\)。當 \\(x=${t}\\) 時，\\(y=${f(t)}\\)。`, { lv: 2 });
   },
   function () { // 正多邊形的內角
     const n = pk([5, 6, 8, 9, 10, 12, 15, 18, 20, 24, 30, 36]), I = 180 * (n - 2) / n;
@@ -876,7 +876,7 @@ g8b.push(
     const m = pk([-2, -1, 1, 2, 3, -3, 0.5, -0.5]), c = ri(-3, 3), f = x => m * x + c; const xa = Number.isInteger(m) ? 1 : 2, xb = -xa;
     if (Math.abs(f(xa)) > 5 || Math.abs(f(xb)) > 5) return null;
     const t = ri(4, 9) * pk([1, -1]), ans = f(t);
-    return V_(MC(`右圖是線型函數 \\(y=f(x)\\) 的圖形，圖中每一小格的邊長為 \\(1\\)，則 \\(f(${t})\\) 的值為何？`, ans, [-ans, f(-t), m * t - c, ans + (m > 0 ? 1 : -1)].filter(v => v !== ans), `圖形通過 \\((${xb},${f(xb)})\\)、\\((${xa},${f(xa)})\\)，斜率 \\(=${Number.isInteger(m) ? m : fr(m * 2, 2)}\\)，\\(y\\) 截距 \\(=${c}\\)，所以 \\(f(${t})=${num(ans)}\\)。`, { lv: 2, step: Number.isInteger(m) ? 1 : 0.5, fig: gridGraph([f], [-5, 5], [-5, 5], [[xb, f(xb)], [xa, f(xa)]]) }), { m, c, t });
+    return V_(MC(`右圖是線型函數 \\(y=ax+b\\) 的圖形，圖中每一小格的邊長為 \\(1\\)，則當 \\(x=${t}\\) 時，\\(y\\) 的值為何？`, ans, [-ans, f(-t), m * t - c, ans + (m > 0 ? 1 : -1)].filter(v => v !== ans), `圖形通過 \\((${xb},${f(xb)})\\)、\\((${xa},${f(xa)})\\)，斜率 \\(=${Number.isInteger(m) ? m : fr(m * 2, 2)}\\)，\\(y\\) 截距 \\(=${c}\\)，所以當 \\(x=${t}\\) 時，\\(y=${num(ans)}\\)。`, { lv: 2, step: Number.isInteger(m) ? 1 : 0.5, fig: gridGraph([f], [-5, 5], [-5, 5], [[xb, f(xb)], [xa, f(xa)]]) }), { m, c, t });
   },
   function () { // 計程車資圖：讀出每公里車資
     const base = pk([70, 85, 100]), d0 = pk([1, 1.5, 2]), per = pk([5, 10, 15, 20]), k = pk([0.5, 1, 1.25]); // 每 k 公里 per 元（化為線型）
