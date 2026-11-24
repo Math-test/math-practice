@@ -55,6 +55,12 @@ function MC(stem, ans, wrong, sol, o) {
   return { kind: 'mc', stem, opts: opts.map(show), ans: idx, sol, fig: o.fig || '', lv: o.lv || 2 };
 }
 const NC = (stem, parts, sols, o) => ({ kind: 'nc', stem, parts, sols, fig: (o && o.fig) || '', lv: (o && o.lv) || 3 });
+// 數學坐標（y 向上）的點依比例縮放到 W×H 的圖框中（像素坐標，y 向下）
+const fitP = (P, W, H, pad) => {
+  pad = pad || 22; const v = Object.values(P), xs = v.map(p => p[0]), ys = v.map(p => p[1]), x0 = Math.min(...xs), y0 = Math.min(...ys), dx = Math.max(...xs) - x0 || 1, dy = Math.max(...ys) - y0 || 1;
+  const s = Math.min((W - 2 * pad) / dx, (H - 2 * pad) / dy), ox = (W - dx * s) / 2, oy = (H - dy * s) / 2, o = {};
+  for (const k in P) o[k] = [ox + (P[k][0] - x0) * s, H - oy - (P[k][1] - y0) * s]; return o;
+};
 
 // ── 圖形 ────────────────────────────────────────────────────────────
 const SVG = (w, h, body) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman,serif" font-style="italic">${body}</svg>`;
@@ -307,9 +313,11 @@ const g8a = [
 const n8a = [
   function () { // 梯子下滑
     const [L, h0, f0, d, f1] = pk([[10, 8, 6, 2, 8], [13, 12, 5, 7, 12], [25, 24, 7, 4, 15], [17, 15, 8, 7, 15], [20, 16, 12, 4, 16], [15, 12, 9, 3, 12]]);
-    return NC(`一把長 \\(${L}\\) 公尺的梯子斜靠在垂直地面的牆上，梯子頂端距離地面 \\(${h0}\\) 公尺。後來梯子頂端沿著牆下滑了 \\(${d}\\) 公尺。`,
+    const P = fitP({ O: [0, 0], W: [0, h0 + 1], G: [f1 + 2, 0], A: [0, h0], B: [f0, 0], C: [0, h0 - d], D: [f1, 0] }, 210, 180);
+    const fig = GF().geo({ P, hide: 'OWG', segs: [['O', 'W', { w: 2.4 }], ['O', 'G', { w: 2.4 }], 'AB', ['C', 'D', { d: '5 3' }]], right: [['O', 'G', 'W']], lab: { A: [-10, 4], C: [-10, 4], B: [0, 16], D: [0, 16] }, w: 210, h: 180 });
+    return NC(`如右圖，一把長 \\(${L}\\) 公尺的梯子 \\(\\overline{AB}\\) 斜靠在垂直地面的牆上，梯子頂端距離地面 \\(${h0}\\) 公尺。後來梯子頂端沿著牆下滑了 \\(${d}\\) 公尺，梯子移到 \\(\\overline{CD}\\) 的位置。`,
       [`梯子底端原本距離牆角幾公尺？`, `梯子下滑後，底端向外移動了幾公尺？請寫出計算過程。`],
-      [`\\(\\sqrt{${L}^{2}-${h0}^{2}}=\\sqrt{${L * L - h0 * h0}}=${f0}\\)（公尺）`, `下滑後頂端高 \\(${h0 - d}\\) 公尺，底端距牆 \\(\\sqrt{${L}^{2}-${h0 - d}^{2}}=${f1}\\) 公尺，向外移動 \\(${f1}-${f0}=${f1 - f0}\\) 公尺。`]);
+      [`\\(\\sqrt{${L}^{2}-${h0}^{2}}=\\sqrt{${L * L - h0 * h0}}=${f0}\\)（公尺）`, `下滑後頂端高 \\(${h0 - d}\\) 公尺，底端距牆 \\(\\sqrt{${L}^{2}-${h0 - d}^{2}}=${f1}\\) 公尺，向外移動 \\(${f1}-${f0}=${f1 - f0}\\) 公尺。`], { fig });
   },
   function () { // 一元二次應用：花圃
     const x = ri(4, 15), d = ri(2, 9), A = x * (x + d);
@@ -444,10 +452,12 @@ const n9a = [
       [`兩個三角形都有一個直角，且入射角等於反射角，所以兩個銳角相等，由 \\(AA\\) 相似性質知兩三角形相似。`, `\\(\\dfrac{x}{${h}}=\\dfrac{${b}}{${a}}\\)，\\(x=${H}\\) 公分 \\(=${H / 100}\\) 公尺。`]);
   },
   function () { // 弦長與弦心距
-    const [r, p, q] = pk([[5, 3, 4], [10, 6, 8], [13, 5, 12], [17, 8, 15], [25, 7, 24]]);
-    return NC(`圓 \\(O\\) 的半徑為 \\(${r}\\)，弦 \\(\\overline{AB}\\) 的長度為 \\(${2 * p}\\)。另有一弦 \\(\\overline{CD}\\)，圓心 \\(O\\) 到 \\(\\overline{CD}\\) 的距離為 \\(${p}\\)。`,
+    const [r, p, q] = pk([[5, 3, 4], [10, 6, 8], [13, 5, 12], [17, 8, 15], [25, 7, 24]]), cx = 100, cy = 86, R = 70, s = R / r;
+    const P = { O: [cx, cy], A: [cx - p * s, cy + q * s], B: [cx + p * s, cy + q * s], C: [cx - q * s, cy - p * s], D: [cx + q * s, cy - p * s] };
+    const fig = GF().geo({ P, cc: [cx, cy], circles: [{ c: 'O', r: R }], segs: ['AB', 'CD'], dots: ['O'], lab: { O: [-12, 4] }, w: 200, h: 176 });
+    return NC(`如右圖，圓 \\(O\\) 的半徑為 \\(${r}\\)，弦 \\(\\overline{AB}\\) 的長度為 \\(${2 * p}\\)。另有一弦 \\(\\overline{CD}\\)，圓心 \\(O\\) 到 \\(\\overline{CD}\\) 的距離為 \\(${p}\\)。`,
       [`圓心 \\(O\\) 到 \\(\\overline{AB}\\) 的距離為何？`, `\\(\\overline{CD}\\) 的長度為何？請寫出計算過程。`],
-      [`\\(\\sqrt{${r}^{2}-${p}^{2}}=${q}\\)`, `半弦長 \\(=\\sqrt{${r}^{2}-${p}^{2}}=${q}\\)，\\(\\overline{CD}=2\\times ${q}=${2 * q}\\)。`]);
+      [`\\(\\sqrt{${r}^{2}-${p}^{2}}=${q}\\)`, `半弦長 \\(=\\sqrt{${r}^{2}-${p}^{2}}=${q}\\)，\\(\\overline{CD}=2\\times ${q}=${2 * q}\\)。`], { fig });
   },
 ];
 
@@ -575,10 +585,11 @@ g7a.push(
   },
 );
 n7a.push(function () { // 數線上的運動
-  const a = ri(-8, -2), v = ri(2, 5), w = ri(1, 3), t = ri(2, 6), b = a + (v + w) * t;
-  return NC(`數線上 \\(A\\) 點坐標為 \\(${a}\\)、\\(B\\) 點坐標為 \\(${b}\\)。甲從 \\(A\\) 點每秒向右移動 \\(${v}\\) 單位，乙同時從 \\(B\\) 點每秒向左移動 \\(${w}\\) 單位。`,
+  const a = ri(-8, -2), v = ri(2, 5), w = ri(1, 3), t = ri(2, 6), b = a + (v + w) * t, n = b - a + 2;
+  const fig = GF().numLine({ min: a - 1, max: b + 1, step: n > 40 ? 10 : n > 14 ? 5 : 1, marks: [{ v: a, t: 'A' }, { v: b, t: 'B' }] });
+  return NC(`如右圖，數線上 \\(A\\) 點坐標為 \\(${a}\\)、\\(B\\) 點坐標為 \\(${b}\\)。甲從 \\(A\\) 點每秒向右移動 \\(${v}\\) 單位，乙同時從 \\(B\\) 點每秒向左移動 \\(${w}\\) 單位。`,
     [`\\(\\overline{AB}\\) 的長度為何？`, `幾秒後甲、乙相遇？相遇點的坐標為何？`],
-    [`\\(${b}-(${a})=${b - a}\\)`, `每秒接近 \\(${v + w}\\) 單位，\\(${b - a}\\div ${v + w}=${t}\\) 秒後相遇，坐標為 \\(${a}+${v}\\times ${t}=${a + v * t}\\)。`]);
+    [`\\(${b}-(${a})=${b - a}\\)`, `每秒接近 \\(${v + w}\\) 單位，\\(${b - a}\\div ${v + w}=${t}\\) 秒後相遇，坐標為 \\(${a}+${v}\\times ${t}=${a + v * t}\\)。`], { fig });
 });
 
 // ════ 七下 ════
@@ -700,10 +711,12 @@ g8b.push(
   },
 );
 n8b.push(function () { // 平行四邊形與全等
-  const a = ri(5, 15), b = ri(4, a - 1), ang = pk([50, 60, 70, 110, 120]);
-  return NC(`平行四邊形 \\(ABCD\\) 中，\\(\\overline{AB}=${a}\\)、\\(\\overline{BC}=${b}\\)、\\(\\angle B=${ang}^\\circ\\)，對角線 \\(\\overline{AC}\\) 與 \\(\\overline{BD}\\) 交於 \\(O\\) 點。`,
+  const a = ri(5, 15), b = ri(4, a - 1), ang = pk([50, 60, 70, 110, 120]), t = ang * Math.PI / 180;
+  const Pm = { A: [a * Math.cos(t), a * Math.sin(t)], B: [0, 0], C: [b, 0], D: [b + a * Math.cos(t), a * Math.sin(t)] }; Pm.O = [(Pm.A[0] + Pm.C[0]) / 2, Pm.A[1] / 2];
+  const P = fitP(Pm, 230, 150), fig = GF().geo({ P, polys: [{ pts: 'ABCD' }], segs: ['AC', 'BD'], side: [['A', 'B', String(a)], ['B', 'C', String(b)]], ang: [['B', 'C', 'A', ang + '°', 1, 26]], lab: { O: [0, 16] }, w: 230, h: 150 });
+  return NC(`如右圖，平行四邊形 \\(ABCD\\) 中，\\(\\overline{AB}=${a}\\)、\\(\\overline{BC}=${b}\\)、\\(\\angle B=${ang}^\\circ\\)，對角線 \\(\\overline{AC}\\) 與 \\(\\overline{BD}\\) 交於 \\(O\\) 點。`,
     [`求平行四邊形 \\(ABCD\\) 的周長與 \\(\\angle D\\)、\\(\\angle C\\) 的度數。`, `說明 \\(\\triangle AOB\\cong\\triangle COD\\) 的理由。`],
-    [`周長 \\(=2(${a}+${b})=${2 * (a + b)}\\)；\\(\\angle D=\\angle B=${ang}^\\circ\\)，\\(\\angle C=180^\\circ-${ang}^\\circ=${180 - ang}^\\circ\\)。`, `平行四邊形對角線互相平分，\\(\\overline{OA}=\\overline{OC}\\)、\\(\\overline{OB}=\\overline{OD}\\)，又對頂角 \\(\\angle AOB=\\angle COD\\)，由 SAS 全等性質得 \\(\\triangle AOB\\cong\\triangle COD\\)。`]);
+    [`周長 \\(=2(${a}+${b})=${2 * (a + b)}\\)；\\(\\angle D=\\angle B=${ang}^\\circ\\)，\\(\\angle C=180^\\circ-${ang}^\\circ=${180 - ang}^\\circ\\)。`, `平行四邊形對角線互相平分，\\(\\overline{OA}=\\overline{OC}\\)、\\(\\overline{OB}=\\overline{OD}\\)，又對頂角 \\(\\angle AOB=\\angle COD\\)，由 SAS 全等性質得 \\(\\triangle AOB\\cong\\triangle COD\\)。`], { fig });
 });
 
 // ════ 九上 ════
@@ -960,15 +973,18 @@ g8b.push(function () { // 不能判定全等的條件
 n8b.push(
   function () { // 等腰三角形頂角平分線
     const [h, b] = pk([[4, 3], [12, 5], [8, 6], [15, 8], [12, 9], [24, 7]]), AB = Math.hypot(h, b);
-    return NC(`\\(\\triangle ABC\\) 中，\\(\\overline{AB}=\\overline{AC}=${AB}\\)，\\(D\\) 為 \\(\\overline{BC}\\) 的中點，\\(\\overline{BC}=${2 * b}\\)。`,
+    const P = fitP({ A: [0, h], B: [-b, 0], C: [b, 0], D: [0, 0] }, 200, 170), fig = GF().geo({ P, polys: [{ pts: 'ABC' }], segs: ['AD'], ticks: [['B', 'D', 1], ['D', 'C', 1], ['A', 'B', 2], ['A', 'C', 2]], w: 200, h: 170 });
+    return NC(`如右圖，\\(\\triangle ABC\\) 中，\\(\\overline{AB}=\\overline{AC}=${AB}\\)，\\(D\\) 為 \\(\\overline{BC}\\) 的中點，\\(\\overline{BC}=${2 * b}\\)。`,
       [`完成下列證明：在 \\(\\triangle ABD\\) 與 \\(\\triangle ACD\\) 中，\\(\\overline{AB}=\\overline{AC}\\)（已知）、\\(\\overline{BD}=\\overline{CD}\\)（＿＿＿＿）、\\(\\overline{AD}=\\overline{AD}\\)（＿＿＿＿），所以 \\(\\triangle ABD\\cong\\triangle ACD\\)（＿＿＿＿全等性質）。`, `說明 \\(\\overline{AD}\\perp\\overline{BC}\\) 的理由。`, `求 \\(\\overline{AD}\\) 的長度與 \\(\\triangle ABC\\) 的面積。`],
-      [`\\(D\\) 為中點；公用邊；SSS。`, `由全等得 \\(\\angle ADB=\\angle ADC\\)，又 \\(\\angle ADB+\\angle ADC=180^\\circ\\)，所以 \\(\\angle ADB=90^\\circ\\)，\\(\\overline{AD}\\perp\\overline{BC}\\)。`, `\\(\\overline{AD}=\\sqrt{${AB}^{2}-${b}^{2}}=${h}\\)，面積 \\(=\\dfrac{${2 * b}\\times ${h}}{2}=${b * h}\\)。`]);
+      [`\\(D\\) 為中點；公用邊；SSS。`, `由全等得 \\(\\angle ADB=\\angle ADC\\)，又 \\(\\angle ADB+\\angle ADC=180^\\circ\\)，所以 \\(\\angle ADB=90^\\circ\\)，\\(\\overline{AD}\\perp\\overline{BC}\\)。`, `\\(\\overline{AD}=\\sqrt{${AB}^{2}-${b}^{2}}=${h}\\)，面積 \\(=\\dfrac{${2 * b}\\times ${h}}{2}=${b * h}\\)。`], { fig });
   },
   function () { // 平行四邊形的證明
-    const a = ri(8, 16), b = ri(4, 9), e = ri(2, a - 3);
-    return NC(`平行四邊形 \\(ABCD\\) 中，\\(\\overline{AB}=${a}\\)、\\(\\overline{AD}=${b}\\)。\\(E\\)、\\(F\\) 分別在 \\(\\overline{AB}\\)、\\(\\overline{CD}\\) 上，且 \\(\\overline{AE}=\\overline{CF}=${e}\\)。`,
+    const a = ri(8, 16), b = ri(4, 9), e = ri(2, a - 3), cs = (e * e - 2 * b - 1) / (2 * b * e); // 由 DE＝b＋1 反推 ∠A，讓題目數據與圖形一致
+    if (Math.abs(cs) > 0.6) return null; const t = Math.acos(cs), dv = [b * Math.cos(t), b * Math.sin(t)];
+    const P = fitP({ A: [0, 0], B: [a, 0], C: [a + dv[0], dv[1]], D: dv, E: [e, 0], F: [a + dv[0] - e, dv[1]] }, 240, 140), fig = GF().geo({ P, polys: [{ pts: 'ABCD' }], segs: ['DE', 'BF'], w: 240, h: 140 });
+    return NC(`如右圖，平行四邊形 \\(ABCD\\) 中，\\(\\overline{AB}=${a}\\)、\\(\\overline{AD}=${b}\\)。\\(E\\)、\\(F\\) 分別在 \\(\\overline{AB}\\)、\\(\\overline{CD}\\) 上，且 \\(\\overline{AE}=\\overline{CF}=${e}\\)。`,
       [`說明四邊形 \\(EBFD\\) 是平行四邊形的理由。`, `若 \\(\\overline{DE}=${b + 1}\\)，求四邊形 \\(EBFD\\) 的周長。`],
-      [`\\(\\overline{AB}=\\overline{CD}\\) 且 \\(\\overline{AE}=\\overline{CF}\\)，所以 \\(\\overline{EB}=\\overline{AB}-\\overline{AE}=\\overline{CD}-\\overline{CF}=\\overline{DF}\\)；又 \\(\\overline{EB}\\parallel\\overline{DF}\\)，一組對邊平行且相等，所以 \\(EBFD\\) 是平行四邊形。`, `\\(\\overline{EB}=\\overline{DF}=${a}-${e}=${a - e}\\)，\\(\\overline{BF}=\\overline{DE}=${b + 1}\\)，周長 \\(=2(${a - e}+${b + 1})=${2 * (a - e + b + 1)}\\)。`]);
+      [`\\(\\overline{AB}=\\overline{CD}\\) 且 \\(\\overline{AE}=\\overline{CF}\\)，所以 \\(\\overline{EB}=\\overline{AB}-\\overline{AE}=\\overline{CD}-\\overline{CF}=\\overline{DF}\\)；又 \\(\\overline{EB}\\parallel\\overline{DF}\\)，一組對邊平行且相等，所以 \\(EBFD\\) 是平行四邊形。`, `\\(\\overline{EB}=\\overline{DF}=${a}-${e}=${a - e}\\)，\\(\\overline{BF}=\\overline{DE}=${b + 1}\\)，周長 \\(=2(${a - e}+${b + 1})=${2 * (a - e + b + 1)}\\)。`], { fig });
   },
 );
 n9a.push(function () { // 相似證明
@@ -1095,8 +1111,10 @@ g8a.push(
 );
 n8a.push(function () { // 一元二次：邊框
   const x = ri(1, 4), L = ri(8, 20), W = ri(5, L - 2), A = (L + 2 * x) * (W + 2 * x);
-  return NC(`一幅長 \\(${L}\\) 公分、寬 \\(${W}\\) 公分的長方形照片，四周加上寬度相同的相框後，整體的面積為 \\(${A}\\) 平方公分。`, [`設相框寬 \\(x\\) 公分，請列出 \\(x\\) 的一元二次方程式。`, `求相框的寬度，並寫出計算過程。`],
-    [`\\((${L}+2x)(${W}+2x)=${A}\\)`, `展開得 \\(${quad(4, 2 * (L + W), L * W - A)}=0\\)，即 \\(${quad(2, L + W, (L * W - A) / 2)}=0\\)，解得 \\(x=${x}\\)（負根不合），相框寬 \\(${x}\\) 公分。`]);
+  const P = fitP({ A: [-x, -x], B: [L + x, -x], C: [L + x, W + x], D: [-x, W + x], E: [0, 0], F: [L, 0], G: [L, W], H: [0, W] }, 230, 160, 18);
+  const fig = GF().geo({ P, hide: 'ABCDEFGH', polys: [{ pts: 'ABCD' }, { pts: 'EFGH', f: 1 }], text: [[[(P.E[0] + P.F[0]) / 2, P.E[1] - 7], String(L)], [[P.F[0] - 6, (P.F[1] + P.G[1]) / 2 + 5], String(W), { a: 'end' }], [[(P.D[0] + P.C[0]) / 2 + 30, (P.D[1] + P.H[1]) / 2 + 5], 'x', { it: 1 }]], w: 230, h: 160 });
+  return NC(`如右圖，一幅長 \\(${L}\\) 公分、寬 \\(${W}\\) 公分的長方形照片，四周加上寬度相同的相框後，整體的面積為 \\(${A}\\) 平方公分。`, [`設相框寬 \\(x\\) 公分，請列出 \\(x\\) 的一元二次方程式。`, `求相框的寬度，並寫出計算過程。`],
+    [`\\((${L}+2x)(${W}+2x)=${A}\\)`, `展開得 \\(${quad(4, 2 * (L + W), L * W - A)}=0\\)，即 \\(${quad(2, L + W, (L * W - A) / 2)}=0\\)，解得 \\(x=${x}\\)（負根不合），相框寬 \\(${x}\\) 公分。`], { fig });
 });
 
 // ════ 八下 ════
@@ -1131,10 +1149,12 @@ g8b.push(
   },
 );
 n8b.push(function () { // 中點連線與梯形
-  const a = ri(3, 10) * 2, b = ri(a / 2 + 2, 16) * 2;
-  return NC(`梯形 \\(ABCD\\) 中，\\(\\overline{AD}\\parallel\\overline{BC}\\)，\\(\\overline{AD}=${a}\\)、\\(\\overline{BC}=${b}\\)。\\(E\\)、\\(F\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{CD}\\) 的中點，對角線 \\(\\overline{AC}\\) 交 \\(\\overline{EF}\\) 於 \\(G\\) 點。`,
+  const a = ri(3, 10) * 2, b = ri(a / 2 + 2, 16) * 2, hh = b * 0.45, p0 = (b - a) * 0.35;
+  const Pm = { A: [p0, hh], D: [p0 + a, hh], B: [0, 0], C: [b, 0] }; Pm.E = [p0 / 2, hh / 2]; Pm.F = [(p0 + a + b) / 2, hh / 2]; Pm.G = [(p0 + b) / 2, hh / 2];
+  const P = fitP(Pm, 240, 140), fig = GF().geo({ P, polys: [{ pts: 'ABCD' }], segs: ['EF', 'AC'], lab: { G: [0, 16] }, w: 240, h: 140 });
+  return NC(`如右圖，梯形 \\(ABCD\\) 中，\\(\\overline{AD}\\parallel\\overline{BC}\\)，\\(\\overline{AD}=${a}\\)、\\(\\overline{BC}=${b}\\)。\\(E\\)、\\(F\\) 分別為 \\(\\overline{AB}\\)、\\(\\overline{CD}\\) 的中點，對角線 \\(\\overline{AC}\\) 交 \\(\\overline{EF}\\) 於 \\(G\\) 點。`,
     [`求 \\(\\overline{EF}\\) 的長度。`, `求 \\(\\overline{EG}\\) 與 \\(\\overline{GF}\\) 的長度，並說明理由。`],
-    [`梯形中線長 \\(=\\dfrac{${a}+${b}}{2}=${(a + b) / 2}\\)`, `在 \\(\\triangle ABC\\) 中，\\(E\\) 為中點且 \\(\\overline{EG}\\parallel\\overline{BC}\\)，所以 \\(G\\) 為 \\(\\overline{AC}\\) 的中點，\\(\\overline{EG}=\\dfrac{${b}}{2}=${b / 2}\\)；同理在 \\(\\triangle ACD\\) 中，\\(\\overline{GF}=\\dfrac{${a}}{2}=${a / 2}\\)。`]);
+    [`梯形中線長 \\(=\\dfrac{${a}+${b}}{2}=${(a + b) / 2}\\)`, `在 \\(\\triangle ABC\\) 中，\\(E\\) 為中點且 \\(\\overline{EG}\\parallel\\overline{BC}\\)，所以 \\(G\\) 為 \\(\\overline{AC}\\) 的中點，\\(\\overline{EG}=\\dfrac{${b}}{2}=${b / 2}\\)；同理在 \\(\\triangle ACD\\) 中，\\(\\overline{GF}=\\dfrac{${a}}{2}=${a / 2}\\)。`], { fig });
 });
 
 // ════ 九上 ════
@@ -1167,9 +1187,10 @@ g9a.push(
 );
 n9a.push(function () { // 相似：測河寬
   const a = ri(2, 6) * 5, b = ri(2, 6) * 5, c = ri(3, 8) * 5, w = a * c / b; if (!Number.isInteger(w)) return null;
-  return NC(`為了測量河寬 \\(\\overline{AB}\\)，在河岸取 \\(B\\)、\\(C\\)、\\(D\\) 三點共線且 \\(\\overline{AB}\\perp\\overline{BD}\\)，再取 \\(E\\) 點使 \\(\\overline{DE}\\perp\\overline{BD}\\)，且 \\(A\\)、\\(C\\)、\\(E\\) 三點共線。測得 \\(\\overline{BC}=${a}\\) 公尺、\\(\\overline{CD}=${b}\\) 公尺、\\(\\overline{DE}=${c}\\) 公尺。`,
+  const P = fitP({ A: [0, w], B: [0, 0], C: [a, 0], D: [a + b, 0], E: [a + b, -c] }, 220, 180), fig = GF().geo({ P, segs: ['AB', 'BD', 'DE', 'AE'], right: [['B', 'A', 'C'], ['D', 'C', 'E']], side: [['B', 'C', String(a)], ['C', 'D', String(b)], ['D', 'E', String(c)]], w: 220, h: 180 });
+  return NC(`如右圖，為了測量河寬 \\(\\overline{AB}\\)，在河岸取 \\(B\\)、\\(C\\)、\\(D\\) 三點共線且 \\(\\overline{AB}\\perp\\overline{BD}\\)，再取 \\(E\\) 點使 \\(\\overline{DE}\\perp\\overline{BD}\\)，且 \\(A\\)、\\(C\\)、\\(E\\) 三點共線。測得 \\(\\overline{BC}=${a}\\) 公尺、\\(\\overline{CD}=${b}\\) 公尺、\\(\\overline{DE}=${c}\\) 公尺。`,
     [`說明 \\(\\triangle ABC\\sim\\triangle EDC\\) 的理由。`, `求河寬 \\(\\overline{AB}\\)。`],
-    [`\\(\\angle ABC=\\angle EDC=90^\\circ\\)，\\(\\angle ACB=\\angle ECD\\)（對頂角），由 \\(AA\\) 相似性質得證。`, `\\(\\dfrac{\\overline{AB}}{\\overline{ED}}=\\dfrac{\\overline{BC}}{\\overline{DC}}\\)，\\(\\overline{AB}=${c}\\times\\dfrac{${a}}{${b}}=${w}\\)（公尺）。`]);
+    [`\\(\\angle ABC=\\angle EDC=90^\\circ\\)，\\(\\angle ACB=\\angle ECD\\)（對頂角），由 \\(AA\\) 相似性質得證。`, `\\(\\dfrac{\\overline{AB}}{\\overline{ED}}=\\dfrac{\\overline{BC}}{\\overline{DC}}\\)，\\(\\overline{AB}=${c}\\times\\dfrac{${a}}{${b}}=${w}\\)（公尺）。`], { fig });
 });
 
 // ════ 九下 ════
@@ -1339,9 +1360,10 @@ n7b.push(
   },
   function () { // 坐標平面上的三角形
     const a = ri(-6, -1), b = ri(1, 6), c = pk([3, 4, 5, 6, -3, -4, -5]), area = (b - a) * Math.abs(c) / 2, P1 = b + 2 * (b - a), P2 = b - 2 * (b - a);
-    return NC(`坐標平面上有 \\(A(${a},0)\\)、\\(B(${b},0)\\)、\\(C(0,${c})\\) 三點。`,
+    const fig = GF().plot({ xr: [a - 1, b + 1], yr: [Math.min(c, 0) - 1, Math.max(c, 0) + 1], s: 18, nolab: true, poly: [[a, 0], [b, 0], [0, c]], pts: [[a, 0, 'A', -4, c > 0 ? 15 : -6], [b, 0, 'B', 4, c > 0 ? 15 : -6], [0, c, 'C', 6, c > 0 ? 4 : 12]] });
+    return NC(`如右圖，坐標平面上有 \\(A(${a},0)\\)、\\(B(${b},0)\\)、\\(C(0,${c})\\) 三點。`,
       [`求 \\(\\triangle ABC\\) 的面積。`, `若 \\(x\\) 軸上有一點 \\(P\\)，使得 \\(\\triangle PBC\\) 的面積是 \\(\\triangle ABC\\) 面積的 \\(2\\) 倍，求 \\(P\\) 點所有可能的坐標。`],
-      [`\\(\\overline{AB}=${b}-(${a})=${b - a}\\)，高為 \\(${Math.abs(c)}\\)，面積 \\(=\\dfrac{${b - a}\\times ${Math.abs(c)}}{2}=${num(area)}\\)。`, `兩個三角形的高相同，所以 \\(\\overline{PB}=2\\overline{AB}=${2 * (b - a)}\\)，\\(P\\) 點坐標為 \\((${P1},0)\\) 或 \\((${P2},0)\\)。`]);
+      [`\\(\\overline{AB}=${b}-(${a})=${b - a}\\)，高為 \\(${Math.abs(c)}\\)，面積 \\(=\\dfrac{${b - a}\\times ${Math.abs(c)}}{2}=${num(area)}\\)。`, `兩個三角形的高相同，所以 \\(\\overline{PB}=2\\overline{AB}=${2 * (b - a)}\\)，\\(P\\) 點坐標為 \\((${P1},0)\\) 或 \\((${P2},0)\\)。`], { fig });
   },
 );
 
@@ -2550,10 +2572,15 @@ n9a.push(HD(function () { // 壓軸非選：弦、弓形高與弦長
 n9b.push(HD(function () { // 壓軸非選：二次函數綜合
   const p = ri(-3, -1), q = ri(1, 7); if ((p + q) % 2 || p + q <= 0) return null;
   const b = p + q, c = -p * q, h = b / 2, k = (h - p) * (q - h), area = (-p * c + (c + k) * h + (q - h) * k) / 2;
-  return NC(`二次函數 \\(y=-x^{2}+bx+c\\) 的圖形與 \\(x\\) 軸交於 \\(A(${p},0)\\)、\\(B(${q},0)\\) 兩點，與 \\(y\\) 軸交於 \\(C\\) 點，頂點為 \\(P\\)。`,
+  // 示意圖：x、y 方向分別縮放（y 值可能很大）
+  const x0 = p - 1.5, x1 = q + 1.5, Y0 = -0.15 * k, Y1 = 1.15 * k, W = 220, Hh = 190, X = x => 14 + (x - x0) / (x1 - x0) * (W - 34), Y = y => Hh - 14 - (y - Y0) / (Y1 - Y0) * (Hh - 30), Q = (x, y) => [X(x), Y(y)];
+  const curve = []; for (let i = 0; i < 40; i++) { const u = p - 0.6 + (q - p + 1.2) * i / 40, v = u + (q - p + 1.2) / 40; curve.push([Q(u, -(u - p) * (u - q)), Q(v, -(v - p) * (v - q)), { w: 1.8 }]); }
+  const fig = GF().geo({ P: { A: Q(p, 0), B: Q(q, 0), C: Q(0, c), P: Q(h, k), O: Q(0, 0) }, polys: [{ pts: 'ACPB', f: 1 }], segs: curve, arrows: [[Q(x0, 0), [W - 4, Y(0)]], [Q(0, Y0), [X(0), 6]]], dots: ['A', 'B', 'C', 'P'],
+    lab: { A: [-8, 15], B: [8, 15], C: [-9, -3], P: [0, -9], O: [7, 14] }, text: [[[W - 8, Y(0) + 15], 'x', { it: 1 }], [[X(0) + 10, 14], 'y', { it: 1 }]], w: W, h: Hh });
+  return NC(`如右圖，二次函數 \\(y=-x^{2}+bx+c\\) 的圖形與 \\(x\\) 軸交於 \\(A(${p},0)\\)、\\(B(${q},0)\\) 兩點，與 \\(y\\) 軸交於 \\(C\\) 點，頂點為 \\(P\\)。`,
     [`求 \\(b\\)、\\(c\\) 的值。`, `求頂點 \\(P\\) 的坐標。`, `求四邊形 \\(ACPB\\) 的面積。`],
     [`\\(y=-(x${sg(-p)})(x${sg(-q)})=${quad(-1, b, c)}\\)，所以 \\(b=${b}\\)、\\(c=${c}\\)。`, `\\(y=-(x-${h})^{2}+${k}\\)，頂點 \\(P(${h},${k})\\)。`,
-      `\\(C(0,${c})\\)。過 \\(P\\) 作 \\(x\\) 軸的垂線，垂足為 \\(H(${h},0)\\)。四邊形 \\(ACPB\\) 的面積 \\(=\\triangle AOC+\\) 梯形 \\(OCPH+\\triangle PHB=\\dfrac{1}{2}\\times ${-p}\\times ${c}+\\dfrac{1}{2}\\times(${c}+${k})\\times ${h}+\\dfrac{1}{2}\\times ${q - h}\\times ${k}=${num(area)}\\)。`], { lv: 4 });
+      `\\(C(0,${c})\\)。過 \\(P\\) 作 \\(x\\) 軸的垂線，垂足為 \\(H(${h},0)\\)。四邊形 \\(ACPB\\) 的面積 \\(=\\triangle AOC+\\) 梯形 \\(OCPH+\\triangle PHB=\\dfrac{1}{2}\\times ${-p}\\times ${c}+\\dfrac{1}{2}\\times(${c}+${k})\\times ${h}+\\dfrac{1}{2}\\times ${q - h}\\times ${k}=${num(area)}\\)。`], { lv: 4, fig });
 }));
 
 window.EXAM_BANK = {
@@ -2596,6 +2623,11 @@ window.buildExam = function (sems, nMC, nNC) {
   } };
   const norm = npool.filter(it => !it.g.hard), hard = npool.filter(it => it.g.hard);
   take(norm, nNC - 1); take(hard, nNC); take(norm, nNC);
+  // 非選題至少一題附圖：都沒有圖時，把第 1 題換成所選範圍內的附圖題
+  if (nc.length && !nc.some(q => q.fig)) for (const it of norm) {
+    if (nc.some(x => x._g === it.g)) continue; const q = gen(it.g, seen); if (!q) continue;
+    if (q.fig) { q.sem = it.s; q._g = it.g; nc[0] = q; break; } seen.delete(q.stem);
+  }
   return { mc, nc };
 };
 })();
