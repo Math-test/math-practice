@@ -2279,6 +2279,283 @@ g9b.push(
   },
 );
 
+// ════ 進階與壓軸題（拉開 B++～A++ 的鑑別度）：lv 3 為進階、lv 4 為壓軸 ════
+const P_ = v => v < 0 ? `(${v})` : String(v);                                     // 負數加括號
+const rsq = N => { let k = 1, m = N; for (let f = 2; f * f <= m; f++) while (m % (f * f) === 0) { m /= f * f; k *= f; } return m === 1 ? String(k) : `${k === 1 ? '' : k}\\sqrt{${m}}`; };
+const frv = (n, d) => [fr(n, d), n / d];                                          // 分數選項 [LaTeX, 值]
+const arcL = s => `\\overset{\\frown}{${s}}`;
+const HD = f => { f.hard = true; return f; };                                     // 壓軸非選題
+const xLine = (P1, P2, P3, P4) => { const d = (P1[0] - P2[0]) * (P3[1] - P4[1]) - (P1[1] - P2[1]) * (P3[0] - P4[0]), a = P1[0] * P2[1] - P1[1] * P2[0], b = P3[0] * P4[1] - P3[1] * P4[0]; return [(a * (P3[0] - P4[0]) - (P1[0] - P2[0]) * b) / d, (a * (P3[1] - P4[1]) - (P1[1] - P2[1]) * b) / d]; };
+g7a.push(
+  function () { // 進階：數線上一點到數個點的距離和最小值
+    const n = pk([3, 4]), xs = []; while (xs.length < n) { const v = ri(-9, 12); if (v && !xs.includes(v)) xs.push(v); }
+    const s = xs.slice().sort((a, b) => a - b), f = x => xs.reduce((t, v) => t + Math.abs(x - v), 0), nm = 'ABCD'.slice(0, n).split(''), at = v => nm[xs.indexOf(v)];
+    const ans = n === 3 ? s[2] - s[0] : s[3] + s[2] - s[1] - s[0];
+    const mid = n === 3 ? `\\(P\\) 與中間的點 \\(${at(s[1])}\\) 重合時` : `\\(P\\) 在中間兩點 \\(${at(s[1])}\\)、\\(${at(s[2])}\\) 之間（含兩端）時`;
+    const how = n === 3 ? `${s[2]}-${P_(s[0])}` : `(${s[3]}-${P_(s[0])})+(${s[2]}-${P_(s[1])})`;
+    return V_(MC(`數線上 ${nm.map(c => `\\(${c}\\)`).join('、')} ${n === 3 ? '三' : '四'}點的坐標分別為 ${xs.map(v => `\\(${v}\\)`).join('、')}。若 \\(P\\) 為數線上的一點，則 \\(${nm.map(c => `\\overline{P${c}}`).join('+')}\\) 的最小值為何？`, ans,
+      [f(0), s[n - 1] - s[0], xs.reduce((t, v) => t + Math.abs(v), 0), f(Math.round(xs.reduce((a, b) => a + b, 0) / n)), f(s[0])].filter(v => v !== ans && v > 0),
+      `${mid}距離和最小，最小值 \\(=${how}=${ans}\\)。`, { lv: 3, pos: 1 }), { xs });
+  },
+  function () { // 壓軸：已知最大公因數與最小公倍數，求數對的個數
+    const m = pk([6, 10, 12, 14, 15, 18, 20, 21, 24, 28, 30, 36, 40, 42, 60, 70]), g = pk([2, 3, 4, 5, 6, 7]), L = g * m, pr = [];
+    for (let x = 1; x * x < m; x++) if (m % x === 0 && gcd(x, m / x) === 1) pr.push([x, m / x]);
+    let dm = 0; for (let x = 1; x <= m; x++) if (m % x === 0) dm++; const ans = pr.length;
+    return V_(MC(`兩個正整數 \\(a\\)、\\(b\\)（\\(a\\lt b\\)）的最大公因數為 \\(${g}\\)，最小公倍數為 \\(${L}\\)，則滿足條件的數對 \\((a,b)\\) 共有幾組？`, ans,
+      [dm / 2, dm, 2 * ans, ans + 1, ans - 1, dm - 1].filter(v => Number.isInteger(v) && v > 0 && v !== ans),
+      `設 \\(a=${g}x\\)、\\(b=${g}y\\)，其中 \\(x\\)、\\(y\\) 互質且 \\(x\\lt y\\)，則最小公倍數為 \\(${g}xy=${L}\\)，\\(xy=${m}\\)。互質的 \\((x,y)\\) 有 ${pr.map(([x, y]) => `\\((${x},${y})\\)`).join('、')}，所以 \\((a,b)\\) 為 ${pr.map(([x, y]) => `\\((${g * x},${g * y})\\)`).join('、')}，共 \\(${ans}\\) 組。`, { lv: 4, int: 1, pos: 1 }), { g, L });
+  },
+  function () { // 進階：指數比大小（化成相同的指數）
+    const C = [[2, 5], [3, 3], [3, 4], [5, 2], [5, 3], [6, 2], [7, 2], [2, 7], [10, 2], [11, 2], [2, 4], [3, 2]];
+    let it = null; for (let t = 0; t < 50 && !it; t++) { const c = shuf(C).slice(0, 3); if (new Set(c.map(x => x[0])).size === 3 && new Set(c.map(x => x[0] ** x[1])).size === 3) it = c; } if (!it) return null;
+    const m = ri(11, 25), nm = ['a', 'b', 'c'], v = it.map(([b, e]) => b ** e);
+    const ord = k => nm.slice().sort((p, q) => k[nm.indexOf(q)] - k[nm.indexOf(p)]).join('>'), ans = ord(v), T = s => `\\(${s}\\)`;
+    const all = ['a>b>c', 'a>c>b', 'b>a>c', 'b>c>a', 'c>a>b', 'c>b>a'], w = [...new Set([ord(it.map(x => x[1])), ord(it.map(x => x[0]))])].filter(s => s !== ans);
+    return V_(MC(`若 ${nm.map((c, i) => `\\(${c}=${it[i][0]}^{${it[i][1] * m}}\\)`).join('、')}，則 \\(a\\)、\\(b\\)、\\(c\\) 的大小關係為何？`, T(ans), w.concat(shuf(all.filter(s => s !== ans && !w.includes(s)))).slice(0, 3).map(T),
+      `${nm.map((c, i) => `\\(${c}=(${it[i][0]}^{${it[i][1]}})^{${m}}=${v[i]}^{${m}}\\)`).join('、')}。指數相同時，底數愈大的值愈大，所以 \\(${ans}\\)。`, { lv: 3 }), { it, m });
+  },
+  function () { // 壓軸：時鐘的時針與分針（一元一次方程式）
+    const t = coin(); let h, n;
+    if (t) { h = ri(1, 10); n = 60 * h; } else { h = pk([1, 2, 3, 4, 7, 8, 9, 10, 11]); n = h < 6 ? 60 * h + 360 : 60 * h - 360; }
+    const ans = n / 11, gap = n / 2;
+    const fm = v => { for (const d of [1, 11, 13, 2]) if (Math.abs(v * d - Math.round(v * d)) < 1e-9) return fr(Math.round(v * d), d); return num(v); };
+    return V_(MC(`時鐘在 \\(${h}\\) 點到 \\(${h + 1}\\) 點之間，時針與分針${t ? '第一次重合' : '第一次成一直線且方向相反'}的時刻為 \\(${h}\\) 點幾分？`, ans,
+      [gap / 6, gap / 6.5, gap / 5, n / 13].filter(v => v > 0 && v < 60 && Math.abs(v - ans) > 1e-9),
+      `分針每分鐘轉 \\(6^\\circ\\)，時針每分鐘轉 \\(0.5^\\circ\\)。\\(${h}\\) 點整時分針落後時針 \\(${30 * h}^\\circ\\)。設經過 \\(x\\) 分鐘後${t ? '分針追上時針' : h < 6 ? `分針超前時針 \\(180^\\circ\\)` : `分針落後時針 \\(180^\\circ\\)`}，則 \\(6x-0.5x=${gap}\\)，\\(x=${fr(n, 11)}\\)。`, { lv: 4, pos: 1, fmt: fm, u: '分' }), { h, t });
+  },
+);
+g7b.push(
+  function () { // 壓軸：由正整數解求範圍
+    const a = ri(2, 5), n = ri(2, 4), st = coin(), lo = a * n, hi = a * (n + 1), LE = '\\le ', LT = '\\lt ';
+    const R = (l, h) => `\\(${lo}${l}m${h}${hi}\\)`, ans = st ? R(LT, LE) : R(LE, LT), sols = Array.from({ length: n }, (_, i) => `\\(${i + 1}\\)`).join('、'), op = st ? '\\lt' : '\\le';
+    return V_(MC(`若 \\(x\\) 的一元一次不等式 \\(${a}x-m${op} 0\\) 的正整數解只有 ${sols}，則 \\(m\\) 的範圍為何？`, ans, [R(LE, LT), R(LT, LE), R(LE, LE), R(LT, LT)].filter(s => s !== ans),
+      `\\(x${op}\\dfrac{m}{${a}}\\)。正整數解只有 ${sols}，表示 \\(${n}\\) 是解而 \\(${n + 1}\\) 不是解：\\(${n}${op}\\dfrac{m}{${a}}${st ? '\\le' : '\\lt'} ${n + 1}\\)，所以 ${ans}。`, { lv: 4 }), { a, n, st });
+  },
+  function () { // 壓軸：看錯係數的聯立方程式
+    const a = ri(2, 5), b = ri(2, 5), p = ri(1, 4), q = ri(1, 4), X = ri(-3, 5), Y = ri(-3, 5), t = pk([1, -1, 2]), s = pk([1, -1, 2]), ask = coin();
+    const c1 = a * X + p * Y, c2 = q * X - b * Y, x1 = X + b * t, y1 = Y + q * t, x2 = X + p * s, y2 = Y - a * s;
+    if (!y1 || !x2 || (!X && !Y)) return null;
+    const E1 = `ax${p === 1 ? '+y' : `+${p}y`}=${c1}`, E2 = `${co(q)}x-by=${c2}`, ans = ask ? a + b : X + Y;
+    const sw = x1 && y2 ? (c1 - p * y1) / x1 + (q * x2 - c2) / y2 : NaN; // 把兩人的解代錯式子
+    const wr = ask ? [a * b, a - b, b - a, sw, a + b + 1, a + b - 1] : [x1 + y1, x2 + y2, X - Y, Y - X, -X - Y];
+    return V_(MC(`解二元一次聯立方程式 \\(\\begin{cases}${E1}\\\\${E2}\\end{cases}\\) 時，甲看錯了 \\(a\\)，解得 ${xyS(x1, y1)}；乙看錯了 \\(b\\)，解得 ${xyS(x2, y2)}。則${ask ? ' \\(a+b\\) 的值' : '此聯立方程式正確的解中，\\(x+y\\) 的值'}為何？`, ans,
+      wr.filter(v => Number.isInteger(v) && v !== ans),
+      `甲看錯 \\(a\\)，但他的解仍滿足第二式：\\(${q}\\times ${P_(x1)}-b\\times ${P_(y1)}=${c2}\\)，得 \\(b=${b}\\)。乙看錯 \\(b\\)，但他的解仍滿足第一式：\\(a\\times ${P_(x2)}+${p}\\times ${P_(y2)}=${c1}\\)，得 \\(a=${a}\\)。` +
+      (ask ? `所以 \\(a+b=${a + b}\\)。` : `解 \\(\\begin{cases}${eqS(a, p, c1)}\\\\${eqS(q, -b, c2)}\\end{cases}\\)，得 ${xyS(X, Y)}，\\(x+y=${X + Y}\\)。`), { lv: ask ? 3 : 4 }), { a, b, p, q, X, Y });
+  },
+  function () { // 進階：比例的變化
+    const [a, b] = pk([[2, 3], [3, 4], [3, 5], [4, 5], [2, 5], [5, 7], [1, 2], [1, 3]]), [c, d] = pk([[1, 1], [4, 3], [5, 4], [3, 2], [6, 5], [2, 1], [5, 3]]);
+    if (c * b <= d * a) return null; const k = ri(2, 40) * 10, e = c * b - d * a, m = k * e / (c + d);
+    if (!Number.isInteger(m) || m % 10 || b * k - m <= 0) return null; const ans = a * k;
+    return V_(MC(`甲、乙兩人存款的比為 \\(${a}:${b}\\)。甲再存入 \\(${m}\\) 元、乙領出 \\(${m}\\) 元後，兩人存款的比變為 \\(${c}:${d}\\)，則甲原來的存款為多少元？`, ans,
+      [b * k, a * k + m, c * k, b * k - m, (a + b) * k].filter(v => v > 0 && v !== ans),
+      `設甲原有 \\(${co(a)}k\\) 元、乙原有 \\(${b}k\\) 元，\\((${co(a)}k+${m}):(${b}k-${m})=${c}:${d}\\)，\\(${co(d)}(${co(a)}k+${m})=${co(c)}(${b}k-${m})\\)，\\(${co(e)}k=${m * (c + d)}\\)，\\(k=${k}\\)，甲原有 \\(${a}\\times ${k}=${ans}\\)（元）。`, { lv: 3, pos: 1, step: 10 * a }), { a, b, c, d, m });
+  },
+  function () { // 進階／壓軸：坐標平面上的三角形面積
+    const yA = pk([-6, -5, -4, -3, -2, 2, 3, 4, 5, 6]), xA = ri(-4, 4), b = ri(-6, 6), d = ri(1, 8), ask = coin(), H = Math.abs(yA);
+    if ((d * H) % 2 || (!ask && !b)) return null; const S = d * H / 2, ans = ask ? b * b - d * d : 2 * b;
+    return V_(MC(`坐標平面上有 \\(A(${xA},${yA})\\)、\\(B(${b},0)\\) 兩點，\\(P\\) 為 \\(x\\) 軸上的一點。若 \\(\\triangle ABP\\) 的面積為 \\(${S}\\)，則所有可能的 \\(P\\) 點 \\(x\\) 坐標的${ask ? '乘積' : '和'}為何？`, ans,
+      (ask ? [b * b + d * d, d * d - b * b, b * d, -d * d, (b + 2 * d) * b] : [b, 2 * d, -2 * b, b + d, 2 * b + 2 * d]).filter(v => v !== ans),
+      `以 \\(\\overline{BP}\\) 為底，高為 \\(A\\) 到 \\(x\\) 軸的距離 \\(${H}\\)。\\(\\dfrac{1}{2}\\times\\overline{BP}\\times ${H}=${S}\\)，\\(\\overline{BP}=${d}\\)，所以 \\(P\\) 點的 \\(x\\) 坐標為 \\(${b + d}\\) 或 \\(${b - d}\\)，${ask ? '乘積' : '和'}為 \\(${ans}\\)。`, { lv: ask ? 4 : 3 }), { xA, yA, b, S });
+  },
+);
+g8a.push(
+  function () { // 進階：乘法公式的整體代換
+    if (coin()) {
+      const m = ri(2, 9), n = pk([-6, -5, -4, -3, -2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12]), ans = m * m + 4 * n; if (ans <= 0) return null;
+      return V_(MC(`若 \\(a-b=${m}\\)、\\(ab=${n}\\)，則 \\((a+b)^{2}\\) 的值為何？`, ans, [m * m + 2 * n, m * m - 4 * n, m * m - 2 * n, m * m + n].filter(v => v !== ans),
+        `\\((a+b)^{2}=a^{2}+2ab+b^{2}=(a-b)^{2}+4ab=${m}^{2}+4\\times ${P_(n)}=${ans}\\)。`, { lv: 3 }), { m, n });
+    }
+    const s = ri(2, 9), Q = ri(Math.floor(s * s / 2) + 1, s * s + 15), ans = 2 * Q - s * s; if (Q === s * s) return null;
+    return V_(MC(`若 \\(a+b=${s}\\)、\\(a^{2}+b^{2}=${Q}\\)，則 \\((a-b)^{2}\\) 的值為何？`, ans, [Q - s * s, s * s - Q, 2 * Q + s * s, Q - 2 * s, (s * s - Q) / 2].filter(v => v !== ans && Number.isInteger(v)),
+      `\\(2ab=(a+b)^{2}-(a^{2}+b^{2})=${s * s}-${Q}=${s * s - Q}\\)，\\((a-b)^{2}=a^{2}+b^{2}-2ab=${Q}-${P_(s * s - Q)}=${ans}\\)。`, { lv: 3 }), { s, Q });
+  },
+  function () { // 壓軸：平方根的整數部分與小數部分
+    let n; do n = ri(5, 99); while (Number.isInteger(Math.sqrt(n)));
+    const a = Math.floor(Math.sqrt(n)), ans = n - a * a, ex = pk(['b(b+2a)', 'b^{2}+2ab', `(\\sqrt{${n}}+a)b`]);
+    return V_(MC(`設 \\(\\sqrt{${n}}\\) 的整數部分為 \\(a\\)，小數部分為 \\(b\\)，則 \\(${ex}\\) 的值為何？`, ans, [n, a * a, n + a * a, 2 * a, n - 2 * a, a * a - n].filter(v => v !== ans),
+      `\\(${a * a}\\lt ${n}\\lt ${(a + 1) ** 2}\\)，所以 \\(${a}\\lt\\sqrt{${n}}\\lt ${a + 1}\\)，\\(a=${a}\\)、\\(b=\\sqrt{${n}}-${a}\\)，即 \\(a+b=\\sqrt{${n}}\\)。\\(${ex === 'b^{2}+2ab' ? '' : ex + '='}b^{2}+2ab=(a+b)^{2}-a^{2}=${n}-${a * a}=${ans}\\)。`, { lv: 4 }), { n, ex });
+  },
+  function () { // 進階／壓軸：兩根都是正整數時求 k
+    const c = pk([12, 16, 18, 20, 24, 28, 30, 32, 36, 40, 42, 45, 48]), pr = []; for (let p = 1; p * p <= c; p++) if (c % p === 0) pr.push([p, c / p]);
+    const ks = pr.map(([p, q]) => p + q), sum = ks.reduce((x, y) => x + y, 0), t = coin(), ans = t ? sum : ks.length;
+    let sd = 0, nd = 0; for (let d = 1; d <= c; d++) if (c % d === 0) { sd += d; nd++; }
+    return V_(MC(`若 \\(x\\) 的一元二次方程式 \\(x^{2}-kx+${c}=0\\) 的兩根都是正整數，則 \\(k\\) ${t ? '所有可能值的和' : '共有幾種可能的值'}為何？`, ans,
+      (t ? [sd, 2 * sum, sum - ks[ks.length - 1], sum + c + 1, sum - c - 1] : [nd, 2 * ks.length, ks.length + 1, ks.length - 1]).filter(v => v > 0 && v !== ans),
+      `兩根都是正整數，可設 \\(x^{2}-kx+${c}=(x-p)(x-q)\\)，\\(p\\)、\\(q\\) 為正整數，\\(pq=${c}\\)、\\(k=p+q\\)。\\(${c}\\) 寫成兩個正整數的乘積有 ${pr.map(([p, q]) => `\\(${p}\\times ${q}\\)`).join('、')}，\\(k\\) 可為 ${ks.map(v => `\\(${v}\\)`).join('、')}，` + (t ? `和為 \\(${sum}\\)。` : `共 \\(${ans}\\) 種。`), { lv: t ? 4 : 3, pos: 1 }), { c, t });
+  },
+  function () { // 壓軸：長方形摺紙（畢氏定理）
+    const a = ri(3, 9), b = ri(a + 1, 12), t = coin(), N = a * a + b * b, W = 170, H = W * a / b; if (H < 50) return null;
+    const x = N / (2 * b), ans = t ? frv(N, 2 * b) : frv(b * b - a * a, 2 * b);
+    const A = [14, 14], B = [14, 14 + H], C = [14 + W, 14 + H], D = [14 + W, 14], E = [14 + W * (b - x) / b, 14 + H], F = [14 + W * x / b, 14];
+    const fig = GF().geo({ P: { A, B, C, D, E, F }, polys: [{ pts: 'ABCD' }], segs: [['E', 'F', { d: '5 3' }], 'AE'], w: W + 30, h: H + 34 });
+    return V_(MCv(`如右圖，長方形紙片 \\(ABCD\\) 中，\\(\\overline{AB}=${a}\\)、\\(\\overline{BC}=${b}\\)。將紙片摺疊使 \\(C\\) 點與 \\(A\\) 點重合，摺痕 \\(\\overline{EF}\\) 交 \\(\\overline{BC}\\) 於 \\(E\\) 點、交 \\(\\overline{AD}\\) 於 \\(F\\) 點，則 \\(\\overline{${t ? 'CE' : 'BE'}}\\) 的長為何？`, ans,
+      [t ? frv(b * b - a * a, 2 * b) : frv(N, 2 * b), frv(b, 2), frv(a + b, 2), frv(a * a, 2 * b), frv(b - a, 1), frv(N, b)],
+      `摺疊後 \\(C\\) 與 \\(A\\) 重合，所以 \\(\\overline{AE}=\\overline{CE}\\)。設 \\(\\overline{CE}=x\\)，則 \\(\\overline{BE}=${b}-x\\)。在直角 \\(\\triangle ABE\\) 中，\\(${a}^{2}+(${b}-x)^{2}=x^{2}\\)，\\(${2 * b}x=${N}\\)，\\(x=${fr(N, 2 * b)}\\)。` + (t ? '' : `\\(\\overline{BE}=${b}-${fr(N, 2 * b)}=${fr(b * b - a * a, 2 * b)}\\)。`), { lv: 4, fig }), { a, b, t });
+  },
+  function () { // 進階：可因式分解時 k 的個數
+    const c = pk([6, 8, 10, 12, 14, 15, 18, 20, 24, 28, 30, 36]), ps = [], ks = []; for (let p = 1; p <= c; p++) if (c % p === 0) { ps.push(p); ks.push(p - c / p); }
+    const ans = ks.length;
+    return V_(MC(`若 \\(x^{2}+kx-${c}\\) 可以分解成兩個整係數一次式的乘積，則整數 \\(k\\) 共有幾種可能的值？`, ans, [ans / 2, ans * 2, ans - 1, ans + 1].filter(v => Number.isInteger(v) && v > 0 && v !== ans),
+      `設 \\(x^{2}+kx-${c}=(x+p)(x-q)\\)，\\(p\\)、\\(q\\) 為正整數，\\(pq=${c}\\)、\\(k=p-q\\)。\\(p\\) 可為 \\(${c}\\) 的每一個正因數 ${ps.map(v => `\\(${v}\\)`).join('、')}，對應的 \\(k\\) 為 ${ks.map(v => `\\(${v}\\)`).join('、')}，共 \\(${ans}\\) 種。`, { lv: 3, pos: 1 }), { c });
+  },
+);
+g8b.push(
+  function () { // 壓軸：等差數列前 n 項和的最大值
+    const d = -ri(2, 5), n0 = ri(5, 11), r = ri(1, -d), a1 = r - d * (n0 - 1), A = k => a1 + (k - 1) * d, S = k => k * (2 * a1 + (k - 1) * d) / 2;
+    const p = ri(2, 5), q = p + ri(3, 7), ans = S(n0);
+    return V_(MC(`一個等差數列的第 \\(${p}\\) 項為 \\(${A(p)}\\)、第 \\(${q}\\) 項為 \\(${A(q)}\\)，則此數列前 \\(n\\) 項的和最大為多少？`, ans,
+      [S(n0 + 1), S(n0 - 1), S(n0 + 2), a1 * n0, S(n0) + a1].filter(v => v > 0 && v !== ans),
+      `公差 \\(=\\dfrac{${A(q)}-${P_(A(p))}}{${q}-${p}}=${d}\\)，首項 \\(=${A(p)}-${p - 1}\\times(${d})=${a1}\\)。第 \\(${n0}\\) 項為 \\(${r}\\)、第 \\(${n0 + 1}\\) 項為 \\(${r + d}\\)，${r + d === 0 ? `前 \\(${n0}\\) 項或前 \\(${n0 + 1}\\) 項` : `前 \\(${n0}\\) 項`}的和最大，為 \\(\\dfrac{(${a1}+${r})\\times ${n0}}{2}=${ans}\\)。`, { lv: 4, pos: 1 }), { p, q, Ap: A(p), Aq: A(q) });
+  },
+  function () { // 進階：三角形的內、外角平分線
+    const a = 2 * ri(20, 55), t = coin(), ans = t ? 90 - a / 2 : a / 2;
+    const stem = t ? `\\(\\triangle ABC\\) 中，\\(\\angle A=${a}^\\circ\\)，\\(\\angle B\\) 與 \\(\\angle C\\) 的外角平分線交於 \\(P\\) 點，則 \\(\\angle BPC\\) 為多少度？`
+      : `\\(\\triangle ABC\\) 中，\\(\\angle A=${a}^\\circ\\)，\\(D\\) 在 \\(\\overline{BC}\\) 的延長線上。若 \\(\\angle ABC\\) 的平分線與 \\(\\angle ACD\\) 的平分線交於 \\(P\\) 點，則 \\(\\angle BPC\\) 為多少度？`;
+    const sol = t ? `\\(\\angle PBC+\\angle PCB=\\dfrac{1}{2}(180^\\circ-\\angle ABC)+\\dfrac{1}{2}(180^\\circ-\\angle ACB)=180^\\circ-\\dfrac{1}{2}(180^\\circ-${a}^\\circ)=${90 + a / 2}^\\circ\\)，\\(\\angle BPC=180^\\circ-${90 + a / 2}^\\circ=${ans}^\\circ\\)。`
+      : `\\(\\angle ACD\\) 是 \\(\\triangle ABC\\) 的外角，\\(\\angle ACD=\\angle A+\\angle ABC\\)，兩邊除以 \\(2\\)：\\(\\angle PCD=\\dfrac{1}{2}\\angle A+\\angle PBC\\)。又 \\(\\angle PCD\\) 是 \\(\\triangle PBC\\) 的外角，\\(\\angle PCD=\\angle BPC+\\angle PBC\\)，所以 \\(\\angle BPC=\\dfrac{1}{2}\\angle A=${ans}^\\circ\\)。`;
+    return V_(MC(stem, ans, [90 + a / 2, a / 2, 90 - a / 2, 180 - a, a, 90 - a].filter(v => v > 0 && v < 180 && v !== ans), sol, Object.assign({ lv: 3 }, DEG)), { a, t });
+  },
+  function () { // 壓軸：漏加一個內角的多邊形
+    const n = ri(5, 14), x = ri(4, 34) * 5, S = 180 * (n - 2) - x, t = coin();
+    const stem = `小華計算一個凸多邊形的內角和時，漏加了其中一個內角，算得的結果為 \\(${S}^\\circ\\)，則${t ? '漏加的內角為多少度' : '此多邊形是幾邊形'}？`;
+    const sol = `漏加的內角介於 \\(0^\\circ\\) 與 \\(180^\\circ\\) 之間，而內角和是 \\(180^\\circ\\) 的倍數。\\(${S}\\div 180=${Math.floor(S / 180)}\\cdots ${S % 180}\\)，所以內角和為 \\(180^\\circ\\times ${n - 2}=${180 * (n - 2)}^\\circ\\)，此多邊形為 \\(${n}\\) 邊形，漏加的內角為 \\(${180 * (n - 2)}^\\circ-${S}^\\circ=${x}^\\circ\\)。`;
+    return V_(t ? MC(stem, x, [180 - x, x + 180, 360 - x, x + 90].filter(v => v > 0 && v < 360 && v !== x), sol, Object.assign({ lv: 4 }, DEG))
+      : MC(stem, n, [n - 1, n + 1, n + 2, n - 2], sol, { lv: 4, u: '邊形', min: 3 }), { S, t });
+  },
+  function () { // 壓軸：兩條直線與 x 軸圍成的三角形面積
+    const sgn = pk([1, -1]), m1 = sgn * pk([1, 2, 3]), m2 = -sgn * pk([1, 2, 3]), p1 = ri(-6, 2), p2 = ri(p1 + 2, 8);
+    const h = (m1 * p1 - m2 * p2) / (m1 - m2); if (!Number.isInteger(h)) return null; const k = m1 * (h - p1); if (!k || Math.abs(k) > 15) return null;
+    const c1 = -m1 * p1, c2 = -m2 * p2, K = Math.abs(k), ans = (p2 - p1) * K / 2;
+    const [e1, e2] = shuf([lin(m1, c1), lin(m2, c2)]);
+    return V_(MC(`坐標平面上，直線 \\(L_{1}:y=${e1}\\)、直線 \\(L_{2}:y=${e2}\\) 與 \\(x\\) 軸圍成一個三角形，則此三角形的面積為何？`, ans,
+      [(p2 - p1) * K, Math.abs(c1 - c2) * Math.abs(h) / 2, Math.abs(c1 - c2) * (p2 - p1) / 2, (p2 - p1) * K / 4].filter(v => v > 0 && v !== ans),
+      `兩直線與 \\(x\\) 軸分別交於 \\((${p1},0)\\)、\\((${p2},0)\\)，底長 \\(${p2 - p1}\\)。解 \\(${lin(m1, c1)}=${lin(m2, c2)}\\) 得 \\(x=${h}\\)、\\(y=${k}\\)，兩直線交於 \\((${h},${k})\\)，高為 \\(${K}\\)。面積 \\(=\\dfrac{1}{2}\\times ${p2 - p1}\\times ${K}=${num(ans)}\\)。`, { lv: 4, pos: 1, step: 0.5 }), { m1, m2, p1, p2 });
+  },
+  function () { // 壓軸：平行四邊形中的兩條角平分線
+    const a = ri(3, 9), b = ri(a + 1, 3 * a); if (b === 2 * a) return null; const ans = Math.abs(b - 2 * a);
+    return V_(MC(`平行四邊形 \\(ABCD\\) 中，\\(\\overline{AB}=${a}\\)、\\(\\overline{AD}=${b}\\)。若 \\(\\angle BAD\\) 的平分線與 \\(\\angle ADC\\) 的平分線分別交 \\(\\overline{BC}\\) 於 \\(E\\)、\\(F\\) 兩點，則 \\(\\overline{EF}\\) 的長為何？`, ans,
+      [b - a, a, b - 2 * a, 2 * a - b, b / 2, a + b - 2].filter(v => Number.isInteger(v) && v > 0 && v !== ans),
+      `\\(\\overline{AD}\\parallel\\overline{BC}\\)，\\(\\angle DAE=\\angle AEB\\)（內錯角），又 \\(\\angle DAE=\\angle BAE\\)，所以 \\(\\angle BAE=\\angle AEB\\)，\\(\\overline{BE}=\\overline{AB}=${a}\\)。同理 \\(\\overline{CF}=\\overline{CD}=${a}\\)。` +
+      (b > 2 * a ? `\\(\\overline{EF}=\\overline{BC}-\\overline{BE}-\\overline{CF}=${b}-${a}-${a}=${ans}\\)。` : `因為 \\(\\overline{BE}+\\overline{CF}=${2 * a}\\gt ${b}\\)，\\(F\\) 在 \\(B\\)、\\(E\\) 之間，\\(\\overline{BF}=${b}-${a}=${b - a}\\)，\\(\\overline{EF}=\\overline{BE}-\\overline{BF}=${a}-${b - a}=${ans}\\)。`), { lv: 4, pos: 1 }), { a, b });
+  },
+);
+g9a.push(
+  function () { // 進階／壓軸：重心與面積
+    const S = ri(2, 10) * 12, t = coin(), ans = t ? S / 12 : S / 3;
+    const A = [72, 14], B = [14, 150], C = [204, 150], D = [(B[0] + C[0]) / 2, 150], E = [(A[0] + C[0]) / 2, (A[1] + C[1]) / 2], G = [(A[0] + B[0] + C[0]) / 3, (A[1] + B[1] + C[1]) / 3];
+    const fig = GF().geo({ P: { A, B, C, D, E, G }, polys: t ? [{ pts: 'ABC' }, { pts: 'GDE', f: 1 }] : [{ pts: 'ABC' }, { pts: 'CEGD', f: 1 }], segs: ['AD', 'BE'].concat(t ? ['DE'] : []), lab: { G: [-12, 2] }, w: 220, h: 172 });
+    return V_(MC(`如右圖，\\(G\\) 為 \\(\\triangle ABC\\) 的重心，\\(\\overline{AD}\\)、\\(\\overline{BE}\\) 為中線。若 \\(\\triangle ABC\\) 的面積為 \\(${S}\\)，則灰色部分${t ? ' \\(\\triangle GDE\\)' : '四邊形 \\(CEGD\\) '}的面積為何？`, ans,
+      [S / 3, S / 4, S / 6, S / 8, S / 9, S / 12, S / 2].filter(v => v !== ans),
+      t ? `\\(\\triangle BCE\\) 的面積 \\(=\\dfrac{1}{2}\\times ${S}=${S / 2}\\)，\\(D\\) 為 \\(\\overline{BC}\\) 中點，\\(\\triangle BDE=\\dfrac{1}{2}\\triangle BCE=${S / 4}\\)。重心把中線分成 \\(2:1\\)，\\(\\overline{GE}=\\dfrac{1}{3}\\overline{BE}\\)，\\(\\triangle GDE=\\dfrac{1}{3}\\triangle BDE=${S / 12}\\)。`
+        : `三條中線把 \\(\\triangle ABC\\) 分成六個面積相等的小三角形，每個面積為 \\(\\dfrac{${S}}{6}=${S / 6}\\)。連 \\(\\overline{CG}\\)，四邊形 \\(CEGD=\\triangle CGE+\\triangle CGD=${S / 6}\\times 2=${S / 3}\\)。`, { lv: t ? 4 : 3, pos: 1, fig }), { S, t });
+  },
+  function () { // 壓軸：平行線與相似三角形的面積比
+    const [p, q] = pk([[1, 1], [1, 2], [2, 1], [2, 3], [3, 2], [1, 3], [3, 1]]), t = coin(), s = p * p * ri(1, 4), u = p + q, ans = t ? s * u * u / (p * p) : s * u / p;
+    const A = [100, 14], B = [16, 150], C = [204, 150], D = [A[0] + (B[0] - A[0]) * p / u, A[1] + (B[1] - A[1]) * p / u], E = [A[0] + (C[0] - A[0]) * p / u, A[1] + (C[1] - A[1]) * p / u], O = xLine(B, E, C, D);
+    const fig = GF().geo({ P: { A, B, C, D, E, O }, polys: [{ pts: 'ABC' }], segs: ['DE', 'BE', 'CD'], lab: { O: [0, 17] }, w: 220, h: 172 });
+    return V_(MC(`如右圖，\\(\\triangle ABC\\) 中，\\(D\\)、\\(E\\) 分別在 \\(\\overline{AB}\\)、\\(\\overline{AC}\\) 上，\\(\\overline{DE}\\parallel\\overline{BC}\\)，\\(\\overline{BE}\\) 與 \\(\\overline{CD}\\) 交於 \\(O\\) 點。若 \\(\\overline{AD}:\\overline{DB}=${p}:${q}\\)，\\(\\triangle ODE\\) 的面積為 \\(${s}\\)，則 \\(\\triangle ${t ? 'OBC' : 'OBD'}\\) 的面積為何？`, ans,
+      (t ? [s * u / p, s * u * u / (q * q), s * q * q / (p * p), s * u * u / (p * q), 2 * s * u / p] : [s * u * u / (p * p), s * q / p, s * u / q, s * (u + p) / p, 2 * s]).filter(v => Number.isInteger(v) && v > 0 && v !== ans),
+      `\\(\\overline{DE}\\parallel\\overline{BC}\\)，\\(\\triangle ADE\\sim\\triangle ABC\\)，\\(\\overline{DE}:\\overline{BC}=\\overline{AD}:\\overline{AB}=${p}:${u}\\)。又 \\(\\triangle ODE\\sim\\triangle OCB\\)（AA 相似），` +
+      (t ? `面積比為 \\(${p}^{2}:${u}^{2}\\)，\\(\\triangle OBC\\) 的面積 \\(=${s}\\times ${fr(u * u, p * p)}=${ans}\\)。` : `\\(\\overline{OE}:\\overline{OB}=${p}:${u}\\)。\\(\\triangle ODE\\) 與 \\(\\triangle OBD\\) 以 \\(D\\) 為頂點、底在同一直線上，面積比 \\(=\\overline{OE}:\\overline{OB}=${p}:${u}\\)，\\(\\triangle OBD\\) 的面積 \\(=${s}\\times ${fr(u, p)}=${ans}\\)。`), { lv: 4, pos: 1, fig }), { p, q, s, t });
+  },
+  function () { // 壓軸：圓內兩平行弦的距離（兩種情形）
+    const D = { 5: [[6, 4], [8, 3]], 10: [[12, 8], [16, 6]], 13: [[10, 12], [24, 5]], 15: [[18, 12], [24, 9]], 17: [[16, 15], [30, 8]], 20: [[24, 16], [32, 12]], 25: [[14, 24], [48, 7], [40, 15], [30, 20]] };
+    const R = +pk(Object.keys(D)), [[L1, d1], [L2, d2]] = shuf(D[R]).slice(0, 2), lo = Math.abs(d1 - d2), hi = d1 + d2, T = (...v) => v.map(x => `\\(${x}\\)`).join(' 或 ');
+    return V_(MC(`半徑為 \\(${R}\\) 的圓中有兩條互相平行的弦，長度分別為 \\(${L1}\\)、\\(${L2}\\)，則這兩條弦之間的距離為何？`, T(lo, hi),
+      [T(lo), T(hi), T(Math.min(d1, d2), Math.max(d1, d2)), T(lo, 2 * R)].filter(s => s !== T(lo, hi)).slice(0, 3),
+      `圓心到長 \\(${L1}\\) 的弦的距離 \\(=\\sqrt{${R}^{2}-${L1 / 2}^{2}}=${d1}\\)，到長 \\(${L2}\\) 的弦的距離 \\(=\\sqrt{${R}^{2}-${L2 / 2}^{2}}=${d2}\\)。兩弦在圓心同側時，距離為 \\(${Math.max(d1, d2)}-${Math.min(d1, d2)}=${lo}\\)；在圓心兩側時，距離為 \\(${d1}+${d2}=${hi}\\)。`, { lv: 4 }), { R, L1, L2 });
+  },
+  function () { // 進階／壓軸：直角三角形的內切圓與外接圓半徑
+    const [a, b, c] = pk(TRI3), t = coin(), r = (a + b - c) / 2, R = c / 2, ans = t ? r + R : r;
+    return V_(MC(`直角三角形的兩股長分別為 \\(${a}\\)、\\(${b}\\)，則它的${t ? '內切圓半徑與外接圓半徑的和' : '內切圓半徑'}為何？`, ans,
+      (t ? [c, r + c, (a + b + c) / 2, R, a * b / c, a + b] : [c / 2, a + b - c, a * b / c, (a + b) / 4, (a + b + c) / 6]).filter(v => v > 0 && v !== ans),
+      `斜邊 \\(=\\sqrt{${a}^{2}+${b}^{2}}=${c}\\)。設內切圓半徑為 \\(r\\)，由切線段等長，\\((${a}-r)+(${b}-r)=${c}\\)，\\(r=${num(r)}\\)。` + (t ? `直角三角形的外心是斜邊的中點，外接圓半徑 \\(=\\dfrac{${c}}{2}=${num(R)}\\)，兩者的和為 \\(${num(ans)}\\)。` : ''), { lv: t ? 4 : 3, pos: 1, step: 0.5 }), { a, b, t });
+  },
+  function () { // 壓軸：由弧的比求兩弦的夾角
+    for (let tr = 0; tr < 60; tr++) {
+      const ar = [ri(2, 6), ri(2, 6), ri(2, 6), ri(2, 6)], T = ar.reduce((x, y) => x + y, 0), ans = 180 * (ar[0] + ar[2]) / T;
+      if ((180 * ar[0]) % T || (180 * ar[2]) % T || new Set(ar).size < 3 || ans === 90) continue;
+      const hAB = 180 * ar[0] / T, hCD = 180 * ar[2] / T, cx = 100, cy = 88, Rr = 72; let d0 = 205; const pt = [];
+      ar.forEach(v => { pt.push(cpE(cx, cy, Rr, d0)); d0 += 360 * v / T; });
+      const [A, B, C, D] = pt, P = xLine(A, C, B, D);
+      const fig = GF().geo({ P: { A, B, C, D, P }, cc: [cx, cy], circles: [{ c: [cx, cy], r: Rr }], segs: ['AC', 'BD'], ang: [['P', 'A', 'B', '?', 1, 24]], w: 200, h: 176 });
+      return V_(MC(`如右圖，\\(A\\)、\\(B\\)、\\(C\\)、\\(D\\) 四點依序在圓上，且 \\(${arcL('AB')}:${arcL('BC')}:${arcL('CD')}:${arcL('DA')}=${ar.join(':')}\\)。若 \\(\\overline{AC}\\) 與 \\(\\overline{BD}\\) 交於 \\(P\\) 點，則 \\(\\angle APB\\) 為多少度？`, ans,
+        [180 - ans, 360 * (ar[0] + ar[2]) / T, 2 * hAB, hAB, hCD, 90 * (ar[0] + ar[2]) / T].filter(v => Number.isInteger(v) && v > 0 && v < 180 && v !== ans),
+        `圓周為 \\(360^\\circ\\)，\\(${arcL('AB')}\\) 所對的圓心角為 \\(360^\\circ\\times\\dfrac{${ar[0]}}{${T}}=${2 * hAB}^\\circ\\)，\\(${arcL('CD')}\\) 所對的圓心角為 \\(${2 * hCD}^\\circ\\)。圓周角 \\(\\angle ACB=${hAB}^\\circ\\)、\\(\\angle CBD=${hCD}^\\circ\\)。\\(\\angle APB\\) 是 \\(\\triangle PBC\\) 的外角，\\(\\angle APB=\\angle PCB+\\angle PBC=${hAB}^\\circ+${hCD}^\\circ=${ans}^\\circ\\)。`, Object.assign({ lv: 4, fig }, DEG)), { ar });
+    }
+    return null;
+  },
+);
+g9b.push(
+  function () { // 進階／壓軸：由兩個同高的點與最小值求係數
+    const h = ri(-4, 4), w = ri(1, 4), m = ri(-6, 4), p = h - w, q = h + w, k = w * w + m, b = -2 * h, c = h * h + m, t = coin(), ans = t ? c : b + c;
+    return V_(MC(`二次函數 \\(y=x^{2}+bx+c\\) 的圖形通過 \\((${p},${k})\\)、\\((${q},${k})\\) 兩點，且 \\(y\\) 的最小值為 \\(${m}\\)，則 \\(${t ? 'c' : 'b+c'}\\) 的值為何？`, ans,
+      (t ? [h * h - m, k, -c, m, h * h, c + 2 * h] : [c - b, c, b, -(b + c), b + k]).filter(v => v !== ans),
+      `兩點的 \\(y\\) 坐標相同，所以對稱軸是通過兩點中點的鉛垂線 \\(x=${h}\\)，頂點為 \\((${h},${m})\\)。\\(y=${h ? `(x${sg(-h)})^{2}` : 'x^{2}'}${sg(m)}=${quad(1, b, c)}\\)，\\(b=${b}\\)、\\(c=${c}\\)${t ? '' : `，\\(b+c=${b + c}\\)`}。`, { lv: t ? 3 : 4 }), { p, q, k, m, t });
+  },
+  function () { // 壓軸：拋物線與 x 軸的交點及頂點圍成的三角形
+    const a = pk([1, -1, 2, -2]), w = ri(1, 3), p = ri(-5, 2), q = p + 2 * w, B_ = -a * (p + q), C_ = a * p * q, hg = Math.abs(a) * w * w, ans = hg * w;
+    const fx = r => r ? `(x${sg(-r)})` : 'x';
+    return V_(MC(`二次函數 \\(y=${quad(a, B_, C_)}\\) 的圖形與 \\(x\\) 軸交於 \\(A\\)、\\(B\\) 兩點，頂點為 \\(P\\)，則 \\(\\triangle PAB\\) 的面積為何？`, ans,
+      [2 * ans, hg, ans / 2, Math.abs(C_) * w, 4 * w * w].filter(v => Number.isInteger(v) && v > 0 && v !== ans),
+      `\\(y=${co(a)}${fx(p)}${fx(q)}\\)，\\(A\\)、\\(B\\) 為 \\((${p},0)\\)、\\((${q},0)\\)，\\(\\overline{AB}=${2 * w}\\)。頂點的 \\(x\\) 坐標為 \\(${p + w}\\)，代入得 \\(y=${-a * w * w}\\)，高為 \\(${hg}\\)。面積 \\(=\\dfrac{1}{2}\\times ${2 * w}\\times ${hg}=${ans}\\)。`, { lv: 4, pos: 1 }), { a, p, q });
+  },
+  function () { // 進階：兩袋各取一球的機率
+    const m = ri(3, 6), n = ri(3, 6), t = ri(0, 3), pm = v => [2, 3, 5, 7, 11].includes(v);
+    const C = [['的和為 \\(3\\) 的倍數', (x, y) => (x + y) % 3 === 0], ['的乘積為偶數', (x, y) => x * y % 2 === 0], ['的乘積為 \\(3\\) 的倍數', (x, y) => x * y % 3 === 0], ['的和為質數', (x, y) => pm(x + y)]][t];
+    const ok = []; for (let x = 1; x <= m; x++) for (let y = 1; y <= n; y++) if (C[1](x, y)) ok.push([x, y]);
+    const N = m * n, c = ok.length; if (!c || c === N) return null; const pf = fr(c, N) === `\\dfrac{${c}}{${N}}` ? fr(c, N) : `\\dfrac{${c}}{${N}}=${fr(c, N)}`;
+    return V_(MC(`甲袋中有 \\(${m}\\) 顆球，分別標上 \\(1\\)～\\(${m}\\)；乙袋中有 \\(${n}\\) 顆球，分別標上 \\(1\\)～\\(${n}\\)。從兩袋中各隨機取出一球，則兩球上的數字${C[0]}的機率為何？`, c / N,
+      [c + 1, c - 1, c + 2, c - 2, N - c, c + 3].filter(v => v > 0 && v < N && v !== c).map(v => v / N),
+      `所有可能的結果有 \\(${m}\\times ${n}=${N}\\) 種，兩數${C[0]}的有 \\(${c}\\) 種${c <= 12 ? '：' + ok.map(([x, y]) => `\\((${x},${y})\\)`).join('、') : ''}，機率為 \\(${pf}\\)。`, { lv: 3, pos: 1, fmt: v => fr(Math.round(v * N), N), step: 1 / N }), { m, n, t });
+  },
+  function () { // 進階：平均數的修正與合併
+    if (coin()) {
+      const n = pk([20, 25, 30, 40, 50]), A = ri(55, 80), x = ri(40, 95), y = ri(40, 95), dl = x - y; if (!dl || (dl * 10) % n) return null; const ans = A + dl / n;
+      return V_(MC(`某班 \\(${n}\\) 位學生的數學成績平均為 \\(${A}\\) 分。後來發現有一位學生的成績 \\(${x}\\) 分被誤登記為 \\(${y}\\) 分，更正後全班的平均為多少分？`, ans,
+        [A - dl / n, A + dl, A - dl, A + dl / (n / 2), A + 2 * dl / n].filter(v => v > 0 && Math.abs(v * 10 - Math.round(v * 10)) < 1e-9 && Math.abs(v - ans) > 1e-9),
+        `原總分 \\(${A}\\times ${n}=${A * n}\\) 分，更正後總分 \\(=${A * n}-${y}+${x}=${A * n + dl}\\) 分，平均 \\(=${A * n + dl}\\div ${n}=${num(ans)}\\)（分）。`, { lv: 3, pos: 1, step: 0.1 }), { n, A, x, y });
+    }
+    const m = ri(20, 35), n = ri(20, 35), a = ri(60, 85), b = ri(55, 90); if (a === b) return null; const T = m * a + n * b; if ((T * 10) % (m + n)) return null; const c = T / (m + n);
+    return V_(MC(`甲班有 \\(${m}\\) 人，數學成績平均為 \\(${a}\\) 分；乙班有 \\(${n}\\) 人。已知兩班合計的平均為 \\(${num(c)}\\) 分，則乙班的平均為多少分？`, b,
+      [2 * c - a, (a + c) / 2, b + (a > b ? 1 : -1) * Math.abs(m - n), c].filter(v => v > 0 && Math.abs(v - b) > 1e-9 && Math.abs(v * 10 - Math.round(v * 10)) < 1e-9),
+      `兩班總分 \\(=${num(c)}\\times ${m + n}=${T}\\) 分，甲班總分 \\(=${a}\\times ${m}=${m * a}\\) 分，乙班平均 \\(=\\dfrac{${T}-${m * a}}{${n}}=${b}\\)（分）。`, { lv: 3, pos: 1, step: 1 }), { m, n, a, c });
+  },
+  function () { // 壓軸：長方體表面的最短路徑
+    const a = ri(1, 4), b = ri(2, 6), c = ri(3, 9), P = [(a + b) ** 2 + c * c, (a + c) ** 2 + b * b, (b + c) ** 2 + a * a], mn = Math.min(...P), dg = a * a + b * b + c * c;
+    if (new Set(P).size < 3 || new Set([a, b, c]).size < 3) return null; const V = N => [rsq(N), Math.sqrt(N)];
+    return V_(MCv(`如右圖，長方體的長、寬、高分別為 \\(${a}\\)、\\(${b}\\)、\\(${c}\\) 公分。一隻螞蟻從長方體的一個頂點出發，沿著表面爬到距離此頂點最遠的另一個頂點，則牠爬行的最短距離為多少公分？`, V(mn),
+      [...P.filter(x => x !== mn).map(V), V(dg), V(b * b + c * c), V(a * a + c * c), [String(a + b + c), a + b + c]],
+      `把經過的兩個面展開成一個長方形，路徑最短時為長方形的對角線。依展開方式不同有三種：\\(\\sqrt{(${a}+${b})^{2}+${c}^{2}}=${rsq(P[0])}\\)、\\(\\sqrt{(${a}+${c})^{2}+${b}^{2}}=${rsq(P[1])}\\)、\\(\\sqrt{(${b}+${c})^{2}+${a}^{2}}=${rsq(P[2])}\\)，最短為 \\(${rsq(mn)}\\) 公分。`, { lv: 4, fig: GF().box(String(a), String(b), String(c)) }), { a, b, c });
+  },
+);
+n7b.push(HD(function () { // 壓軸非選：聯立方程式＋不等式
+  const x = ri(14, 24) * 5, y = ri(8, x / 5 - 2) * 5, n = ri(8, 15), k0 = ri(2, n - 2), r = ri(0, (x - y) / 5 - 1) * 5, M = y * n + (x - y) * k0 + r;
+  return Object.assign(NC(`某餐廳有 A、B 兩種套餐。買 \\(2\\) 份 A 套餐與 \\(3\\) 份 B 套餐共 \\(${2 * x + 3 * y}\\) 元；買 \\(3\\) 份 A 套餐與 \\(2\\) 份 B 套餐共 \\(${3 * x + 2 * y}\\) 元。`,
+    [`A、B 兩種套餐每份各多少元？`, `班上要買 A、B 兩種套餐共 \\(${n}\\) 份，總花費不超過 \\(${M}\\) 元，則 A 套餐最多可以買幾份？`],
+    [`設 A 套餐每份 \\(x\\) 元、B 套餐每份 \\(y\\) 元，\\(\\begin{cases}2x+3y=${2 * x + 3 * y}\\\\3x+2y=${3 * x + 2 * y}\\end{cases}\\)。兩式相加得 \\(x+y=${x + y}\\)，相減得 \\(x-y=${x - y}\\)，解得 A 套餐 \\(${x}\\) 元、B 套餐 \\(${y}\\) 元。`,
+      `設買 A 套餐 \\(k\\) 份，B 套餐 \\((${n}-k)\\) 份。\\(${x}k+${y}(${n}-k)\\le ${M}\\)，\\(${x - y}k\\le ${M - y * n}\\)，\\(k\\le ${fr(M - y * n, x - y)}\\)，所以 A 套餐最多買 \\(${k0}\\) 份。`], { lv: 4 }), { _v: { x, y, n, M, k0 } });
+}));
+n9a.push(HD(function () { // 壓軸非選：弦、弓形高與弦長
+  const [R, hf, d] = pk([[5, 4, 3], [5, 3, 4], [10, 8, 6], [10, 6, 8], [13, 12, 5], [17, 15, 8], [25, 20, 15], [25, 15, 20]]), h = R - d, AC2 = h * h + hf * hf;
+  const cx = 100, cy = 84, Rr = 70, s = Rr / R, A = [cx - hf * s, cy + d * s], B = [cx + hf * s, cy + d * s], C = [cx, cy + Rr], Mm = [cx, cy + d * s];
+  const fig = GF().geo({ P: { O: [cx, cy], A, B, C, M: Mm }, cc: [cx, cy], circles: [{ c: [cx, cy], r: Rr }], segs: ['AB', 'OC', 'AC', 'OA'], right: [['M', 'B', 'O']], dots: ['O'], lab: { O: [-10, -4], M: [10, -6] }, w: 200, h: 172 });
+  const ac = rsq(AC2);
+  return NC(`如右圖，圓 \\(O\\) 的半徑為 \\(${R}\\)，弦 \\(\\overline{AB}\\) 的長為 \\(${2 * hf}\\)，\\(C\\) 為劣弧 \\(AB\\) 的中點，\\(\\overline{OC}\\) 交 \\(\\overline{AB}\\) 於 \\(M\\) 點。`,
+    [`求圓心 \\(O\\) 到弦 \\(\\overline{AB}\\) 的距離。`, `求 \\(\\overline{CM}\\) 的長。`, `求 \\(\\overline{AC}\\) 的長。`],
+    [`\\(C\\) 為弧 \\(AB\\) 的中點，\\(\\overline{OC}\\) 垂直平分 \\(\\overline{AB}\\)，\\(\\overline{AM}=${hf}\\)。\\(\\overline{OM}=\\sqrt{${R}^{2}-${hf}^{2}}=${d}\\)。`, `\\(\\overline{CM}=\\overline{OC}-\\overline{OM}=${R}-${d}=${h}\\)。`,
+      `\\(\\overline{AC}=\\sqrt{${hf}^{2}+${h}^{2}}=\\sqrt{${AC2}}${ac === `\\sqrt{${AC2}}` ? '' : '=' + ac}\\)。`], { lv: 4, fig });
+}));
+n9b.push(HD(function () { // 壓軸非選：二次函數綜合
+  const p = ri(-3, -1), q = ri(1, 7); if ((p + q) % 2 || p + q <= 0) return null;
+  const b = p + q, c = -p * q, h = b / 2, k = (h - p) * (q - h), area = (-p * c + (c + k) * h + (q - h) * k) / 2;
+  return NC(`二次函數 \\(y=-x^{2}+bx+c\\) 的圖形與 \\(x\\) 軸交於 \\(A(${p},0)\\)、\\(B(${q},0)\\) 兩點，與 \\(y\\) 軸交於 \\(C\\) 點，頂點為 \\(P\\)。`,
+    [`求 \\(b\\)、\\(c\\) 的值。`, `求頂點 \\(P\\) 的坐標。`, `求四邊形 \\(ACPB\\) 的面積。`],
+    [`\\(y=-(x${sg(-p)})(x${sg(-q)})=${quad(-1, b, c)}\\)，所以 \\(b=${b}\\)、\\(c=${c}\\)。`, `\\(y=-(x-${h})^{2}+${k}\\)，頂點 \\(P(${h},${k})\\)。`,
+      `\\(C(0,${c})\\)。過 \\(P\\) 作 \\(x\\) 軸的垂線，垂足為 \\(H(${h},0)\\)。四邊形 \\(ACPB\\) 的面積 \\(=\\triangle AOC+\\) 梯形 \\(OCPH+\\triangle PHB=\\dfrac{1}{2}\\times ${-p}\\times ${c}+\\dfrac{1}{2}\\times(${c}+${k})\\times ${h}+\\dfrac{1}{2}\\times ${q - h}\\times ${k}=${num(area)}\\)。`], { lv: 4 });
+}));
+
 window.EXAM_BANK = {
   '7a': { name: '七上', mc: g7a, nc: n7a },
   '7b': { name: '七下', mc: g7b, nc: n7b },
@@ -2299,17 +2576,26 @@ window.buildExam = function (sems, nMC, nNC) {
     _want = null; return null;
   };
   const pool = []; sems.forEach(s => EXAM_BANK[s].mc.forEach(g => pool.push({ g, s })));
+  // 難度比例仿會考：基礎約 24%、中等約 44%、進階約 20%、壓軸約 12%（25 題為 6、11、5、3）；
+  // 所選範圍湊不滿某一級時，抽一段時間後就不再限制
+  const cap = { 1: Math.round(nMC * 0.24), 3: Math.round(nMC * 0.2), 4: Math.round(nMC * 0.12) }; cap[2] = nMC - cap[1] - cap[3] - cap[4];
+  const cnt = { 1: 0, 2: 0, 3: 0, 4: 0 }, relax = Math.min(2500, 10 * pool.length);
   const mc = [], seen = new Set(); let order = shuf(pool), i = 0, guard = 0;
-  while (mc.length < nMC && guard++ < 500) {
+  while (mc.length < nMC && guard++ < relax + 500) {
     if (i >= order.length) { order = shuf(pool); i = 0; }
-    const it = order[i++], q = gen(it.g, seen); if (q) { q.sem = it.s; mc.push(q); }
+    const it = order[i++], q = gen(it.g, seen); if (!q) continue;
+    if (cnt[q.lv] >= cap[q.lv] && guard < relax) { seen.delete(q.stem); continue; }
+    q.sem = it.s; mc.push(q); cnt[q.lv]++;
   }
   mc.sort((a, b) => a.lv - b.lv);
+  // 非選題：最後一題優先放壓軸題（HD 標記）
   const npool = shuf(sems.flatMap(s => EXAM_BANK[s].nc.map(g => ({ g, s })))), nc = [], used = new Set();
-  for (const pass of [0, 1]) for (const it of npool) {
-    if (nc.length >= nNC) break; if (nc.some(x => x._g === it.g)) continue; if (pass === 0 && used.has(it.s)) continue;
+  const take = (list, k) => { for (const pass of [0, 1]) for (const it of list) {
+    if (nc.length >= k) return; if (nc.some(x => x._g === it.g)) continue; if (pass === 0 && used.has(it.s)) continue;
     const q = gen(it.g, seen); if (q) { q.sem = it.s; q._g = it.g; nc.push(q); used.add(it.s); }
-  }
+  } };
+  const norm = npool.filter(it => !it.g.hard), hard = npool.filter(it => it.g.hard);
+  take(norm, nNC - 1); take(hard, nNC); take(norm, nNC);
   return { mc, nc };
 };
 })();
