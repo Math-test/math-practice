@@ -10502,3 +10502,51 @@ function _b3bLogFuncExt(level){
   mix('b3b-trig-sup',{hard:trigSupHard},0.5);
   window._SR_RAND={ratBasic,ratMedium,ratHard,fracBasic,fracMedium,fracHard,dblHard,trigSupHard}; // 檢查程式用
 })();
+
+// ══ 高一・圓的附圖題（第二批）：圓方程式、圓與直線，加入進階題 ══
+(function(){
+  const F=()=>window.GEO_FIG&&window.GEO_FIG.quiz,R=srRandInt,pk=a=>a[Math.floor(Math.random()*a.length)];
+  const N=(q,v,p,g,t)=>({question:q,answer:v,type:t||'number',answerPrefix:p||'',graph:g});
+  const AP=(q,parts,g)=>({question:q,answerParts:parts.map(([p,a,t])=>({prefix:p,answer:a,type:t||'number'})),graph:g});
+  const sq=(v,t)=>v?`(${t}${v>0?'-'+v:'+'+(-v)})^{2}`:`${t}^{2}`;
+  const isq=n=>Number.isInteger(Math.sqrt(n));
+  const ON25=[[3,4],[4,3],[-3,4],[-4,3],[3,-4],[4,-3],[-3,-4],[-4,-3],[5,0],[-5,0],[0,5],[0,-5]];
+  const G=o=>F().plot(Object.assign({xr:[-7,7],yr:[-7,7],s:13,step:2},o));
+  const LS=(a,b,c)=>`${a}x${b>0?'+':'-'}${Math.abs(b)}y=${c}`;
+  const circEq2=lv=>{
+    if(lv==='basic'){const h=R(-2,2),k=R(-2,2),dx=R(-4,4),dy=R(-4,4),r2=dx*dx+dy*dy;if(!r2||Math.abs(h+dx)>6||Math.abs(k+dy)>6)return null;
+      return AP(`如右圖，圓心為 \\(C\\)，且圓通過 \\(P\\) 點（\\(C\\)、\\(P\\) 都是格子點，每一小格邊長為 \\(1\\)）。圓的方程式為 \\((x-h)^{2}+(y-k)^{2}=r^{2}\\)，求 \\(h\\)、\\(k\\)、\\(r^{2}\\)`,[['\\(h\\)',h],['\\(k\\)',k],['\\(r^{2}\\)',r2]],
+        G({circles:[[h,k,Math.sqrt(r2)]],pts:[[h,k,'C'],[h+dx,k+dy,'P']]}));}
+    if(lv==='medium'){const h=R(-3,3),k=pk([-4,-3,-2,2,3,4]),ax=Math.random()<0.5,r=ax?Math.abs(k):Math.abs(h);if(!r)return null;
+      return AP(`如右圖，圓心 \\(C\\) 在格子點上（每一小格邊長為 \\(1\\)），且圓與 \\(${ax?'x':'y'}\\) 軸相切。圓的方程式為 \\(x^{2}+y^{2}+dx+ey+f=0\\)，求 \\(d\\)、\\(e\\)、\\(f\\)`,[['\\(d\\)',-2*h],['\\(e\\)',-2*k],['\\(f\\)',h*h+k*k-r*r]],
+        G({circles:[[h,k,r]],pts:[[h,k,'C']]}));}
+    const h=R(-1,1),k=R(-1,1),pts=ON25.slice().sort(()=>Math.random()-0.5).slice(0,3).map(([x,y])=>[h+x,k+y]);
+    const [A,B,C]=pts,cr=(B[0]-A[0])*(C[1]-A[1])-(B[1]-A[1])*(C[0]-A[0]),dd=(p,q)=>Math.hypot(p[0]-q[0],p[1]-q[1]);if(!cr||Math.min(dd(A,B),dd(B,C),dd(C,A))<3)return null;
+    return AP(`如右圖，圓通過 \\(A(${A[0]},${A[1]})\\)、\\(B(${B[0]},${B[1]})\\)、\\(C(${C[0]},${C[1]})\\) 三點。圓的方程式為 \\(x^{2}+y^{2}+dx+ey+f=0\\)，求 \\(d\\)、\\(e\\)、\\(f\\)`,[['\\(d\\)',-2*h],['\\(e\\)',-2*k],['\\(f\\)',h*h+k*k-25]],
+      G({nolab:true,circles:[[h,k,5]],pts:[[...A,'A'],[...B,'B'],[...C,'C']]}));
+  };
+  const circLine3=lv=>{
+    const t=R(0,1);
+    if(lv==='basic'){const h=R(-2,2),k=R(-2,2),r=R(1,3),dx=R(-5,5),dy=R(-5,5),T2=dx*dx+dy*dy-r*r;if(T2<=0||!isq(T2)||Math.abs(h+dx)>6||Math.abs(k+dy)>6)return null;
+      return N(`如右圖，自圓 \\(C：${sq(h,'x')}+${sq(k,'y')}=${r*r}\\) 外一點 \\(P(${h+dx},${k+dy})\\) 作圓的切線，切點為 \\(T\\)，求切線段 \\(\\overline{PT}\\) 的長`,Math.sqrt(T2),'\\(\\overline{PT}\\)',
+        G({circles:[[h,k,r]],pts:[[h,k,'C'],[h+dx,k+dy,'P']]}));}
+    if(lv==='medium'){
+      if(t){const h=R(-2,2),k=R(-2,2),dx=pk([-3,-2,-1,1,2,3]),dy=pk([-3,-2,-1,1,2,3]),Px=h+dx,Py=k+dy,m=frac(-dx,dy),b=frac(Py*dy+dx*Px,dy);if(Math.abs(Px)>6||Math.abs(Py)>6)return null;
+        return AP(`如右圖，\\(P(${Px},${Py})\\) 在圓 \\(C：${sq(h,'x')}+${sq(k,'y')}=${dx*dx+dy*dy}\\) 上，過 \\(P\\) 點的切線 \\(L\\) 寫成 \\(y=mx+b\\)，求 \\(m\\)、\\(b\\)`,[['\\(m\\)',m,'fraction'],['\\(b\\)',b,'fraction']],
+          G({circles:[[h,k,Math.hypot(dx,dy)]],lines:[[-m.num/m.den,1,b.num/b.den]],segs:[[h,k,Px,Py,1]],pts:[[h,k,'C'],[Px,Py,'P']]}));}
+      const [a,bb]=pk([[3,4],[4,3],[3,-4],[4,-3]]),h=R(-2,2),k=R(-2,2),r=R(1,2),d=R(r+1,r+3),c=a*h+bb*k+pk([1,-1])*5*d;
+      return AP(`如右圖，\\(P\\) 為圓 \\(C：${sq(h,'x')}+${sq(k,'y')}=${r*r}\\) 上的動點，求 \\(P\\) 到直線 \\(L：${LS(a,bb,c)}\\) 距離的最小值 \\(m\\) 與最大值 \\(M\\)`,[['\\(m\\)',d-r],['\\(M\\)',d+r]],
+        G({xr:[-9,9],yr:[-9,9],s:11,circles:[[h,k,r]],lines:[[a,bb,c]],pts:[[h,k,'C']]}));}
+    if(t){const h=R(-1,1),k=R(-1,1),dx=R(-4,4),dy=R(-4,4),d2=dx*dx+dy*dy;if(!d2||d2>=25)return null;
+      const Lmin=2*Math.sqrt(25-d2);let n=1;for(let L=Math.ceil(Lmin-1e-9);L<10;L++)n+=Math.abs(L-Lmin)<1e-9?1:2;
+      return N(`如右圖，圓 \\(C：${sq(h,'x')}+${sq(k,'y')}=25\\) 內有一點 \\(P(${h+dx},${k+dy})\\)。過 \\(P\\) 點的所有弦中，長度為整數的弦共有幾條？`,n,'條',
+        G({circles:[[h,k,5]],pts:[[h,k,'C'],[h+dx,k+dy,'P']]}));}
+    const [a,bb]=pk([[3,4],[4,3],[3,-4],[4,-3]]),h=R(-1,1),k=R(-1,1),[d,half]=pk([[3,4],[4,3],[0,5]]),c=a*h+bb*k+pk([1,-1])*5*d;
+    return N(`如右圖，直線 \\(L：${LS(a,bb,c)}\\) 與圓 \\(C：${sq(h,'x')}+${sq(k,'y')}=25\\) 交於 \\(A\\)、\\(B\\) 兩點，求弦 \\(\\overline{AB}\\) 的長`,2*half,'\\(\\overline{AB}\\)',
+      G({circles:[[h,k,5]],lines:[[a,bb,c]],pts:[[h,k,'C']]}));
+  };
+  const wrap=(key,fig,p)=>{const base=SR_GENERATORS[key];if(!base)return;
+    SR_GENERATORS[key]=(lv,n)=>{if(F()&&Math.random()<p){for(let i=0;i<40;i++){let q=null;try{q=fig(lv);}catch(e){q=null;}if(q)return q;}}return base(lv,n);};};
+  wrap('b1-circ-eq',circEq2,0.45);wrap('b1-circ-line',circLine3,0.45);
+  window._SR_CIRC={circEq2,circLine3}; // 檢查程式用
+})();

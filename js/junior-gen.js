@@ -12939,6 +12939,129 @@ function _figCircInOut(lv){
   return _gq(`如右圖，自圓外一點 \\(P\\) 作兩條割線 \\(PAB\\)、\\(PCD\\)。若 \\(\\overset{\\frown}{BD}=${big}^\\circ\\)、\\(\\overset{\\frown}{AC}=${sm}^\\circ\\)（皆為兩割線之間的弧），求 \\(\\angle P\\)`,(big-sm)/2,'\\(\\angle P\\)',
     F.geo({P:{A,B,C,D,P:Pp},circles:[{c:O,r:R}],segs:[['P','B'],['P','D']],text:[[_cp(100,92,R-16,180),big+'°',{fs:12}],[_cp(100,92,R-14,0),sm+'°',{fs:12}]],lab:{P:[10,5],A:[2,-8],C:[2,18]},w:Math.ceil(Pp[0]+24),h:186,cc:O}));
 }
+// ══ 九上・圓的附圖題（第二批：題型加量，並加入進階題）══
+const _cO2=[100,92],_cR2=68,_cP2=d=>_cp(100,92,68,d);
+const _cgeo=o=>_Q().geo(Object.assign({w:200,h:184,cc:_cO2},o));
+const _piQ=(q,v,p,g)=>({question:q+'（答案為 \\(k\\pi\\)，請填 \\(k\\)）',answer:v,type:'fraction',answerPrefix:p||'\\(k\\)',graph:g});
+const _mixF=(f1,f2,p)=>lv=>Math.random()<(p||0.35)?f1(lv):f2(lv);
+// 數學坐標（y 向上）縮放到 W×H 的圖框：回傳像素坐標與比例
+const _jfit=(Pm,W,H,pad,extra)=>{pad=pad||22;const v=Object.values(Pm).concat(extra||[]),xs=v.map(p=>p[0]),ys=v.map(p=>p[1]),x0=Math.min(...xs),y0=Math.min(...ys),dx=Math.max(...xs)-x0||1,dy=Math.max(...ys)-y0||1;
+  const s=Math.min((W-2*pad)/dx,(H-2*pad)/dy),ox=(W-dx*s)/2,oy=(H-dy*s)/2,P={};for(const k in Pm)P[k]=[ox+(Pm[k][0]-x0)*s,H-oy-(Pm[k][1]-y0)*s];return {P,s};};
+const _PQ=[[1,4],[1,9],[4,9],[2,8],[1,16],[9,16],[3,12],[2,18],[8,18],[4,16],[3,27],[5,20],[1,25],[16,25]];
+function _figCircLine2(lv){
+  const O=_cO2,R=_cR2,t=randInt(0,1);
+  if(lv==='basic'){const [a,b,c]=pick(_TRI),s=R/c,M=[100,92+a*s],A=[100-b*s,M[1]],B=[100+b*s,M[1]];
+    const g=_cgeo({P:{O,A,B,M},circles:[{c:'O',r:R}],segs:['AB','OM','OA'],right:[['M','O','B']],dots:['O'],lab:{O:[-14,0],M:[-4,16]}});
+    return t?_gq(`如右圖，圓 \\(O\\) 的半徑為 \\(${c}\\)，弦 \\(\\overline{AB}=${2*b}\\)，\\(\\overline{OM}\\perp\\overline{AB}\\) 於 \\(M\\)，求圓心到弦的距離 \\(\\overline{OM}\\)`,a,'\\(\\overline{OM}\\)',g)
+      :_gq(`如右圖，圓 \\(O\\) 的弦 \\(\\overline{AB}=${2*b}\\)，\\(\\overline{OM}\\perp\\overline{AB}\\) 於 \\(M\\)，\\(\\overline{OM}=${a}\\)，求圓 \\(O\\) 的半徑`,c,'半徑',g);}
+  if(lv==='medium'){
+    if(t){const [a,b,c]=pick(_TRI),s=R/c,M=[100,92+a*s],A=[100-b*s,M[1]],B=[100+b*s,M[1]];
+      return _piQ(`如右圖，兩個同心圓的圓心為 \\(O\\)，大圓的弦 \\(\\overline{AB}\\) 與小圓相切於 \\(M\\)。若 \\(\\overline{AB}=${2*b}\\)，求兩圓之間圓環的面積`,frac(b*b,1),'',
+        _cgeo({P:{O,A,B,M},circles:[{c:'O',r:R},{c:'O',r:a*s}],segs:['AB','OM','OA'],right:[['M','O','B']],dots:['O'],lab:{O:[-14,0],M:[0,16]}}));}
+    const D={5:[[6,4],[8,3]],10:[[12,8],[16,6]],13:[[10,12],[24,5]],15:[[18,12],[24,9]],17:[[16,15],[30,8]],20:[[24,16],[32,12]],25:[[14,24],[48,7],[40,15],[30,20]]};
+    const r=+pick(Object.keys(D)),[[L1,d1],[L2,d2]]=D[r].slice().sort(()=>Math.random()-0.5).slice(0,2),s=R/r;
+    const A=[100-L1/2*s,92+d1*s],B=[100+L1/2*s,92+d1*s],C=[100-L2/2*s,92+d2*s],Dd=[100+L2/2*s,92+d2*s];
+    return _gq(`如右圖，圓 \\(O\\) 的半徑為 \\(${r}\\)，弦 \\(\\overline{AB}\\parallel\\overline{CD}\\) 且兩弦在圓心的同側。若 \\(\\overline{AB}=${L1}\\)、\\(\\overline{CD}=${L2}\\)，求兩弦之間的距離`,Math.abs(d1-d2),'距離',
+      _cgeo({P:{O,A,B,C,D:Dd},circles:[{c:'O',r:R}],segs:['AB','CD'],dots:['O'],lab:{O:[-14,0]}}));}
+  if(t){ // 弓形高求半徑（答案可為分數）
+    const b=randInt(2,12),h=randInt(1,b-1),r=frac(b*b+h*h,2*h),rv=(b*b+h*h)/(2*h),s=R/rv,M=[100,92+(rv-h)*s],A=[100-b*s,M[1]],B=[100+b*s,M[1]],C=[100,92+R];
+    return _gq(`如右圖，圓 \\(O\\) 的弦 \\(\\overline{AB}=${2*b}\\)，\\(C\\) 為劣弧 \\(AB\\) 的中點，\\(\\overline{OC}\\) 交 \\(\\overline{AB}\\) 於 \\(M\\)。若 \\(\\overline{CM}=${h}\\)，求圓 \\(O\\) 的半徑`,r,'半徑',
+      _cgeo({P:{O,A,B,C,M},circles:[{c:'O',r:R}],segs:['AB','OC','OA'],right:[['M','O','B']],dots:['O'],lab:{O:[-14,0],M:[10,-6]}}),'fraction');}
+  const [m,n]=pick(_PQ).slice().sort(()=>Math.random()-0.5),rv=(m+n)/2,s=R/rv,M=[100,92-R+m*s],hw=Math.sqrt(m*n)*s,A=[100-hw,M[1]],B=[100+hw,M[1]];
+  return _gq(`如右圖，圓 \\(O\\) 的直徑 \\(\\overline{CD}\\) 垂直弦 \\(\\overline{AB}\\) 於 \\(M\\)。若 \\(\\overline{CM}=${m}\\)、\\(\\overline{MD}=${n}\\)，求弦 \\(\\overline{AB}\\) 的長度`,2*Math.sqrt(m*n),'\\(\\overline{AB}\\)',
+    _cgeo({P:{O,A,B,C:[100,92-R],D:[100,92+R],M},circles:[{c:'O',r:R}],segs:['AB','CD','OA'],right:[['M','O','B']],dots:['O'],lab:{O:[-12,4],M:[10,-6]}}));
+}
+function _figCircAng2(lv){
+  const O=_cO2,R=_cR2,P=_cP2,t=randInt(0,lv==='basic'?1:2);
+  if(lv==='basic'){
+    if(t){const x=randInt(4,14)*5,A=P(180),B=P(0),C=P(2*x);
+      return _gq(`如右圖，\\(\\overline{AB}\\) 為圓 \\(O\\) 的直徑，\\(C\\) 在圓上。若 \\(\\angle CAB=${x}^\\circ\\)，求 \\(\\angle ABC\\)`,90-x,'\\(\\angle ABC\\)',
+        _cgeo({P:{O,A,B,C},circles:[{c:'O',r:R}],polys:[{pts:'ABC'}],dots:['O'],ang:[['A','B','C',x+'°',1,30],['B','C','A','?',1,26]],lab:{O:[0,16]}}));}
+    const x=randInt(5,14)*5,A=P(270-x),B=P(270+x),C=P(90+randInt(15,45)),Dd=P(90-randInt(15,45));
+    return _gq(`如右圖，\\(A\\)、\\(B\\)、\\(C\\)、\\(D\\) 四點在圓上，\\(\\angle ACB=${x}^\\circ\\)，求 \\(\\angle ADB\\)`,x,'\\(\\angle ADB\\)',
+      _cgeo({P:{A,B,C,D:Dd},circles:[{c:O,r:R}],segs:['CA','CB','DA','DB','AB'],ang:[['C','A','B',x+'°',1,30],['D','A','B','?',1,30]]}));}
+  if(lv==='medium'){
+    if(t===0){const x=randInt(6,16)*10,A=P(90+x/2),B=P(90-x/2),C=P(90);
+      return _gq(`如右圖，\\(A\\)、\\(B\\)、\\(C\\) 在圓 \\(O\\) 上，\\(C\\) 在劣弧 \\(AB\\) 上。若 \\(\\angle AOB=${x}^\\circ\\)，求 \\(\\angle ACB\\)`,180-x/2,'\\(\\angle ACB\\)',
+        _cgeo({P:{O,A,B,C},circles:[{c:'O',r:R}],segs:['OA','OB','CA','CB'],dots:['O'],ang:[['O','A','B',x+'°',1,24],['C','A','B','?',1,22]],lab:{O:[0,18],C:[0,-10]}}));}
+    if(t===1){const x=randInt(12,26)*5,B=P(220),C=P(220+x),Dd=P(220+2*x),A=P(40+x),E=[C[0]+(C[0]-B[0])*0.55,C[1]+(C[1]-B[1])*0.55];
+      return _gq(`如右圖，四邊形 \\(ABCD\\) 內接於圓，\\(E\\) 在 \\(\\overline{BC}\\) 的延長線上。若 \\(\\angle DCE=${x}^\\circ\\)，求 \\(\\angle BAD\\)`,x,'\\(\\angle BAD\\)',
+        _cgeo({P:{A,B,C,D:Dd,E},circles:[{c:O,r:R}],polys:[{pts:'ABCD'}],segs:['CE'],ang:[['C','D','E',x+'°',1,28],['A','B','D','?',1,28]],w:Math.max(200,Math.ceil(E[0]+16)),h:Math.max(184,Math.ceil(E[1]+18))}));}
+    const y=randInt(6,15)*5,x=90-y,A=P(270-y),B=P(270+y),C=P(90+randInt(-30,30));
+    return _gq(`如右圖，\\(A\\)、\\(B\\)、\\(C\\) 在圓 \\(O\\) 上。若 \\(\\angle OAB=${x}^\\circ\\)，求 \\(\\angle ACB\\)`,y,'\\(\\angle ACB\\)',
+      _cgeo({P:{O,A,B,C},circles:[{c:'O',r:R}],segs:['OA','OB','AB','CA','CB'],dots:['O'],ang:[['A','O','B',x+'°',1,30],['C','A','B','?',1,30]],lab:{O:[0,-10]}}));}
+  if(t===0){let ar=null;for(let i=0;i<60&&!ar;i++){const v=[randInt(2,9),randInt(2,9),randInt(2,9)],T=v[0]+v[1]+v[2];if(180%T===0&&new Set(v).size>1)ar=v;}if(!ar)return null;
+    const T=ar[0]+ar[1]+ar[2],a0=90+180*ar[0]/T,A=P(a0),B=P(a0-360*ar[0]/T),C=P(a0-360*(ar[0]+ar[1])/T),mx=180*Math.max(...ar)/T;
+    return _gq(`如右圖，\\(\\triangle ABC\\) 的三個頂點在圓上，且 \\(\\overset{\\frown}{AB}:\\overset{\\frown}{BC}:\\overset{\\frown}{CA}=${ar.join(':')}\\)（皆為不含第三個頂點的弧），求 \\(\\triangle ABC\\) 最大內角的度數`,mx,'最大角',
+      _cgeo({P:{A,B,C},circles:[{c:O,r:R}],polys:[{pts:'ABC'}]}));}
+  if(t===1){const x=randInt(5,13)*5,A=P(180),B=P(0),C=P(180-2*x),Dd=P(randInt(225,315));
+    return _gq(`如右圖，\\(\\overline{AB}\\) 為圓 \\(O\\) 的直徑，\\(C\\)、\\(D\\) 在圓上且位於 \\(\\overline{AB}\\) 的兩側。若 \\(\\angle ABC=${x}^\\circ\\)，求 \\(\\angle BDC\\)`,90-x,'\\(\\angle BDC\\)',
+      _cgeo({P:{O,A,B,C,D:Dd},circles:[{c:'O',r:R}],segs:['AB','AC','BC','DB','DC'],dots:['O'],ang:[['B','A','C',x+'°',1,30],['D','B','C','?',1,28]],lab:{O:[0,-10]}}));}
+  const x=randInt(5,12)*5,y=randInt(5,12)*5,w=(360-2*x-2*y)/2,b0=230,B=P(b0),C=P(b0+w),Dd=P(b0+w+2*y),A=P(b0+w+2*y+2*x);
+  return _gq(`如右圖，四邊形 \\(ABCD\\) 內接於圓，對角線為 \\(\\overline{BD}\\)。若 \\(\\angle ABD=${x}^\\circ\\)、\\(\\angle DBC=${y}^\\circ\\)，求 \\(\\angle ADC\\)`,180-x-y,'\\(\\angle ADC\\)',
+    _cgeo({P:{A,B,C,D:Dd},circles:[{c:O,r:R}],polys:[{pts:'ABCD'}],segs:['BD'],ang:[['B','A','D',x+'°',1,40],['B','D','C',y+'°',2,40],['D','C','A','?',1,26]]}));
+}
+// 切線：圓心 O、半徑 r 像素、外點在右方水平距離 d 處
+const _tanG=(r,d,cx)=>{cx=cx||62;const O=[cx,90],P=[cx+d,90],th=Math.acos(r/d);return {O,P,A:[cx+r*Math.cos(th),90-r*Math.sin(th)],B:[cx+r*Math.cos(th),90+r*Math.sin(th)],C:[cx+r,90]};};
+function _figTangent2(lv){
+  const t=randInt(0,2);
+  if(lv==='basic'){
+    if(t===0){const [a,b,c]=pick(_TRI),s=Math.min(46/a,150/c),G=_tanG(a*s,c*s);
+      return _gq(`如右圖，\\(\\overline{PA}\\) 與圓 \\(O\\) 相切於 \\(A\\) 點。若圓 \\(O\\) 的半徑為 \\(${a}\\)、\\(\\overline{PA}=${b}\\)，求 \\(\\overline{OP}\\)`,c,'\\(\\overline{OP}\\)',
+        _Q().geo({P:{O:G.O,A:G.A,P:G.P},circles:[{c:'O',r:a*s}],segs:['OA','AP','OP'],right:[['A','O','P']],dots:['O'],lab:{O:[-14,4]},w:Math.ceil(G.P[0]+24),h:150,cc:[110,110]}));}
+    const x=randInt(4,12)*5,r=44,G=_tanG(r,r/Math.sin(x*Math.PI/180));if(G.P[0]>220)return null;
+    return _gq(`如右圖，\\(\\overline{PA}\\) 與圓 \\(O\\) 相切於 \\(A\\) 點。若 \\(\\angle APO=${x}^\\circ\\)，求 \\(\\angle AOP\\)`,90-x,'\\(\\angle AOP\\)',
+      _Q().geo({P:{O:G.O,A:G.A,P:G.P},circles:[{c:'O',r}],segs:['OA','AP','OP'],right:[['A','O','P']],dots:['O'],ang:[['P','A','O',x+'°',1,34],['O','A','P','?',1,24]],lab:{O:[-14,4]},w:Math.ceil(G.P[0]+24),h:150,cc:[110,110]}));}
+  if(lv==='medium'){
+    if(t===0){ // 三角形的內切圓：切線段
+      const x=randInt(2,9),y=randInt(2,9),z=randInt(2,9),a=y+z,b=z+x,c=x+y,Ax=(c*c+a*a-b*b)/(2*a),Ay=Math.sqrt(c*c-Ax*Ax);if(Ay<0.35*a)return null;
+      const Pm={A:[Ax,Ay],B:[0,0],C:[a,0]},s2=(a+b+c)/2,rr=a*Ay/2/s2,I=[(a*Ax+c*a)/(2*s2),(a*Ay)/(2*s2)],u=(p,q,d)=>{const L=Math.hypot(q[0]-p[0],q[1]-p[1]);return [p[0]+(q[0]-p[0])*d/L,p[1]+(q[1]-p[1])*d/L];};
+      Pm.D=[y,0];Pm.E=u(Pm.C,Pm.A,z);Pm.F=u(Pm.A,Pm.B,x);Pm.I=I;const {P,s}=_jfit(Pm,220,176);
+      return _gq(`如右圖，圓 \\(I\\) 為 \\(\\triangle ABC\\) 的內切圓，分別與 \\(\\overline{BC}\\)、\\(\\overline{CA}\\)、\\(\\overline{AB}\\) 相切於 \\(D\\)、\\(E\\)、\\(F\\)。若 \\(\\overline{AB}=${c}\\)、\\(\\overline{BC}=${a}\\)、\\(\\overline{CA}=${b}\\)，求 \\(\\overline{AF}\\)`,x,'\\(\\overline{AF}\\)',
+        _Q().geo({P,polys:[{pts:'ABC'}],circles:[{c:'I',r:rr*s}],dots:['I','D','E','F'],w:220,h:176}));}
+    if(t===1){ // 圓外切四邊形
+      const tl=[randInt(2,8),randInt(2,8),randInt(2,8),randInt(2,8)];let lo=0.01,hi=500;for(let i=0;i<80;i++){const m=(lo+hi)/2;if(tl.reduce((S,v)=>S+Math.atan(m/v),0)<Math.PI)lo=m;else hi=m;}
+      const rho=lo,al=tl.map(v=>Math.atan(rho/v));if(al.some(v=>v>1.0||v<0.55))return null;let th=Math.PI*1.25;const Pm={};
+      'ABCD'.split('').forEach((k,i)=>{const c=Math.PI-2*al[i],d=th-c/2,L=Math.hypot(rho,tl[i]);Pm[k]=[L*Math.cos(d),L*Math.sin(d)];th-=c;});Pm.O=[0,0];
+      const {P,s}=_jfit(Pm,210,176),[p,q,r,w]=tl;
+      return _gq(`如右圖，四邊形 \\(ABCD\\) 的四個邊都與圓 \\(O\\) 相切。若 \\(\\overline{AB}=${p+q}\\)、\\(\\overline{BC}=${q+r}\\)、\\(\\overline{CD}=${r+w}\\)，求 \\(\\overline{DA}\\)`,w+p,'\\(\\overline{DA}\\)',
+        _Q().geo({P,polys:[{pts:'ABCD'}],circles:[{c:'O',r:rho*s}],dots:['O'],lab:{O:[-10,-6]},w:210,h:176}));}
+    const x=randInt(6,16)*5,P=_cP2,A=P(270),B=P(270+2*x),C=P(90+x),T=[A[0]+62,A[1]],S=[A[0]-62,A[1]];
+    return _gq(`如右圖，直線 \\(ST\\) 與圓相切於 \\(A\\) 點，\\(B\\)、\\(C\\) 在圓上。若 \\(\\angle TAB=${x}^\\circ\\)，求 \\(\\angle ACB\\)（弦切角，補充教材）`,x,'\\(\\angle ACB\\)',
+      _cgeo({P:{A,B,C,S,T},circles:[{c:_cO2,r:_cR2}],segs:['ST','AB','CA','CB'],ang:[['A','T','B',x+'°',1,32],['C','A','B','?',1,28]],lab:{A:[0,16]},h:184}));}
+  if(t===0){ // 切線與過圓心的割線：求半徑（可為分數）
+    const m=randInt(1,8),tt=randInt(m+1,15),rv=(tt*tt-m*m)/(2*m),s=Math.min(50/rv,150/(rv+m));if(rv*s<20||m<0.35*rv)return null;const G=_tanG(rv*s,(rv+m)*s);
+    return _gq(`如右圖，\\(\\overline{PA}\\) 與圓 \\(O\\) 相切於 \\(A\\) 點，\\(\\overline{PO}\\) 與圓交於 \\(C\\) 點。若 \\(\\overline{PA}=${tt}\\)、\\(\\overline{PC}=${m}\\)，求圓 \\(O\\) 的半徑`,frac(tt*tt-m*m,2*m),'半徑',
+      _Q().geo({P:{O:G.O,A:G.A,P:G.P,C:G.C},circles:[{c:'O',r:rv*s}],segs:['OA','AP','OP'],right:[['A','O','P']],dots:['O','C'],lab:{O:[-14,4],C:[8,16]},w:Math.ceil(G.P[0]+24),h:Math.max(150,Math.ceil(90+rv*s+20)),cc:[110,110]}),'fraction');}
+  if(t===1){const [a,b,c]=pick(_TRI),rr=(a+b-c)/2,{P,s}=_jfit({C:[0,0],B:[a,0],A:[0,b],I:[rr,rr]},200,176);
+    return _gq(`如右圖，直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，\\(\\overline{BC}=${a}\\)、\\(\\overline{AC}=${b}\\)，圓 \\(I\\) 為 \\(\\triangle ABC\\) 的內切圓，求圓 \\(I\\) 的半徑`,rr,'半徑',
+      _Q().geo({P,polys:[{pts:'ABC'}],circles:[{c:'I',r:rr*s}],right:[['C','B','A']],dots:['I'],w:200,h:176}));}
+  const p=randInt(8,16)*5,r=40,G=_tanG(r,r/Math.sin(p/2*Math.PI/180));if(G.P[0]>210)return null;const tt=randInt(4,15),f=(Q,X)=>{const k=(G.P[0]-X)/(G.P[0]-Q[0]);return [G.P[0]+(Q[0]-G.P[0])*k,G.P[1]+(Q[1]-G.P[1])*k];},D=f(G.A,G.C[0]),E=f(G.B,G.C[0]);
+  return _gq(`如右圖，\\(\\overline{PA}\\)、\\(\\overline{PB}\\) 分別與圓 \\(O\\) 相切於 \\(A\\)、\\(B\\)，過劣弧 \\(AB\\) 上的一點 \\(C\\) 作圓的切線，分別交 \\(\\overline{PA}\\)、\\(\\overline{PB}\\) 於 \\(D\\)、\\(E\\)。若 \\(\\overline{PA}=${tt}\\)，求 \\(\\triangle PDE\\) 的周長`,2*tt,'周長',
+    _Q().geo({P:{O:G.O,A:G.A,B:G.B,P:G.P,C:G.C,D,E},circles:[{c:'O',r}],segs:['PA','PB','DE'],dots:['O','C'],lab:{O:[-14,4],P:[12,4],C:[-8,4],D:[4,-10],E:[4,18]},w:Math.ceil(G.P[0]+26),h:180,cc:[100,90]}));
+}
+function _figCircInOut2(lv){
+  const O=_cO2,R=_cR2,P=_cP2;
+  if(lv!=='hard'){const x=randInt(5,14)*10,y=randInt(3,12)*10;if(x+y>260)return null;
+    const a0=90+x/2,A=P(a0),B=P(a0-x),gap=(360-x-y)/2,C=P(a0-x-gap),Dd=P(a0-x-gap-y),z=(x+y)/2;
+    const d=(A[0]-C[0])*(B[1]-Dd[1])-(A[1]-C[1])*(B[0]-Dd[0]),pa=A[0]*C[1]-A[1]*C[0],pb=B[0]*Dd[1]-B[1]*Dd[0],E=[(pa*(B[0]-Dd[0])-(A[0]-C[0])*pb)/d,(pa*(B[1]-Dd[1])-(A[1]-C[1])*pb)/d];
+    return _gq(`如右圖，圓上的弦 \\(\\overline{AC}\\)、\\(\\overline{BD}\\) 交於 \\(E\\)。若 \\(\\angle AEB=${z}^\\circ\\)、\\(\\overset{\\frown}{AB}=${x}^\\circ\\)（不含 \\(C\\)、\\(D\\) 的弧），求 \\(\\overset{\\frown}{CD}\\)（不含 \\(A\\)、\\(B\\) 的弧）的度數`,y,'\\(\\overset{\\frown}{CD}\\)',
+      _cgeo({P:{A,B,C,D:Dd,E},circles:[{c:O,r:R}],segs:['AC','BD'],ang:[['E','A','B',z+'°',1,24]],text:[[_cp(100,92,R+14,a0-x/2),x+'°',{fs:12}],[_cp(100,92,R+14,a0-x-gap-y/2),'?',{fs:12}]],w:206,h:196}));}
+  const x=randInt(10,14)*10,p=180-x,r=44,G=_tanG(r,r/Math.sin(p/2*Math.PI/180));if(G.P[0]>212)return null;
+  return _gq(`如右圖，\\(\\overline{PA}\\)、\\(\\overline{PB}\\) 分別與圓 \\(O\\) 相切於 \\(A\\)、\\(B\\)。若劣弧 \\(AB\\) 為 \\(${x}^\\circ\\)，求 \\(\\angle APB\\)`,p,'\\(\\angle APB\\)',
+    _Q().geo({P:{O:G.O,A:G.A,B:G.B,P:G.P},circles:[{c:'O',r}],segs:['PA','PB'],dots:['O'],ang:[['P','A','B','?',1,28]],text:[[[G.C[0]-8,G.C[1]+4],x+'°',{fs:12,a:'end'}]],lab:{O:[-14,4],P:[12,4]},w:Math.ceil(G.P[0]+26),h:180,cc:[100,90]}));
+}
+function _figArc2(lv){
+  const AF=window.ARC_FIG&&window.ARC_FIG.quiz;if(!AF)return null;const t=randInt(0,1);
+  if(lv==='basic'){const r=randInt(2,12),th=pick([30,40,45,60,72,80,90,100,120,135,150,160]),L=frac(2*r*th,360);
+    return _gq(`如右圖，扇形 \\(OAB\\) 的半徑為 \\(${r}\\)，弧長為 \\(${L.num===1&&L.den===1?'':fracToLatex(L)}\\pi\\)，求圓心角 \\(\\angle AOB\\) 的度數`,th,'\\(\\angle AOB\\)',AF.sector(r,th).replace(`>${th}°<`,'>?<'));}
+  if(lv==='medium'){const r=randInt(2,8),w=randInt(1,6),Rb=r+w,th=pick([60,72,90,120,135,150,180]);
+    return _piQ(`如右圖，扇形 \\(OBC\\) 挖去扇形 \\(OAD\\)，\\(\\overline{OA}=${r}\\)、\\(\\overline{AB}=${w}\\)，\\(\\angle BOC=${th}^\\circ\\)，求灰色部分的面積`,frac((Rb*Rb-r*r)*th,360),'',AF.ring(r,w,th,r/Rb));}
+  const r=randInt(3,15),th=pick([60,72,90,108,120,144,150,180,200,216,240,270]);
+  if(t)return _gq(`如右圖，將扇形 \\(OAB\\) 的 \\(\\overline{OA}\\) 與 \\(\\overline{OB}\\) 黏合，圍成一個直圓錐的側面。若 \\(\\overline{OA}=${r}\\)、\\(\\angle AOB=${th}^\\circ\\)，求圓錐底面的半徑`,frac(r*th,360),'底面半徑',AF.sector(r,th),'fraction');
+  const L=frac(2*r*th,360),S=frac(r*r*th,360),pl=f=>(f.num===1&&f.den===1?'':fracToLatex(f))+'\\pi';
+  return _gq(`如右圖，扇形 \\(OAB\\) 的弧長為 \\(${pl(L)}\\)、面積為 \\(${pl(S)}\\)，求扇形的半徑`,r,'半徑',AF.sector('?',th));
+}
 // 九上・三角形的外心與內心
 function _figCenter(lv){
   const F=_Q(),a=randInt(10,16)*5,A=[96,18],B=[22,140],C=[188,140];
@@ -13065,10 +13188,10 @@ const JR_GENERATORS = {
   '9a-similar-poly':   _withFig(gen9aSimilarPoly,_figSim),
   '9a-similar-app':    _withFig(gen9aSimilarApp,_figSimApp),
   '9a-trig':           _withFig(gen9aTrig,_figTrig),
-  '9a-circle-line':    _withFig(gen9aCircleLine,_figCircLine,0.4),
-  '9a-circle-angle':   _withFig(gen9aCircleAngle,_figCircAng,0.4),
-  '9a-circle-chord-tan': _withFig(gen9aCircChorTan,_figTangent,0.4),
-  '9a-circle-inout': _withFig(gen9aCircInOut,_figCircInOut,0.4),
+  '9a-circle-line':    _withFig(gen9aCircleLine,_mixF(_figCircLine,_figCircLine2),0.6),
+  '9a-circle-angle':   _withFig(gen9aCircleAngle,_mixF(_figCircAng,_figCircAng2),0.6),
+  '9a-circle-chord-tan': _withFig(gen9aCircChorTan,_mixF(_figTangent,_figTangent2),0.6),
+  '9a-circle-inout': _withFig(gen9aCircInOut,_mixF(_figCircInOut,_figCircInOut2,0.5),0.6),
   '9a-tri-center':     _withFig(gen9aTriCenter,_figCenter),
   // 八下（梯形・箏形單獨出題）
   '8b-trap':           lv=>_jrTidy(gen8bTrapezoid(lv)),
@@ -13079,6 +13202,6 @@ const JR_GENERATORS = {
   '9b-quad-func':      _withFig(gen9bQuadFunc,_figQuad),
   '9b-stat':           lv=>_jrTidy(gen9bStat(lv)),
   '9b-prob':           _withFig(gen9bProb,_figProb),
-  '9a-arc':            lv=>_jrTidy(gen9aArc(lv)),
+  '9a-arc':            _withFig(gen9aArc,_figArc2,0.3),
   '9b-solid':          _withFig(gen9bSolid,_figSolid,0.4),
 };

@@ -2583,6 +2583,104 @@ n9b.push(HD(function () { // 壓軸非選：二次函數綜合
       `\\(C(0,${c})\\)。過 \\(P\\) 作 \\(x\\) 軸的垂線，垂足為 \\(H(${h},0)\\)。四邊形 \\(ACPB\\) 的面積 \\(=\\triangle AOC+\\) 梯形 \\(OCPH+\\triangle PHB=\\dfrac{1}{2}\\times ${-p}\\times ${c}+\\dfrac{1}{2}\\times(${c}+${k})\\times ${h}+\\dfrac{1}{2}\\times ${q - h}\\times ${k}=${num(area)}\\)。`], { lv: 4, fig });
 }));
 
+// ════ 九上・圓（進階、壓軸附圖題與非選題）════
+// 切線圖：圓心 O(cx,90)、半徑 r 像素、外點 P 在右方距離 d 處；A、B 為切點，C 為 OP 與圓的交點
+const tanE = (r, d, cx) => { cx = cx || 62; const th = Math.acos(r / d); return { O: [cx, 90], P: [cx + d, 90], A: [cx + r * Math.cos(th), 90 - r * Math.sin(th)], B: [cx + r * Math.cos(th), 90 + r * Math.sin(th)], C: [cx + r, 90] }; };
+const PQ = [[1, 4], [1, 9], [4, 9], [2, 8], [1, 16], [9, 16], [3, 12], [2, 18], [8, 18], [4, 16], [3, 27], [5, 20], [16, 25]];
+const r3 = c => `${co(c)}\\sqrt{3}`;
+g9a.push(
+  function () { // 進階：弓形高求半徑
+    const b = ri(2, 12), h = ri(1, b - 1), N = b * b + h * h, rv = N / (2 * h), cx = 100, cy = 86, Rr = 70, s = Rr / rv, M_ = [cx, cy + (rv - h) * s];
+    const fig = GF().geo({ P: { O: [cx, cy], A: [cx - b * s, M_[1]], B: [cx + b * s, M_[1]], C: [cx, cy + Rr], M: M_ }, cc: [cx, cy], circles: [{ c: 'O', r: Rr }], segs: ['AB', 'OC', 'OA'], right: [['M', 'O', 'B']], dots: ['O'], lab: { O: [-12, 0], M: [10, -6] }, w: 200, h: 172 });
+    return V_(MCv(`如右圖，圓 \\(O\\) 的弦 \\(\\overline{AB}=${2 * b}\\)，\\(C\\) 為劣弧 \\(AB\\) 的中點，\\(\\overline{OC}\\) 交 \\(\\overline{AB}\\) 於 \\(M\\)。若 \\(\\overline{CM}=${h}\\)，則圓 \\(O\\) 的半徑為何？`, frv(N, 2 * h),
+      [frv(N, h), frv(b * b - h * h, 2 * h), frv(N, 4 * h), frv(b + h, 1), frv(N, 2 * b), frv(4 * b * b + h * h, 2 * h)],
+      `設半徑為 \\(r\\)，則 \\(\\overline{OM}=r-${h}\\)、\\(\\overline{AM}=${b}\\)。在直角 \\(\\triangle OAM\\) 中，\\(r^{2}=${b}^{2}+(r-${h})^{2}\\)，\\(${2 * h}r=${N}\\)，\\(r=${fr(N, 2 * h)}\\)。`, { lv: 3, fig }), { b, h });
+  },
+  function () { // 壓軸：切線與過圓心的割線求半徑
+    for (let tr = 0; tr < 40; tr++) {
+      const m = ri(1, 8), t = ri(m + 1, 15), rv = (t * t - m * m) / (2 * m); if (m < 0.35 * rv) continue;
+      const s = Math.min(50 / rv, 150 / (rv + m)); if (rv * s < 22) continue; const G = tanE(rv * s, (rv + m) * s);
+      const fig = GF().geo({ P: G, hide: 'B', cc: [110, 110], circles: [{ c: 'O', r: rv * s }], segs: ['OA', 'AP', 'OP'], right: [['A', 'O', 'P']], dots: ['O', 'C'], lab: { O: [-12, 4], C: [8, 16] }, w: Math.ceil(G.P[0] + 24), h: Math.max(150, Math.ceil(90 + rv * s + 20)) });
+      return V_(MCv(`如右圖，\\(\\overline{PA}\\) 與圓 \\(O\\) 相切於 \\(A\\) 點，\\(\\overline{PO}\\) 與圓交於 \\(C\\) 點。若 \\(\\overline{PA}=${t}\\)、\\(\\overline{PC}=${m}\\)，則圓 \\(O\\) 的半徑為何？`, frv(t * t - m * m, 2 * m),
+        [frv(t * t - m * m, m), frv(t * t + m * m, 2 * m), frv(t * t, 2 * m), frv(t - m, 1), frv(t * t - m * m, 4 * m), frv(t + m, 2)],
+        `切線垂直半徑，\\(\\angle OAP=90^\\circ\\)。設半徑為 \\(r\\)，\\(\\overline{OP}=r+${m}\\)，\\(r^{2}+${t}^{2}=(r+${m})^{2}\\)，\\(${2 * m}r=${t * t - m * m}\\)，\\(r=${fr(t * t - m * m, 2 * m)}\\)。`, { lv: 4, fig }), { t, m });
+    }
+    return null;
+  },
+  function () { // 進階：三角形內切圓的切線段
+    const x = ri(2, 9), y = ri(2, 9), z = ri(2, 9), a = y + z, b = z + x, c = x + y, Ax = (c * c + a * a - b * b) / (2 * a), Ay = Math.sqrt(c * c - Ax * Ax); if (Ay < 0.35 * a) return null;
+    const s2 = (a + b + c) / 2, rr = a * Ay / 2 / s2, u = (p, q, d) => { const L = Math.hypot(q[0] - p[0], q[1] - p[1]); return [p[0] + (q[0] - p[0]) * d / L, p[1] + (q[1] - p[1]) * d / L]; };
+    const Pm = { A: [Ax, Ay], B: [0, 0], C: [a, 0], D: [y, 0] }; Pm.E = u(Pm.C, Pm.A, z); Pm.F = u(Pm.A, Pm.B, x); Pm.I = [(a * Ax + c * a) / (2 * s2), rr];
+    const P = fitP(Pm, 220, 176), sc = (P.C[0] - P.B[0]) / a;
+    const fig = GF().geo({ P, polys: [{ pts: 'ABC' }], circles: [{ c: 'I', r: rr * sc }], dots: ['I', 'D', 'E', 'F'], w: 220, h: 176 });
+    return V_(MC(`如右圖，圓 \\(I\\) 為 \\(\\triangle ABC\\) 的內切圓，分別與 \\(\\overline{BC}\\)、\\(\\overline{CA}\\)、\\(\\overline{AB}\\) 相切於 \\(D\\)、\\(E\\)、\\(F\\)。若 \\(\\overline{AB}=${c}\\)、\\(\\overline{BC}=${a}\\)、\\(\\overline{CA}=${b}\\)，則 \\(\\overline{AF}\\) 的長為何？`, x,
+      [y, z, s2, c / 2, b - x].filter(v => Number.isInteger(v) && v > 0 && v !== x),
+      `由圓外一點到圓的兩切線段等長，設 \\(\\overline{AF}=\\overline{AE}=p\\)、\\(\\overline{BF}=\\overline{BD}=q\\)、\\(\\overline{CD}=\\overline{CE}=w\\)。\\(p+q=${c}\\)、\\(q+w=${a}\\)、\\(w+p=${b}\\)，三式相加得 \\(p+q+w=${s2}\\)，所以 \\(\\overline{AF}=p=${s2}-${a}=${x}\\)。`, { lv: 3, pos: 1, fig }), { a, b, c });
+  },
+  function () { // 進階：圓外切四邊形
+    const tl = [ri(2, 8), ri(2, 8), ri(2, 8), ri(2, 8)]; let lo = 0.01, hi = 500; for (let i = 0; i < 80; i++) { const m = (lo + hi) / 2; if (tl.reduce((S, v) => S + Math.atan(m / v), 0) < Math.PI) lo = m; else hi = m; }
+    const rho = lo, al = tl.map(v => Math.atan(rho / v)); if (al.some(v => v > 1.0 || v < 0.55)) return null; let th = Math.PI * 1.25; const Pm = {};
+    'ABCD'.split('').forEach((k, i) => { const c = Math.PI - 2 * al[i], d = th - c / 2, L = Math.hypot(rho, tl[i]); Pm[k] = [L * Math.cos(d), L * Math.sin(d)]; th -= c; }); Pm.O = [0, 0];
+    const P = fitP(Pm, 210, 176), sc = Math.hypot(P.A[0] - P.B[0], P.A[1] - P.B[1]) / (tl[0] + tl[1]), [p, q, r, w] = tl, AB = p + q, BC = q + r, CD = r + w, ans = w + p;
+    const fig = GF().geo({ P, polys: [{ pts: 'ABCD' }], circles: [{ c: 'O', r: rho * sc }], dots: ['O'], lab: { O: [-10, -6] }, w: 210, h: 176 });
+    return V_(MC(`如右圖，四邊形 \\(ABCD\\) 的四個邊都與圓 \\(O\\) 相切。若 \\(\\overline{AB}=${AB}\\)、\\(\\overline{BC}=${BC}\\)、\\(\\overline{CD}=${CD}\\)，則 \\(\\overline{DA}\\) 的長為何？`, ans,
+      [AB + BC - CD, BC + CD - AB, AB + BC + CD - 2 * ans, BC].filter(v => v > 0 && v !== ans),
+      `由切線段等長，\\(\\overline{AB}+\\overline{CD}=\\overline{BC}+\\overline{DA}\\)（每一邊都由兩段切線段組成，兩組對邊各用到四個頂點的切線段各一次）。\\(\\overline{DA}=${AB}+${CD}-${BC}=${ans}\\)。`, { lv: 3, pos: 1, fig }), { AB, BC, CD });
+  },
+  function () { // 進階：兩切線與第三條切線圍成的三角形周長
+    const p = ri(8, 16) * 5, r = 40, G = tanE(r, r / Math.sin(p / 2 * Math.PI / 180)); if (G.P[0] > 210) return null; const t = ri(4, 15);
+    const f = Q => { const k = (G.P[0] - G.C[0]) / (G.P[0] - Q[0]); return [G.P[0] + (Q[0] - G.P[0]) * k, G.P[1] + (Q[1] - G.P[1]) * k]; };
+    const fig = GF().geo({ P: Object.assign({}, G, { D: f(G.A), E: f(G.B) }), cc: [100, 90], circles: [{ c: 'O', r }], segs: ['PA', 'PB', 'DE'], dots: ['O', 'C'], lab: { O: [-12, 4], P: [12, 4], C: [-8, 4], D: [4, -10], E: [4, 18] }, w: Math.ceil(G.P[0] + 26), h: 180 });
+    return V_(MC(`如右圖，\\(\\overline{PA}\\)、\\(\\overline{PB}\\) 分別與圓 \\(O\\) 相切於 \\(A\\)、\\(B\\)，過劣弧 \\(AB\\) 上的一點 \\(C\\) 作圓的切線，分別交 \\(\\overline{PA}\\)、\\(\\overline{PB}\\) 於 \\(D\\)、\\(E\\)。若 \\(\\overline{PA}=${t}\\)，則 \\(\\triangle PDE\\) 的周長為何？`, 2 * t,
+      [t, 3 * t, 4 * t, 2 * t - 2, t + 2].filter(v => v > 0 && v !== 2 * t),
+      `由切線段等長，\\(\\overline{DC}=\\overline{DA}\\)、\\(\\overline{EC}=\\overline{EB}\\)、\\(\\overline{PA}=\\overline{PB}\\)。周長 \\(=\\overline{PD}+\\overline{DC}+\\overline{CE}+\\overline{EP}=\\overline{PD}+\\overline{DA}+\\overline{EB}+\\overline{EP}=\\overline{PA}+\\overline{PB}=${2 * t}\\)。`, { lv: 3, pos: 1, fig }), { t });
+  },
+  function () { // 壓軸：直徑垂直弦，由兩段求弦長
+    const [m, n] = shuf(pk(PQ)), rv = (m + n) / 2, cx = 100, cy = 86, Rr = 70, s = Rr / rv, My = cy - Rr + m * s, hw = Math.sqrt(m * n) * s, ans = 2 * Math.sqrt(m * n);
+    const fig = GF().geo({ P: { O: [cx, cy], A: [cx - hw, My], B: [cx + hw, My], C: [cx, cy - Rr], D: [cx, cy + Rr], M: [cx, My] }, cc: [cx, cy], circles: [{ c: 'O', r: Rr }], segs: ['AB', 'CD', 'OA'], right: [['M', 'O', 'B']], dots: ['O'], lab: { O: [-12, 4], M: [10, -6] }, w: 200, h: 172 });
+    return V_(MC(`如右圖，圓 \\(O\\) 的直徑 \\(\\overline{CD}\\) 垂直弦 \\(\\overline{AB}\\) 於 \\(M\\) 點。若 \\(\\overline{CM}=${m}\\)、\\(\\overline{MD}=${n}\\)，則弦 \\(\\overline{AB}\\) 的長為何？`, ans,
+      [ans / 2, m + n, Math.abs(m - n), 2 * Math.abs(m - n), (m + n) / 2].filter(v => Number.isInteger(v) && v > 0 && v !== ans),
+      `半徑 \\(=\\dfrac{${m}+${n}}{2}=${num(rv)}\\)，\\(\\overline{OM}=|${num(rv)}-${m}|=${num(Math.abs(rv - m))}\\)。\\(\\overline{AM}=\\sqrt{${num(rv)}^{2}-${num(Math.abs(rv - m))}^{2}}=${ans / 2}\\)，弦 \\(\\overline{AB}=2\\overline{AM}=${ans}\\)。`, { lv: 4, pos: 1, fig }), { m, n });
+  },
+);
+n9a.push(
+  function () { // 兩切線：OP＝2r
+    const r = ri(2, 9), G = tanE(46, 92);
+    const fig = GF().geo({ P: G, hide: 'C', cc: [100, 90], circles: [{ c: 'O', r: 46 }], segs: ['PA', 'PB', 'OA', 'OB', 'OP'], right: [['A', 'O', 'P'], ['B', 'O', 'P']], dots: ['O'], lab: { O: [-12, 4], P: [12, 4] }, w: Math.ceil(G.P[0] + 26), h: 180 });
+    return NC(`如右圖，\\(\\overline{PA}\\)、\\(\\overline{PB}\\) 分別與圓 \\(O\\) 相切於 \\(A\\)、\\(B\\) 兩點。已知圓 \\(O\\) 的半徑為 \\(${r}\\)，\\(\\overline{OP}=${2 * r}\\)。`,
+      [`求切線段 \\(\\overline{PA}\\) 的長。`, `求 \\(\\angle APB\\) 的度數，並說明理由。`, `求四邊形 \\(OAPB\\) 的面積。`],
+      [`切線垂直半徑，\\(\\angle OAP=90^\\circ\\)，\\(\\overline{PA}=\\sqrt{${2 * r}^{2}-${r}^{2}}=\\sqrt{${3 * r * r}}=${r3(r)}\\)。`,
+        `直角 \\(\\triangle OAP\\) 中，\\(\\overline{OA}=\\dfrac{1}{2}\\overline{OP}\\)，所以 \\(\\triangle OAP\\) 是 \\(30^\\circ\\)－\\(60^\\circ\\)－\\(90^\\circ\\) 的三角形，\\(\\angle APO=30^\\circ\\)。同理 \\(\\angle BPO=30^\\circ\\)，\\(\\angle APB=60^\\circ\\)。`,
+        `四邊形 \\(OAPB=\\triangle OAP+\\triangle OBP=2\\times\\dfrac{1}{2}\\times ${r}\\times ${r3(r)}=${r3(r * r)}\\)。`], { fig });
+  },
+  function () { // 直角三角形的內切圓：求半徑與灰色面積
+    const [a, b, c] = pk(TRI3), rr = (a + b - c) / 2, P = fitP({ C: [0, 0], B: [a, 0], A: [0, b], I: [rr, rr] }, 200, 176), sc = (P.B[0] - P.C[0]) / a;
+    const fig = GF().geo({ P, polys: [{ pts: 'ABC', f: 1 }], circles: [{ c: 'I', r: rr * sc, f: 0 }], right: [['C', 'B', 'A']], dots: ['I'], w: 200, h: 176 }).replace(/(<circle [^>]*fill=")none("[^>]*\/>)(?![\s\S]*<circle [^>]*fill="none")/, '$1#fff$2');
+    return NC(`如右圖，直角 \\(\\triangle ABC\\) 中，\\(\\angle C=90^\\circ\\)，\\(\\overline{BC}=${a}\\)、\\(\\overline{AC}=${b}\\)，圓 \\(I\\) 為 \\(\\triangle ABC\\) 的內切圓。`,
+      [`求 \\(\\overline{AB}\\) 的長。`, `求圓 \\(I\\) 的半徑。`, `求灰色部分（三角形內、圓外）的面積。`],
+      [`\\(\\overline{AB}=\\sqrt{${a}^{2}+${b}^{2}}=${c}\\)。`, `設半徑為 \\(r\\)，由切線段等長，\\((${a}-r)+(${b}-r)=${c}\\)，\\(r=${rr}\\)。`,
+        `\\(\\dfrac{1}{2}\\times ${a}\\times ${b}-\\pi\\times ${rr}^{2}=${a * b / 2}-${piL(rr * rr, 1)}\\)。`], { fig });
+  },
+  function () { // 直徑與圓內接四邊形
+    const x = ri(4, 13) * 5, cx = 100, cy = 88, Rr = 70, Pt = d => cpE(cx, cy, Rr, d), A = Pt(180), B = Pt(0), C = Pt(2 * x), D = Pt(ri(220, 320));
+    const fig = GF().geo({ P: { O: [cx, cy], A, B, C, D }, cc: [cx, cy], circles: [{ c: 'O', r: Rr }], polys: [{ pts: 'ACBD' }], segs: ['AB', 'CD'], dots: ['O'], ang: [['A', 'B', 'C', x + '°', 1, 34]], lab: { O: [0, -10] }, w: 200, h: 176 });
+    return NC(`如右圖，\\(\\overline{AB}\\) 為圓 \\(O\\) 的直徑，\\(C\\)、\\(D\\) 兩點在圓上且分別位於 \\(\\overline{AB}\\) 的兩側，\\(\\angle CAB=${x}^\\circ\\)。`,
+      [`求 \\(\\angle ACB\\) 的度數，並說明理由。`, `求 \\(\\angle ABC\\) 的度數。`, `求 \\(\\angle ADC\\) 與 \\(\\angle CDB\\) 的度數。`],
+      [`\\(\\overline{AB}\\) 為直徑，所對的圓心角為 \\(180^\\circ\\)，所以圓周角 \\(\\angle ACB=90^\\circ\\)。`, `\\(\\angle ABC=180^\\circ-90^\\circ-${x}^\\circ=${90 - x}^\\circ\\)。`,
+        `\\(\\angle ADC\\) 與 \\(\\angle ABC\\) 都是 \\(${arcL('AC')}\\) 所對的圓周角，\\(\\angle ADC=${90 - x}^\\circ\\)；\\(\\angle CDB\\) 與 \\(\\angle CAB\\) 都是 \\(${arcL('BC')}\\) 所對的圓周角，\\(\\angle CDB=${x}^\\circ\\)。`], { fig });
+  },
+  HD(function () { // 壓軸非選：弓形面積
+    const r = ri(2, 10), cx = 100, cy = 80, Rr = 66, A = cpE(cx, cy, Rr, 210), B = cpE(cx, cy, Rr, 330), M_ = [cx, A[1]];
+    const fig = GF().geo({ P: { O: [cx, cy], A, B, M: M_ }, cc: [cx, cy], circles: [{ c: 'O', r: Rr }], segs: ['OA', 'OB', 'AB', 'OM'], right: [['M', 'O', 'B']], dots: ['O'], ang: [['O', 'A', 'B', '', 1]], lab: { O: [0, -10], M: [0, 16] }, w: 200, h: 162 });
+    const tri = r % 2 ? `\\dfrac{${r * r}\\sqrt{3}}{4}` : r3(r * r / 4);
+    return NC(`如右圖，圓 \\(O\\) 的半徑為 \\(${r}\\)，弦 \\(\\overline{AB}\\) 所對的圓心角 \\(\\angle AOB=120^\\circ\\)，\\(\\overline{OM}\\perp\\overline{AB}\\) 於 \\(M\\) 點。`,
+      [`求 \\(\\overline{OM}\\) 的長。`, `求弦 \\(\\overline{AB}\\) 的長。`, `求弦 \\(\\overline{AB}\\) 與劣弧 \\(AB\\) 所圍成的弓形面積。`],
+      [`\\(\\triangle OAB\\) 為等腰三角形，\\(\\overline{OM}\\) 平分 \\(\\angle AOB\\)，\\(\\angle AOM=60^\\circ\\)、\\(\\angle OAM=30^\\circ\\)，所以 \\(\\overline{OM}=\\dfrac{1}{2}\\overline{OA}=${fr(r, 2)}\\)。`,
+        `\\(\\overline{AM}=\\sqrt{${r}^{2}-(${fr(r, 2)})^{2}}=${r % 2 ? `\\dfrac{${r}\\sqrt{3}}{2}` : r3(r / 2)}\\)，\\(\\overline{AB}=2\\overline{AM}=${r3(r)}\\)。`,
+        `扇形 \\(OAB\\) 的面積 \\(=\\pi\\times ${r}^{2}\\times\\dfrac{120}{360}=${piL(r * r, 3)}\\)，\\(\\triangle OAB\\) 的面積 \\(=\\dfrac{1}{2}\\times ${r3(r)}\\times ${fr(r, 2)}=${tri}\\)。弓形面積 \\(=${piL(r * r, 3)}-${tri}\\)。`], { lv: 4, fig });
+  }),
+);
+
 window.EXAM_BANK = {
   '7a': { name: '七上', mc: g7a, nc: n7a },
   '7b': { name: '七下', mc: g7b, nc: n7b },
